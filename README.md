@@ -1,2 +1,2 @@
 # CamStreamerLib
-Node.js helper library for CamStreamer acap applications.
+Node.js helper library for CamStreamer ACAP applications.
