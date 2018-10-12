@@ -80,7 +80,6 @@ RtspClient.prototype.closeConnection = function(reason) {
   clearInterval(this.keepAliveTimer);
   this.clientGet.destroy();
   this.clientPost.destroy();
-
 }
 
 RtspClient.prototype.processGetMessage = function(data) {
@@ -97,6 +96,11 @@ RtspClient.prototype.processGetMessage = function(data) {
       if (msg.statusLine.indexOf('200 OK') != -1) {
         this.state = 'RTSP_OPTION';
         this.sendRtspMessage(this.getRtspMessage());
+      } else if (msg.statusLine.indexOf('401') != -1 && !this.authorizationSent) {
+        this.authorizationSent = true;
+        this.authorizationType = 'digest';
+        this.wwwAuthenticateHeader = msg.headers['www-authenticate'];
+        this.clientGet.write(this.getInitializationMessageGet());
       } else {
         this.closeConnection(msg.statusLine);
       }
@@ -195,7 +199,6 @@ RtspClient.prototype.parseRtspMessage = function() {
   const regex = /([\w-]+): (.*)/g;
   var tmp;
   while (tmp = regex.exec(msgHeaders)) {
-
     headers[tmp[1].toLowerCase()] = tmp[2];
   }
 
@@ -245,6 +248,7 @@ RtspClient.prototype.getInitializationMessageGet = function() {
     'x-sessioncookie: ' + this.sessioncookie + '\r\n' +
     'Accept: application/x-rtsp-tunnelled\r\n' +
     'Pragma: no-cache\r\n' +
+    'Authorization: ' + this.getAuthHeader('GET', '/axis-media/media.amp') + '\r\n' +
     'Cache-Control: no-cache\r\n\r\n';
   return data;
 }
@@ -258,6 +262,7 @@ RtspClient.prototype.getInitializationMessagePost = function() {
     'Content-Type: application/x-rtsp-tunnelled\r\n' +
     'Pragma: no-cache\r\n' +
     'Cache-Control: no-cache\r\n' +
+    'Authorization: ' + this.getAuthHeader('POST', '/axis-media/media.amp') + '\r\n' +
     'Content-Length: 32767\r\n\r\n';
   return data;
 }
@@ -269,27 +274,27 @@ RtspClient.prototype.getRtspMessage = function() {
       return 'OPTIONS ' + this.rtspPath + ' RTSP/1.0\r\n' +
         'CSeq: ' + this.rtspCSeq + '\r\n' +
         'User-Agent: Camstreamer RTSP Client\r\n' +
-        'Authorization: ' + this.getAuthHeader('OPTIONS') + '\r\n\r\n';
+        'Authorization: ' + this.getAuthHeader('OPTIONS', this.rtspPath) + '\r\n\r\n';
     }
     case 'RTSP_DESCRIBE': {
       return 'DESCRIBE ' + this.rtspPath + ' RTSP/1.0\r\n' +
         'CSeq: ' + this.rtspCSeq + '\r\n' +
         'User-Agent: Camstreamer RTSP Client\r\n' +
-        'Authorization: ' + this.getAuthHeader('DESCRIBE') + '\r\n' +
+        'Authorization: ' + this.getAuthHeader('DESCRIBE', this.rtspPath) + '\r\n' +
         'Accept: application/sdp\r\n\r\n';
     }
     case 'RTSP_SETUP': {
       return 'SETUP ' + this.control + ' RTSP/1.0\r\n' +
         'CSeq: ' + this.rtspCSeq + '\r\n' +
         'User-Agent: Camstreamer RTSP Client\r\n' +
-        'Authorization: ' + this.getAuthHeader('SETUP') + '\r\n' +
+        'Authorization: ' + this.getAuthHeader('SETUP', this.rtspPath) + '\r\n' +
         'Transport: RTP/AVP/TCP;unicast;interleaved=0-1\r\n\r\n';
     }
     case 'RTSP_PLAY': {
       return 'PLAY ' + this.rtspPath + ' RTSP/1.0\r\n' +
         'CSeq: ' + this.rtspCSeq + '\r\n' +
         'User-Agent: Camstreamer RTSP Client\r\n' +
-        'Authorization: ' + this.getAuthHeader('PLAY') + '\r\n' +
+        'Authorization: ' + this.getAuthHeader('PLAY', this.rtspPath) + '\r\n' +
         'Session: ' + this.session + '\r\n' +
         'Range: npt=0.000-\r\n\r\n'
     }
@@ -297,22 +302,23 @@ RtspClient.prototype.getRtspMessage = function() {
       return 'GET_PARAMETER ' + this.rtspPath + ' RTSP/1.0\r\n' +
         'CSeq: ' + this.rtspCSeq + '\r\n' +
         'User-Agent: Camstreamer RTSP Client\r\n' +
-        'Authorization: ' + this.getAuthHeader('GET_PARAMETER') + '\r\n' +
+        'Authorization: ' + this.getAuthHeader('GET_PARAMETER', this.rtspPath) + '\r\n' +
         'Session: ' + this.session + '\r\n\r\n';
     }
   }
 }
 
-RtspClient.prototype.getAuthHeader = function(method) {
+RtspClient.prototype.getAuthHeader = function(method, path) {
   if (this.authorizationType == 'basic') {
     return 'Basic ' + Buffer.from(this.auth).toString('base64');
   } else {
     var userPass = this.auth.split(':');
-    return Digest.getAuthHeader(userPass[0], userPass[1], this.state.substring(5), this.rtspPath, this.wwwAuthenticateHeader);
+    return Digest.getAuthHeader(userPass[0], userPass[1], method, path, this.wwwAuthenticateHeader);
   }
 }
 
 RtspClient.prototype.sendRtspMessage = function(message) {
+  //console.log(message);
   var msgBase64 = Buffer.from(message).toString('base64');
   this.clientPost.write(msgBase64);
 }
