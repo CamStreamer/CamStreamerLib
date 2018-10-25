@@ -169,14 +169,14 @@ CamOverlayAPI.prototype.openWebsocket = function(digestHeader)
   return promise;
 }
 
-CamOverlayAPI.prototype.cairo = function(command)
+CamOverlayAPI.prototype.cairo = function(command, ...params)
 {
-  return this.sendMessage({'command': command, 'params': argsToArr(arguments, 1)});
+  return this.sendMessage({'command': command, 'params': params});
 }
 
-CamOverlayAPI.prototype.writeText = function()
+CamOverlayAPI.prototype.writeText = function(...params)
 {
-  return this.sendMessage({'command': 'write_text', 'params': argsToArr(arguments)});
+  return this.sendMessage({'command': 'write_text', 'params': params});
 }
 
 CamOverlayAPI.prototype.uploadImageData = function(imgBuffer)
@@ -202,9 +202,13 @@ CamOverlayAPI.prototype.showCairoImageAbsolute = function(cairoImage, posX, posY
 CamOverlayAPI.prototype.sendMessage = function(msgJson)
 {
   var promise = new Promise(function(resolve, reject) {
-    this.sendMessages[this.callId] = {'resolve': resolve, 'reject': reject};
-    msgJson['call_id'] = this.callId++;
-    this.ws.send(JSON.stringify(msgJson));
+    try {
+      this.sendMessages[this.callId] = {'resolve': resolve, 'reject': reject};
+      msgJson['call_id'] = this.callId++;
+      this.ws.send(JSON.stringify(msgJson));
+    } catch (err) {
+      this.reportErr('Send message error: ' + err);
+    }
   }.bind(this));
   return promise;
 }
@@ -222,16 +226,6 @@ CamOverlayAPI.prototype.reportErr = function(err) {
 
 CamOverlayAPI.prototype.reportClose = function() {
   this.emit('close');
-}
-
-
-function argsToArr(argsIn, start) {
-    var from = start || 0;
-    var args = new Array(argsIn.length - from);
-    for(var i = 0; i < args.length; ++i) {
-        args[i] = argsIn[i + from];
-    }
-    return args;
 }
 
 module.exports = CamOverlayAPI;
