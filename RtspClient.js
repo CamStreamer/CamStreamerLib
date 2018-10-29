@@ -176,12 +176,12 @@ RtspClient.prototype.processGetMessage = function(data) {
       if (msg.channel == 0) {
         this.rtpMsgBuffer += msg.body.toString();
         while (true) {
-          var msgEnd = this.rtpMsgBuffer.indexOf('?>');
+          var msgEnd = this.rtpMsgBuffer.indexOf('</tt:MetadataStream>');
           if (msgEnd == -1) {
             break;
           }
-          this.emit('event', this.rtpMsgBuffer.substring(0, msgEnd + 2));
-          this.rtpMsgBuffer = this.rtpMsgBuffer.substring(msgEnd + 2);
+          this.emit('event', this.rtpMsgBuffer.substring(0, msgEnd + 20));
+          this.rtpMsgBuffer = this.rtpMsgBuffer.substring(msgEnd + 20);
         }
       }
     }

@@ -1,4 +1,6 @@
 const util = require('util');
+const WebSocket = require('ws')
+const EventEmitter = require('eventemitter2');
 
 const httpRequest = require('./HTTPRequest');
 
@@ -10,6 +12,52 @@ function CamSwitcherAPI(options) {
     this.ip = options['ip'] || this.ip;
     this.port = options['port'] || 80;
     this.auth = options['auth'] || this.auth;
+  }
+
+  EventEmitter.call(this);
+}
+
+util.inherits(CamSwitcherAPI, EventEmitter);
+
+CamSwitcherAPI.prototype.connect = function() {
+  // Websocket notifications
+  var eventNames = this.eventNames();
+  if (eventNames.length) {
+    this.ws = new WebSocket('ws://' + this.auth + '@' + this.ip + ':' + this.port + '/local/camswitcher/notifications', 'notifications');
+    this.pingTimer = null;
+
+    this.ws.on('open', function() {
+      this.ws.isAlive = true;
+      this.pingTimer = setInterval(function() {
+        if (this.ws.isAlive === false) {
+          return this.ws.terminate();
+        }
+        this.ws.isAlive = false;
+        this.ws.ping();
+      }.bind(this), 30000);
+    }.bind(this));
+
+    this.ws.on('pong', function() {
+      this.ws.isAlive = true;
+    }.bind(this));
+
+    this.ws.on('message', function(data) {
+      try {
+        data = JSON.parse(data);
+        this.emit('notification', data);
+      } catch(err) {
+        console.log(err);
+      }
+    }.bind(this));
+
+    this.ws.on('close', function() {
+      clearInterval(this.pingTimer);
+      this.emit('notifications_close');
+    }.bind(this));
+
+    this.ws.on('error', function(err) {
+      this.emit('notifications_error', err);
+    }.bind(this));
   }
 }
 
@@ -46,6 +94,11 @@ CamSwitcherAPI.prototype.getClipList = function() {
   return this.get('/local/camswitcher/api/clip_list.cgi');
 }
 
+CamSwitcherAPI.prototype.play = function(sourceName, outputName) {
+  outputName = outputName || 'output0';
+  return this.get('/local/camswitcher/output_play.cgi?output_name=' + outputName);
+}
+
 CamSwitcherAPI.prototype.liveSourceSwitch = function(sourceName, outputName) {
   outputName = outputName || 'output0';
   return this.get('/local/camswitcher/live_source_switch.cgi?output_name=' + outputName + '&source_name=' + sourceName);
@@ -58,7 +111,7 @@ CamSwitcherAPI.prototype.clipQueueList = function(outputName) {
 
 CamSwitcherAPI.prototype.clipQueuePush = function(clipName, outputName, loop) {
   outputName = outputName || 'output0';
-  loop = loop || 1;
+  loop = loop != undefined ? loop : 1;
   return this.get('/local/camswitcher/clip_queue_push.cgi?output_name=' + outputName + '&clip_name=' + clipName + '&loop=' + loop);
 }
 
