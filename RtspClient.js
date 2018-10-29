@@ -139,6 +139,7 @@ RtspClient.prototype.processGetMessage = function(data) {
         return;
       }
 
+      this.authorizationSent = false; // Authorization expires for digest method
       switch (this.state) {
         case 'RTSP_OPTION': {
           this.state = 'RTSP_DESCRIBE';
