@@ -67,13 +67,11 @@ CamSwitcherAPI.prototype.getSourceList = function(outputName) {
     var options = this.getBaseConnectionParams();
     options['path'] = '/axis-cgi/param.cgi?action=list&group=camswitcher.outputs';
     httpRequest(options).then(function(response) {
-      var lines = response.split(/[\r\n]/);
-      if (lines.length) {
-        var index = lines[0].indexOf('=');
-        if (index != -1) {
-          response = lines[0].substring(index + 1);
-        }
+      var index = response.indexOf('=');
+      if (index != -1) {
+        response = response.substring(index + 1);
       }
+
       try {
         response = JSON.parse(response);
         var output = response.outputs[outputName];
