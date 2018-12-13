@@ -194,6 +194,11 @@ CamOverlayAPI.prototype.showCairoImage = function(cairoImage, posX, posY)
   return this.sendMessage({'command': 'show_cairo_image', 'params': [this.serviceID, cairoImage, posX, posY]});
 }
 
+CamOverlayAPI.prototype.removeImage = function()
+{
+  return this.sendMessage({'command': 'remove_image', 'params': [this.serviceID]});
+}
+
 CamOverlayAPI.prototype.showCairoImageAbsolute = function(cairoImage, posX, posY, width, height)
 {
   return this.sendMessage({'command': 'show_cairo_image', 'params': [this.serviceID, cairoImage, -1.0 + (2.0 / width) * posX, -1.0 + (2.0 / height) * posY]});
