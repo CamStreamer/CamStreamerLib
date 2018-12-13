@@ -248,6 +248,13 @@ Show image in the camera stream. Position is absolute in pixels, stream resoluti
 showCairoImage('surface0', 100, 100, 1920, 1080)
 ```
 
+#### removeImage()
+Remove image from the camera stream.
+##### example
+```javascript
+removeImage()
+```
+
 ### events
 #### msg(msg)
 WebSocket message received
