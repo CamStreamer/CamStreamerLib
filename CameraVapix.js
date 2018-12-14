@@ -212,7 +212,7 @@ CameraVapix.prototype.eventsConnect = function() {
   for (var i = 0; i < eventNames.length; i++) {
     if (eventNames[i] != 'eventsConnect' && eventNames[i] != 'eventsDisconnect') {
       if (eventTopicFilter.length != 0) {
-        eventTopicFilter += ',';
+        eventTopicFilter += '|';
       }
 
       var topic = eventNames[i].replace(/tns1/g, 'onvif');
