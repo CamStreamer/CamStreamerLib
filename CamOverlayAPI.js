@@ -11,6 +11,7 @@ function CamOverlayAPI(options) {
   this.auth = '';
   this.serviceName = '';
   this.serviceID = -1;
+  this.camera = 0;
   if (options) {
     this.protocol = options['protocol'] || this.protocol;
     this.ip = options['ip'] || this.ip;
@@ -21,6 +22,7 @@ function CamOverlayAPI(options) {
     this.auth = options['auth'] || this.auth;
     this.serviceName = options['serviceName'] || this.serviceName;
     this.serviceID = options['serviceID'] != undefined ? options['serviceID'] : this.serviceID; // If service is already created you can skip creation step by filling this parameter
+    this.camera = options['camera'] != undefined ? options['camera'] : this.camera;
   }
 
   this.callId = 0;
@@ -31,8 +33,7 @@ function CamOverlayAPI(options) {
 
 util.inherits(CamOverlayAPI, EventEmitter);
 
-CamOverlayAPI.prototype.connect = function()
-{
+CamOverlayAPI.prototype.connect = function() {
   if (this.serviceID != -1) {
     return this.openWebsocket();
   } else {
@@ -48,8 +49,7 @@ CamOverlayAPI.prototype.connect = function()
   }
 }
 
-CamOverlayAPI.prototype.createService = function()
-{
+CamOverlayAPI.prototype.createService = function() {
   var promise = new Promise(function(resolve, reject) {
     httpRequest({
       'host': this.ip,
@@ -82,7 +82,15 @@ CamOverlayAPI.prototype.createService = function()
       }
       if (service) {
         if (service.enabled == 1) {
-          resolve(service.id);
+          // Check and update service parameters if necessary
+          if (service.camera == undefined || service.camera != this.camera) {
+            service.camera = this.camera;
+            this.updateServices(servicesJson).then(function() {
+              resolve(service.id);
+            }, reject);
+          } else {
+            resolve(service.id);
+          }
         } else {
           reject("CamOverlay service is not enabled");
         }
@@ -93,26 +101,35 @@ CamOverlayAPI.prototype.createService = function()
           'enabled': 1,
           'schedule': '',
           'name': 'scripter',
-          'identifier': this.serviceName
+          'identifier': this.serviceName,
+          'camera': this.camera
         });
-        var postData = 'action=update&camoverlay.services=' + encodeURI(JSON.stringify(servicesJson));
-        httpRequest({
-          'method':'POST',
-          'host': this.ip,
-          'port': this.port,
-          'path': '/axis-cgi/param.cgi',
-          'auth': this.auth
-        }, postData).then(function(response) {
+        this.updateServices(servicesJson).then(function() {
           resolve(newServiceID);
-        }.bind(this), reject);
+        }, reject);
       }
     }.bind(this), reject);
   }.bind(this));
   return promise;
 }
 
-CamOverlayAPI.prototype.openWebsocket = function(digestHeader)
-{
+CamOverlayAPI.prototype.updateServices = function(servicesJson) {
+  var promise = new Promise(function(resolve, reject) {
+    var postData = 'action=update&camoverlay.services=' + encodeURI(JSON.stringify(servicesJson));
+    httpRequest({
+      'method':'POST',
+      'host': this.ip,
+      'port': this.port,
+      'path': '/axis-cgi/param.cgi',
+      'auth': this.auth
+    }, postData).then(function(response) {
+      resolve();
+    }, reject);
+  }.bind(this));
+  return promise;
+}
+
+CamOverlayAPI.prototype.openWebsocket = function(digestHeader) {
   var promise = new Promise(function(resolve, reject) {
     var addr = this.protocol + '://' + (this.auth.length ? this.auth + '@' : '') + this.ip + ':' + this.port + '/local/camoverlay/ws';
     var options = {};
@@ -163,43 +180,35 @@ CamOverlayAPI.prototype.openWebsocket = function(digestHeader)
   return promise;
 }
 
-CamOverlayAPI.prototype.cairo = function(command, ...params)
-{
+CamOverlayAPI.prototype.cairo = function(command, ...params) {
   return this.sendMessage({'command': command, 'params': params});
 }
 
-CamOverlayAPI.prototype.writeText = function(...params)
-{
+CamOverlayAPI.prototype.writeText = function(...params) {
   return this.sendMessage({'command': 'write_text', 'params': params});
 }
 
-CamOverlayAPI.prototype.uploadImageData = function(imgBuffer)
-{
+CamOverlayAPI.prototype.uploadImageData = function(imgBuffer) {
   return this.sendMessage({'command': 'upload_image_data', 'params': [imgBuffer.toString('base64')]});
 }
 
-CamOverlayAPI.prototype.uploadFontData = function(fontBuffer)
-{
+CamOverlayAPI.prototype.uploadFontData = function(fontBuffer) {
   return this.sendMessage({'command': 'upload_font_data', 'params': [fontBuffer.toString('base64')]});
 }
 
-CamOverlayAPI.prototype.showCairoImage = function(cairoImage, posX, posY)
-{
+CamOverlayAPI.prototype.showCairoImage = function(cairoImage, posX, posY) {
   return this.sendMessage({'command': 'show_cairo_image', 'params': [this.serviceID, cairoImage, posX, posY]});
 }
 
-CamOverlayAPI.prototype.removeImage = function()
-{
+CamOverlayAPI.prototype.removeImage = function() {
   return this.sendMessage({'command': 'remove_image', 'params': [this.serviceID]});
 }
 
-CamOverlayAPI.prototype.showCairoImageAbsolute = function(cairoImage, posX, posY, width, height)
-{
+CamOverlayAPI.prototype.showCairoImageAbsolute = function(cairoImage, posX, posY, width, height) {
   return this.sendMessage({'command': 'show_cairo_image', 'params': [this.serviceID, cairoImage, -1.0 + (2.0 / width) * posX, -1.0 + (2.0 / height) * posY]});
 }
 
-CamOverlayAPI.prototype.sendMessage = function(msgJson)
-{
+CamOverlayAPI.prototype.sendMessage = function(msgJson) {
   var promise = new Promise(function(resolve, reject) {
     try {
       this.sendMessages[this.callId] = {'resolve': resolve, 'reject': reject};
