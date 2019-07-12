@@ -68,15 +68,11 @@ CamOverlayAPI.prototype.createService = function()
       // Find service
       var service = null;
       var maxID = -1;
-      var enabledCount = 0;
       if (servicesJson.hasOwnProperty('services')) {
         var servicesArr = servicesJson['services'];
         for (var i = 0; i < servicesArr.length; i++) {
           if (servicesArr[i].id > maxID) {
             maxID = servicesArr[i].id;
-          }
-          if (servicesArr[i].enabled == 1) {
-            enabledCount++;
           }
           if (servicesArr[i].hasOwnProperty('identifier') && servicesArr[i].identifier == this.serviceName && servicesArr[i].name == 'scripter') {
             service = servicesArr[i];
@@ -90,7 +86,7 @@ CamOverlayAPI.prototype.createService = function()
         } else {
           reject("CamOverlay service is not enabled");
         }
-      } else if (enabledCount < 2) {  // Create new service
+      } else {  // Create new service
         var newServiceID = maxID + 1;
         servicesJson['services'].push({
           'id': newServiceID,
@@ -109,8 +105,6 @@ CamOverlayAPI.prototype.createService = function()
         }, postData).then(function(response) {
           resolve(newServiceID);
         }.bind(this), reject);
-      } else {
-        reject('Create service error: Maximally two services can be enabled simultaneously');
       }
     }.bind(this), reject);
   }.bind(this));
