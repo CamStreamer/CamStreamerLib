@@ -214,8 +214,8 @@ Call a function from Cairo library.
 cairo('cairo_image_surface_create', 'CAIRO_FORMAT_ARGB32', 200, 200)
 ```
 
-#### writeText(args...)
-Write aligned text to the box specified by x, y coordinates, width and height.
+#### writeText(cairoContext, text, posX, posY, width, height, align)
+Write aligned text to the box specified by x, y coordinates, width and height. Alignment options: A_RIGHT, A_LEFT, A_CENTER. Text size is adjusted to width and height of the box.
 ##### example
 ```javascript
 writeText('cairo0', 'Hello World', 5, 100, 190, 15, 'A_RIGHT');
@@ -260,7 +260,7 @@ removeImage()
 #### msg(msg)
 WebSocket message received
 #### error(err)
-an error occurs
+An error occurs
 #### close
 WebSocket closed
 
