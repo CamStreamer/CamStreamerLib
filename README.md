@@ -188,7 +188,7 @@ Module for easy control of CamOverlay drawing API. For more details on supported
 
 ### methods
 #### CameraVapix(options)
-Options parameter contains access to the camera, service name, service ID and camera. If service ID is not specified, service is automatically created in CamOverlay. Camera parameter selects the video source (in which View Area overlay will be shown). If omitted the default value camera=0 is used.
+Options parameter contains access to the camera, service name, service ID and camera. If service ID is not specified, service is automatically created/selected based on serviceName. Specify video channel using parameter camera (in which View Area overlay will be shown). If omitted the default value camera=0 is used.
 ```javascript
 options = {
   'ip': '127.0.0.1',
@@ -208,10 +208,10 @@ connect()
 ```
 
 #### cairo(command, args...)
-Call a function from Cairo library.
+Call a function from Cairo library. See https://cairographics.org/manual/
 ##### example
 ```javascript
-cairo('cairo_image_surface_create', 'CAIRO_FORMAT_ARGB32', 200, 200)
+cairo('cairo_image_surface_create', 'CAIRO_FORMAT_ARGB32', 200, 200) // https://cairographics.org/manual/cairo-Image-Surfaces.html#cairo-image-surface-create
 ```
 
 #### writeText(cairoContext, text, posX, posY, width, height, align)
@@ -236,14 +236,14 @@ uploadFontData(fs.readFileSync('font.ttf'))
 ```
 
 #### showCairoImage(cairoImage, posX, posY)
-Show image in the camera stream. Position is in coordinates -1.0, -1.0 (upper left) / 1.0, 1.0 (bootom right).
+Show image in video stream from the camera. Position is in coordinates -1.0, -1.0 (upper left) / 1.0, 1.0 (bootom right).
 ##### example
 ```javascript
 showCairoImage('surface0', -1.0, -1.0)
 ```
 
 #### showCairoImageAbsolute(cairoImage, posX, posY, width, height)
-Show image in the camera stream. Position is absolute in pixels, stream resolution is required.
+Show image in video stream from the camera. Position is absolute in pixels, stream resolution is required, because it can be called once there is no video stream running yet.
 ##### example
 ```javascript
 showCairoImage('surface0', 100, 100, 1920, 1080)
