@@ -54,12 +54,12 @@ CamOverlayAPI.prototype.createService = function() {
     httpRequest({
       'host': this.ip,
       'port': this.port,
-      'path': '/axis-cgi/param.cgi?action=list&group=camoverlay.services',
+      'path': '/local/camoverlay/api/services.cgi?action=get',
       'auth': this.auth
     }).then(function(response) {
-      var servicesJson;
+      let servicesJson;
       try {
-        servicesJson = JSON.parse(response.split('=')[1]);
+        servicesJson = JSON.parse(response);
       }
       catch (err) {
         servicesJson = {'services':[]};
@@ -115,14 +115,13 @@ CamOverlayAPI.prototype.createService = function() {
 
 CamOverlayAPI.prototype.updateServices = function(servicesJson) {
   var promise = new Promise(function(resolve, reject) {
-    var postData = 'action=update&camoverlay.services=' + encodeURI(JSON.stringify(servicesJson));
     httpRequest({
       'method':'POST',
       'host': this.ip,
       'port': this.port,
-      'path': '/axis-cgi/param.cgi',
+      'path': '/local/camoverlay/api/services.cgi?action=set',
       'auth': this.auth
-    }, postData).then(function(response) {
+    }, JSON.stringify(servicesJson)).then(function(response) {
       resolve();
     }, reject);
   }.bind(this));
