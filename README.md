@@ -4,6 +4,9 @@ Node.js helper library for CamStreamer ACAP applications.
 The library is primarily developed for CamScripter Acap application running directly in Axis cameras.
 Examples of CamScripter packages can be found at https://github.com/CamStreamer/CamScripterApp_examples
 
+## Installation
+npm install camstreamerlib
+
 # Documentation for Node.js modules
 
 ## HttpServer
