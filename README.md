@@ -5,7 +5,9 @@ The library is primarily developed for CamScripter Acap application running dire
 Examples of CamScripter packages can be found at https://github.com/CamStreamer/CamScripterApp_examples
 
 ## Installation
+```
 npm install camstreamerlib
+```
 
 # Documentation for Node.js modules
 
