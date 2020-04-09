@@ -219,11 +219,17 @@ Call a function from Cairo library. See https://cairographics.org/manual/
 cairo('cairo_image_surface_create', 'CAIRO_FORMAT_ARGB32', 200, 200) // https://cairographics.org/manual/cairo-Image-Surfaces.html#cairo-image-surface-create
 ```
 
-#### writeText(cairoContext, text, posX, posY, width, height, align)
-Write aligned text to the box specified by x, y coordinates, width and height. Alignment options: A_RIGHT, A_LEFT, A_CENTER. Text size is adjusted to width and height of the box.
+#### writeText(cairoContext, text, posX, posY, width, height, align, textFitMethod)
+Write aligned text to the box specified by x, y coordinates, width and height. Alignment options: A_RIGHT, A_LEFT, A_CENTER.
+
+TextFitMethod options:
+- TFM_SCALE - Text size is adjusted to width and height of the box.
+- TFM_TRUNCATE - Text size truncated to the width of the box.
+- TFM_OVERFLOW - Text overflows the box.
+
 ##### example
 ```javascript
-writeText('cairo0', 'Hello World', 5, 100, 190, 15, 'A_RIGHT');
+writeText('cairo0', 'Hello World', 5, 100, 190, 15, 'A_RIGHT', 'TFM_TRUNCATE');
 ```
 
 #### uploadImageData(imgBuffer)
