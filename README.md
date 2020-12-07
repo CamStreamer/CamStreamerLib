@@ -275,3 +275,18 @@ An error occurs
 #### close
 WebSocket closed
 
+##For Developers
+###Publishing with npm
+Fortst login to the npm service with valid Username, Password and E-mail:
+```bash
+npm login
+```
+The program will prompt you for your information.
+
+For publishing itself use np tool. You will find it on this site: https://github.com/sindresorhus/np
+After login, ennter your Git repository and enter following command:
+```bash
+np
+```
+The utility will then ask you for prefered version raise and if you are in luck, everything will run just fine.
+For last edit GitHub realease form.
