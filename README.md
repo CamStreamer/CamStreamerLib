@@ -12,7 +12,7 @@ npm install camstreamerlib
 # Documentation for Node.js modules
 
 ## HttpServer
-HttpServer is a module for processing HTTP requests in your scripts. It also automatically serves up the content from html directory or you can register paths which you can proccess by your own.
+HttpServer is a module for processing HTTP requests in your scripts. It also automatically serves up the content from html directory or you can register paths which you can proccess by your own (e.g. http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi).
 
 ### methods
 #### onRequest(path, callback)
