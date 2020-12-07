@@ -234,5 +234,94 @@ CamOverlayAPI.prototype.reportErr = function(err) {
 CamOverlayAPI.prototype.reportClose = function() {
   this.emit('close');
 }
+*
+* fields = [
+    {
+      field_name: name1
+      text: text1
+      [color: color1]
+    },
+    {
+      ...
+    }
+  ]
+*/
+CamOverlayAPI.prototype.updateCGText= function(fields){
+  let pathofCG = "/local/camoverlay/api/customGraphics.cgi?";
+  let cg_action = "action=update_text";
+  let cg_service = "&service_id="+this.serviceID;
+  let field_specs = "";
+ 
+  for(let i = 0;i<fields.length;i++){
+    let f = fields[i];
+    field_specs+="&";
+    let name = f.field_name;
+    field_specs += name+"="+f.text;
+    if ("color" in f){
+      field_specs += "&"+name+"_color="+f.color;
+    }
+    
+  }
+  var promise = new Promise(function(resolve, reject) {
+    httpRequest({
+      "method":"POST",
+      "host": this.ip,
+      "port": this.port,
+      "path": encodeURI(pathofCG + cg_action + cg_service + field_specs),
+      "auth": this.auth
+    },"").then(function(response) {
+      resolve();
+    }, reject);
+  }.bind(this));
+  return promise;
+}
 
+CamOverlayAPI.prototype.updateCGImage= function(path){
+  let pathofCG = "/local/camoverlay/api/customGraphics.cgi?";
+  let cg_action = "action=update_image";
+  let cg_service = "&service_id="+this.serviceID;
+  let update = "&image="+path;
+  var promise = new Promise(function(resolve, reject) {
+    httpRequest({
+      "method":"POST",
+      "host": this.ip,
+      "port": this.port,
+      "path": encodeURI(pathofCG + cg_action + cg_service + update),
+      "auth": this.auth
+    },"").then(function(response) {
+      resolve();
+    }, reject);
+  }.bind(this));
+  return promise;
+}
+
+/*
+coorinates = 
+  left
+  right
+  top
+  bottom
+  top_left
+  center
+  ...
+  ...
+*/
+CamOverlayAPI.prototype.updateCGImagePosition = function(path,coordinates,x,y){
+  let pathofCG = "/local/camoverlay/api/customGraphics.cgi?";
+  let cg_action = "action=update_image";
+  let cg_service = "&service_id="+this.serviceID;
+  let update = "&image="+path+"&coord_system="+coordinates+"&pos_x="+x+"&pos_y"+y;
+  var promise = new Promise(function(resolve, reject) {
+    httpRequest({
+      "method":"POST",
+      "host": this.ip,
+      "port": this.port,
+      "path": encodeURI(pathofCG + cg_action + cg_service + update),
+      "auth": this.auth
+    },"").then(function(response) {
+      resolve();
+    }, reject);
+  }.bind(this));
+  return promise;
+}
 module.exports = CamOverlayAPI;
