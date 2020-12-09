@@ -250,7 +250,6 @@ CamOverlayAPI.prototype.reportClose = function() {
 CamOverlayAPI.prototype.updateCGText = function(fields) {
   let cg_action = 'update_text';
   let field_specs = '';
-
   for(let i = 0; i < fields.length; i++){
     let f = fields[i];
     field_specs += '&';
@@ -260,7 +259,7 @@ CamOverlayAPI.prototype.updateCGText = function(fields) {
       field_specs += '&' + name + '_color=' + f.color;
     }
   }
-  return promiseCGUpdate(cg_action, field_specs);
+  return this.promiseCGUpdate(cg_action, field_specs);
 }
 
 /*
