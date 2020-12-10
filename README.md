@@ -275,8 +275,8 @@ An error occurs
 #### close
 WebSocket closed
 
-##For Developers
-###Publishing with npm
+## For Developers
+### Publishing with npm
 Fortst login to the npm service with valid Username, Password and E-mail:
 ```bash
 npm login
