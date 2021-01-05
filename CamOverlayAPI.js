@@ -130,10 +130,10 @@ CamOverlayAPI.prototype.updateServices = function(servicesJson) {
 
 CamOverlayAPI.prototype.openWebsocket = function(digestHeader) {
   var promise = new Promise(function(resolve, reject) {
-    var addr = this.protocol + '://' + (this.auth.length ? this.auth + '@' : '') + this.ip + ':' + this.port + '/local/camoverlay/ws';
+    var userPass = this.auth.split(':');
+    var addr = this.protocol + '://' + (this.auth.length ? encodeURIComponent(userPass[0]) + ':' + encodeURIComponent(userPass[1])+ '@' : '') + this.ip + ':' + this.port + '/local/camoverlay/ws';
     var options = {};
     if (digestHeader != undefined) {
-      var userPass = this.auth.split(':');
       options.headers = options.headers || {}
       options['headers']['Authorization'] = Digest.getAuthHeader(userPass[0], userPass[1], 'GET', '/local/camoverlay/ws', digestHeader);
     }
