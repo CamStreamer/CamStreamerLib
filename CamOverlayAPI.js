@@ -131,14 +131,14 @@ CamOverlayAPI.prototype.updateServices = function(servicesJson) {
 CamOverlayAPI.prototype.openWebsocket = function(digestHeader) {
   var promise = new Promise(function(resolve, reject) {
     var userPass = this.auth.split(':');
-    var addr = this.protocol + '://' + (this.auth.length ? encodeURIComponent(userPass[0]) + ':' + encodeURIComponent(userPass[1])+ '@' : '') + this.ip + ':' + this.port + '/local/camoverlay/ws';
+    var addr = this.protocol + '://'  + this.ip + ':' + this.port + '/local/camoverlay/ws';
     var options = {};
     if (digestHeader != undefined) {
-      options.headers = options.headers || {}
-      options['headers']['Authorization'] = Digest.getAuthHeader(userPass[0], userPass[1], 'GET', '/local/camoverlay/ws', digestHeader);
+      options.auth = this.auth;
+      //options.headers = options.headers || {}
+      //options['headers']['Authorization'] = Digest.getAuthHeader(encodeURIComponent(userPass[0]), encodeURIComponent(userPass[1]), 'GET', '/local/camoverlay/ws', digestHeader);
     }
     this.ws = new WebSocket(addr, 'cairo-api', options);
-
     this.ws.on('open', function() {
       this.reportMsg('Websocket opened');
       resolve();
