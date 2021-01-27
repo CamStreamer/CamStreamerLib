@@ -298,18 +298,19 @@ CamOverlayAPI.prototype.promiseCGUpdate = function(action, params) {
 
 CamOverlayAPI.prototype.updateInfoticker = function(text){
   let pathofCG = '/local/camoverlay/api/infoticker.cgi?';
+  console.log(pathofCG + 'service_id=' + this.serviceID + '&text=' + text);
   let promise = new Promise(function(resolve, reject) {
-    httpRequest({
-      'method': 'POST',
-      'host': this.ip,
-      'port': this.port,
-      'path': encodeURI(pathofCG + 'service_id=' + this.serviceID + '&text=' + text),
-      'auth': this.auth
-    },'').then(function(response) {
-      resolve();
-    }, reject);
-  }.bind(this));
-  return promise;
+      httpRequest({
+          'method': 'GET',
+          'host': this.ip,
+          'port': this.port,
+          'path': pathofCG + 'service_id=' + this.serviceID + '&text=' + text,
+          'auth': this.auth
+      },'').then(function(response) {
+        resolve();
+      }, reject);
+    }.bind(this));
+    return promise;
 }
 
 CamOverlayAPI.prototype.setEnabled = function(enabled){
