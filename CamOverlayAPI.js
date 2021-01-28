@@ -275,14 +275,14 @@ coorinates =
 */
 CamOverlayAPI.prototype.updateCGImage = function(path, coordinates = '', x = 0, y = 0) {
   let cg_action = 'update_image';
-  let coord = coordinates != "" ? '&coord_system=' + coordinates + '&pos_x=' + x + '&pos_y' + y : '';
+  let coord = coordinates != "" ? '&coord_system=' + coordinates + '&pos_x=' + x + '&pos_y=' + y : '';
   let update = '&image=' + path + coord;
   return this.promiseCGUpdate(cg_action, update);
 }
 
 CamOverlayAPI.prototype.updateCGImagePos = function(coordinates = '', x = 0, y = 0) {
   let cg_action = 'update_image';
-  let coord = coordinates != "" ? '&coord_system=' + coordinates + '&pos_x=' + x + '&pos_y' + y : '';
+  let coord = coordinates != "" ? '&coord_system=' + coordinates + '&pos_x=' + x + '&pos_y=' + y : '';
   return this.promiseCGUpdate(cg_action, coord);
 }
 
