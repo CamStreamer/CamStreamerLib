@@ -302,7 +302,7 @@ CamOverlayAPI.prototype.promiseCGUpdate = function(action, params) {
   return promise;
 }
 
-CamOverlayAPI.prototype.updateInfoticker = function(text){
+CamOverlayAPI.prototype.updateInfoticker = function(text) {
   let pathofCG = '/local/camoverlay/api/infoticker.cgi?';
   console.log(pathofCG + 'service_id=' + this.serviceID + '&text=' + text);
   let promise = new Promise(function(resolve, reject) {
@@ -319,7 +319,7 @@ CamOverlayAPI.prototype.updateInfoticker = function(text){
     return promise;
 }
 
-CamOverlayAPI.prototype.setEnabled = function(enabled){
+CamOverlayAPI.prototype.setEnabled = function(enabled) {
   let pathofCG = '/local/camoverlay/api/enabled.cgi?';
   let value = enabled ? 1 : 0;
   let promise = new Promise(function(resolve, reject) {
@@ -335,6 +335,31 @@ CamOverlayAPI.prototype.setEnabled = function(enabled){
   }.bind(this));
   return promise;
 }
+
+CamOverlayAPI.prototype.isEnabled = function() {
+  let pathofCG = '/local/camoverlay/api/services.cgi?action=get';
+  let coID = this.serviceID;
+  let promise = new Promise(function(resolve, reject) {
+    httpRequest({
+      'method': 'GET',
+      'host': this.ip,
+      'port': this.port,
+      'path': pathofCG,
+      'auth': this.auth
+    },'').then(function(response) {
+      let data = JSON.parse(response);
+      for (let serv of data.services){
+        if (serv.id == coID){
+          resolve(serv.enabled == 1);
+          return;
+        }
+      }
+      reject();
+    }, reject);
+  }.bind(this));
+  return promise;
+}
+
 module.exports = CamOverlayAPI;
 
 
