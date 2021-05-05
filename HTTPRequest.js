@@ -51,8 +51,13 @@ function request(options, postData, digestHeader) {
       options.headers = options.headers || {}
       options['headers']['Authorization'] = Digest.getAuthHeader(auth[0], auth[1], options.method, options.path, digestHeader);
     }
+    let client = http;
 
-    var req = http.request(options, function(resp) {
+    if (options.protocol && options.protocol==='https:'){
+      client = https;
+    }
+
+    var req = client.request(options, function(resp) {
       var data = '';
       resp.on('data', (chunk) => {
         data += chunk;
