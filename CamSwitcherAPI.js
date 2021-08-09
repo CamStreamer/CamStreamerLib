@@ -19,127 +19,100 @@ function CamSwitcherAPI(options) {
 
 util.inherits(CamSwitcherAPI, EventEmitter);
 
-CamSwitcherAPI.prototype.connect = function() {
-  // Websocket notifications
-  var eventNames = this.eventNames();
-  if (eventNames.length) {
-    this.ws = new WebSocket('ws://' + this.auth + '@' + this.ip + ':' + this.port + '/local/camswitcher/notifications', 'notifications');
+// Connect for Websocket events
+CamSwitcherAPI.prototype.connect = async function() {
+  try {
+    let token = await this.get('/local/camswitcher/ws_authorization.cgi');
+    this.ws = new WebSocket('ws://' + this.ip + ':' + this.port + '/local/camswitcher/events', 'events');
     this.pingTimer = null;
 
-    this.ws.on('open', function() {
+    this.ws.on('open', () => {
+      this.ws.send(JSON.stringify({'authorization': token}));
       this.ws.isAlive = true;
-      this.pingTimer = setInterval(function() {
+      this.pingTimer = setInterval(() => {
         if (this.ws.isAlive === false) {
           return this.ws.terminate();
         }
         this.ws.isAlive = false;
         this.ws.ping();
-      }.bind(this), 30000);
-    }.bind(this));
+      }, 30000);
+    });
 
-    this.ws.on('pong', function() {
+    this.ws.on('pong', () => {
       this.ws.isAlive = true;
-    }.bind(this));
+    });
 
-    this.ws.on('message', function(data) {
+    this.ws.on('message', (data) => {
       try {
         data = JSON.parse(data);
-        this.emit('notification', data);
+        this.emit('event', data);
       } catch(err) {
         console.log(err);
       }
-    }.bind(this));
+    });
 
-    this.ws.on('close', function() {
+    this.ws.on('close', () => {
       clearInterval(this.pingTimer);
-      this.emit('notifications_close');
-    }.bind(this));
+      this.emit('event_connection_close');
+    });
 
-    this.ws.on('error', function(err) {
-      this.emit('notifications_error', err);
-    }.bind(this));
+    this.ws.on('error', (err) => {
+      this.emit('event_connection_error', err);
+    });
+  } catch (err) {
+    this.emit('event_connection_error', err);
   }
 }
 
-CamSwitcherAPI.prototype.getSourceList = function(outputName) {
-  outputName = outputName || 'output0';
-  var promise = new Promise(function(resolve, reject) {
-    var options = this.getBaseConnectionParams();
-    options['path'] = '/axis-cgi/param.cgi?action=list&group=camswitcher.outputs';
-    httpRequest(options).then(function(response) {
-      var index = response.indexOf('=');
-      if (index != -1) {
-        response = response.substring(index + 1);
-      }
-
-      try {
-        response = JSON.parse(response);
-        var output = response.outputs[outputName];
-        if (output) {
-          resolve(output.sources);
-        } else {
-          reject('Unknown error');
-        }
-      } catch(err) {
-        reject(err);
-      }
-    }, reject);
-  }.bind(this));
-  return promise;
+CamSwitcherAPI.prototype.getPlaylistList = function() {
+  return this.get('/local/camswitcher/playlists.cgi?action=get');
 }
 
 CamSwitcherAPI.prototype.getClipList = function() {
-  return this.get('/local/camswitcher/api/clip_list.cgi');
+  return this.get('/local/camswitcher/clips.cgi?action=get');
 }
 
-CamSwitcherAPI.prototype.play = function(sourceName, outputName) {
-  outputName = outputName || 'output0';
-  return this.get('/local/camswitcher/output_play.cgi?output_name=' + outputName);
+CamSwitcherAPI.prototype.playlistSwitch = function(playlistName) {
+  return this.get('/local/camswitcher/playlist_switch.cgi?playlist_name=' + playlistName);
 }
 
-CamSwitcherAPI.prototype.liveSourceSwitch = function(sourceName, outputName) {
-  outputName = outputName || 'output0';
-  return this.get('/local/camswitcher/live_source_switch.cgi?output_name=' + outputName + '&source_name=' + sourceName);
+CamSwitcherAPI.prototype.playlistQueueList = function() {
+  return this.get('/local/camswitcher/playlist_queue_list.cgi');
 }
 
-CamSwitcherAPI.prototype.clipQueueList = function(outputName) {
-  outputName = outputName || 'output0';
-  return this.get('/local/camswitcher/clip_queue_list.cgi?output_name=' + outputName);
+CamSwitcherAPI.prototype.playlistQueueClear = function() {
+  return this.get('/local/camswitcher/playlist_queue_clear.cgi');
 }
 
-CamSwitcherAPI.prototype.clipQueuePush = function(clipName, outputName, loop) {
-  outputName = outputName || 'output0';
-  loop = loop != undefined ? loop : 1;
-  return this.get('/local/camswitcher/clip_queue_push.cgi?output_name=' + outputName + '&clip_name=' + clipName + '&loop=' + loop);
+CamSwitcherAPI.prototype.playlistQueuePush = function(playlistName) {
+  return this.get('/local/camswitcher/playlist_queue_push.cgi?playlist_name=' + playlistName);
 }
 
-CamSwitcherAPI.prototype.clipQueueClear = function(outputName) {
-  outputName = outputName || 'output0';
-  return this.get('/local/camswitcher/clip_queue_clear.cgi?output_name=' + outputName);
+CamSwitcherAPI.prototype.playlistQueuePlayNext = function() {
+  return this.get('/local/camswitcher/playlist_queue_play_next.cgi');
 }
 
-CamSwitcherAPI.prototype.clipQueuePlay = function(outputName) {
-  outputName = outputName || 'output0';
-  return this.get('/local/camswitcher/clip_queue_play.cgi?output_name=' + outputName);
-}
-
-CamSwitcherAPI.prototype.clipQueueStop = function(outputName) {
-  outputName = outputName || 'output0';
-  return this.get('/local/camswitcher/clip_queue_stop.cgi?output_name=' + outputName);
+CamSwitcherAPI.prototype.getOutputInfo = function() {
+  return this.get('/local/camswitcher/output_info.cgi');
 }
 
 CamSwitcherAPI.prototype.get = function(path) {
-  var promise = new Promise(function(resolve, reject) {
+  var promise = new Promise((resolve, reject) => {
     var options = this.getBaseConnectionParams();
     options['path'] = encodeURI(path);
-    httpRequest(options).then(function(data) {
+    httpRequest(options).then((data) => {
       try {
-        resolve(JSON.parse(data));
+        let response = JSON.parse(data);
+        if (response.status == 200) {
+          resolve(response.data);
+        } else {
+          reject('Request (' + path + ') error, response: ' + JSON.stringify(response));
+        }
       } catch (err) {
-        reject(err + 'msg: ' + data);
+        reject('Request (' + path + ') error: ' + err  + ', msg: ' + data);
       }
     }, reject);
-  }.bind(this));
+  });
   return promise;
 }
 

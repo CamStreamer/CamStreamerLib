@@ -1,6 +1,6 @@
 {
   "name": "camstreamerlib",
-  "version": "1.2.4",
+  "version": "1.2.6",
   "description": "Helper library for CamStreamer ACAP applications.",
   "main": "CameraVapix.js",
   "dependencies": {
