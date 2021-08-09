@@ -17,6 +17,10 @@ HttpServer is a module for processing HTTP requests in your scripts. It also aut
 ### methods
 #### onRequest(path, callback)
 It registers callback for access to specified path. Callback has attributes - request and response.
+
+#### close()
+Closes httpServer service and frees up the occupied port.
+
 ##### example
 ```javascript
 httpServer.onRequest('/settings.cgi', function(req, res) {
@@ -266,6 +270,46 @@ Remove image from the camera stream.
 ```javascript
 removeImage()
 ```
+
+#### updateCGText(fields)
+Updates text fields listed in parameter fields.
+One field is defined as follows:
+```json
+{
+  "field_name": "NAME_OF_YOUR_FIELD",
+  "text": "UPDATED_TEXT",
+  "color": "COLOR"
+}
+```
+Parameter "color" is optional.
+
+#### updateCGImagePos(coordinates, x, y)
+Changes position of Custom Graphics.
+Coordinates have these values
+```json
+[
+  "top_left",
+  "top_center",
+  "top_right",
+  "center_...",
+  "...",
+  "bottom_...",
+  "..."
+]
+```
+
+#### updateCGImage(path, [coordinates, x, y])
+Updates Custom Graphics background to an image with specified path on the camera.
+If no coordinates are specified, the service will use positioning from the last update.
+
+#### updateInfoticker(text)
+Updates text in Infoticker service, if any is running.
+
+#### setEnabled(enabled)
+Enables/disables the bound CO service.
+
+#### isEnabled()
+Returns whether the bound CO service is enabled (true) or disabled (false).
 
 ### events
 #### msg(msg)
