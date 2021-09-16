@@ -3,7 +3,6 @@ const url = require('url');
 const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
-const util = require('util');
 
 export class HttpServer extends EventEmitter {
     constructor(options) {
