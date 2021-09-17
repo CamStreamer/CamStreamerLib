@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const EventEmitter = require('events');
 
-export class HttpServer extends EventEmitter {
+class HttpServer extends EventEmitter {
     constructor(options) {
         super();
         this.port = process.env.HTTP_PORT;
@@ -98,3 +98,5 @@ export class HttpServer extends EventEmitter {
         }
     }
 }
+
+module.exports = HttpServer;
