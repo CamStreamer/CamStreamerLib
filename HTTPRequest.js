@@ -2,7 +2,7 @@ const http = require("http");
 const https = require("https");
 const Digest = require("./Digest");
 
-function httpRequest(options, postData, waitForData) {
+function httpRequest(options, postData, noWaitForData) {
   return new Promise(
     function (resolve, reject) {
       if (postData != undefined) {
@@ -13,7 +13,7 @@ function httpRequest(options, postData, waitForData) {
         options.headers["Content-Length"] = Buffer.byteLength(postData);
       }
 
-      request(options, postData, undefined, !waitForData).then(function (response) {
+      request(options, postData, undefined, noWaitForData).then(function (response) {
         if (response.resp.statusCode == 200) {
           resolve(response.data);
         } else if (response.resp.statusCode == 401) {
@@ -25,7 +25,7 @@ function httpRequest(options, postData, waitForData) {
               options,
               postData,
               response.resp.headers["www-authenticate"],
-              !waitForData
+              noWaitForData
             ).then(function (response) {
               if (response.resp.statusCode == 200) {
                 resolve(response.data);

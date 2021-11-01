@@ -1,4 +1,3 @@
-const util = require('util');
 const EventEmitter = require('eventemitter2');
 const parseString = require('xml2js').parseString;
 const prettifyXml = require('prettify-xml')
@@ -6,7 +5,9 @@ const prettifyXml = require('prettify-xml')
 const RtspClient = require('./RtspClient');
 const httpRequest = require('./HTTPRequest');
 
-function CameraVapix(options) {
+
+class CameraVapix extends EventEmitter{
+  constructor (options) {
   this.protocol = 'http';
   this.ip = '127.0.0.1';
   this.port = 80;
@@ -22,20 +23,16 @@ function CameraVapix(options) {
   }
 
   this.rtsp = null;
-
-  EventEmitter.call(this);
 }
 
-util.inherits(CameraVapix, EventEmitter);
-
-CameraVapix.prototype.getParameterGroup = function(groupNames) {
-  var promise = new Promise(function(resolve, reject) {
+getParameterGroup(groupNames) {
+  let promise = new Promise(function(resolve, reject) {
     this.vapixGet('/axis-cgi/param.cgi?action=list&group=' + encodeURIComponent(groupNames)).then(function(response) {
-      var params = {};
-      var lines = response.split(/[\r\n]/);
-      for (var i = 0; i < lines.length; i++) {
+      let params = {};
+      let lines = response.split(/[\r\n]/);
+      for (let i = 0; i < lines.length; i++) {
         if (lines[i].length) {
-          var p = lines[i].split('=');
+          let p = lines[i].split('=');
           if (p.length >= 2) {
             params[p[0]] = p[1];
           }
@@ -47,8 +44,8 @@ CameraVapix.prototype.getParameterGroup = function(groupNames) {
   return promise;
 }
 
-CameraVapix.prototype.setParameter = function(params) {
-  var postData = 'action=update&';
+setParameter(params) {
+  let postData = 'action=update&';
   Object.keys(params).forEach(function(key) {
     postData += key + '=' + params[key] + '&';
   });
@@ -56,14 +53,14 @@ CameraVapix.prototype.setParameter = function(params) {
   return this.vapixPost('/axis-cgi/param.cgi', postData);
 }
 
-CameraVapix.prototype.getPTZPresetList = function(channel) {
-  var promise = new Promise(function(resolve, reject) {
+getPTZPresetList(channel) {
+  let promise = new Promise(function(resolve, reject) {
     this.vapixGet('/axis-cgi/com/ptz.cgi?query=presetposcam&camera=' + encodeURIComponent(channel)).then(function(response) {
-      var positions = [];
-      var lines = response.split(/[\r\n]/);
-      for (var i = 0; i < lines.length; i++) {
+      let positions = [];
+      let lines = response.split(/[\r\n]/);
+      for (let i = 0; i < lines.length; i++) {
         if (lines[i].length && lines[i].indexOf('presetposno') != -1) {
-          var p = lines[i].split('=');
+          let p = lines[i].split('=');
           if (p.length >= 2) {
             positions.push(p[1]);
           }
@@ -75,18 +72,18 @@ CameraVapix.prototype.getPTZPresetList = function(channel) {
   return promise;
 }
 
-CameraVapix.prototype.goToPreset = function(channel, presetName) {
+goToPreset (channel, presetName) {
   return this.vapixPost('/axis-cgi/com/ptz.cgi', 'camera=' + encodeURIComponent(channel) + '&gotoserverpresetname=' + encodeURIComponent(presetName));
 }
 
-CameraVapix.prototype.getGuardTourList = function() {
-  var promise = new Promise(function(resolve, reject) {
-    var gTourList = [];
+getGuardTourList() {
+  let promise = new Promise(function(resolve, reject) {
+    let gTourList = [];
     this.getParameterGroup('GuardTour').then(function(response) {
-      for (var i = 0; i < 20; i++) {
-        var gTourBaseName = 'root.GuardTour.G' + i;
+      for (let i = 0; i < 20; i++) {
+        let gTourBaseName = 'root.GuardTour.G' + i;
         if (gTourBaseName + '.CamNbr' in response) {
-          var gTour = {
+          let gTour = {
             'ID': gTourBaseName,
             'CamNbr': response[gTourBaseName + '.CamNbr'],
             'Name': response[gTourBaseName + '.Name'],
@@ -95,10 +92,10 @@ CameraVapix.prototype.getGuardTourList = function() {
             'TimeBetweenSequences': response[gTourBaseName + '.TimeBetweenSequences'],
             'Tour': []
           };
-          for (var j = 0; j < 100; j++) {
-            var tourBaseName = 'root.GuardTour.G' + i + '.Tour.T' + j;
+          for (let j = 0; j < 100; j++) {
+            let tourBaseName = 'root.GuardTour.G' + i + '.Tour.T' + j;
             if (tourBaseName + '.MoveSpeed' in response) {
-              var tour = {
+              let tour = {
                 'MoveSpeed': response[tourBaseName + '.MoveSpeed'],
                 'Position': response[tourBaseName + '.Position'],
                 'PresetNbr': response[tourBaseName + '.PresetNbr'],
@@ -119,14 +116,14 @@ CameraVapix.prototype.getGuardTourList = function() {
   return promise;
 }
 
-CameraVapix.prototype.setGuardTourEnabled = function(gourTourID, enable) {
-  var options = {};
+setGuardTourEnabled(gourTourID, enable) {
+  let options = {};
   options[gourTourID + '.Running'] = enable ? 'yes' : 'no';
   return this.setParameter(options);
 }
 
-CameraVapix.prototype.getInputState = function(port) {
-  var promise = new Promise(function(resolve, reject) {
+getInputState(port) {
+  let promise = new Promise(function(resolve, reject) {
     this.vapixPost('/axis-cgi/io/port.cgi', 'checkactive=' + encodeURIComponent(port)).then(function(response) {
       resolve(response.split('=')[1].indexOf('active') == 0);
     }, reject);
@@ -134,32 +131,32 @@ CameraVapix.prototype.getInputState = function(port) {
   return promise;
 }
 
-CameraVapix.prototype.setOutputState = function(port, active) {
+setOutputState(port, active) {
   return this.vapixPost('/axis-cgi/io/port.cgi', 'action=' + encodeURIComponent(port) + ':' + (active ? '/' : '\\'));
 }
 
-CameraVapix.prototype.getApplicationList = function() {
-  var promise = new Promise(function(resolve, reject) {
+getApplicationList() {
+  const promise = new Promise((resolve, reject) => {
     this.vapixGet('/axis-cgi/applications/list.cgi').then(function(xml) {
       parseString(xml, function (err, result) {
         if (err) {
           reject(err);
           return;
         }
-        var apps = [];
-        for (var i = 0; i < result.reply.application.length; i++) {
+        let apps = [];
+        for (let i = 0; i < result.reply.application.length; i++) {
           apps.push(result.reply.application[i].$);
         }
         resolve(apps);
       });
     }, reject);
-  }.bind(this));
+  });
   return promise;
 }
 
-CameraVapix.prototype.getEventDeclarations = function() {
-  var promise = new Promise(function(resolve, reject) {
-    var data =
+getEventDeclarations() {
+  const promise = new Promise((resolve, reject) => {
+    let data =
     '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
       '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' +
         'xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
@@ -169,11 +166,11 @@ CameraVapix.prototype.getEventDeclarations = function() {
     this.vapixPost('/vapix/services', data, 'application/soap+xml').then(function(declarations) {
       resolve(prettifyXml(declarations));
     }, reject);
-  }.bind(this));
+  });
   return promise;
 }
 
-CameraVapix.prototype.eventsConnect = function() {
+eventsConnect(){
   this.rtsp = new RtspClient({
     'ip': this.ip,
     'port': this.port,
@@ -182,11 +179,11 @@ CameraVapix.prototype.eventsConnect = function() {
 
   this.rtsp.on('connect', function() { this.emit('eventsConnect'); }.bind(this));
   this.rtsp.on('disconnect', function(err) { this.emit('eventsDisconnect', err); }.bind(this));
-  this.rtsp.on('event', function(event) {
-    var eventNames = this.eventNames();
-    for (var i = 0; i < eventNames.length; i++) {
+  this.rtsp.on('event', (event) => {
+    let eventNames = this.eventNames();
+    for (let i = 0; i < eventNames.length; i++) {
       if (eventNames[i] != 'eventsConnect' && eventNames[i] != 'eventsDisconnect') {
-        var name = eventNames[i];
+        let name = eventNames[i];
         // Remove special chars from the end
         while (name[name.length - 1] == '.' || name[name.length - 1] == '/') {
           name = name.substring(0, name.length - 1);
@@ -205,17 +202,17 @@ CameraVapix.prototype.eventsConnect = function() {
         }
       }
     }
-  }.bind(this));
+  });
 
-  var eventTopicFilter = '';
-  var eventNames = this.eventNames();
-  for (var i = 0; i < eventNames.length; i++) {
+  let eventTopicFilter = '';
+  let eventNames = this.eventNames();
+  for (let i = 0; i < eventNames.length; i++) {
     if (eventNames[i] != 'eventsConnect' && eventNames[i] != 'eventsDisconnect') {
       if (eventTopicFilter.length != 0) {
         eventTopicFilter += '|';
       }
 
-      var topic = eventNames[i].replace(/tns1/g, 'onvif');
+      let topic = eventNames[i].replace(/tns1/g, 'onvif');
       topic = topic.replace(/tnsaxis/g, 'axis');
       eventTopicFilter += topic;
     }
@@ -223,21 +220,28 @@ CameraVapix.prototype.eventsConnect = function() {
   this.rtsp.connect(eventTopicFilter);
 }
 
-CameraVapix.prototype.eventsDisconnect = function() {
+eventsDisconnect() {
   if (this.rtsp) {
     this.rtsp.disconnect();
     this.rtsp = null;
   }
 }
 
-CameraVapix.prototype.vapixGet = function(path) {
-  var options = this.getBaseVapixConnectionParams();
+vapixGet(path, noWaitForData) {
+  let options = this.getBaseVapixConnectionParams();
   options['path'] = encodeURI(path);
-  return httpRequest(options);
+  return httpRequest(options, noWaitForData);
 }
 
-CameraVapix.prototype.vapixPost = function(path, data, contentType) {
-  var options = this.getBaseVapixConnectionParams();
+getCameraImageImage(camera, compression, resolution, outputStream){
+  const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
+  const res = this.vapixGet(path,true);
+  res.res.pipe(outputStream);
+  return outputStream;
+}
+
+vapixPost(path, data, contentType) {
+  let options = this.getBaseVapixConnectionParams();
   options['method'] = 'POST';
   options['path'] = path;
   if (contentType) {
@@ -246,7 +250,7 @@ CameraVapix.prototype.vapixPost = function(path, data, contentType) {
   return httpRequest(options, data);
 }
 
-CameraVapix.prototype.getBaseVapixConnectionParams = function(options, postData) {
+getBaseVapixConnectionParams(options, postData) {
   return {
     'protocol': this.protocol + ':',
     'host': this.ip,
@@ -254,5 +258,5 @@ CameraVapix.prototype.getBaseVapixConnectionParams = function(options, postData)
     'auth': this.auth
   };
 }
-
+}
 module.exports = CameraVapix;
