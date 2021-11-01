@@ -8,8 +8,9 @@ const httpRequest = require('./HTTPRequest');
 
 class CameraVapix extends EventEmitter{
   constructor (options) {
-  this.protocol = 'http';
-  this.ip = '127.0.0.1';
+    super();
+    this.protocol = 'http';
+    this.ip = '127.0.0.1';
   this.port = 80;
   this.auth = '';
   if (options) {
@@ -230,13 +231,13 @@ eventsDisconnect() {
 vapixGet(path, noWaitForData) {
   let options = this.getBaseVapixConnectionParams();
   options['path'] = encodeURI(path);
-  return httpRequest(options, noWaitForData);
+  return httpRequest(options, undefined, noWaitForData);
 }
 
-getCameraImageImage(camera, compression, resolution, outputStream){
+async getCameraImage(camera, compression, resolution, outputStream){
   const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-  const res = this.vapixGet(path,true);
-  res.res.pipe(outputStream);
+  const res = await this.vapixGet(path,true);
+  res.pipe(outputStream);
   return outputStream;
 }
 

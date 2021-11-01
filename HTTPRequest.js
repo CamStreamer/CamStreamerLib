@@ -5,7 +5,7 @@ const Digest = require("./Digest");
 function httpRequest(options, postData, noWaitForData) {
   return new Promise(
     function (resolve, reject) {
-      if (postData != undefined) {
+      if (postData !== undefined) {
         options.headers = options.headers || {};
         if (options.headers["Content-Type"] == undefined) {
           options.headers["Content-Type"] = "application/x-www-form-urlencoded";
@@ -15,7 +15,11 @@ function httpRequest(options, postData, noWaitForData) {
 
       request(options, postData, undefined, noWaitForData).then(function (response) {
         if (response.resp.statusCode == 200) {
-          resolve(response.data);
+          if (noWaitForData){
+            resolve(response.resp);
+          }else{
+            resolve(response.data);
+          }
         } else if (response.resp.statusCode == 401) {
           if (
             response.resp.headers["www-authenticate"] != undefined &&
@@ -28,7 +32,12 @@ function httpRequest(options, postData, noWaitForData) {
               noWaitForData
             ).then(function (response) {
               if (response.resp.statusCode == 200) {
-                resolve(response.data);
+                if (noWaitForData){
+                  resolve(response.resp);
+                }else{
+                  resolve(response.data);
+                }
+
               } else {
                 reject(
                   "Error: status code: " +
@@ -60,7 +69,7 @@ function httpRequest(options, postData, noWaitForData) {
 }
 
 function request(options, postData, digestHeader, noWaitForData) {
-  return Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     if (digestHeader != undefined) {
       let auth = options.auth;
       if (auth == undefined) {
@@ -95,10 +104,10 @@ function request(options, postData, digestHeader, noWaitForData) {
             data += chunk;
           });
           resp.on("end", () => {
-            resolve({ resp: resp, data: data });
+            resolve({ 'resp': resp, 'data': data });
           });
         } else {
-          resolve({resp : resp});
+          resolve({'resp' : resp});
         }
       }).on("error", (err) => {
         reject(err.message);
