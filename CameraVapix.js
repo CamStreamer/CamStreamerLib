@@ -176,14 +176,11 @@ class CameraVapix extends EventEmitter {
         return promise;
     }
 
-    //  -------------------
-    //  |   connections   |
-    //  -------------------
-
     isReservedEventName(eventName) {
-        return (eventName != 'eventsConnect' && eventName != 'eventsDisconnect');
+        return (eventName == 'eventsConnect' || eventName == 'eventsDisconnect');
     }
-    eventsConnect(channel = "RTSP", digestHeader = undefined) {
+
+    eventsConnect(channel = "RTSP") {
         if (this.ws != null) {
             throw new Error("Websocket is already opened.");
         }
@@ -194,22 +191,22 @@ class CameraVapix extends EventEmitter {
             this.rtspConnect();
         }
         else if (channel == "websocket") {
-            this.websocketConnect(digestHeader);
+            this.websocketConnect();
         }
         else {
             throw new Error("Unknown channel.");
         }
     }
+
     eventsDisconnect() {
         if (this.rtsp != null) {
             this.rtsp.disconnect();
-            this.rtsp = null;
         }
         if (this.ws != null) {
             this.ws.close();
-            this.ws = null;
         }
     }
+    
     rtspConnect() {
         this.rtsp = new RtspClient({
             'ip': this.ip,
@@ -227,7 +224,7 @@ class CameraVapix extends EventEmitter {
         this.rtsp.on('event', (event) => {
             let eventNames = this.eventNames();
             for (let i = 0; i < eventNames.length; i++) {
-                if (this.isReservedEventName(eventNames[i])) {
+                if (!this.isReservedEventName(eventNames[i])) {
                     let name = eventNames[i];
                     // Remove special chars from the end
                     while (name[name.length - 1] == '.' || name[name.length - 1] == '/') {
@@ -252,7 +249,7 @@ class CameraVapix extends EventEmitter {
         let eventTopicFilter = '';
         let eventNames = this.eventNames();
         for (let i = 0; i < eventNames.length; i++) {
-            if (this.isReservedEventName(eventNames[i])) {
+            if (!this.isReservedEventName(eventNames[i])) {
                 if (eventTopicFilter.length != 0) {
                     eventTopicFilter += '|';
                 }
@@ -264,10 +261,8 @@ class CameraVapix extends EventEmitter {
         }
         this.rtsp.connect(eventTopicFilter);
     }
+
     websocketConnect(digestHeader) {
-        // In my original file there was an authorization by digest.
-        // Shall I include it here? I don't know how to pass digestHeader
-        // to this function.
         const address = `ws://${this.ip}:${this.port}/vapix/ws-data-stream?sources=events`;
 
         let options =
@@ -288,11 +283,7 @@ class CameraVapix extends EventEmitter {
                 let topics = [];
                 let eventNames = this.eventNames();
                 for (let i = 0; i < eventNames.length; i++) {
-                    if (this.isReservedEventName(eventNames[i])) {
-                        // I don't understand sense of these two statements.
-                        // It works well even without them.
-                        //let topic = eventNames[i].replace(/tns1/g, 'onvif');
-                        //topic = topic.replace(/tnsaxis/g, 'axis');
+                    if (!this.isReservedEventName(eventNames[i])) {
                         let topic =
                         {
                             "topicFilter": eventNames[i]
@@ -326,7 +317,6 @@ class CameraVapix extends EventEmitter {
                         this.emit("eventsConnect");
                     }
                     else {
-                        console.log(dataJSON);
                         this.emit("eventsDisconnect", dataJSON.error);
                         this.eventsDisconnect();
                     }
@@ -337,10 +327,10 @@ class CameraVapix extends EventEmitter {
             });
             this.ws.on('error', (error) => {
                 this.emit("eventsDisconnect", error);
-                this.ws = undefined;
+                this.ws = null;
             });
             this.ws.on('close', () => {
-                if (this.ws !== undefined) {
+                if (this.ws !== null) {
                     this.emit("websocketDisconnect");
                 }
                 this.ws = null;
