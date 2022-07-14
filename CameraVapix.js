@@ -206,7 +206,7 @@ class CameraVapix extends EventEmitter {
             this.ws.close();
         }
     }
-    
+
     rtspConnect() {
         this.rtsp = new RtspClient({
             'ip': this.ip,
