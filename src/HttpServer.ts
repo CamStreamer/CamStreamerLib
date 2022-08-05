@@ -3,11 +3,11 @@ import * as url from 'url';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as EventEmitter from 'events';
-import {Socket} from 'node:net';
+import { Socket } from 'node:net';
 
 export type HttpServerOptions = {
     port?: number;
-}
+};
 
 type OnRequestCallback = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
@@ -20,8 +20,8 @@ export class HttpServer extends EventEmitter {
     constructor(options?: HttpServerOptions) {
         super();
         this.port = options?.port ?? parseInt(process.env.HTTP_PORT);
-            
-        this.registeredPaths = new Map();;
+
+        this.registeredPaths = new Map();
         this.server = http.createServer((req, res) => {
             this.emit('access', req.method + ' ' + req.url);
 
@@ -49,7 +49,7 @@ export class HttpServer extends EventEmitter {
                 '.mp3': 'audio/mpeg',
                 '.svg': 'image/svg+xml',
                 '.pdf': 'application/pdf',
-                '.doc': 'application/msword'
+                '.doc': 'application/msword',
             };
 
             fs.access(pathname, (exist) => {
@@ -62,8 +62,9 @@ export class HttpServer extends EventEmitter {
                 }
 
                 // If is a directory search for index file matching the extension
-                if (fs.statSync(pathname).isDirectory())
+                if (fs.statSync(pathname).isDirectory()) {
                     pathname += `/index${ext}`;
+                }
 
                 // Read file from file system
                 fs.readFile(pathname, (err, data) => {
@@ -87,14 +88,14 @@ export class HttpServer extends EventEmitter {
 
         this.server.listen(this.port);
         this.sockets = {};
-        let idTracker = 0
+        let idTracker = 0;
         this.server.on('connection', (socket) => {
             let socketID = idTracker++;
-            this.sockets[socketID] = socket
+            this.sockets[socketID] = socket;
             socket.on('close', () => {
                 delete this.sockets[socketID];
             });
-        })
+        });
     }
 
     onRequest(path: string, callback: OnRequestCallback) {

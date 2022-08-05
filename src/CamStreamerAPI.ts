@@ -1,12 +1,12 @@
-import {httpRequest} from './HTTPRequest';
-import {HttpRequestOptions} from './HTTPRequest';
+import { httpRequest } from './HTTPRequest';
+import { HttpRequestOptions } from './HTTPRequest';
 
 export type CamStreamerAPIOptions = {
     protocol: string;
     ip: string;
     port: number;
     auth: string;
-}
+};
 
 export class CamStreamerAPI {
     private protocol: string;
@@ -14,21 +14,20 @@ export class CamStreamerAPI {
     private port: number;
     private auth: string;
 
-    constructor(options?: CamStreamerAPIOptions) 
-    {
+    constructor(options?: CamStreamerAPIOptions) {
         this.protocol = options?.protocol ?? 'http';
         this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.protocol == 'http') ? 80 : 443;
+        this.port = options?.port ?? this.protocol == 'http' ? 80 : 443;
         this.auth = options?.auth ?? '';
     }
 
     async getStreamList() {
-        const streamListRes = await this.get('/local/camstreamer/stream/list.cgi')
+        const streamListRes = await this.get('/local/camstreamer/stream/list.cgi');
         return streamListRes.data;
     }
 
     async getStreamParameter(streamID: string, paramName: string) {
-        const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`)
+        const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);
         return stream.data[paramName];
     }
 
@@ -44,7 +43,7 @@ export class CamStreamerAPI {
     async get(path: string) {
         const options = this.getBaseConnectionParams();
         options.path = encodeURI(path);
-        const data = await httpRequest(options) as string;
+        const data = (await httpRequest(options)) as string;
         return JSON.parse(data);
     }
 
@@ -53,7 +52,7 @@ export class CamStreamerAPI {
             protocol: this.protocol + ':',
             host: this.ip,
             port: this.port,
-            auth: this.auth
+            auth: this.auth,
         };
     }
 }

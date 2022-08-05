@@ -1,59 +1,58 @@
 import * as http from 'http';
 import * as WebSocket from 'ws';
-import * as prettifyXml  from 'prettify-xml';
-import {parseString} from 'xml2js';
-import {EventEmitter2 as EventEmitter} from 'eventemitter2';
+import * as prettifyXml from 'prettify-xml';
+import { parseString } from 'xml2js';
+import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import {Digest} from './Digest';
-import {RtspClient} from './RtspClient';
-import {httpRequest} from './HTTPRequest';
-import {HttpRequestOptions} from './HTTPRequest';
+import { Digest } from './Digest';
+import { RtspClient } from './RtspClient';
+import { httpRequest } from './HTTPRequest';
+import { HttpRequestOptions } from './HTTPRequest';
 
 export type CameraVapixOptions = {
     protocol?: string;
     ip?: string;
     port?: number;
     auth?: string;
-}
+};
 
 export type ApplicationList = {
-    reply:
-    {
-        $: { result: string },
+    reply: {
+        $: { result: string };
         application: {
-            $: Application
-        }[]
-    }
-}
+            $: Application;
+        }[];
+    };
+};
 
 export type Application = {
-    Name: string,
-    NiceName: string,
-    Vendor: string,
-    Version: string,
-    ApplicationID?: string,
-    License: string,
-    Status: string,
-    ConfigurationPage?: string,
-    VendorHomePage?: string,
-    LicenseName?: string
-}
+    Name: string;
+    NiceName: string;
+    Vendor: string;
+    Version: string;
+    ApplicationID?: string;
+    License: string;
+    Status: string;
+    ConfigurationPage?: string;
+    VendorHomePage?: string;
+    LicenseName?: string;
+};
 
 export type GuardTour = {
-    id: string,
-    camNbr: any,
-    name: string,
-    randomEnabled: any,
-    running: string,
-    timeBetweenSequences: any,
+    id: string;
+    camNbr: any;
+    name: string;
+    randomEnabled: any;
+    running: string;
+    timeBetweenSequences: any;
     tour: {
-        moveSpeed: any,
-        position: any,
-        presetNbr: any,
-        waitTime: any,
-        waitTimeViewType: any,
-    }[]
-}
+        moveSpeed: any;
+        position: any;
+        presetNbr: any;
+        waitTime: any;
+        waitTimeViewType: any;
+    }[];
+};
 
 export class CameraVapix extends EventEmitter {
     private protocol: string;
@@ -73,7 +72,9 @@ export class CameraVapix extends EventEmitter {
     }
 
     async getParameterGroup(groupNames: string) {
-        const response = await this.vapixGet(`/axis-cgi/param.cgi?action=list&group=${encodeURIComponent(groupNames)}`) as string;
+        const response = (await this.vapixGet(
+            `/axis-cgi/param.cgi?action=list&group=${encodeURIComponent(groupNames)}`
+        )) as string;
         const params = {};
         const lines = response.split(/[\r\n]/);
         for (let i = 0; i < lines.length; i++) {
@@ -86,19 +87,20 @@ export class CameraVapix extends EventEmitter {
         }
         return params;
     }
-    
+
     setParameter(params: object) {
         let postData = 'action=update&';
-        for (let key in params)
-        {
+        for (let key in params) {
             postData += key + '=' + params[key] + '&';
         }
         postData = postData.slice(0, postData.length - 1);
         return this.vapixPost('/axis-cgi/param.cgi', postData);
     }
-    
+
     async getPTZPresetList(channel: string) {
-        const response = await this.vapixGet(`/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`) as string;
+        const response = (await this.vapixGet(
+            `/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`
+        )) as string;
         const positions: string[] = [];
         const lines = response.split(/[\r\n]/);
         for (let line of lines) {
@@ -111,50 +113,50 @@ export class CameraVapix extends EventEmitter {
         }
         return positions;
     }
-    
+
     goToPreset(channel: number, presetName: string) {
         return this.vapixPost(
             '/axis-cgi/com/ptz.cgi',
             `camera=${encodeURIComponent(channel)}&gotoserverpresetname=${encodeURIComponent(presetName)}`
         );
     }
-    
+
     async getGuardTourList() {
         const gTourList = new Array<GuardTour>();
-        const response = await this.getParameterGroup('GuardTour')
-                for (let i = 0; i < 20; i++) {
-                    const gTourBaseName = 'root.GuardTour.G' + i;
-                    if (gTourBaseName + '.CamNbr' in response) {
-                        const gTour: GuardTour = {
-                            id: gTourBaseName,
-                            camNbr: response[gTourBaseName + '.CamNbr'],
-                            name: response[gTourBaseName + '.Name'],
-                            randomEnabled: response[gTourBaseName + '.RandomEnabled'],
-                            running: response[gTourBaseName + '.Running'],
-                            timeBetweenSequences: response[gTourBaseName + '.TimeBetweenSequences'],
-                            tour: [],
+        const response = await this.getParameterGroup('GuardTour');
+        for (let i = 0; i < 20; i++) {
+            const gTourBaseName = 'root.GuardTour.G' + i;
+            if (gTourBaseName + '.CamNbr' in response) {
+                const gTour: GuardTour = {
+                    id: gTourBaseName,
+                    camNbr: response[gTourBaseName + '.CamNbr'],
+                    name: response[gTourBaseName + '.Name'],
+                    randomEnabled: response[gTourBaseName + '.RandomEnabled'],
+                    running: response[gTourBaseName + '.Running'],
+                    timeBetweenSequences: response[gTourBaseName + '.TimeBetweenSequences'],
+                    tour: [],
+                };
+                for (let j = 0; j < 100; j++) {
+                    const tourBaseName = 'root.GuardTour.G' + i + '.Tour.T' + j;
+                    if (tourBaseName + '.MoveSpeed' in response) {
+                        const tour = {
+                            moveSpeed: response[tourBaseName + '.MoveSpeed'],
+                            position: response[tourBaseName + '.Position'],
+                            presetNbr: response[tourBaseName + '.PresetNbr'],
+                            waitTime: response[tourBaseName + '.WaitTime'],
+                            waitTimeViewType: response[tourBaseName + '.WaitTimeViewType'],
                         };
-                        for (let j = 0; j < 100; j++) {
-                            const tourBaseName = 'root.GuardTour.G' + i + '.Tour.T' + j;
-                            if (tourBaseName + '.MoveSpeed' in response) {
-                                const tour = {
-                                    moveSpeed: response[tourBaseName + '.MoveSpeed'],
-                                    position: response[tourBaseName + '.Position'],
-                                    presetNbr: response[tourBaseName + '.PresetNbr'],
-                                    waitTime: response[tourBaseName + '.WaitTime'],
-                                    waitTimeViewType: response[tourBaseName + '.WaitTimeViewType'],
-                                };
-                                gTour.tour.push(tour);
-                            }
-                        }
-                        gTourList.push(gTour);
-                    } else {
-                        break;
+                        gTour.tour.push(tour);
                     }
                 }
-                return gTourList;
+                gTourList.push(gTour);
+            } else {
+                break;
+            }
+        }
+        return gTourList;
     }
-    
+
     setGuardTourEnabled(gourTourID: string, enable: boolean) {
         const options = {};
         options[gourTourID + '.Running'] = enable ? 'yes' : 'no';
@@ -163,30 +165,27 @@ export class CameraVapix extends EventEmitter {
 
     async getInputState(port: number) {
         const response = await this.vapixPost('/axis-cgi/io/port.cgi', `checkactive=${encodeURIComponent(port)}`);
-        return (response.split('=')[1].indexOf('active') == 0);
+        return response.split('=')[1].indexOf('active') == 0;
     }
-    
+
     setOutputState(port: number, active: boolean) {
-        return this.vapixPost(
-            '/axis-cgi/io/port.cgi',
-            `action=${encodeURIComponent(port)}:${active ? '/' : '\\'}`
-        );
+        return this.vapixPost('/axis-cgi/io/port.cgi', `action=${encodeURIComponent(port)}:${active ? '/' : '\\'}`);
     }
-    
+
     getApplicationList() {
-         return new Promise<Application[]>(async (resolve, reject) => {
-            const xml = await this.vapixGet('/axis-cgi/applications/list.cgi') as string;
-                parseString(xml, (err, result: ApplicationList) => {
-                    if (err) {
-                        reject(err);
-                        return;
-                    }
-                    const apps = [];
-                    for (let i = 0; i < result.reply.application.length; i++) {
-                        apps.push(result.reply.application[i].$);
-                    }
-                    resolve(apps);
-                });
+        return new Promise<Application[]>(async (resolve, reject) => {
+            const xml = (await this.vapixGet('/axis-cgi/applications/list.cgi')) as string;
+            parseString(xml, (err, result: ApplicationList) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+                const apps = [];
+                for (let i = 0; i < result.reply.application.length; i++) {
+                    apps.push(result.reply.application[i].$);
+                }
+                resolve(apps);
+            });
         });
     }
 
@@ -203,7 +202,7 @@ export class CameraVapix extends EventEmitter {
     }
 
     private isReservedEventName(eventName: string) {
-        return (eventName == 'eventsConnect' || eventName == 'eventsDisconnect');
+        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect';
     }
 
     eventsConnect(channel = 'RTSP') {
@@ -370,10 +369,10 @@ export class CameraVapix extends EventEmitter {
         options.path = encodeURI(path);
         return httpRequest(options, undefined, noWaitForData);
     }
-    
+
     async getCameraImage(camera: string, compression: string, resolution: string, outputStream: NodeJS.WritableStream) {
         const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-        const res = await this.vapixGet(path, true) as http.IncomingMessage;
+        const res = (await this.vapixGet(path, true)) as http.IncomingMessage;
         res.pipe(outputStream);
         return outputStream;
     }

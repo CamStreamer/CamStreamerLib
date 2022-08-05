@@ -1,24 +1,24 @@
 import * as http from 'http';
 import * as https from 'https';
-import {Digest} from './Digest';
+import { Digest } from './Digest';
 
 type Resp = {
     resp: http.IncomingMessage;
     data?: string;
-}
+};
 
 export type HttpRequestOptions = {
-    method?: string,
-    protocol?: string,
-    host: string,
-    port: number,
-    path?: string,
-    auth: string,
-    timeout?: number,
+    method?: string;
+    protocol?: string;
+    host: string;
+    port: number;
+    path?: string;
+    auth: string;
+    timeout?: number;
     headers?: {
-        'Content-Type'?: string
-    }
-}
+        'Content-Type'?: string;
+    };
+};
 
 export async function httpRequest(options: HttpRequestOptions, postData?: string, noWaitForData = false) {
     if (postData !== undefined) {
@@ -30,7 +30,7 @@ export async function httpRequest(options: HttpRequestOptions, postData?: string
     let response = await request(options, postData, undefined, noWaitForData);
 
     if (response.resp.statusCode == 200) {
-        return (noWaitForData) ? response.resp : response.data;
+        return noWaitForData ? response.resp : response.data;
     } else if (response.resp.statusCode == 401) {
         if (
             response.resp.headers['www-authenticate'] != undefined &&
@@ -38,14 +38,13 @@ export async function httpRequest(options: HttpRequestOptions, postData?: string
         ) {
             response = await request(options, postData, response.resp.headers['www-authenticate'], noWaitForData);
             if (response.resp.statusCode == 200) {
-                return (noWaitForData) ? response.resp : response.data;
+                return noWaitForData ? response.resp : response.data;
             }
         }
     }
     if (noWaitForData) {
         throw new Error(`Error: status code: ${response.resp.statusCode}`);
-    }
-    else {
+    } else {
         throw new Error(`Error: status code: ${response.resp.statusCode}, ${response.data}`);
     }
 }

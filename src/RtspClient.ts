@@ -4,10 +4,10 @@ import * as EventEmitter from 'events';
 import { Digest } from './Digest';
 
 export type RtspClientOptions = {
-    ip?: string,
-    port?: number,
-    auth?: string
-}
+    ip?: string;
+    port?: number;
+    auth?: string;
+};
 
 export class RtspClient extends EventEmitter {
     private ip: string;
@@ -62,8 +62,7 @@ export class RtspClient extends EventEmitter {
             this.clientPost.write(this.getInitializationMessagePost());
         });
 
-        this.clientPost.on('data', (data) => {
-        });
+        this.clientPost.on('data', (data) => {});
 
         this.clientPost.on('close', this.closeConnection);
     }
@@ -86,8 +85,7 @@ export class RtspClient extends EventEmitter {
     processGetMessage(data) {
         if (this.inputBuffer == null) {
             this.inputBuffer = Buffer.from(data, 'binary');
-        }
-        else {
+        } else {
             this.inputBuffer = Buffer.concat([this.inputBuffer, Buffer.from(data, 'binary')]);
         }
 
@@ -202,7 +200,7 @@ export class RtspClient extends EventEmitter {
 
         const stringHeaders = msgHeaders.toString();
         let tmp: RegExpExecArray;
-        while (tmp = regex.exec(stringHeaders)) {
+        while ((tmp = regex.exec(stringHeaders))) {
             headers[tmp[1].toLowerCase()] = tmp[2];
         }
 
@@ -213,13 +211,19 @@ export class RtspClient extends EventEmitter {
         let body = this.inputBuffer.subarray(msgEndFound + 4, msgSize);
         this.inputBuffer = this.inputBuffer.subarray(msgSize);
 
-        return { 'statusLine': msgHeaders.subarray(0, msgHeaders.indexOf('\r\n')), 'headers': headers, 'headersRaw': msgHeaders, 'body': body };
+        return {
+            statusLine: msgHeaders.subarray(0, msgHeaders.indexOf('\r\n')),
+            headers: headers,
+            headersRaw: msgHeaders,
+            body: body,
+        };
     }
 
     parseRtpMessage() {
         const INTERLEAVED_HEADER_SIZE = 4;
         const RTP_HEADER_SIZE = 12;
-        if (this.inputBuffer.length < INTERLEAVED_HEADER_SIZE) { // Not enough data even for rtp header. Try again when more data is available
+        if (this.inputBuffer.length < INTERLEAVED_HEADER_SIZE) {
+            // Not enough data even for rtp header. Try again when more data is available
             return null;
         }
 
@@ -229,7 +233,7 @@ export class RtspClient extends EventEmitter {
 
         // Ivalid input data - invalid channel
         if (channel < 0 || channel > 1) {
-            this.closeConnection("InterleavedMessage - invalid channel found: " + channel);
+            this.closeConnection(`InterleavedMessage - invalid channel found: ${channel}`);
             return null;
         }
 
@@ -240,78 +244,92 @@ export class RtspClient extends EventEmitter {
 
         let body = this.inputBuffer.subarray(INTERLEAVED_HEADER_SIZE + RTP_HEADER_SIZE, msgDataSize);
         this.inputBuffer = this.inputBuffer.subarray(msgDataSize);
-        return { 'channel': channel, 'body': body };
+        return { channel: channel, body: body };
     }
 
     getInitializationMessageGet() {
-        return 'GET /axis-media/media.amp HTTP/1.1\r\n' +
+        return (
+            'GET /axis-media/media.amp HTTP/1.1\r\n' +
             'CSeq: 1\r\n' +
             'User-Agent: Camstreamer RTSP Client\r\n' +
-            'Host: ' + this.ip + '\r\n' +
-            'x-sessioncookie: ' + this.sessioncookie + '\r\n' +
+            `Host: ${this.ip}'\r\n` +
+            `x-sessioncookie: ${this.sessioncookie}\r\n` +
             'Accept: application/x-rtsp-tunnelled\r\n' +
             'Pragma: no-cache\r\n' +
-            'Authorization: ' + this.getAuthHeader('GET', '/axis-media/media.amp') + '\r\n' +
-            'Cache-Control: no-cache\r\n\r\n';
+            `Authorization: ${this.getAuthHeader('GET', '/axis-media/media.amp')}\r\n` +
+            'Cache-Control: no-cache\r\n\r\n'
+        );
     }
 
     getInitializationMessagePost() {
-        return 'POST /axis-media/media.amp HTTP/1.1\r\n' +
+        return (
+            'POST /axis-media/media.amp HTTP/1.1\r\n' +
             'CSeq: 1\r\n' +
             'User-Agent: Camstreamer RTSP Client\r\n' +
-            'Host: ' + this.ip + '\r\n' +
-            'x-sessioncookie: ' + this.sessioncookie + '\r\n' +
+            `Host: ${this.ip}\r\n` +
+            `x-sessioncookie: ${this.sessioncookie}\r\n` +
             'Content-Type: application/x-rtsp-tunnelled\r\n' +
             'Pragma: no-cache\r\n' +
             'Cache-Control: no-cache\r\n' +
-            'Authorization: ' + this.getAuthHeader('POST', '/axis-media/media.amp') + '\r\n' +
-            'Content-Length: 32767\r\n\r\n';
+            `Authorization: ${this.getAuthHeader('POST', '/axis-media/media.amp')}\r\n` +
+            'Content-Length: 32767\r\n\r\n'
+        );
     }
 
     getRtspMessage() {
         this.rtspCSeq++;
         switch (this.state) {
             case 'RTSP_OPTION': {
-                return 'OPTIONS ' + this.rtspPath + ' RTSP/1.0\r\n' +
-                    'CSeq: ' + this.rtspCSeq + '\r\n' +
+                return (
+                    `OPTIONS ${this.rtspPath} RTSP/1.0\r\n` +
+                    `CSeq: ${this.rtspCSeq}\r\n` +
                     'User-Agent: Camstreamer RTSP Client\r\n' +
-                    'Authorization: ' + this.getAuthHeader('OPTIONS', this.rtspPath) + '\r\n\r\n';
+                    `Authorization: ${this.getAuthHeader('OPTIONS', this.rtspPath)}\r\n\r\n`
+                );
             }
             case 'RTSP_DESCRIBE': {
-                return 'DESCRIBE ' + this.rtspPath + ' RTSP/1.0\r\n' +
-                    'CSeq: ' + this.rtspCSeq + '\r\n' +
+                return (
+                    `DESCRIBE ${this.rtspPath} RTSP/1.0\r\n` +
+                    `CSeq: ${this.rtspCSeq}\r\n` +
                     'User-Agent: Camstreamer RTSP Client\r\n' +
-                    'Authorization: ' + this.getAuthHeader('DESCRIBE', this.rtspPath) + '\r\n' +
-                    'Accept: application/sdp\r\n\r\n';
+                    `Authorization: ${this.getAuthHeader('DESCRIBE', this.rtspPath)}\r\n` +
+                    'Accept: application/sdp\r\n\r\n'
+                );
             }
             case 'RTSP_SETUP': {
-                return 'SETUP ' + this.control + ' RTSP/1.0\r\n' +
-                    'CSeq: ' + this.rtspCSeq + '\r\n' +
+                return (
+                    `SETUP ${this.control} RTSP/1.0\r\n` +
+                    `CSeq: ${this.rtspCSeq}\r\n` +
                     'User-Agent: Camstreamer RTSP Client\r\n' +
-                    'Authorization: ' + this.getAuthHeader('SETUP', this.rtspPath) + '\r\n' +
-                    'Transport: RTP/AVP/TCP;unicast;interleaved=0-1\r\n\r\n';
+                    `Authorization: ${this.getAuthHeader('SETUP', this.rtspPath)}\r\n` +
+                    'Transport: RTP/AVP/TCP;unicast;interleaved=0-1\r\n\r\n'
+                );
             }
             case 'RTSP_PLAY': {
-                return 'PLAY ' + this.rtspPath + ' RTSP/1.0\r\n' +
-                    'CSeq: ' + this.rtspCSeq + '\r\n' +
+                return (
+                    `PLAY ${this.rtspPath} RTSP/1.0\r\n` +
+                    `CSeq: ${this.rtspCSeq}\r\n` +
                     'User-Agent: Camstreamer RTSP Client\r\n' +
-                    'Authorization: ' + this.getAuthHeader('PLAY', this.rtspPath) + '\r\n' +
-                    'Session: ' + this.session + '\r\n' +
+                    `Authorization: ${this.getAuthHeader('PLAY', this.rtspPath)}\r\n` +
+                    `Session: ${this.session}\r\n` +
                     'Range: npt=0.000-\r\n\r\n'
+                );
             }
             case 'RTSP_GET_PARAMETER': {
-                return 'GET_PARAMETER ' + this.rtspPath + ' RTSP/1.0\r\n' +
-                    'CSeq: ' + this.rtspCSeq + '\r\n' +
+                return (
+                    `GET_PARAMETER ${this.rtspPath} RTSP/1.0\r\n` +
+                    `CSeq: ${this.rtspCSeq}\r\n` +
                     'User-Agent: Camstreamer RTSP Client\r\n' +
-                    'Authorization: ' + this.getAuthHeader('GET_PARAMETER', this.rtspPath) + '\r\n' +
-                    'Session: ' + this.session + '\r\n\r\n';
+                    `Authorization: ${this.getAuthHeader('GET_PARAMETER', this.rtspPath)}\r\n` +
+                    `Session: ${this.session}\r\n\r\n`
+                );
             }
         }
     }
 
     getAuthHeader(method: string, path: string) {
         if (this.authorizationType == 'basic') {
-            return 'Basic ' + Buffer.from(this.auth).toString('base64');
+            return `Basic ${Buffer.from(this.auth).toString('base64')}`;
         } else {
             const userPass = this.auth.split(':');
             return Digest.getAuthHeader(userPass[0], userPass[1], method, path, this.wwwAuthenticateHeader);

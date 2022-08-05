@@ -2,24 +2,24 @@ import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
 import { httpRequest } from './HTTPRequest';
-import {HttpRequestOptions} from './HTTPRequest';
+import { HttpRequestOptions } from './HTTPRequest';
 
 export type CamSwitcherAPIOptions = {
     ip?: string;
     port?: number;
     auth?: string;
-}
+};
 
 export class CamSwitcherAPI extends EventEmitter {
     private ip: string;
     private port: number;
     private auth: string;
-    
+
     private ws: WebSocket;
     private pingTimer: NodeJS.Timer;
 
     constructor(options: CamSwitcherAPIOptions) {
-        super()
+        super();
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? 80;
         this.auth = options?.auth ?? '';
@@ -106,7 +106,7 @@ export class CamSwitcherAPI extends EventEmitter {
     async get(path: string) {
         const options = this.getBaseConnectionParams();
         options.path = encodeURI(path);
-        const data = await httpRequest(options) as string;
+        const data = (await httpRequest(options)) as string;
         try {
             const response = JSON.parse(data);
             if (response.status == 200) {
@@ -124,8 +124,7 @@ export class CamSwitcherAPI extends EventEmitter {
             protocol: 'http:',
             host: this.ip,
             port: this.port,
-            auth: this.auth
+            auth: this.auth,
         };
     }
-
 }
