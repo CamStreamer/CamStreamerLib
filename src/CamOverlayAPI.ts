@@ -195,7 +195,7 @@ export class CamOverlayAPI extends EventEmitter {
 
             this.ws.on('unexpected-response', async (req, res) => {
                 if (res.statusCode == 401 && res.headers['www-authenticate'] != undefined)
-                    await this.openWebsocket(res.headers['www-authenticate']);
+                    this.openWebsocket(res.headers['www-authenticate']).then(resolve, reject);
                 else {
                     reject('Error: status code: ' + res.statusCode + ', ' + res.data);
                 }
