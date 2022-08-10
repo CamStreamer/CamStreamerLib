@@ -1,6 +1,6 @@
 {
   "name": "camstreamerlib",
-  "version": "1.5.1",
+  "version": "1.6.0",
   "description": "Helper library for CamStreamer ACAP applications.",
   "prettier": "@camstreamer/prettier-config",
   "main": "CameraVapix.js",
