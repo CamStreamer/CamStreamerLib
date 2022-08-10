@@ -52,9 +52,9 @@ export class RtspClient extends EventEmitter {
             this.clientGet.write(this.getInitializationMessageGet());
         });
 
-        this.clientGet.on('data', this.processGetMessage);
+        this.clientGet.on('data', (data) => this.processGetMessage(data));
 
-        this.clientGet.on('close', this.closeConnection);
+        this.clientGet.on('close', () => this.closeConnection);
 
         // Start POST connection
         this.clientPost = new net.Socket();
@@ -64,7 +64,7 @@ export class RtspClient extends EventEmitter {
 
         this.clientPost.on('data', (data) => {});
 
-        this.clientPost.on('close', this.closeConnection);
+        this.clientPost.on('close', () => this.closeConnection);
     }
 
     disconnect() {
