@@ -1,6 +1,6 @@
 {
   "name": "camstreamerlib",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Helper library for CamStreamer ACAP applications.",
   "prettier": "@camstreamer/prettier-config",
   "main": "CameraVapix.js",
@@ -27,6 +27,7 @@
     "clean": "rimraf dist/*",
     "build": "npm-run-all clean tsc",
     "tsc": "tsc",
+    "prepublishOnly": "npm run build",
     "pretty": "prettier --write \"./src/*.{ts,tsx}\"",
     "pretty:check": "prettier --check \"./src/*.{ts,tsx}\"",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
