@@ -1,18 +1,35 @@
 {
   "name": "camstreamerlib",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Helper library for CamStreamer ACAP applications.",
+  "prettier": "@camstreamer/prettier-config",
   "main": "CameraVapix.js",
   "dependencies": {
     "crypto": "^1.0.1",
     "eventemitter2": "^5.0.1",
     "prettify-xml": "^1.2.0",
+    "typescript": "^4.7.4",
     "ws": "^7.4.2",
     "xml2js": "^0.4.19"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "@camstreamer/prettier-config": "^2.0.4",
+    "@types/jest": "^28.0.0",
+    "@types/node": "^18.0.6",
+    "ts-jest": "^28.0.0",
+    "ts-node": "^10.7.0",
+    "jest": "^28.1.3",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.7.1",
+    "rimraf": "^3.0.2"
+  },
   "scripts": {
-    "test": "echo \"Error: no test specified\""
+    "clean": "rimraf dist/*",
+    "build": "npm-run-all clean tsc",
+    "tsc": "tsc",
+    "pretty": "prettier --write \"./src/*.{ts,tsx}\"",
+    "pretty:check": "prettier --check \"./src/*.{ts,tsx}\"",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "repository": {
     "type": "git",

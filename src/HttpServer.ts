@@ -1,29 +1,39 @@
-const http = require('http');
-const url = require('url');
-const fs = require('fs');
-const path = require('path');
-const EventEmitter = require('events');
+import * as http from 'http';
+import * as url from 'url';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as EventEmitter from 'events';
+import { Socket } from 'node:net';
 
-class HttpServer extends EventEmitter {
-    constructor(options) {
+export type HttpServerOptions = {
+    port?: number;
+};
+
+type OnRequestCallback = (req: http.IncomingMessage, res: http.ServerResponse) => void;
+
+export class HttpServer extends EventEmitter {
+    private port: number;
+    private registeredPaths: Map<string, OnRequestCallback>;
+    private server: http.Server;
+    private sockets: Record<number, Socket>;
+
+    constructor(options?: HttpServerOptions) {
         super();
-        this.port = process.env.HTTP_PORT;
-        if (options) {
-            this.port = options['port'] || process.env.HTTP_PORT;
-        }
-        this.registeredPaths = {};
+        this.port = options?.port ?? parseInt(process.env.HTTP_PORT);
+
+        this.registeredPaths = new Map();
         this.server = http.createServer((req, res) => {
             this.emit('access', req.method + ' ' + req.url);
 
             // Parse URL
             const parsedUrl = url.parse(req.url);
             // Find path in registered paths
-            if (parsedUrl.pathname in this.registeredPaths) {
-                this.registeredPaths[parsedUrl.pathname](req, res);
+            if (this.registeredPaths.has(parsedUrl.pathname)) {
+                this.registeredPaths.get(parsedUrl.pathname)(req, res);
                 return;
             }
             // Extract URL path
-            let pathname = './html' + parsedUrl.pathname;
+            let pathname = `./html${parsedUrl.pathname}`;
             // Based on the URL path, extract the file extention. e.g. .js, .doc, ...
             const ext = path.parse(pathname).ext;
             // Maps file extention to MIME typere
@@ -39,31 +49,32 @@ class HttpServer extends EventEmitter {
                 '.mp3': 'audio/mpeg',
                 '.svg': 'image/svg+xml',
                 '.pdf': 'application/pdf',
-                '.doc': 'application/msword'
+                '.doc': 'application/msword',
             };
 
-            fs.exists(pathname, (exist) => {
+            fs.access(pathname, (exist) => {
                 if (!exist) {
                     // If the file is not found, return 404
                     res.statusCode = 404;
-                    res.end('File ' + pathname + ' not found!');
-                    this.emit('error', 'File ' + pathname + ' not found!');
+                    res.end(`File ${pathname} not found!`);
+                    this.emit('error', `File ${pathname} not found!`);
                     return;
                 }
 
                 // If is a directory search for index file matching the extension
-                if (fs.statSync(pathname).isDirectory())
-                    pathname += '/index' + ext;
+                if (fs.statSync(pathname).isDirectory()) {
+                    pathname += `/index${ext}`;
+                }
 
                 // Read file from file system
                 fs.readFile(pathname, (err, data) => {
                     if (err) {
                         res.statusCode = 500;
-                        res.end('Error getting the file: ' + err);
-                        this.emit('error', 'Error getting the file: ' + err);
+                        res.end(`Error getting the file: ${err}`);
+                        this.emit('error', `Error getting the file: ${err}`);
                     } else {
                         // If the file is found, set Content-type and send data
-                        res.setHeader('Content-type', map[ext] || 'text/plain');
+                        res.setHeader('Content-type', map[ext] ?? 'text/plain');
                         res.setHeader('Access-Control-Allow-Origin', '*');
                         res.end(data);
                     }
@@ -75,28 +86,26 @@ class HttpServer extends EventEmitter {
             this.emit('error', err);
         });
 
-        this.server.listen(parseInt(this.port));
+        this.server.listen(this.port);
         this.sockets = {};
-        let idTracker = 0
+        let idTracker = 0;
         this.server.on('connection', (socket) => {
             let socketID = idTracker++;
-            this.sockets[socketID] = socket
+            this.sockets[socketID] = socket;
             socket.on('close', () => {
                 delete this.sockets[socketID];
             });
-        })
+        });
     }
 
-    onRequest(path, callback) {
-        this.registeredPaths[path] = callback;
+    onRequest(path: string, callback: OnRequestCallback) {
+        this.registeredPaths.set(path, callback);
     }
 
     close() {
         this.server.close();
-        for (let socketID in this.sockets) {
-            this.sockets[socketID].destroy();
+        for (let key in this.sockets) {
+            this.sockets[key].destroy();
         }
     }
 }
-
-module.exports = HttpServer;
