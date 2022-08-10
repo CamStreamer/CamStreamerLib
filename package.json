@@ -1,9 +1,8 @@
 {
   "name": "camstreamerlib",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Helper library for CamStreamer ACAP applications.",
   "prettier": "@camstreamer/prettier-config",
-  "main": "CameraVapix.js",
   "dependencies": {
     "crypto": "^1.0.1",
     "eventemitter2": "^5.0.1",
@@ -25,13 +24,14 @@
   },
   "scripts": {
     "clean": "rimraf dist/*",
-    "build": "npm-run-all clean tsc",
+    "build": "npm-run-all clean tsc copyPackage",
     "tsc": "tsc",
-    "prepublishOnly": "npm run build",
+    "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
     "pretty": "prettier --write \"./src/*.{ts,tsx}\"",
     "pretty:check": "prettier --check \"./src/*.{ts,tsx}\"",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
+  "files": ["*.js", "*.ts"],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CamStreamer/CamStreamerLib.git"
