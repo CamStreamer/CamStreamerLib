@@ -48,15 +48,16 @@ function main(args: string[]) {
         }
     }
 
-    if (fs.existsSync('./dist')) {
+    if (fs.existsSync('dist')) {
         options.typeScriptPackage = true;
     }
 
-    if (fs.existsSync('./' + zipFile)) {
+    if (fs.existsSync(zipFile)) {
         try {
             fs.unlinkSync(zipFile);
         } catch (error) {
             console.log('An error occured: ', error);
+            process.exit(1);
         }
     }
 
