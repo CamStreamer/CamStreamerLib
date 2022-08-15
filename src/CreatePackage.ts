@@ -52,14 +52,17 @@ function main(args: string[]) {
         options.typeScriptPackage = true;
     }
 
-    try {
-        fs.unlinkSync(zipFile);
-    } catch {}
+    if (fs.existsSync('./' + zipFile)) {
+        try {
+            fs.unlinkSync(zipFile);
+        } catch (error) {
+            console.log('An error occured: ', error);
+        }
+    }
 
     const zip: AdmZip = new AdmZip();
     createZipArchive(zip, folder, options);
     zip.writeZip(zipFile);
 }
 
-console.clear();
 main(process.argv.slice(2));
