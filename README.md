@@ -334,3 +334,17 @@ np
 ```
 The utility will ask you for the prefered version raise and if you are lucky, everything will run just fine.
 Finally, edit GitHub release form.
+
+### Preparing a package to upload to CamScripter
+If you  want to create your own package and upload it to CamScripter, you can use script CreatePackage. It creates zip file which contains all required files and directories in your package folder. The script accepts source code written either in JavaScript or TypeScript if the package has correct structure (more information in https://github.com/CamStreamer/CamScripterApp_examples/#readme). To include this script into your package add in file `package.json` following lines:
+```json
+"scripts": {
+    "create-package": "node CamStreamerLib/CreatePackage.js"
+  }
+```
+By default the zipped package does not contain node_modules directory. If you want to include it (which is required e.g. when uploading to CamScripter), add this:
+```json
+"scripts": {
+    "create-package": "node CamStreamerLib/CreatePackage.js -includeNodeModules"
+  }
+```
