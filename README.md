@@ -334,3 +334,17 @@ np
 ```
 The utility will ask you for the prefered version raise and if you are lucky, everything will run just fine.
 Finally, edit GitHub release form.
+
+### Preparing a package to upload to CamScripter
+If you want to create your own package and upload it to CamScripter App, you can use the script CreatePackage. It creates a zip file which contains all required files and directories in your package folder. The script accepts source code written either in JavaScript or TypeScript if the package has the correct structure (more information in https://github.com/CamStreamer/CamScripterApp_examples/#readme). To include this script in your package add the following lines in the file package.json:
+```json
+"scripts": {
+    "create-package": "node node_modules/camstreamerlib/CreatePackage.js"
+  }
+```
+By default, the zipped package does not contain node_modules directory. If you want to include it (required when uploading to CamScripter App on Axis camera), add this:
+```json
+"scripts": {
+    "create-package": "node node_modules/camstreamerlib/CreatePackage.js -includeNodeModules"
+  }
+```
