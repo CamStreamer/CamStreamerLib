@@ -338,7 +338,7 @@ export class CamOverlayAPI extends EventEmitter {
 
     async setEnabled(enabled: boolean) {
         const value = enabled ? 1 : 0;
-        const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id${this.serviceID}=${value}`);
+        const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
         const options = {
             method: 'POST',
             host: this.ip,
