@@ -5,13 +5,13 @@ import { Digest } from './Digest';
 import { httpRequest } from './HTTPRequest';
 
 export type CamOverlayOptions = {
-    protocol: string;
-    ip: string;
-    port: number;
-    auth: string;
-    serviceName: string;
-    serviceID: number;
-    camera: number;
+    protocol?: string;
+    ip?: string;
+    port?: number;
+    auth?: string;
+    serviceName?: string;
+    serviceID?: number;
+    camera?: number;
 };
 
 export type Field = {
