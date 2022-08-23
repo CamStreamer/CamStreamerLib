@@ -2,10 +2,10 @@ import { httpRequest } from './HTTPRequest';
 import { HttpRequestOptions } from './HTTPRequest';
 
 export type CamStreamerAPIOptions = {
-    protocol: string;
-    ip: string;
-    port: number;
-    auth: string;
+    protocol?: string;
+    ip?: string;
+    port?: number;
+    auth?: string;
 };
 
 export class CamStreamerAPI {
