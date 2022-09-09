@@ -1,6 +1,6 @@
 {
   "name": "camstreamerlib",
-  "version": "1.7.2",
+  "version": "1.7.3",
   "description": "Helper library for CamStreamer ACAP applications.",
   "prettier": "@camstreamer/prettier-config",
   "dependencies": {
@@ -8,13 +8,13 @@
     "eventemitter2": "^5.0.1",
     "prettify-xml": "^1.2.0",
     "ws": "^7.4.2",
-    "xml2js": "^0.4.19"
+    "xml2js": "^0.4.19",
+    "adm-zip": "^0.5.9"
   },
   "devDependencies": {
     "@camstreamer/prettier-config": "^2.0.4",
     "@types/jest": "^28.0.0",
     "@types/node": "^18.0.6",
-    "adm-zip": "^0.5.9",
     "typescript": "^4.7.4",
     "ts-jest": "^28.0.0",
     "ts-node": "^10.7.0",
