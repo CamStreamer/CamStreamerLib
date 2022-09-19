@@ -14,11 +14,6 @@ export type CamOverlayOptions = {
     camera?: number;
 };
 
-/*
-    Opravit připojování ke službě tak,
-    aby služba nemusela být předem zapnutá.
-*/
-
 export type Field = {
     field_name: string;
     text: string;
@@ -376,16 +371,18 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     async setEnabled(enabled: boolean) {
-        const value = enabled ? 1 : 0;
-        const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
-        const options = {
-            method: 'POST',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            auth: this.auth,
-        };
-        await httpRequest(options, '');
+        if ((await this.isEnabled()) !== enabled) {
+            const value = enabled ? 1 : 0;
+            const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
+            const options = {
+                method: 'POST',
+                host: this.ip,
+                port: this.port,
+                path: path,
+                auth: this.auth,
+            };
+            await httpRequest(options, '');
+        }
     }
 
     async isEnabled() {
