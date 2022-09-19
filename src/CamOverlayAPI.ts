@@ -14,6 +14,11 @@ export type CamOverlayOptions = {
     camera?: number;
 };
 
+/*
+    Opravit připojování ke službě tak,
+    aby služba nemusela být předem zapnutá.
+*/
+
 export type Field = {
     field_name: string;
     text: string;
@@ -42,8 +47,8 @@ type UploadImageResponse = {
     call_id: number;
 };
 
-type Align = "A_RIGHT" | "A_LEFT" | "A_CENTER";
-type TextFit = "TFM_SCALE" | "TFM_TRUNCATE" | "TFM_OVERFLOW";
+type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
+type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
 type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
 
 type Service = {
@@ -243,20 +248,29 @@ export class CamOverlayAPI extends EventEmitter {
         return this.sendMessage({ command: command, params: params }) as Promise<CairoResponse | CairoCreateResponse>;
     }
 
-    writeText(params: WriteTextParams) {
+    writeText(...params: WriteTextParams) {
         return this.sendMessage({ command: 'write_text', params: params }) as Promise<CairoResponse>;
     }
 
     uploadImageData(imgBuffer: Buffer) {
-        return this.sendMessage({ command: 'upload_image_data', params: [imgBuffer.toString('base64')] }) as Promise<UploadImageResponse>;
+        return this.sendMessage({
+            command: 'upload_image_data',
+            params: [imgBuffer.toString('base64')],
+        }) as Promise<UploadImageResponse>;
     }
 
     uploadFontData(fontBuffer: Buffer) {
-        return this.sendMessage({ command: 'upload_font_data', params: [fontBuffer.toString('base64')] }) as Promise<CairoCreateResponse>;
+        return this.sendMessage({
+            command: 'upload_font_data',
+            params: [fontBuffer.toString('base64')],
+        }) as Promise<CairoCreateResponse>;
     }
 
     showCairoImage(cairoImage: string, posX: number, posY: number) {
-        return this.sendMessage({ command: 'show_cairo_image', params: [this.serviceID, cairoImage, posX, posY] }) as Promise<CairoResponse>;
+        return this.sendMessage({
+            command: 'show_cairo_image',
+            params: [this.serviceID, cairoImage, posX, posY],
+        }) as Promise<CairoResponse>;
     }
 
     showCairoImageAbsolute(cairoImage: string, posX: number, posY: number, width: number, height: number) {

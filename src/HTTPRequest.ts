@@ -13,7 +13,7 @@ export type HttpRequestOptions = {
     host: string;
     port: number;
     path?: string;
-    auth: string;
+    auth?: string;
     timeout?: number;
     headers?: {
         'Content-Type'?: string;
