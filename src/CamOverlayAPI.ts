@@ -139,17 +139,13 @@ export class CamOverlayAPI extends EventEmitter {
         }
 
         if (service != null) {
-            if (service.enabled == 1) {
-                // Check and update service parameters if necessary
-                if (service.camera == undefined || service.camera != this.camera) {
-                    service.camera = this.camera;
-                    await this.updateServices(servicesJson);
-                    return service.id as number;
-                } else {
-                    return service.id as number;
-                }
+            // Check and update service parameters if necessary
+            if (service.camera == undefined || service.camera != this.camera) {
+                service.camera = this.camera;
+                await this.updateServices(servicesJson);
+                return service.id as number;
             } else {
-                throw new Error('CamOverlay service is not enabled');
+                return service.id as number;
             }
         } else {
             // Create new service
