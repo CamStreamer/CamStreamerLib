@@ -65,7 +65,7 @@ export class CameraVapix extends EventEmitter {
 
     constructor(options?: CameraVapixOptions) {
         super();
-        this.protocol = options?.protocol ?? 'html';
+        this.protocol = options?.protocol ?? 'http';
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.protocol == 'http' ? 80 : 443);
         this.auth = options?.auth ?? '';

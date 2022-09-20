@@ -20,6 +20,32 @@ export type Field = {
     color?: string;
 };
 
+type Message = {
+    command: string;
+    params: any[];
+};
+
+type CairoResponse = {
+    message: string;
+    call_id: number;
+};
+
+type CairoCreateResponse = {
+    var: string;
+    call_id: number;
+};
+
+type UploadImageResponse = {
+    var: string;
+    width: number;
+    height: number;
+    call_id: number;
+};
+
+type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
+type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
+type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
+
 type Service = {
     id: number;
     enabled: number;
@@ -113,17 +139,13 @@ export class CamOverlayAPI extends EventEmitter {
         }
 
         if (service != null) {
-            if (service.enabled == 1) {
-                // Check and update service parameters if necessary
-                if (service.camera == undefined || service.camera != this.camera) {
-                    service.camera = this.camera;
-                    await this.updateServices(servicesJson);
-                    return service.id as number;
-                } else {
-                    return service.id as number;
-                }
+            // Check and update service parameters if necessary
+            if (service.camera == undefined || service.camera != this.camera) {
+                service.camera = this.camera;
+                await this.updateServices(servicesJson);
+                return service.id as number;
             } else {
-                throw new Error('CamOverlay service is not enabled');
+                return service.id as number;
             }
         } else {
             // Create new service
@@ -213,39 +235,48 @@ export class CamOverlayAPI extends EventEmitter {
         return promise;
     }
 
-    cairo(command: string, ...params) {
-        return this.sendMessage({ command: command, params: params });
+    cairo(command: string, ...params: any[]) {
+        return this.sendMessage({ command: command, params: params }) as Promise<CairoResponse | CairoCreateResponse>;
     }
 
-    writeText(...params) {
-        return this.sendMessage({ command: 'write_text', params: params });
+    writeText(...params: WriteTextParams) {
+        return this.sendMessage({ command: 'write_text', params: params }) as Promise<CairoResponse>;
     }
 
     uploadImageData(imgBuffer: Buffer) {
-        return this.sendMessage({ command: 'upload_image_data', params: [imgBuffer.toString('base64')] });
+        return this.sendMessage({
+            command: 'upload_image_data',
+            params: [imgBuffer.toString('base64')],
+        }) as Promise<UploadImageResponse>;
     }
 
     uploadFontData(fontBuffer: Buffer) {
-        return this.sendMessage({ command: 'upload_font_data', params: [fontBuffer.toString('base64')] });
+        return this.sendMessage({
+            command: 'upload_font_data',
+            params: [fontBuffer.toString('base64')],
+        }) as Promise<CairoCreateResponse>;
     }
 
-    showCairoImage(cairoImage, posX: number, posY: number) {
-        return this.sendMessage({ command: 'show_cairo_image', params: [this.serviceID, cairoImage, posX, posY] });
+    showCairoImage(cairoImage: string, posX: number, posY: number) {
+        return this.sendMessage({
+            command: 'show_cairo_image',
+            params: [this.serviceID, cairoImage, posX, posY],
+        }) as Promise<CairoResponse>;
     }
 
-    removeImage() {
-        return this.sendMessage({ command: 'remove_image', params: [this.serviceID] });
-    }
-
-    showCairoImageAbsolute(cairoImage, posX: number, posY: number, width: number, height: number) {
+    showCairoImageAbsolute(cairoImage: string, posX: number, posY: number, width: number, height: number) {
         return this.sendMessage({
             command: 'show_cairo_image',
             params: [this.serviceID, cairoImage, -1.0 + (2.0 / width) * posX, -1.0 + (2.0 / height) * posY],
-        });
+        }) as Promise<CairoResponse>;
     }
 
-    sendMessage(msgJson) {
-        let promise = new Promise((resolve, reject) => {
+    removeImage() {
+        return this.sendMessage({ command: 'remove_image', params: [this.serviceID] }) as Promise<CairoResponse>;
+    }
+
+    sendMessage(msgJson: Message) {
+        return new Promise<CairoResponse | CairoCreateResponse | UploadImageResponse>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson['call_id'] = this.callId++;
@@ -254,7 +285,6 @@ export class CamOverlayAPI extends EventEmitter {
                 this.reportErr(new Error(`Send message error: ${err}`));
             }
         });
-        return promise;
     }
 
     reportMsg(msg: string) {
@@ -337,16 +367,18 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     async setEnabled(enabled: boolean) {
-        const value = enabled ? 1 : 0;
-        const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
-        const options = {
-            method: 'POST',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            auth: this.auth,
-        };
-        await httpRequest(options, '');
+        if ((await this.isEnabled()) !== enabled) {
+            const value = enabled ? 1 : 0;
+            const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
+            const options = {
+                method: 'POST',
+                host: this.ip,
+                port: this.port,
+                path: path,
+                auth: this.auth,
+            };
+            await httpRequest(options, '');
+        }
     }
 
     async isEnabled() {
