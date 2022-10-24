@@ -20,31 +20,31 @@ export type Field = {
     color?: string;
 };
 
-type Message = {
+export type Message = {
     command: string;
     params: any[];
 };
 
-type CairoResponse = {
+export type CairoResponse = {
     message: string;
     call_id: number;
 };
 
-type CairoCreateResponse = {
+export type CairoCreateResponse = {
     var: string;
     call_id: number;
 };
 
-type UploadImageResponse = {
+export type UploadImageResponse = {
     var: string;
     width: number;
     height: number;
     call_id: number;
 };
 
-type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
-type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
-type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
+export type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
+export type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
+export type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
 
 type Service = {
     id: number;
@@ -95,16 +95,14 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     async connect() {
-        if (this.serviceID != -1) {
-            await this.openWebsocket();
-        } else {
-            try {
-                let id = await this.createService();
-                this.serviceID = id;
-                await this.openWebsocket();
-            } catch (err) {
-                this.reportErr(err);
+        try {
+            if (this.serviceID == -1) {
+                this.serviceID = await this.createService();
             }
+            await this.openWebsocket();
+            this.emit('open');
+        } catch (err) {
+            this.reportErr(err);
         }
     }
 
@@ -294,6 +292,7 @@ export class CamOverlayAPI extends EventEmitter {
     reportErr(err: Error) {
         this.ws?.terminate();
         this.emit('error', err);
+        this.emit('close');
     }
 
     reportClose() {
