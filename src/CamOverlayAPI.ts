@@ -46,7 +46,7 @@ export type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
 export type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
 export type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
 
-type Service = {
+export type Service = {
     id: number;
     enabled: number;
     schedule: string;
@@ -55,7 +55,7 @@ type Service = {
     camera: number;
 };
 
-type ServiceJson = {
+export type ServiceList = {
     services: Service[];
 };
 
@@ -114,7 +114,7 @@ export class CamOverlayAPI extends EventEmitter {
             auth: this.auth,
         };
         const response = (await httpRequest(options)) as string;
-        let servicesJson: ServiceJson;
+        let servicesJson: ServiceList;
         try {
             servicesJson = JSON.parse(response);
             servicesJson.services ??= [];
@@ -162,7 +162,7 @@ export class CamOverlayAPI extends EventEmitter {
         }
     }
 
-    async updateServices(servicesJson: ServiceJson) {
+    async updateServices(servicesJson: ServiceList) {
         const options = {
             method: 'POST',
             host: this.ip,
@@ -366,18 +366,16 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     async setEnabled(enabled: boolean) {
-        if ((await this.isEnabled()) !== enabled) {
-            const value = enabled ? 1 : 0;
-            const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
-            const options = {
-                method: 'POST',
-                host: this.ip,
-                port: this.port,
-                path: path,
-                auth: this.auth,
-            };
-            await httpRequest(options, '');
-        }
+        const value = enabled ? 1 : 0;
+        const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
+        const options = {
+            method: 'POST',
+            host: this.ip,
+            port: this.port,
+            path: path,
+            auth: this.auth,
+        };
+        await httpRequest(options, '');
     }
 
     async isEnabled() {
@@ -389,7 +387,7 @@ export class CamOverlayAPI extends EventEmitter {
             auth: this.auth,
         };
         const response = (await httpRequest(options, '')) as string;
-        const data: ServiceJson = JSON.parse(response);
+        const data: ServiceList = JSON.parse(response);
 
         for (let service of data.services) {
             if (service.id == this.serviceID) {
