@@ -18,6 +18,7 @@ export type HttpRequestOptions = {
     headers?: {
         'Content-Type'?: string;
     };
+    rejectUnauthorized?: boolean;
 };
 
 export async function httpRequest(options: HttpRequestOptions, postData?: string, noWaitForData = false) {
@@ -53,7 +54,7 @@ function request(options: HttpRequestOptions, postData?: string, digestHeader?: 
     return new Promise<Resp>((resolve, reject) => {
         if (digestHeader != undefined) {
             if (options.auth == undefined) {
-                reject('No credentials found');
+                reject(new Error('No credentials found'));
             }
             const auth = options.auth.split(':');
             delete options.auth;

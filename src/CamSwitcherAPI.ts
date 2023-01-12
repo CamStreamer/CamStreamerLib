@@ -5,12 +5,16 @@ import { httpRequest } from './HTTPRequest';
 import { HttpRequestOptions } from './HTTPRequest';
 
 export type CamSwitcherAPIOptions = {
+    tls?: boolean;
+    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
     ip?: string;
     port?: number;
     auth?: string;
 };
 
 export class CamSwitcherAPI extends EventEmitter {
+    private tls: boolean;
+    private tlsInsecure: boolean;
     private ip: string;
     private port: number;
     private auth: string;
@@ -20,6 +24,8 @@ export class CamSwitcherAPI extends EventEmitter {
 
     constructor(options: CamSwitcherAPIOptions) {
         super();
+        this.tls = options?.tls ?? false;
+        this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? 80;
         this.auth = options?.auth ?? '';
@@ -30,7 +36,10 @@ export class CamSwitcherAPI extends EventEmitter {
     async connect() {
         try {
             const token = await this.get('/local/camswitcher/ws_authorization.cgi');
-            this.ws = new WebSocket(`ws://${this.ip}:${this.port}/local/camswitcher/events`, 'events');
+            const protocol = this.tls ? 'wss' : 'ws';
+            this.ws = new WebSocket(`${protocol}://${this.ip}:${this.port}/local/camswitcher/events`, 'events', {
+                rejectUnauthorized: !this.tlsInsecure,
+            });
             this.pingTimer = null;
 
             this.ws.on('open', () => {
@@ -121,10 +130,11 @@ export class CamSwitcherAPI extends EventEmitter {
 
     private getBaseConnectionParams(): HttpRequestOptions {
         return {
-            protocol: 'http:',
+            protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
             auth: this.auth,
+            rejectUnauthorized: !this.tlsInsecure,
         };
     }
 }
