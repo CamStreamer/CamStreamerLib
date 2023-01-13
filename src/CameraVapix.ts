@@ -6,11 +6,12 @@ import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { Digest } from './Digest';
 import { RtspClient } from './RtspClient';
-import { httpRequest } from './HTTPRequest';
-import { HttpRequestOptions } from './HTTPRequest';
+import { httpRequest, HttpRequestOptions } from './HTTPRequest';
 
 export type CameraVapixOptions = {
-    protocol?: string;
+    protocol?: string; // deprecated (replaced by tls)
+    tls?: boolean;
+    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
     ip?: string;
     port?: number;
     auth?: string;
@@ -55,7 +56,8 @@ export type GuardTour = {
 };
 
 export class CameraVapix extends EventEmitter {
-    private protocol: string;
+    private tls: boolean;
+    private tlsInsecure: boolean;
     private ip: string;
     private port: number;
     private auth: string;
@@ -65,9 +67,14 @@ export class CameraVapix extends EventEmitter {
 
     constructor(options?: CameraVapixOptions) {
         super();
-        this.protocol = options?.protocol ?? 'http';
+
+        this.tls = options?.tls ?? false;
+        if (options?.tls === undefined && options?.protocol !== undefined) {
+            this.tls = options.protocol === 'https';
+        }
+        this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.protocol == 'http' ? 80 : 443);
+        this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
     }
 
@@ -389,10 +396,11 @@ export class CameraVapix extends EventEmitter {
 
     private getBaseVapixConnectionParams(): HttpRequestOptions {
         return {
-            protocol: this.protocol + ':',
+            protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
             auth: this.auth,
+            rejectUnauthorized: !this.tlsInsecure,
         };
     }
 }

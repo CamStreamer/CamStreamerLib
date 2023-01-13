@@ -2,10 +2,12 @@ import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
 import { Digest } from './Digest';
-import { httpRequest } from './HTTPRequest';
+import { httpRequest, HttpRequestOptions } from './HTTPRequest';
 
 export type CamOverlayOptions = {
-    protocol?: string;
+    protocol?: string; // deprecated (replaced by tls)
+    tls?: boolean;
+    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
     ip?: string;
     port?: number;
     auth?: string;
@@ -65,7 +67,8 @@ type AsyncMessage = {
 };
 
 export class CamOverlayAPI extends EventEmitter {
-    private protocol: string;
+    private tls: boolean;
+    private tlsInsecure: boolean;
     private ip: string;
     private port: number;
     private auth: string;
@@ -80,9 +83,13 @@ export class CamOverlayAPI extends EventEmitter {
     constructor(options?: CamOverlayOptions) {
         super();
 
-        this.protocol = options?.protocol ?? 'ws';
+        this.tls = options?.tls ?? false;
+        if (options?.tls === undefined && options?.protocol !== undefined) {
+            this.tls = options.protocol === 'wss';
+        }
+        this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? this.protocol == 'ws' ? 80 : 443;
+        this.port = options?.port ?? this.tls ? 443 : 80;
         this.auth = options?.auth ?? '';
         this.serviceName = options?.serviceName ?? '';
         this.serviceID = options?.serviceID ?? -1; // If service is already created you can skip creation step by filling this parameter
@@ -107,12 +114,9 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     async createService() {
-        const options = {
-            host: this.ip,
-            port: this.port,
-            path: '/local/camoverlay/api/services.cgi?action=get',
-            auth: this.auth,
-        };
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'GET';
+        options.path = '/local/camoverlay/api/services.cgi?action=get';
         const response = (await httpRequest(options)) as string;
         let servicesJson: ServiceList;
         try {
@@ -163,23 +167,21 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     async updateServices(servicesJson: ServiceList) {
-        const options = {
-            method: 'POST',
-            host: this.ip,
-            port: this.port,
-            path: '/local/camoverlay/api/services.cgi?action=set',
-            auth: this.auth,
-        };
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'POST';
+        options.path = '/local/camoverlay/api/services.cgi?action=set';
         await httpRequest(options, JSON.stringify(servicesJson));
     }
 
     openWebsocket(digestHeader?: string) {
         let promise = new Promise<void>((resolve, reject) => {
-            let userPass = this.auth.split(':');
-            let addr = `${this.protocol}://${this.ip}:${this.port}/local/camoverlay/ws`;
+            const userPass = this.auth.split(':');
+            const protocol = this.tls ? 'wss' : 'ws';
+            const addr = `${protocol}://${this.ip}:${this.port}/local/camoverlay/ws`;
 
-            let options = {
+            const options = {
                 auth: this.auth,
+                rejectUnauthorized: !this.tlsInsecure,
                 headers: {},
             };
             if (digestHeader != undefined) {
@@ -339,53 +341,32 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     async promiseCGUpdate(action: string, params: string) {
-        const path = encodeURI(
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'POST';
+        options.path = encodeURI(
             `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${this.serviceID}${params}`
         );
-        const options = {
-            method: 'POST',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            auth: this.auth,
-        };
         await httpRequest(options, '');
     }
 
     async updateInfoticker(text: string) {
-        const path = `/local/camoverlay/api/infoticker.cgi?service_id=${this.serviceID}&text=${text}`;
-
-        const options = {
-            method: 'GET',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            auth: this.auth,
-        };
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'GET';
+        options.path = `/local/camoverlay/api/infoticker.cgi?service_id=${this.serviceID}&text=${text}`;
         await httpRequest(options, '');
     }
 
     async setEnabled(enabled: boolean) {
-        const value = enabled ? 1 : 0;
-        const path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${value}`);
-        const options = {
-            method: 'POST',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            auth: this.auth,
-        };
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'POST';
+        options.path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${enabled ? 1 : 0}`);
         await httpRequest(options, '');
     }
 
     async isEnabled() {
-        const options = {
-            method: 'GET',
-            host: this.ip,
-            port: this.port,
-            path: '/local/camoverlay/api/services.cgi?action=get',
-            auth: this.auth,
-        };
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'GET';
+        options.path = '/local/camoverlay/api/services.cgi?action=get';
         const response = (await httpRequest(options, '')) as string;
         const data: ServiceList = JSON.parse(response);
 
@@ -395,5 +376,15 @@ export class CamOverlayAPI extends EventEmitter {
             }
         }
         throw new Error('Service not found.');
+    }
+
+    private getBaseVapixConnectionParams(): HttpRequestOptions {
+        return {
+            protocol: this.tls ? 'https:' : 'http:',
+            host: this.ip,
+            port: this.port,
+            auth: this.auth,
+            rejectUnauthorized: !this.tlsInsecure,
+        };
     }
 }
