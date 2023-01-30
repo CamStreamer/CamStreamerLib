@@ -197,7 +197,7 @@ Module for easy control of CamOverlay drawing API. For more details on supported
 
 ### methods
 #### CameraVapix(options)
-Options parameter contains access to the camera, service name, service ID and camera. If service ID is not specified, service is automatically created/selected based on serviceName. Specify video channel using parameter camera (in which View Area overlay will be shown). If omitted the default value camera=0 is used.
+Options parameter contains access to the camera, service name, service ID and camera. If service ID is not specified, service is automatically created/selected based on serviceName. Specify video channel using parameter camera (in which View Area overlay will be shown). If you need to specify multiple video channels, you can use an array: `camera=[0,1]`. If omitted the default value `camera=0` is used.
 ```javascript
 options = {
   'ip': '127.0.0.1',
