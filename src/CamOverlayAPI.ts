@@ -13,7 +13,7 @@ export type CamOverlayOptions = {
     auth?: string;
     serviceName?: string;
     serviceID?: number;
-    camera?: number;
+    camera?: number | number[];
 };
 
 export type Field = {
@@ -54,7 +54,7 @@ export type Service = {
     schedule: string;
     name: string;
     identifier: string;
-    camera: number;
+    cameraList: number[];
 };
 
 export type ServiceList = {
@@ -74,7 +74,7 @@ export class CamOverlayAPI extends EventEmitter {
     private auth: string;
     private serviceName: string;
     private serviceID: number;
-    private camera: number;
+    private cameraList: number[];
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
@@ -89,11 +89,17 @@ export class CamOverlayAPI extends EventEmitter {
         }
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? this.tls ? 443 : 80;
+        this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
         this.serviceName = options?.serviceName ?? '';
         this.serviceID = options?.serviceID ?? -1; // If service is already created you can skip creation step by filling this parameter
-        this.camera = options?.camera ?? 0;
+
+        this.cameraList = [0];
+        if (Array.isArray(options?.camera)) {
+            this.cameraList = options.camera;
+        } else if (typeof options?.camera === 'number') {
+            this.cameraList = [options.camera];
+        }
 
         this.callId = 0;
         this.sendMessages = {};
@@ -103,7 +109,7 @@ export class CamOverlayAPI extends EventEmitter {
 
     async connect() {
         try {
-            if (this.serviceID == -1) {
+            if (this.serviceID === -1) {
                 this.serviceID = await this.createService();
             }
             await this.openWebsocket();
@@ -134,16 +140,16 @@ export class CamOverlayAPI extends EventEmitter {
             if (s.id > maxID) {
                 maxID = s.id;
             }
-            if (s.identifier == this.serviceName && s.name == 'scripter') {
+            if (s.identifier === this.serviceName && s.name === 'scripter') {
                 service = s;
                 break;
             }
         }
 
-        if (service != null) {
+        if (service !== null) {
             // Check and update service parameters if necessary
-            if (service.camera == undefined || service.camera != this.camera) {
-                service.camera = this.camera;
+            if (service.cameraList === undefined || !this.compareCameraList(service.cameraList)) {
+                service.cameraList = this.cameraList;
                 await this.updateServices(servicesJson);
                 return service.id as number;
             } else {
@@ -158,7 +164,7 @@ export class CamOverlayAPI extends EventEmitter {
                 schedule: '',
                 name: 'scripter',
                 identifier: this.serviceName,
-                camera: this.camera,
+                cameraList: this.cameraList,
             };
             servicesJson.services.push(service);
             await this.updateServices(servicesJson);
@@ -184,7 +190,7 @@ export class CamOverlayAPI extends EventEmitter {
                 rejectUnauthorized: !this.tlsInsecure,
                 headers: {},
             };
-            if (digestHeader != undefined) {
+            if (digestHeader !== undefined) {
                 options.headers['Authorization'] = Digest.getAuthHeader(
                     userPass[0],
                     userPass[1],
@@ -216,7 +222,7 @@ export class CamOverlayAPI extends EventEmitter {
             });
 
             this.ws.on('unexpected-response', async (req, res) => {
-                if (res.statusCode == 401 && res.headers['www-authenticate'] != undefined)
+                if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined)
                     this.openWebsocket(res.headers['www-authenticate']).then(resolve, reject);
                 else {
                     reject('Error: status code: ' + res.statusCode + ', ' + res.data);
@@ -307,7 +313,7 @@ export class CamOverlayAPI extends EventEmitter {
         for (let field of fields) {
             const name = field.field_name;
             field_specs += `&${name}=${field.text}`;
-            if (field.color != undefined) {
+            if (field.color !== undefined) {
                 field_specs += `&${name}_color=${field.color}`;
             }
         }
@@ -326,7 +332,7 @@ export class CamOverlayAPI extends EventEmitter {
         ...
     */
     private formCoordinates(coordinates: string, x: number, y: number) {
-        return coordinates != '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
+        return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
     }
 
     updateCGImage(path: string, coordinates = '', x = 0, y = 0) {
@@ -371,8 +377,8 @@ export class CamOverlayAPI extends EventEmitter {
         const data: ServiceList = JSON.parse(response);
 
         for (let service of data.services) {
-            if (service.id == this.serviceID) {
-                return service.enabled == 1;
+            if (service.id === this.serviceID) {
+                return service.enabled === 1;
             }
         }
         throw new Error('Service not found.');
@@ -386,5 +392,12 @@ export class CamOverlayAPI extends EventEmitter {
             auth: this.auth,
             rejectUnauthorized: !this.tlsInsecure,
         };
+    }
+
+    private compareCameraList(cameraList: number[]) {
+        return (
+            this.cameraList.length === cameraList.length &&
+            this.cameraList.every((element, index) => element === cameraList[index])
+        );
     }
 }
