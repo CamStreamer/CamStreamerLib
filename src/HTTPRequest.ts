@@ -21,7 +21,7 @@ export type HttpRequestOptions = {
     rejectUnauthorized?: boolean;
 };
 
-export async function httpRequest(options: HttpRequestOptions, postData?: string, noWaitForData = false) {
+export async function httpRequest(options: HttpRequestOptions, postData?: Buffer | string, noWaitForData = false) {
     if (postData !== undefined) {
         options.headers ??= {};
         options.headers['Content-Type'] ??= 'application/x-www-form-urlencoded';
@@ -50,7 +50,12 @@ export async function httpRequest(options: HttpRequestOptions, postData?: string
     }
 }
 
-function request(options: HttpRequestOptions, postData?: string, digestHeader?: string, noWaitForData?: boolean) {
+function request(
+    options: HttpRequestOptions,
+    postData?: Buffer | string,
+    digestHeader?: string,
+    noWaitForData?: boolean
+) {
     return new Promise<Resp>((resolve, reject) => {
         if (digestHeader != undefined) {
             if (options.auth == undefined) {

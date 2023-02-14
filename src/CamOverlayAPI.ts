@@ -61,6 +61,11 @@ export type ServiceList = {
     services: Service[];
 };
 
+export enum ImageType {
+    PNG,
+    JPEG,
+}
+
 type AsyncMessage = {
     resolve;
     reject;
@@ -201,6 +206,8 @@ export class CamOverlayAPI extends EventEmitter {
             }
 
             this.ws = new WebSocket(addr, 'cairo-api', options);
+            this.ws.binaryType = 'arraybuffer';
+
             this.ws.on('open', () => {
                 this.reportMsg('Websocket opened');
                 resolve();
@@ -250,17 +257,23 @@ export class CamOverlayAPI extends EventEmitter {
     }
 
     uploadImageData(imgBuffer: Buffer) {
-        return this.sendMessage({
-            command: 'upload_image_data',
-            params: [imgBuffer.toString('base64')],
-        }) as Promise<UploadImageResponse>;
+        return this.sendBinaryMessage(
+            {
+                command: 'upload_image_data',
+                params: [],
+            },
+            imgBuffer
+        ) as Promise<UploadImageResponse>;
     }
 
     uploadFontData(fontBuffer: Buffer) {
-        return this.sendMessage({
-            command: 'upload_font_data',
-            params: [fontBuffer.toString('base64')],
-        }) as Promise<CairoCreateResponse>;
+        return this.sendBinaryMessage(
+            {
+                command: 'upload_font_data',
+                params: [fontBuffer.toString('base64')],
+            },
+            fontBuffer
+        ) as Promise<CairoCreateResponse>;
     }
 
     showCairoImage(cairoImage: string, posX: number, posY: number) {
@@ -281,7 +294,7 @@ export class CamOverlayAPI extends EventEmitter {
         return this.sendMessage({ command: 'remove_image', params: [this.serviceID] }) as Promise<CairoResponse>;
     }
 
-    sendMessage(msgJson: Message) {
+    private sendMessage(msgJson: Message) {
         return new Promise<CairoResponse | CairoCreateResponse | UploadImageResponse>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
@@ -293,17 +306,42 @@ export class CamOverlayAPI extends EventEmitter {
         });
     }
 
-    reportMsg(msg: string) {
+    private sendBinaryMessage(msgJson: Message, data: Buffer) {
+        return new Promise<CairoResponse | CairoCreateResponse | UploadImageResponse>((resolve, reject) => {
+            try {
+                this.sendMessages[this.callId] = { resolve, reject };
+                msgJson['call_id'] = this.callId++;
+
+                const jsonBuffer = Buffer.from(JSON.stringify(msgJson));
+
+                const header = new ArrayBuffer(5);
+                const headerView = new DataView(header);
+                headerView.setInt8(0, 1);
+                headerView.setInt32(1, jsonBuffer.byteLength);
+
+                const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
+                this.ws.send(msgBuffer);
+            } catch (err) {
+                this.reportErr(new Error(`Send binary message error: ${err}`));
+            }
+        });
+    }
+
+    private reportMsg(msg: string) {
         this.emit('msg', msg);
     }
 
-    reportErr(err: Error) {
+    private reportErr(err: Error) {
         this.ws?.terminate();
         this.emit('error', err);
         this.emit('close');
     }
 
-    reportClose() {
+    private reportClose() {
+        for (const callId in this.sendMessages) {
+            this.sendMessages[callId].reject(new Error('Connection lost'));
+        }
+        this.sendMessages = {};
         this.emit('close');
     }
 
@@ -341,39 +379,48 @@ export class CamOverlayAPI extends EventEmitter {
         return this.promiseCGUpdate('update_image', update + coord);
     }
 
+    updateCGImageFromData(imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
+        const coord = this.formCoordinates(coordinates, x, y);
+        const contentType = imageType === ImageType.PNG ? 'image/png' : 'image/jpeg';
+        return this.promiseCGUpdate('update_image', coord, contentType, imageData);
+    }
+
     updateCGImagePos(coordinates = '', x = 0, y = 0) {
         const coord = this.formCoordinates(coordinates, x, y);
         return this.promiseCGUpdate('update_image', coord);
     }
 
-    async promiseCGUpdate(action: string, params: string) {
+    async promiseCGUpdate(action: string, params: string, contentType?: string, data?: Buffer) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'POST';
         options.path = encodeURI(
             `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${this.serviceID}${params}`
         );
-        await httpRequest(options, '');
+        if (contentType && data) {
+            options.headers = { 'Content-Type': contentType };
+        }
+        await httpRequest(options, data);
     }
 
     async updateInfoticker(text: string) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'GET';
         options.path = `/local/camoverlay/api/infoticker.cgi?service_id=${this.serviceID}&text=${text}`;
-        await httpRequest(options, '');
+        await httpRequest(options);
     }
 
     async setEnabled(enabled: boolean) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'POST';
         options.path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${enabled ? 1 : 0}`);
-        await httpRequest(options, '');
+        await httpRequest(options);
     }
 
     async isEnabled() {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'GET';
         options.path = '/local/camoverlay/api/services.cgi?action=get';
-        const response = (await httpRequest(options, '')) as string;
+        const response = (await httpRequest(options)) as string;
         const data: ServiceList = JSON.parse(response);
 
         for (let service of data.services) {
