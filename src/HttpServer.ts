@@ -52,8 +52,8 @@ export class HttpServer extends EventEmitter {
                 '.doc': 'application/msword',
             };
 
-            fs.access(pathname, (exist) => {
-                if (!exist) {
+            fs.access(pathname, fs.constants.R_OK, (err) => {
+                if (err) {
                     // If the file is not found, return 404
                     res.statusCode = 404;
                     res.end(`File ${pathname} not found!`);
