@@ -12,9 +12,18 @@ type ZipOptions = {
     typeScriptPackage: boolean;
 };
 
+function getPackageVersion(folder: string) {
+    try {
+        const manifest = fs.readFileSync(Path.join(folder, 'manifest.json'));
+        const manifestParsed = JSON.parse(manifest.toString());
+        return manifestParsed.package_version.replace(/\./g, '_');
+    } catch (err) {
+        console.error('Get package version:', err);
+    }
+}
+
 function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
     const files = fs.readdirSync(folder);
-
     for (let file of files) {
         const path = Path.join(folder, file);
         const isDir = isDirectory(path);
@@ -35,22 +44,22 @@ function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
 }
 
 function main(args: string[]) {
-    const folder = Path.resolve('.');
-    const zipFile = Path.basename(folder) + '.zip';
     const options: ZipOptions = {
         includeNodeModules: false,
         typeScriptPackage: false,
     };
-
     for (let arg of args) {
         if (arg == '-i' || arg == '-includeNodeModules') {
             options.includeNodeModules = true;
         }
     }
-
     if (fs.existsSync('dist')) {
         options.typeScriptPackage = true;
     }
+
+    const folder = Path.resolve('.');
+    const packageVersion = getPackageVersion(folder);
+    const zipFile = `${Path.basename(folder)}_${packageVersion}.zip`;
 
     if (fs.existsSync(zipFile)) {
         try {
