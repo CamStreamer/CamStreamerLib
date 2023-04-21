@@ -216,13 +216,16 @@ export class CamOverlayAPI extends EventEmitter {
             this.ws.on('message', (data: string) => {
                 let dataJSON = JSON.parse(data);
                 if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
+                    if (dataJSON.hasOwnProperty('error')) {
+                        this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
+                    } else {
+                        this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
+                    }
                     delete this.sendMessages[dataJSON['call_id']];
                 }
 
                 if (dataJSON.hasOwnProperty('error')) {
-                    let error = new Error(JSON.stringify(data));
-                    this.reportErr(error);
+                    this.reportErr(new Error(dataJSON.error));
                 } else {
                     this.reportMsg(data);
                 }
@@ -334,7 +337,6 @@ export class CamOverlayAPI extends EventEmitter {
     private reportErr(err: Error) {
         this.ws?.terminate();
         this.emit('error', err);
-        this.emit('close');
     }
 
     private reportClose() {
