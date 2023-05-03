@@ -15,9 +15,7 @@ export type HttpRequestOptions = {
     path?: string;
     auth?: string;
     timeout?: number;
-    headers?: {
-        'Content-Type'?: string;
-    };
+    headers?: any;
     rejectUnauthorized?: boolean;
 };
 
