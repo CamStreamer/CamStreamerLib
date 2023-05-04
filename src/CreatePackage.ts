@@ -23,17 +23,19 @@ function getPackageVersion(folder: string) {
 }
 
 function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
+    const zipFileRegex = new RegExp(`${Path.basename(folder)}(_[0-9]){3}\\.zip`);
     const files = fs.readdirSync(folder);
     for (let file of files) {
         const path = Path.join(folder, file);
         const isDir = isDirectory(path);
         if (
-            file[0] == '.' ||
-            (file == 'node_modules' && !options.includeNodeModules) ||
-            (file == 'src' && options.typeScriptPackage)
+            file[0] === '.' ||
+            zipFileRegex.test(file) ||
+            (file === 'node_modules' && !options.includeNodeModules) ||
+            (file === 'src' && options.typeScriptPackage)
         ) {
             continue;
-        } else if (file == 'dist' && options.typeScriptPackage) {
+        } else if (file === 'dist' && options.typeScriptPackage) {
             zip.addLocalFolder(path);
         } else if (isDir) {
             zip.addLocalFolder(path, file);
@@ -49,7 +51,7 @@ function main(args: string[]) {
         typeScriptPackage: false,
     };
     for (let arg of args) {
-        if (arg == '-i' || arg == '-includeNodeModules') {
+        if (arg === '-i' || arg === '-includeNodeModules') {
             options.includeNodeModules = true;
         }
     }
