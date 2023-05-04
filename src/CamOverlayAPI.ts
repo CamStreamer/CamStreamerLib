@@ -208,9 +208,22 @@ export class CamOverlayAPI extends EventEmitter {
             this.ws = new WebSocket(addr, 'cairo-api', options);
             this.ws.binaryType = 'arraybuffer';
 
+            this.ws.isAlive = true;
+            const pingTimer = setInterval(() => {
+                if (this.ws.readyState !== this.ws.OPEN || this.ws.isAlive === false) {
+                    return this.ws.terminate();
+                }
+                this.ws.isAlive = false;
+                this.ws.ping();
+            }, 30000);
+
             this.ws.on('open', () => {
                 this.reportMsg('Websocket opened');
                 resolve();
+            });
+
+            this.ws.on('pong', () => {
+                this.ws.isAlive = true;
             });
 
             this.ws.on('message', (data: string) => {
@@ -246,6 +259,7 @@ export class CamOverlayAPI extends EventEmitter {
 
             this.ws.on('close', () => {
                 this.reportClose();
+                clearInterval(pingTimer);
             });
         });
         return promise;
