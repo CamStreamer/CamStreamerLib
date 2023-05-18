@@ -20,6 +20,7 @@ export type HttpRequestOptions = {
 };
 
 export async function httpRequest(options: HttpRequestOptions, postData?: Buffer | string, noWaitForData = false) {
+    options.timeout = options.timeout ?? 10000;
     if (postData !== undefined) {
         options.headers ??= {};
         options.headers['Content-Type'] ??= 'application/x-www-form-urlencoded';
@@ -92,6 +93,10 @@ function request(
             .on('error', (err) => {
                 reject(err);
             });
+
+        req.on('timeout', () => {
+            req.destroy(new Error('Request timeout'));
+        });
 
         if (postData != undefined) {
             req.write(postData);

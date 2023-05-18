@@ -258,8 +258,8 @@ export class CamOverlayAPI extends EventEmitter {
             });
 
             this.ws.on('close', () => {
-                this.reportClose();
                 clearInterval(pingTimer);
+                this.reportClose();
             });
         });
         return promise;
