@@ -1,6 +1,6 @@
-import * as fs from 'fs';
-import * as Path from 'path';
 import * as AdmZip from 'adm-zip';
+import * as Path from 'path';
+import * as fs from 'fs';
 
 function isDirectory(path: string) {
     const stat = fs.statSync(path);
@@ -10,6 +10,7 @@ function isDirectory(path: string) {
 type ZipOptions = {
     includeNodeModules: boolean;
     typeScriptPackage: boolean;
+    excludedFileNames: string[];
 };
 
 function getPackageVersion(folder: string) {
@@ -32,7 +33,8 @@ function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
             file[0] === '.' ||
             zipFileRegex.test(file) ||
             (file === 'node_modules' && !options.includeNodeModules) ||
-            (file === 'src' && options.typeScriptPackage)
+            (file === 'src' && options.typeScriptPackage) ||
+            options.excludedFileNames.includes(file)
         ) {
             continue;
         } else if (file === 'dist' && options.typeScriptPackage) {
@@ -49,10 +51,14 @@ function main(args: string[]) {
     const options: ZipOptions = {
         includeNodeModules: false,
         typeScriptPackage: false,
+        excludedFileNames: [],
     };
     for (let arg of args) {
         if (arg === '-i' || arg === '-includeNodeModules') {
             options.includeNodeModules = true;
+        }
+        if (arg.startsWith('-e=') || arg.startsWith('-exclude=')) {
+            options.excludedFileNames = arg.substring(arg.indexOf('=') + 1).split(',');
         }
     }
     if (fs.existsSync('dist')) {
