@@ -5,7 +5,6 @@ import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { Digest } from './Digest';
-import { RtspClient } from './RtspClient';
 import { httpRequest, HttpRequestOptions } from './HTTPRequest';
 
 export type CameraVapixOptions = {
@@ -62,7 +61,6 @@ export class CameraVapix extends EventEmitter {
     private port: number;
     private auth: string;
 
-    private rtsp: RtspClient = null;
     private ws: WebSocket = null;
 
     constructor(options?: CameraVapixOptions) {
@@ -212,84 +210,16 @@ export class CameraVapix extends EventEmitter {
         return eventName == 'eventsConnect' || eventName == 'eventsDisconnect';
     }
 
-    eventsConnect(channel = 'RTSP') {
+    eventsConnect() {
         if (this.ws != null) {
             throw new Error('Websocket is already opened.');
-        }
-        if (this.rtsp != null) {
-            throw new Error('RTSP is already opened.');
-        }
-        if (channel == 'RTSP') {
-            this.rtspConnect();
-        } else if (channel == 'websocket') {
-            this.websocketConnect();
-        } else {
-            throw new Error('Unknown channel.');
         }
     }
 
     eventsDisconnect() {
-        if (this.rtsp != null) {
-            this.rtsp.disconnect();
-        }
         if (this.ws != null) {
             this.ws.close();
         }
-    }
-
-    private rtspConnect() {
-        this.rtsp = new RtspClient({
-            ip: this.ip,
-            port: this.port,
-            auth: this.auth,
-        });
-
-        this.rtsp.on('connect', () => {
-            this.emit('eventsConnect');
-        });
-        this.rtsp.on('disconnect', (err: string) => {
-            this.emit('eventsDisconnect', new Error(err));
-            this.rtsp = null;
-        });
-        this.rtsp.on('event', (event: string) => {
-            const eventNames = this.eventNames();
-            for (let i = 0; i < eventNames.length; i++) {
-                if (!this.isReservedEventName(eventNames[i])) {
-                    let name = eventNames[i];
-                    // Remove special chars from the end
-                    while (name[name.length - 1] == '.' || name[name.length - 1] == '/') {
-                        name = name.substring(0, name.length - 1);
-                    }
-                    // Find registered event name in the message
-                    if (event.indexOf(name) != -1) {
-                        // Convert to JSON and emit signal
-                        parseString(event, (err: Error, eventJson: object) => {
-                            if (err != null) {
-                                this.eventsDisconnect();
-                                return;
-                            }
-                            this.emit(eventNames[i], eventJson);
-                        });
-                        break;
-                    }
-                }
-            }
-        });
-
-        let eventTopicFilter = '';
-        const eventNames = this.eventNames();
-        for (let i = 0; i < eventNames.length; i++) {
-            if (!this.isReservedEventName(eventNames[i])) {
-                if (eventTopicFilter.length != 0) {
-                    eventTopicFilter += '|';
-                }
-
-                let topic = eventNames[i].replace(/tns1/g, 'onvif');
-                topic = topic.replace(/tnsaxis/g, 'axis');
-                eventTopicFilter += topic;
-            }
-        }
-        this.rtsp.connect(eventTopicFilter);
     }
 
     private websocketConnect(digestHeader?: string) {
