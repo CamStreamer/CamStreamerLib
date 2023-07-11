@@ -293,10 +293,13 @@ export class CameraVapix extends EventEmitter {
     }
 
     private websocketConnect(digestHeader?: string) {
-        const address = `ws://${this.ip}:${this.port}/vapix/ws-data-stream?sources=events`;
+        const protocol = this.tls ? 'wss' : 'ws';
+        const address = `${protocol}://${this.ip}:${this.port}/vapix/ws-data-stream?sources=events`;
 
         const options = {
             auth: this.auth,
+            rejectUnauthorized: !this.tlsInsecure,
+            headers: {},
         };
 
         if (digestHeader != undefined) {
