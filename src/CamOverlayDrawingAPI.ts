@@ -1,7 +1,14 @@
 import * as EventEmitter from 'events';
 
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { Options } from './common';
 import { WsClient, WsClientOptions } from './wsOptions';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
+
+interface CamOverlayDrawingOptions extends Options {
+    serviceName?: string;
+    serviceID?: number;
+    camera?: number | number[];
+};
 
 export type Message = {
     command: string;
@@ -36,17 +43,6 @@ export type Service = {
 
 export type ServiceList = {
     services: Service[];
-};
-
-export type CamOverlayDrawingOptions = {
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-    serviceName?: string;
-    serviceID?: number;
-    camera?: number | number[];
 };
 
 export type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';

@@ -1,14 +1,9 @@
 import * as EventEmitter from 'events';
 
+import { Options } from './common';
 import { WsClient, WsClientOptions } from './wsOptions';
 
-export type CamScripterOptions = {
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CamScripterOptions = Options;
 
 export type Declaration = {
     type?: '' | 'SOURCE' | 'DATA';
@@ -69,7 +64,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
 
     private ws: WsClient = null;
 
-    constructor(options?: CamScripterOptions) {
+    constructor(options?: Options) {
         super();
 
         this.tls = options?.tls ?? false;

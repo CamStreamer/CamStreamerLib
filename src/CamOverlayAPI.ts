@@ -1,12 +1,7 @@
+import { Options } from './common';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CamOverlayOptions = {
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CamOverlayOptions = Options;
 
 export type Field = {
     field_name: string;
@@ -40,7 +35,7 @@ export class CamOverlayAPI {
     private auth: string;
     private serviceID: number;
 
-    constructor(options?: CamOverlayOptions) {
+    constructor(options?: Options) {
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';

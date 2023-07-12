@@ -2,15 +2,10 @@ import * as EventEmitter from 'events';
 import * as WebSocket from 'ws';
 
 import { Digest } from './Digest';
+import { Options } from './common';
 
-export type WsClientOptions = {
-    ip: string;
-    port: number;
+export interface WsClientOptions extends Options {
     address: string;
-
-    auth: string;
-    tls: boolean;
-    tlsInsecure: boolean;
     headers?: object;
     pingInterval?: number;
     protocol?: string;

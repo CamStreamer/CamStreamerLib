@@ -1,15 +1,10 @@
 import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
+import { Options } from './common';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CamSwitcherAPIOptions = {
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CamSwitcherAPIOptions = Options;
 
 export class CamSwitcherAPI extends EventEmitter {
     private tls: boolean;
@@ -21,7 +16,7 @@ export class CamSwitcherAPI extends EventEmitter {
     private ws: WebSocket;
     private pingTimer: NodeJS.Timer;
 
-    constructor(options: CamSwitcherAPIOptions) {
+    constructor(options: Options) {
         super();
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;

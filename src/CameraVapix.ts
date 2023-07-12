@@ -4,16 +4,11 @@ import * as prettifyXml from 'prettify-xml';
 import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { Options } from './common';
 import { WsClient, WsClientOptions } from './wsOptions';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CameraVapixOptions = {
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CameraVapixOptions = Options;
 
 export type ApplicationList = {
     reply: {
@@ -62,7 +57,7 @@ export class CameraVapix extends EventEmitter {
 
     private ws: WebSocket = null;
 
-    constructor(options?: CameraVapixOptions) {
+    constructor(options?: Options) {
         super();
 
         this.tls = options?.tls ?? false;
