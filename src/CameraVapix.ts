@@ -5,7 +5,7 @@ import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { Digest } from './Digest';
-import { httpRequest, HttpRequestOptions } from './HTTPRequest';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CameraVapixOptions = {
     protocol?: string; // deprecated (replaced by tls)

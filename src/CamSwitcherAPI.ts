@@ -1,8 +1,7 @@
 import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
-import { httpRequest } from './HTTPRequest';
-import { HttpRequestOptions } from './HTTPRequest';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CamSwitcherAPIOptions = {
     tls?: boolean;

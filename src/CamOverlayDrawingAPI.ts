@@ -2,7 +2,7 @@ import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
 import { Digest } from './Digest';
-import { httpRequest, HttpRequestOptions } from './HTTPRequest';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 export type Message = {
     command: string;

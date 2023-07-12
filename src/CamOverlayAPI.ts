@@ -1,4 +1,4 @@
-import { httpRequest, HttpRequestOptions } from './HTTPRequest';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CamOverlayOptions = {
     tls?: boolean;

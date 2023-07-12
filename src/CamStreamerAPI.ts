@@ -1,5 +1,4 @@
-import { httpRequest } from './HTTPRequest';
-import { HttpRequestOptions } from './HTTPRequest';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CamStreamerAPIOptions = {
     protocol?: string; // deprecated (replaced by tls)
