@@ -1,8 +1,7 @@
-import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
-import { Digest } from './Digest';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { WsClient, WsClientOptions } from './wsOptions';
 
 export type Message = {
     command: string;
@@ -72,7 +71,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
-    private ws: WebSocket = null;
+    private ws: WsClient = null;
     constructor(options: CamOverlayDrawingOptions) {
         super();
 
@@ -105,7 +104,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             await this.openWebsocket();
             this.emit('open');
         } catch (err) {
-            this.reportErr(err);
+            this.reportError(err);
         }
     }
 
@@ -169,12 +168,12 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         await httpRequest(options, JSON.stringify(servicesJson));
     }
 
-    private reportMsg(msg: string) {
-        this.emit('msg', msg);
+    private reportMessage(msg: string) {
+        this.emit('message', msg);
     }
 
-    private reportErr(err: Error) {
-        this.ws?.terminate();
+    private reportError(err: Error) {
+        this.ws.close();
         this.emit('error', err);
     }
 
@@ -186,48 +185,24 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.emit('close');
     }
 
-    openWebsocket(digestHeader?: string) {
-        let promise = new Promise<void>((resolve, reject) => {
-            const userPass = this.auth.split(':');
-            const protocol = this.tls ? 'wss' : 'ws';
-            const addr = `${protocol}://${this.ip}:${this.port}/local/camoverlay/ws`;
+    openWebsocket(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            const options: WsClientOptions = {
+                ip: this.ip,
+                port: this.port,
+                address: '/local/camoverlay/ws',
+                protocol: 'cairo-api',
 
-            const options = {
                 auth: this.auth,
-                rejectUnauthorized: !this.tlsInsecure,
-                headers: {},
+                tls: this.tls,
+                tlsInsecure: this.tlsInsecure,
             };
-            if (digestHeader !== undefined) {
-                options.headers['Authorization'] = Digest.getAuthHeader(
-                    userPass[0],
-                    userPass[1],
-                    'GET',
-                    '/local/camoverlay/ws',
-                    digestHeader
-                );
-            }
-
-            this.ws = new WebSocket(addr, 'cairo-api', options);
-            this.ws.binaryType = 'arraybuffer';
-
-            this.ws.isAlive = true;
-            const pingTimer = setInterval(() => {
-                if (this.ws.readyState !== this.ws.OPEN || this.ws.isAlive === false) {
-                    return this.ws.terminate();
-                }
-                this.ws.isAlive = false;
-                this.ws.ping();
-            }, 30000);
+            this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
-                this.reportMsg('Websocket opened');
+                this.reportMessage('Websocket opened');
                 resolve();
             });
-
-            this.ws.on('pong', () => {
-                this.ws.isAlive = true;
-            });
-
             this.ws.on('message', (data: string) => {
                 let dataJSON = JSON.parse(data);
                 if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
@@ -240,31 +215,21 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 }
 
                 if (dataJSON.hasOwnProperty('error')) {
-                    this.reportErr(new Error(dataJSON.error));
+                    this.reportError(new Error(dataJSON.error));
                 } else {
-                    this.reportMsg(data);
+                    this.reportMessage(data);
                 }
             });
-
-            this.ws.on('unexpected-response', async (req, res) => {
-                if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined)
-                    this.openWebsocket(res.headers['www-authenticate']).then(resolve, reject);
-                else {
-                    reject('Error: status code: ' + res.statusCode + ', ' + res.data);
-                }
-            });
-
             this.ws.on('error', (error: Error) => {
-                this.reportErr(error);
+                this.reportError(error);
                 reject(error);
             });
-
             this.ws.on('close', () => {
-                clearInterval(pingTimer);
                 this.reportClose();
             });
+
+            this.ws.open();
         });
-        return promise;
     }
 
     cairo(command: string, ...params: any[]) {
@@ -320,7 +285,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 msgJson['call_id'] = this.callId++;
                 this.ws.send(JSON.stringify(msgJson));
             } catch (err) {
-                this.reportErr(new Error(`Send message error: ${err}`));
+                this.reportError(new Error(`Send message error: ${err}`));
             }
         });
     }
@@ -341,7 +306,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
                 this.ws.send(msgBuffer);
             } catch (err) {
-                this.reportErr(new Error(`Send binary message error: ${err}`));
+                this.reportError(new Error(`Send binary message error: ${err}`));
             }
         });
     }
