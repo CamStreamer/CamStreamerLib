@@ -54,6 +54,7 @@ export type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
 export type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
 export type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
 
+type Response = CairoResponse | CairoCreateResponse | UploadImageResponse;
 type AsyncMessage = {
     resolve: (value: PromiseLike<Response>) => void;
     reject: (reason: Error) => void;
@@ -313,7 +314,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private sendMessage(msgJson: Message) {
-        return new Promise<CairoResponse | CairoCreateResponse | UploadImageResponse>((resolve, reject) => {
+        return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson['call_id'] = this.callId++;
@@ -325,7 +326,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private sendBinaryMessage(msgJson: Message, data: Buffer) {
-        return new Promise<CairoResponse | CairoCreateResponse | UploadImageResponse>((resolve, reject) => {
+        return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson['call_id'] = this.callId++;
