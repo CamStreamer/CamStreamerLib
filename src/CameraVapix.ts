@@ -4,11 +4,10 @@ import * as prettifyXml from 'prettify-xml';
 import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { Digest } from './Digest';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { WsClient, WsClientOptions } from './wsOptions';
 
 export type CameraVapixOptions = {
-    protocol?: string; // deprecated (replaced by tls)
     tls?: boolean;
     tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
     ip?: string;
@@ -67,9 +66,6 @@ export class CameraVapix extends EventEmitter {
         super();
 
         this.tls = options?.tls ?? false;
-        if (options?.tls === undefined && options?.protocol !== undefined) {
-            this.tls = options.protocol === 'https';
-        }
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
@@ -210,98 +206,73 @@ export class CameraVapix extends EventEmitter {
         return eventName == 'eventsConnect' || eventName == 'eventsDisconnect';
     }
 
-    eventsConnect() {
+    eventsConnect(): void {
         if (this.ws != null) {
             throw new Error('Websocket is already opened.');
         }
+        const options: WsClientOptions = {
+            tls: this.tls,
+            tlsInsecure: this.tlsInsecure,
+            auth: this.auth,
+            ip: this.ip,
+            port: this.port,
+            address: '/vapix/ws-data-stream?sources=events',
+        };
+        this.ws = new WsClient(options);
+
+        this.ws.on('open', () => {
+            const topics = [];
+            const eventNames = this.eventNames();
+            for (let i = 0; i < eventNames.length; i++) {
+                if (!this.isReservedEventName(eventNames[i])) {
+                    const topic = {
+                        topicFilter: eventNames[i],
+                    };
+                    topics.push(topic);
+                }
+            }
+
+            const topicFilter = {
+                apiVersion: '1.0',
+                method: 'events:configure',
+                params: {
+                    eventFilterList: topics,
+                },
+            };
+            this.ws.send(JSON.stringify(topicFilter));
+        });
+        this.ws.on('message', (data: string) => {
+            const dataJSON = JSON.parse(data);
+            if (dataJSON.method === 'events:configure') {
+                if (dataJSON.error === undefined) {
+                    this.emit('eventsConnect');
+                } else {
+                    this.emit('eventsDisconnect', dataJSON.error as Error);
+                    this.eventsDisconnect();
+                }
+                return;
+            }
+            const eventName: string = dataJSON.params.notification.topic;
+            this.emit(eventName, dataJSON as object);
+        });
+        this.ws.on('error', (error: Error) => {
+            this.emit('eventsDisconnect', error);
+            this.ws = null;
+        });
+        this.ws.on('close', () => {
+            if (this.ws !== null) {
+                this.emit('websocketDisconnect');
+            }
+            this.ws = null;
+        });
+
+        this.ws.open();
     }
 
     eventsDisconnect() {
         if (this.ws != null) {
             this.ws.close();
         }
-    }
-
-    private websocketConnect(digestHeader?: string) {
-        const protocol = this.tls ? 'wss' : 'ws';
-        const address = `${protocol}://${this.ip}:${this.port}/vapix/ws-data-stream?sources=events`;
-
-        const options = {
-            auth: this.auth,
-            rejectUnauthorized: !this.tlsInsecure,
-            headers: {},
-        };
-
-        if (digestHeader != undefined) {
-            const userPass = this.auth.split(':');
-            options['headers'] ??= {};
-            options['headers']['Authorization'] = Digest.getAuthHeader(
-                userPass[0],
-                userPass[1],
-                'GET',
-                '/vapix/ws-data-stream?sources=events',
-                digestHeader
-            );
-        }
-
-        return new Promise<void>((resolve, reject) => {
-            this.ws = new WebSocket(address, options);
-
-            this.ws.on('open', () => {
-                const topics = [];
-                const eventNames = this.eventNames();
-                for (let i = 0; i < eventNames.length; i++) {
-                    if (!this.isReservedEventName(eventNames[i])) {
-                        const topic = {
-                            topicFilter: eventNames[i],
-                        };
-                        topics.push(topic);
-                    }
-                }
-
-                const topicFilter = {
-                    apiVersion: '1.0',
-                    method: 'events:configure',
-                    params: {
-                        eventFilterList: topics,
-                    },
-                };
-                this.ws.send(JSON.stringify(topicFilter));
-            });
-
-            this.ws.on('unexpected-response', async (req, res) => {
-                if (res.statusCode == 401 && res.headers['www-authenticate'] != undefined)
-                    this.websocketConnect(res.headers['www-authenticate']).then(resolve, reject);
-                else {
-                    reject('Error: status code: ' + res.statusCode + ', ' + res.data);
-                }
-            });
-
-            this.ws.on('message', (data: string) => {
-                const dataJSON = JSON.parse(data);
-                if (dataJSON.method === 'events:configure') {
-                    if (dataJSON.error === undefined) {
-                        this.emit('eventsConnect');
-                    } else {
-                        this.emit('eventsDisconnect', dataJSON.error as Error);
-                        this.eventsDisconnect();
-                    }
-                    return;
-                }
-                const eventName: string = dataJSON.params.notification.topic;
-                this.emit(eventName, dataJSON as object);
-            });
-            this.ws.on('error', (error: Error) => {
-                this.emit('eventsDisconnect', error);
-                this.ws = null;
-            });
-            this.ws.on('close', () => {
-                if (this.ws !== null) {
-                    this.emit('websocketDisconnect');
-                }
-                this.ws = null;
-            });
-        });
     }
 
     vapixGet(path: string, noWaitForData = false) {
