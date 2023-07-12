@@ -1,7 +1,5 @@
 import { httpRequest, HttpRequestOptions } from './HTTPRequest';
 
-import * as EventEmitter from 'events';
-
 export type CamOverlayOptions = {
     tls?: boolean;
     tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
@@ -34,7 +32,7 @@ export enum ImageType {
     JPEG,
 }
 
-export class CamOverlayAPI extends EventEmitter {
+export class CamOverlayAPI {
     private tls: boolean;
     private tlsInsecure: boolean;
     private ip: string;
@@ -43,14 +41,10 @@ export class CamOverlayAPI extends EventEmitter {
     private serviceID: number;
 
     constructor(options?: CamOverlayOptions) {
-        super();
-
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        
-        EventEmitter.call(this);
     }
 
     async updateServices(servicesJson: ServiceList) {
