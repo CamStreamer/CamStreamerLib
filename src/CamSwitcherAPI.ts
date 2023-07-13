@@ -1,7 +1,7 @@
-import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
 import { Options } from './common';
+import { WsClient, WsClientOptions } from './WsClient';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CamSwitcherAPIOptions = Options;
@@ -13,8 +13,7 @@ export class CamSwitcherAPI extends EventEmitter {
     private port: number;
     private auth: string;
 
-    private ws: WebSocket;
-    private pingTimer: NodeJS.Timer;
+    private ws: WsClient;
 
     constructor(options?: CamSwitcherAPIOptions) {
         super();
@@ -32,28 +31,21 @@ export class CamSwitcherAPI extends EventEmitter {
     async connect() {
         try {
             const token = await this.get('/local/camswitcher/ws_authorization.cgi');
-            const protocol = this.tls ? 'wss' : 'ws';
-            this.ws = new WebSocket(`${protocol}://${this.ip}:${this.port}/local/camswitcher/events`, 'events', {
-                rejectUnauthorized: !this.tlsInsecure,
-            });
-            this.pingTimer = null;
+            const options: WsClientOptions = {
+                ip: this.ip,
+                port: this.port,
+                auth: this.auth,
+                tls: this.tls,
+                tlsInsecure: this.tlsInsecure,
+
+                address: "/local/camswitcher/events",
+                protocol: 'events',
+            };
+            this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
                 this.ws.send(JSON.stringify({ authorization: token }));
-                this.ws.isAlive = true;
-                this.pingTimer = setInterval(() => {
-                    if (this.ws.isAlive === false) {
-                        return this.ws.terminate();
-                    }
-                    this.ws.isAlive = false;
-                    this.ws.ping();
-                }, 30000);
             });
-
-            this.ws.on('pong', () => {
-                this.ws.isAlive = true;
-            });
-
             this.ws.on('message', (data: string) => {
                 try {
                     const parsedData: object = JSON.parse(data);
@@ -62,12 +54,9 @@ export class CamSwitcherAPI extends EventEmitter {
                     console.log(err);
                 }
             });
-
             this.ws.on('close', () => {
-                clearInterval(this.pingTimer);
                 this.emit('event_connection_close');
             });
-
             this.ws.on('error', (err: Error) => {
                 this.emit('event_connection_error', err);
             });
