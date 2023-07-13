@@ -2,11 +2,8 @@ import * as EventEmitter from 'events';
 
 import { Options } from './common';
 import { WsClient, WsClientOptions } from './WsClient';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 type CamOverlayDrawingOptions = Options & {
-    serviceName?: string;
-    serviceID?: number;
     camera?: number | number[];
 };
 
@@ -61,8 +58,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private ip: string;
     private port: number;
     private auth: string;
-    private serviceName: string;
-    private serviceID: number;
     private cameraList: number[];
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
@@ -76,9 +71,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
-        this.serviceName = options?.serviceName ?? '';
-        this.serviceID = options?.serviceID ?? -1; // If service is already created you can skip creation step by filling this parameter
-
         this.cameraList = [0];
         if (Array.isArray(options?.camera)) {
             this.cameraList = options.camera;
@@ -94,9 +86,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
     async connect() {
         try {
-            if (this.serviceID === -1) {
-                this.serviceID = await this.createService();
-            }
             await this.openWebsocket();
             this.emit('open');
         } catch (err) {
@@ -104,84 +93,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         }
     }
 
-    async createService() {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'GET';
-        options.path = '/local/camoverlay/api/services.cgi?action=get';
-        const response = (await httpRequest(options)) as string;
-        let servicesJson: ServiceList;
-        try {
-            servicesJson = JSON.parse(response);
-            servicesJson.services ??= [];
-        } catch {
-            servicesJson = { services: [] };
-        }
-
-        // Find service
-        let service: Service = null;
-        let maxID = -1;
-        let servicesArr = servicesJson.services;
-        for (let s of servicesArr) {
-            if (s.id > maxID) {
-                maxID = s.id;
-            }
-            if (s.identifier === this.serviceName && s.name === 'scripter') {
-                service = s;
-                break;
-            }
-        }
-
-        if (service !== null) {
-            // Check and update service parameters if necessary
-            if (service.cameraList === undefined || !this.compareCameraList(service.cameraList)) {
-                service.cameraList = this.cameraList;
-                await this.updateServices(servicesJson);
-                return service.id as number;
-            } else {
-                return service.id as number;
-            }
-        } else {
-            // Create new service
-            let newServiceID = maxID + 1;
-            service = {
-                id: newServiceID,
-                enabled: 1,
-                schedule: '',
-                name: 'scripter',
-                identifier: this.serviceName,
-                cameraList: this.cameraList,
-            };
-            servicesJson.services.push(service);
-            await this.updateServices(servicesJson);
-            return newServiceID;
-        }
-    }
-
-    async updateServices(servicesJson: ServiceList) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = '/local/camoverlay/api/services.cgi?action=set';
-        await httpRequest(options, JSON.stringify(servicesJson));
-    }
-
-    private reportMessage(msg: string) {
-        this.emit('message', msg);
-    }
-
-    private reportError(err: Error) {
-        this.ws.close();
-        this.emit('error', err);
-    }
-
-    private reportClose() {
-        for (const callId in this.sendMessages) {
-            this.sendMessages[callId].reject(new Error('Connection lost'));
-        }
-        this.sendMessages = {};
-        this.emit('close');
-    }
-
-    openWebsocket(): Promise<void> {
+    private openWebsocket(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             const options: WsClientOptions = {
                 ip: this.ip,
@@ -228,6 +140,23 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         });
     }
 
+    private reportMessage(msg: string) {
+        this.emit('message', msg);
+    }
+
+    private reportError(err: Error) {
+        this.ws.close();
+        this.emit('error', err);
+    }
+
+    private reportClose() {
+        for (const callId in this.sendMessages) {
+            this.sendMessages[callId].reject(new Error('Connection lost'));
+        }
+        this.sendMessages = {};
+        this.emit('close');
+    }
+
     cairo(command: string, ...params: any[]) {
         return this.sendMessage({ command: command, params: params }) as Promise<CairoResponse | CairoCreateResponse>;
     }
@@ -256,22 +185,29 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         ) as Promise<CairoCreateResponse>;
     }
 
-    showCairoImage(cairoImage: string, posX: number, posY: number) {
+    showCairoImage_v2(cairoImage: string, posX: number, posY: number, zIndex: number) {
         return this.sendMessage({
             command: 'show_cairo_image',
-            params: [this.serviceID, cairoImage, posX, posY],
+            params: [cairoImage, posX, posY, this.cameraList, zIndex],
         }) as Promise<CairoResponse>;
     }
 
-    showCairoImageAbsolute(cairoImage: string, posX: number, posY: number, width: number, height: number) {
+    showCairoImageAbsolute_v2(
+        cairoImage: string,
+        posX: number,
+        posY: number,
+        width: number,
+        height: number,
+        zIndex: number
+    ) {
         return this.sendMessage({
             command: 'show_cairo_image',
-            params: [this.serviceID, cairoImage, -1.0 + (2.0 / width) * posX, -1.0 + (2.0 / height) * posY],
+            params: [cairoImage, -1.0 + (2.0 / width) * posX, -1.0 + (2.0 / height) * posY, this.cameraList, zIndex],
         }) as Promise<CairoResponse>;
     }
 
-    removeImage() {
-        return this.sendMessage({ command: 'remove_image', params: [this.serviceID] }) as Promise<CairoResponse>;
+    removeImage_v2() {
+        return this.sendMessage({ command: 'remove_image', params: [this.cameraList] }) as Promise<CairoResponse>;
     }
 
     private sendMessage(msgJson: Message) {
@@ -312,15 +248,5 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             this.cameraList.length === cameraList.length &&
             this.cameraList.every((element, index) => element === cameraList[index])
         );
-    }
-
-    private getBaseVapixConnectionParams(): HttpRequestOptions {
-        return {
-            protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
-            port: this.port,
-            auth: this.auth,
-            rejectUnauthorized: !this.tlsInsecure,
-        };
     }
 }
