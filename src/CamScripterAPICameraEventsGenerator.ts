@@ -88,7 +88,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         }
     }
 
-    private openWebsocket(digestHeader?: string) {
+    private openWebsocket() {
         return new Promise<void>((resolve, reject) => {
             const options: WsClientOptions = {
                 auth: this.auth,
@@ -127,6 +127,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             this.ws.on('close', () => {
                 this.reportClose();
             });
+
+            this.ws.open();
         });
     }
 

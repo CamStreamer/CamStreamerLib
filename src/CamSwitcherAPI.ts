@@ -38,7 +38,7 @@ export class CamSwitcherAPI extends EventEmitter {
                 tls: this.tls,
                 tlsInsecure: this.tlsInsecure,
 
-                address: "/local/camswitcher/events",
+                address: '/local/camswitcher/events',
                 protocol: 'events',
             };
             this.ws = new WsClient(options);
@@ -60,6 +60,8 @@ export class CamSwitcherAPI extends EventEmitter {
             this.ws.on('error', (err: Error) => {
                 this.emit('event_connection_error', err);
             });
+
+            this.ws.open();
         } catch (err) {
             this.emit('event_connection_error', err as Error);
         }
