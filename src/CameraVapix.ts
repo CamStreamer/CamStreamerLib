@@ -5,7 +5,7 @@ import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { Options } from './common';
-import { WsClient, WsClientOptions } from './wsOptions';
+import { WsClient, WsClientOptions } from './WsClient';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CameraVapixOptions = Options;
@@ -57,7 +57,7 @@ export class CameraVapix extends EventEmitter {
 
     private ws: WebSocket = null;
 
-    constructor(options?: Options) {
+    constructor(options?: CameraVapixOptions) {
         super();
 
         this.tls = options?.tls ?? false;

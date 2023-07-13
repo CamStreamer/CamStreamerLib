@@ -35,11 +35,12 @@ export class CamOverlayAPI {
     private auth: string;
     private serviceID: number;
 
-    constructor(options?: Options) {
+    constructor(options?: CamOverlayOptions) {
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
+        this.auth = options?.auth ?? '';
     }
 
     async updateServices(servicesJson: ServiceList) {

@@ -10,7 +10,7 @@ export class CamStreamerAPI {
     private port: number;
     private auth: string;
 
-    constructor(options?: Options) {
+    constructor(options?: CamStreamerAPIOptions) {
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';

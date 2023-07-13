@@ -1,10 +1,10 @@
 import * as EventEmitter from 'events';
 
 import { Options } from './common';
-import { WsClient, WsClientOptions } from './wsOptions';
+import { WsClient, WsClientOptions } from './WsClient';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-interface CamOverlayDrawingOptions extends Options {
+type CamOverlayDrawingOptions = Options & {
     serviceName?: string;
     serviceID?: number;
     camera?: number | number[];
@@ -68,7 +68,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private sendMessages: Record<number, AsyncMessage>;
 
     private ws: WsClient = null;
-    constructor(options: CamOverlayDrawingOptions) {
+    constructor(options?: CamOverlayDrawingOptions) {
         super();
 
         this.tls = options?.tls ?? false;

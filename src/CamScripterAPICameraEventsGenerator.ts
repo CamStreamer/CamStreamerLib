@@ -1,7 +1,7 @@
 import * as EventEmitter from 'events';
 
 import { Options } from './common';
-import { WsClient, WsClientOptions } from './wsOptions';
+import { WsClient, WsClientOptions } from './WsClient';
 
 export type CamScripterOptions = Options;
 
@@ -64,7 +64,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
 
     private ws: WsClient = null;
 
-    constructor(options?: Options) {
+    constructor(options?: CamScripterOptions) {
         super();
 
         this.tls = options?.tls ?? false;

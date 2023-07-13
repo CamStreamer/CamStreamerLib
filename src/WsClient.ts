@@ -4,7 +4,7 @@ import * as WebSocket from 'ws';
 import { Digest } from './Digest';
 import { Options } from './common';
 
-export interface WsClientOptions extends Options {
+export type WsClientOptions = Options & {
     address: string;
     headers?: object;
     pingInterval?: number;
@@ -22,17 +22,23 @@ export class WsClient extends EventEmitter {
     private pingTimer: NodeJS.Timeout = null;
     private ws: WebSocket = null;
 
-    constructor(options: WsClientOptions) {
+    constructor(options?: WsClientOptions) {
         super();
 
-        const protocol = options.tls ? 'wss' : 'ws';
-        this.address = `${protocol}://${options.ip}:${options.port}${options.address}`;
+        const tls = options?.tls ?? false;
+        const tlsInsecure = options?.tlsInsecure ?? false;
+        const ip = options?.ip ?? '127.0.0.1';
+        const port = options?.port ?? (tls ? 443 : 80);
+        const auth = options?.auth ?? '';
+
+        const protocol = tls ? 'wss' : 'ws';
+        this.address = `${protocol}://${ip}:${port}${options.address}`;
         this.pingInterval = options.pingInterval ?? 30_000;
         this.protocol = options.protocol;
-        this.userPass = options.auth.split(':');
+        this.userPass = auth.split(':');
         this.wsOptions = {
             auth: options.auth,
-            rejectUnauthorized: !options.tlsInsecure,
+            rejectUnauthorized: !tlsInsecure,
             headers: options.headers ?? {},
         };
         //open();

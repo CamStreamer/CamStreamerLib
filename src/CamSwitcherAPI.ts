@@ -16,13 +16,15 @@ export class CamSwitcherAPI extends EventEmitter {
     private ws: WebSocket;
     private pingTimer: NodeJS.Timer;
 
-    constructor(options: Options) {
+    constructor(options?: CamSwitcherAPIOptions) {
         super();
+
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? 80;
+        this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
+
         EventEmitter.call(this);
     }
 
