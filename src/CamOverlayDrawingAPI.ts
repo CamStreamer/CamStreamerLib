@@ -5,11 +5,12 @@ import { WsClient, WsClientOptions } from './WsClient';
 
 type CamOverlayDrawingOptions = Options & {
     camera?: number | number[];
+    zIndex?: number;
 };
 
 export type Message = {
     command: string;
-    params: any[];
+    params?: any[];
 };
 
 export type CairoResponse = {
@@ -59,6 +60,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private port: number;
     private auth: string;
     private cameraList: number[];
+    private zIndex: number;
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
@@ -71,6 +73,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
+        this.zIndex = options?.zIndex ?? 0;
         this.cameraList = [0];
         if (Array.isArray(options?.camera)) {
             this.cameraList = options.camera;
@@ -185,10 +188,10 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         ) as Promise<CairoCreateResponse>;
     }
 
-    showCairoImage(cairoImage: string, posX: number, posY: number, zIndex: number) {
+    showCairoImage(cairoImage: string, posX: number, posY: number) {
         return this.sendMessage({
             command: 'show_cairo_image_v2',
-            params: [cairoImage, posX, posY, this.cameraList, zIndex],
+            params: [cairoImage, posX, posY, this.cameraList, this.zIndex],
         }) as Promise<CairoResponse>;
     }
 
@@ -207,7 +210,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     removeImage() {
-        return this.sendMessage({ command: 'remove_image_v2', params: [this.cameraList] }) as Promise<CairoResponse>;
+        return this.sendMessage({ command: 'remove_image_v2' }) as Promise<CairoResponse>;
     }
 
     private sendMessage(msgJson: Message) {
