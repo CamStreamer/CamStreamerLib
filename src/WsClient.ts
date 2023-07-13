@@ -33,7 +33,7 @@ export class WsClient extends EventEmitter {
 
         const protocol = tls ? 'wss' : 'ws';
         this.address = `${protocol}://${ip}:${port}${options.address}`;
-        this.pingInterval = options.pingInterval ?? 30_000;
+        this.pingInterval = options.pingInterval ?? 30000;
         this.protocol = options.protocol;
         this.userPass = auth.split(':');
         this.wsOptions = {
@@ -41,10 +41,9 @@ export class WsClient extends EventEmitter {
             rejectUnauthorized: !tlsInsecure,
             headers: options.headers ?? {},
         };
-        //open();
     }
 
-    /*private*/ open(digestHeader?: string): void {
+    open(digestHeader?: string): void {
         if (this.protocol == undefined) {
             this.ws = new WebSocket(this.address, this.wsOptions);
         } else {
@@ -86,7 +85,7 @@ export class WsClient extends EventEmitter {
         });
 
         this.ws.on('open', () => this.emit('open'));
-        this.ws.on('message', (data: string) => this.emit('message', data));
+        this.ws.on('message', (data: Buffer) => this.emit('message', data));
         this.ws.on('error', (error: Error) => this.emit('error', error));
         this.ws.on('close', () => this.emit('close'));
     }

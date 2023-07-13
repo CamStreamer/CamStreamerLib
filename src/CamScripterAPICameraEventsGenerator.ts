@@ -105,8 +105,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             this.ws.on('open', () => {
                 resolve();
             });
-            this.ws.on('message', (data: string) => {
-                const dataJSON = JSON.parse(data);
+            this.ws.on('message', (data: Buffer) => {
+                const dataJSON = JSON.parse(data.toString());
                 if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
                     if (dataJSON.hasOwnProperty('error')) {
                         this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));

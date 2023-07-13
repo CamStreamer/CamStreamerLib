@@ -46,9 +46,9 @@ export class CamSwitcherAPI extends EventEmitter {
             this.ws.on('open', () => {
                 this.ws.send(JSON.stringify({ authorization: token }));
             });
-            this.ws.on('message', (data: string) => {
+            this.ws.on('message', (data: Buffer) => {
                 try {
-                    const parsedData: object = JSON.parse(data);
+                    const parsedData: object = JSON.parse(data.toString());
                     this.emit('event', parsedData);
                 } catch (err) {
                     console.log(err);

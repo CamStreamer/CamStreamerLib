@@ -111,8 +111,8 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.reportMessage('Websocket opened');
                 resolve();
             });
-            this.ws.on('message', (data: string) => {
-                let dataJSON = JSON.parse(data);
+            this.ws.on('message', (data: Buffer) => {
+                let dataJSON = JSON.parse(data.toString());
                 if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
                     if (dataJSON.hasOwnProperty('error')) {
                         this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
@@ -125,7 +125,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 if (dataJSON.hasOwnProperty('error')) {
                     this.reportError(new Error(dataJSON.error));
                 } else {
-                    this.reportMessage(data);
+                    this.reportMessage(data.toString());
                 }
             });
             this.ws.on('error', (error: Error) => {
@@ -185,14 +185,14 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         ) as Promise<CairoCreateResponse>;
     }
 
-    showCairoImage_v2(cairoImage: string, posX: number, posY: number, zIndex: number) {
+    showCairoImage(cairoImage: string, posX: number, posY: number, zIndex: number) {
         return this.sendMessage({
-            command: 'show_cairo_image',
+            command: 'show_cairo_image_v2',
             params: [cairoImage, posX, posY, this.cameraList, zIndex],
         }) as Promise<CairoResponse>;
     }
 
-    showCairoImageAbsolute_v2(
+    showCairoImageAbsolute(
         cairoImage: string,
         posX: number,
         posY: number,
@@ -201,13 +201,13 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         zIndex: number
     ) {
         return this.sendMessage({
-            command: 'show_cairo_image',
+            command: 'show_cairo_image_v2',
             params: [cairoImage, -1.0 + (2.0 / width) * posX, -1.0 + (2.0 / height) * posY, this.cameraList, zIndex],
         }) as Promise<CairoResponse>;
     }
 
-    removeImage_v2() {
-        return this.sendMessage({ command: 'remove_image', params: [this.cameraList] }) as Promise<CairoResponse>;
+    removeImage() {
+        return this.sendMessage({ command: 'remove_image_v2', params: [this.cameraList] }) as Promise<CairoResponse>;
     }
 
     private sendMessage(msgJson: Message) {
@@ -241,12 +241,5 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.reportError(new Error(`Send binary message error: ${err}`));
             }
         });
-    }
-
-    private compareCameraList(cameraList: number[]) {
-        return (
-            this.cameraList.length === cameraList.length &&
-            this.cameraList.every((element, index) => element === cameraList[index])
-        );
     }
 }

@@ -1,5 +1,4 @@
 import * as http from 'http';
-import * as WebSocket from 'ws';
 import * as prettifyXml from 'prettify-xml';
 import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
@@ -55,7 +54,7 @@ export class CameraVapix extends EventEmitter {
     private port: number;
     private auth: string;
 
-    private ws: WebSocket = null;
+    private ws: WsClient = null;
 
     constructor(options?: CameraVapixOptions) {
         super();
@@ -236,8 +235,8 @@ export class CameraVapix extends EventEmitter {
             };
             this.ws.send(JSON.stringify(topicFilter));
         });
-        this.ws.on('message', (data: string) => {
-            const dataJSON = JSON.parse(data);
+        this.ws.on('message', (data: Buffer) => {
+            const dataJSON = JSON.parse(data.toString());
             if (dataJSON.method === 'events:configure') {
                 if (dataJSON.error === undefined) {
                     this.emit('eventsConnect');
