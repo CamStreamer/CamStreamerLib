@@ -1,7 +1,9 @@
 import { Options } from './common';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CamOverlayOptions = Options;
+export type CamOverlayOptions = Options & {
+    serviceID?: number;
+};
 
 export type Field = {
     field_name: string;
@@ -41,6 +43,7 @@ export class CamOverlayAPI {
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
+        this.serviceID = options?.serviceID ?? -1;
     }
 
     async updateServices(servicesJson: ServiceList) {
