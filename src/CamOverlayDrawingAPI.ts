@@ -195,17 +195,16 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         }) as Promise<CairoResponse>;
     }
 
-    showCairoImageAbsolute(
-        cairoImage: string,
-        posX: number,
-        posY: number,
-        width: number,
-        height: number,
-        zIndex: number
-    ) {
+    showCairoImageAbsolute(cairoImage: string, posX: number, posY: number, width: number, height: number) {
         return this.sendMessage({
             command: 'show_cairo_image_v2',
-            params: [cairoImage, -1.0 + (2.0 / width) * posX, -1.0 + (2.0 / height) * posY, this.cameraList, zIndex],
+            params: [
+                cairoImage,
+                -1.0 + (2.0 / width) * posX,
+                -1.0 + (2.0 / height) * posY,
+                this.cameraList,
+                this.zIndex,
+            ],
         }) as Promise<CairoResponse>;
     }
 
