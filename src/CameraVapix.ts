@@ -66,6 +66,22 @@ export class CameraVapix extends EventEmitter {
         this.auth = options?.auth ?? '';
     }
 
+    vapixGet(path: string, noWaitForData = false) {
+        const options = this.getBaseVapixConnectionParams();
+        options.path = encodeURI(path);
+        return httpRequest(options, undefined, noWaitForData);
+    }
+
+    vapixPost(path: string, data: string, contentType?: string) {
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'POST';
+        options.path = path;
+        if (contentType != null) {
+            options.headers = { 'Content-Type': contentType };
+        }
+        return httpRequest(options, data) as Promise<string>;
+    }
+
     async getParameterGroup(groupNames: string) {
         const response = (await this.vapixGet(
             `/axis-cgi/param.cgi?action=list&group=${encodeURIComponent(groupNames)}`
@@ -184,6 +200,13 @@ export class CameraVapix extends EventEmitter {
         });
     }
 
+    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: NodeJS.WritableStream) {
+        const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
+        const res = (await this.vapixGet(path, true)) as http.IncomingMessage;
+        res.pipe(outputStream);
+        return outputStream;
+    }
+
     async getEventDeclarations() {
         const data =
             '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
@@ -194,10 +217,6 @@ export class CameraVapix extends EventEmitter {
             '</s:Envelope>';
         const declarations = await this.vapixPost('/vapix/services', data, 'application/soap+xml');
         return prettifyXml(declarations) as string;
-    }
-
-    private isReservedEventName(eventName: string) {
-        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect';
     }
 
     eventsConnect(): void {
@@ -269,27 +288,8 @@ export class CameraVapix extends EventEmitter {
         }
     }
 
-    vapixGet(path: string, noWaitForData = false) {
-        const options = this.getBaseVapixConnectionParams();
-        options.path = encodeURI(path);
-        return httpRequest(options, undefined, noWaitForData);
-    }
-
-    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: NodeJS.WritableStream) {
-        const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-        const res = (await this.vapixGet(path, true)) as http.IncomingMessage;
-        res.pipe(outputStream);
-        return outputStream;
-    }
-
-    vapixPost(path: string, data: string, contentType?: string) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = path;
-        if (contentType != null) {
-            options.headers = { 'Content-Type': contentType };
-        }
-        return httpRequest(options, data) as Promise<string>;
+    private isReservedEventName(eventName: string) {
+        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect' || eventName == 'websocketDisconnect';
     }
 
     private getBaseVapixConnectionParams(): HttpRequestOptions {

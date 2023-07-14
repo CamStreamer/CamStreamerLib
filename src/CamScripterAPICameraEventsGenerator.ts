@@ -88,6 +88,42 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         }
     }
 
+    declareEvent(eventDeclaration: EventDeclaration) {
+        return this.sendMessage({
+            call_id: 0,
+            command: 'declare_event',
+            data: eventDeclaration,
+        });
+    }
+
+    undeclareEvent(eventUndeclaration: EventUndeclaration) {
+        return this.sendMessage({
+            call_id: 0,
+            command: 'undeclare_event',
+            data: eventUndeclaration,
+        });
+    }
+
+    sendEvent(event: Event) {
+        return this.sendMessage({
+            call_id: 0,
+            command: 'send_event',
+            data: event,
+        });
+    }
+
+    private sendMessage(msgJson: Message) {
+        return new Promise<Response>((resolve, reject) => {
+            try {
+                this.sendMessages[this.callId] = { resolve, reject };
+                msgJson.call_id = this.callId++;
+                this.ws.send(JSON.stringify(msgJson));
+            } catch (err) {
+                this.reportErr(new Error(`Send message error: ${err}`));
+            }
+        });
+    }
+
     private openWebsocket() {
         return new Promise<void>((resolve, reject) => {
             const options: WsClientOptions = {
@@ -129,42 +165,6 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             });
 
             this.ws.open();
-        });
-    }
-
-    declareEvent(eventDeclaration: EventDeclaration) {
-        return this.sendMessage({
-            call_id: 0,
-            command: 'declare_event',
-            data: eventDeclaration,
-        });
-    }
-
-    undeclareEvent(eventUndeclaration: EventUndeclaration) {
-        return this.sendMessage({
-            call_id: 0,
-            command: 'undeclare_event',
-            data: eventUndeclaration,
-        });
-    }
-
-    sendEvent(event: Event) {
-        return this.sendMessage({
-            call_id: 0,
-            command: 'send_event',
-            data: event,
-        });
-    }
-
-    private sendMessage(msgJson: Message) {
-        return new Promise<Response>((resolve, reject) => {
-            try {
-                this.sendMessages[this.callId] = { resolve, reject };
-                msgJson.call_id = this.callId++;
-                this.ws.send(JSON.stringify(msgJson));
-            } catch (err) {
-                this.reportErr(new Error(`Send message error: ${err}`));
-            }
         });
     }
 

@@ -46,13 +46,6 @@ export class CamOverlayAPI {
         this.serviceID = options?.serviceID ?? -1;
     }
 
-    async updateServices(servicesJson: ServiceList) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = '/local/camoverlay/api/services.cgi?action=set';
-        await httpRequest(options, JSON.stringify(servicesJson));
-    }
-
     updateCGText(fields: Field[]) {
         let field_specs = '';
 
@@ -67,47 +60,15 @@ export class CamOverlayAPI {
         return this.promiseCGUpdate('update_text', field_specs);
     }
 
-    /*
-    coorinates =
-        left
-        right
-        top
-        bottom
-        top_left
-        center
-        ...
-    */
-    private formCoordinates(coordinates: string, x: number, y: number) {
-        return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
+    updateCGImagePos(coordinates = '', x = 0, y = 0) {
+        const coord = this.formCoordinates(coordinates, x, y);
+        return this.promiseCGUpdate('update_image', coord);
     }
 
     updateCGImage(path: string, coordinates = '', x = 0, y = 0) {
         const coord = this.formCoordinates(coordinates, x, y);
         const update = `&image=${path}`;
         return this.promiseCGUpdate('update_image', update + coord);
-    }
-
-    updateCGImageFromData(imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
-        const coord = this.formCoordinates(coordinates, x, y);
-        const contentType = imageType === ImageType.PNG ? 'image/png' : 'image/jpeg';
-        return this.promiseCGUpdate('update_image', coord, contentType, imageData);
-    }
-
-    updateCGImagePos(coordinates = '', x = 0, y = 0) {
-        const coord = this.formCoordinates(coordinates, x, y);
-        return this.promiseCGUpdate('update_image', coord);
-    }
-
-    async promiseCGUpdate(action: string, params: string, contentType?: string, data?: Buffer) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = encodeURI(
-            `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${this.serviceID}${params}`
-        );
-        if (contentType && data) {
-            options.headers = { 'Content-Type': contentType };
-        }
-        await httpRequest(options, data);
     }
 
     async updateInfoticker(text: string) {
@@ -137,6 +98,45 @@ export class CamOverlayAPI {
             }
         }
         throw new Error('Service not found.');
+    }
+
+    async updateServices(servicesJson: ServiceList) {
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'POST';
+        options.path = '/local/camoverlay/api/services.cgi?action=set';
+        await httpRequest(options, JSON.stringify(servicesJson));
+    }
+
+    updateCGImageFromData(imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
+        const coord = this.formCoordinates(coordinates, x, y);
+        const contentType = imageType === ImageType.PNG ? 'image/png' : 'image/jpeg';
+        return this.promiseCGUpdate('update_image', coord, contentType, imageData);
+    }
+
+    async promiseCGUpdate(action: string, params: string, contentType?: string, data?: Buffer) {
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'POST';
+        options.path = encodeURI(
+            `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${this.serviceID}${params}`
+        );
+        if (contentType && data) {
+            options.headers = { 'Content-Type': contentType };
+        }
+        await httpRequest(options, data);
+    }
+
+    /*
+    coorinates =
+        left
+        right
+        top
+        bottom
+        top_left
+        center
+        ...
+    */
+    private formCoordinates(coordinates: string, x: number, y: number) {
+        return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
     }
 
     private getBaseVapixConnectionParams(): HttpRequestOptions {

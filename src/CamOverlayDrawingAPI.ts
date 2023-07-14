@@ -96,70 +96,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         }
     }
 
-    private openWebsocket(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const options: WsClientOptions = {
-                ip: this.ip,
-                port: this.port,
-                address: '/local/camoverlay/ws',
-                protocol: 'cairo-api',
-
-                auth: this.auth,
-                tls: this.tls,
-                tlsInsecure: this.tlsInsecure,
-            };
-            this.ws = new WsClient(options);
-
-            this.ws.on('open', () => {
-                this.reportMessage('Websocket opened');
-                resolve();
-            });
-            this.ws.on('message', (data: Buffer) => {
-                let dataJSON = JSON.parse(data.toString());
-                if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if (dataJSON.hasOwnProperty('error')) {
-                        this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
-                    } else {
-                        this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
-                    }
-                    delete this.sendMessages[dataJSON['call_id']];
-                }
-
-                if (dataJSON.hasOwnProperty('error')) {
-                    this.reportError(new Error(dataJSON.error));
-                } else {
-                    this.reportMessage(data.toString());
-                }
-            });
-            this.ws.on('error', (error: Error) => {
-                this.reportError(error);
-                reject(error);
-            });
-            this.ws.on('close', () => {
-                this.reportClose();
-            });
-
-            this.ws.open();
-        });
-    }
-
-    private reportMessage(msg: string) {
-        this.emit('message', msg);
-    }
-
-    private reportError(err: Error) {
-        this.ws.close();
-        this.emit('error', err);
-    }
-
-    private reportClose() {
-        for (const callId in this.sendMessages) {
-            this.sendMessages[callId].reject(new Error('Connection lost'));
-        }
-        this.sendMessages = {};
-        this.emit('close');
-    }
-
     cairo(command: string, ...params: any[]) {
         return this.sendMessage({ command: command, params: params }) as Promise<CairoResponse | CairoCreateResponse>;
     }
@@ -212,6 +148,53 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         return this.sendMessage({ command: 'remove_image_v2' }) as Promise<CairoResponse>;
     }
 
+    private openWebsocket(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            const options: WsClientOptions = {
+                ip: this.ip,
+                port: this.port,
+                address: '/local/camoverlay/ws',
+                protocol: 'cairo-api',
+
+                auth: this.auth,
+                tls: this.tls,
+                tlsInsecure: this.tlsInsecure,
+            };
+            this.ws = new WsClient(options);
+
+            this.ws.on('open', () => {
+                this.reportMessage('Websocket opened');
+                resolve();
+            });
+            this.ws.on('message', (data: Buffer) => {
+                let dataJSON = JSON.parse(data.toString());
+                if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
+                    if (dataJSON.hasOwnProperty('error')) {
+                        this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
+                    } else {
+                        this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
+                    }
+                    delete this.sendMessages[dataJSON['call_id']];
+                }
+
+                if (dataJSON.hasOwnProperty('error')) {
+                    this.reportError(new Error(dataJSON.error));
+                } else {
+                    this.reportMessage(data.toString());
+                }
+            });
+            this.ws.on('error', (error: Error) => {
+                this.reportError(error);
+                reject(error);
+            });
+            this.ws.on('close', () => {
+                this.reportClose();
+            });
+
+            this.ws.open();
+        });
+    }
+
     private sendMessage(msgJson: Message) {
         return new Promise<Response>((resolve, reject) => {
             try {
@@ -243,5 +226,22 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.reportError(new Error(`Send binary message error: ${err}`));
             }
         });
+    }
+
+    private reportMessage(msg: string) {
+        this.emit('message', msg);
+    }
+
+    private reportError(err: Error) {
+        this.ws.close();
+        this.emit('error', err);
+    }
+
+    private reportClose() {
+        for (const callId in this.sendMessages) {
+            this.sendMessages[callId].reject(new Error('Connection lost'));
+        }
+        this.sendMessages = {};
+        this.emit('close');
     }
 }
