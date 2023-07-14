@@ -5,6 +5,7 @@ Module for Axis camera events generation.
 ## Methods
 
 -   **CamScripterAPICameraEventsGenerator(options)** - Options parameter contains access to the camera with CamScripter installed.
+Values mentioned in example below are default.
 
     ```javascript
     CamScripterAPICameraEventsGenerator({

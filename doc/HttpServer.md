@@ -4,6 +4,15 @@ HttpServer is a module for processing HTTP requests in your scripts. It also aut
 
 ## Methods
 
+-   **HttpServer(options)** - Options parameter contains port which the created HttpServer listens on. Values mentioned
+in example below are default.
+
+    ```javascript
+    HttpServer({
+        port: 80,
+    });
+    ```
+
 -   **onRequest(path, callback)** - It registers callback for access to specified path. Callback has attributes - request and response.
 
     ```javascript
