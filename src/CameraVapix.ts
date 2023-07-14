@@ -92,7 +92,7 @@ export class CameraVapix extends EventEmitter {
         return this.vapixPost('/axis-cgi/param.cgi', postData);
     }
 
-    async getPTZPresetList(channel: string) {
+    async getPTZPresetList(channel: number) {
         const response = (await this.vapixGet(
             `/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`
         )) as string;
