@@ -1,4 +1,4 @@
-# CamOverlayAPI
+# CamOverlayDrawingAPI
 
 Module for easy control of CamOverlay drawing API. For more details on supported drawing functions see https://camstreamer.com/camoverlay-api1
 
