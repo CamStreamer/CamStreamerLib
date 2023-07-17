@@ -13,7 +13,7 @@ Module for Axis camera events generation.
             tlsInsecure: false,
             ip: '127.0.0.1',
             port: 80,
-            auth: 'root:pass',
+            auth: '',
         });
         ```
 

@@ -11,9 +11,9 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
         CameraVapix({
             tls: false,
             tlsInsecure: false,
-            protocol: 'http',
             ip: '127.0.0.1',
             port: 80,
+            auth: '',
         });
         ```
 
@@ -111,7 +111,7 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
 
 -   **eventsDisconnect(err)** - Websocket connection error
 
--   **websocketDisconnect** - Websocket connection closed
+-   **eventsClose** - Websocket connection closed
 
 -   **\*** - You can listen for events from camera by registrating the appropriate topic
 

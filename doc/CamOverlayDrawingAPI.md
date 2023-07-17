@@ -4,15 +4,15 @@ Module for easy control of CamOverlay drawing API. For more details on supported
 
 ## Methods
 
--   **CamOverlayAPI(options)** - Options parameter contains access to the camera. Values mentioned in example below are default.
+-   **CamOverlayDrawingAPI(options)** - Options parameter contains access to the camera. Values mentioned in example below are default.
 
     ```javascript
-    CamOverlayAPI({
+    CamOverlayDrawingAPI({
         tls: false,
         tlsInsecure: false,
         ip: '127.0.0.1',
         port: 80,
-        auth: 'root:pass',
+        auth: '',
         camera?: [0],
         zIndex?: 0
     });

@@ -12,12 +12,11 @@ Module for access to CamOverlay HTTP interface.
         tlsInsecure: false,
         ip: '127.0.0.1',
         port: 80,
-        auth: 'root:pass',
-        serviceID: -1,
+        auth: '',
     });
     ```
 
--   **updateCGText(fields)** - Updates text fields listed in parameter fields.
+-   **updateCGText(serviceID, fields)** - Updates text fields listed in parameter fields.
 
     One field is defined as follows. Parameter "color" is optional.
 
@@ -29,18 +28,18 @@ Module for access to CamOverlay HTTP interface.
         }
         ```
 
--   **updateCGImagePos(coordinates, x, y)** - Changes position of Custom Graphics.
+-   **updateCGImagePos(serviceID, coordinates, x, y)** - Changes position of Custom Graphics.
 
     Coordinates values: `"top_left"`, `"top_right"`, `"bottom_left"`, `"bottom_right"`, `"left"`, `"right"` , `"top"`, `"bottom"`, `"center"`
 
--   **updateCGImage(path, [coordinates, x, y])** - Updates Custom Graphics background to an image with specified path on the camera.
+-   **updateCGImage(serviceID, path, [coordinates, x, y])** - Updates Custom Graphics background to an image with specified path on the camera.
     If no coordinates are specified, the service will use positioning from the last update.
 
--   **updateInfoticker(text)** - Updates text in Infoticker service, if any is running.
+-   **updateInfoticker(serviceID, text)** - Updates text in Infoticker service, if any is running.
 
--   **setEnabled(enabled)** - Enables/disables the bound CO service.
+-   **setEnabled(serviceID, enabled)** - Enables/disables the bound CO service.
 
--   **isEnabled()** - Returns whether the bound CO service is enabled (true) or disabled (false).
+-   **isEnabled(serviceID)** - Returns whether the bound CO service is enabled (true) or disabled (false).
 
 ## Events
 
