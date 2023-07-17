@@ -1,9 +1,7 @@
 import { Options } from './common';
 import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CamOverlayOptions = Options & {
-    serviceID?: number;
-};
+export type CamOverlayOptions = Options;
 
 export type Field = {
     field_name: string;
@@ -35,7 +33,6 @@ export class CamOverlayAPI {
     private ip: string;
     private port: number;
     private auth: string;
-    private serviceID: number;
 
     constructor(options?: CamOverlayOptions) {
         this.tls = options?.tls ?? false;
@@ -43,10 +40,9 @@ export class CamOverlayAPI {
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
-        this.serviceID = options?.serviceID ?? -1;
     }
 
-    updateCGText(fields: Field[]) {
+    updateCGText(serviceID: number, fields: Field[]) {
         let field_specs = '';
 
         for (let field of fields) {
@@ -57,35 +53,35 @@ export class CamOverlayAPI {
             }
         }
 
-        return this.promiseCGUpdate('update_text', field_specs);
+        return this.promiseCGUpdate(serviceID, 'update_text', field_specs);
     }
 
-    updateCGImagePos(coordinates = '', x = 0, y = 0) {
+    updateCGImagePos(serviceID: number, coordinates = '', x = 0, y = 0) {
         const coord = this.formCoordinates(coordinates, x, y);
-        return this.promiseCGUpdate('update_image', coord);
+        return this.promiseCGUpdate(serviceID, 'update_image', coord);
     }
 
-    updateCGImage(path: string, coordinates = '', x = 0, y = 0) {
+    updateCGImage(serviceID: number, path: string, coordinates = '', x = 0, y = 0) {
         const coord = this.formCoordinates(coordinates, x, y);
         const update = `&image=${path}`;
-        return this.promiseCGUpdate('update_image', update + coord);
+        return this.promiseCGUpdate(serviceID, 'update_image', update + coord);
     }
 
-    async updateInfoticker(text: string) {
+    async updateInfoticker(serviceID: number, text: string) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'GET';
-        options.path = `/local/camoverlay/api/infoticker.cgi?service_id=${this.serviceID}&text=${text}`;
+        options.path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
         await httpRequest(options);
     }
 
-    async setEnabled(enabled: boolean) {
+    async setEnabled(serviceID: number, enabled: boolean) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'POST';
-        options.path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${this.serviceID}=${enabled ? 1 : 0}`);
+        options.path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`);
         await httpRequest(options);
     }
 
-    async isEnabled() {
+    async isEnabled(serviceID: number) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'GET';
         options.path = '/local/camoverlay/api/services.cgi?action=get';
@@ -93,7 +89,7 @@ export class CamOverlayAPI {
         const data: ServiceList = JSON.parse(response);
 
         for (let service of data.services) {
-            if (service.id === this.serviceID) {
+            if (service.id === serviceID) {
                 return service.enabled === 1;
             }
         }
@@ -107,17 +103,17 @@ export class CamOverlayAPI {
         await httpRequest(options, JSON.stringify(servicesJson));
     }
 
-    updateCGImageFromData(imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
+    updateCGImageFromData(serviceID: number, imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
         const coord = this.formCoordinates(coordinates, x, y);
         const contentType = imageType === ImageType.PNG ? 'image/png' : 'image/jpeg';
-        return this.promiseCGUpdate('update_image', coord, contentType, imageData);
+        return this.promiseCGUpdate(serviceID, 'update_image', coord, contentType, imageData);
     }
 
-    async promiseCGUpdate(action: string, params: string, contentType?: string, data?: Buffer) {
+    async promiseCGUpdate(serviceID: number, action: string, params: string, contentType?: string, data?: Buffer) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'POST';
         options.path = encodeURI(
-            `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${this.serviceID}${params}`
+            `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`
         );
         if (contentType && data) {
             options.headers = { 'Content-Type': contentType };
