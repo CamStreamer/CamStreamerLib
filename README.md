@@ -63,6 +63,7 @@ If you need to exclude a file or directory add `-exlude` or `-e` parameter with 
 - Removed RTSP
   > Previously CameraVapix.ts supported both WebSocket and RTSP.
   > Starting with version 2.0.0, it supports WebSocket only.
+- ServiceID shouldn't be passed to CamOverlayAPI by the options object. Pass it as a parameter.
 - Renamed CamOverlayDrawingAPI event msg to message.
-- Drawing services extracted from CamOverlayAPI.ts to separate file.
+- Drawing services extracted from CamOverlayAPI.ts to a separate file.
   > Please read [CamOverlayAPI](doc/CamOverlayAPI.md) and [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) for more information.
