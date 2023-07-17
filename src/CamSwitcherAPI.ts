@@ -1,16 +1,10 @@
-import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
-import { httpRequest } from './HTTPRequest';
-import { HttpRequestOptions } from './HTTPRequest';
+import { Options } from './common';
+import { WsClient, WsClientOptions } from './WsClient';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CamSwitcherAPIOptions = {
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CamSwitcherAPIOptions = Options;
 
 export class CamSwitcherAPI extends EventEmitter {
     private tls: boolean;
@@ -19,16 +13,17 @@ export class CamSwitcherAPI extends EventEmitter {
     private port: number;
     private auth: string;
 
-    private ws: WebSocket;
-    private pingTimer: NodeJS.Timer;
+    private ws: WsClient;
 
-    constructor(options: CamSwitcherAPIOptions) {
+    constructor(options?: CamSwitcherAPIOptions) {
         super();
+
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? 80;
+        this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
+
         EventEmitter.call(this);
     }
 
@@ -36,45 +31,37 @@ export class CamSwitcherAPI extends EventEmitter {
     async connect() {
         try {
             const token = await this.get('/local/camswitcher/ws_authorization.cgi');
-            const protocol = this.tls ? 'wss' : 'ws';
-            this.ws = new WebSocket(`${protocol}://${this.ip}:${this.port}/local/camswitcher/events`, 'events', {
-                rejectUnauthorized: !this.tlsInsecure,
-            });
-            this.pingTimer = null;
+            const options: WsClientOptions = {
+                ip: this.ip,
+                port: this.port,
+                auth: this.auth,
+                tls: this.tls,
+                tlsInsecure: this.tlsInsecure,
+
+                address: '/local/camswitcher/events',
+                protocol: 'events',
+            };
+            this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
                 this.ws.send(JSON.stringify({ authorization: token }));
-                this.ws.isAlive = true;
-                this.pingTimer = setInterval(() => {
-                    if (this.ws.isAlive === false) {
-                        return this.ws.terminate();
-                    }
-                    this.ws.isAlive = false;
-                    this.ws.ping();
-                }, 30000);
             });
-
-            this.ws.on('pong', () => {
-                this.ws.isAlive = true;
-            });
-
-            this.ws.on('message', (data: string) => {
+            this.ws.on('message', (data: Buffer) => {
                 try {
-                    const parsedData: object = JSON.parse(data);
+                    const parsedData: object = JSON.parse(data.toString());
                     this.emit('event', parsedData);
                 } catch (err) {
                     console.log(err);
                 }
             });
-
             this.ws.on('close', () => {
-                clearInterval(this.pingTimer);
                 this.emit('event_connection_close');
             });
-
             this.ws.on('error', (err: Error) => {
                 this.emit('event_connection_error', err);
             });
+
+            this.ws.open();
         } catch (err) {
             this.emit('event_connection_error', err as Error);
         }

@@ -1,21 +1,13 @@
 import * as http from 'http';
-import * as WebSocket from 'ws';
 import * as prettifyXml from 'prettify-xml';
 import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { Digest } from './Digest';
-import { RtspClient } from './RtspClient';
-import { httpRequest, HttpRequestOptions } from './HTTPRequest';
+import { Options } from './common';
+import { WsClient, WsClientOptions } from './WsClient';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CameraVapixOptions = {
-    protocol?: string; // deprecated (replaced by tls)
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CameraVapixOptions = Options;
 
 export type ApplicationList = {
     reply: {
@@ -62,20 +54,32 @@ export class CameraVapix extends EventEmitter {
     private port: number;
     private auth: string;
 
-    private rtsp: RtspClient = null;
-    private ws: WebSocket = null;
+    private ws: WsClient = null;
 
     constructor(options?: CameraVapixOptions) {
         super();
 
         this.tls = options?.tls ?? false;
-        if (options?.tls === undefined && options?.protocol !== undefined) {
-            this.tls = options.protocol === 'https';
-        }
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.auth = options?.auth ?? '';
+    }
+
+    vapixGet(path: string, noWaitForData = false) {
+        const options = this.getBaseVapixConnectionParams();
+        options.path = encodeURI(path);
+        return httpRequest(options, undefined, noWaitForData);
+    }
+
+    vapixPost(path: string, data: string, contentType?: string) {
+        const options = this.getBaseVapixConnectionParams();
+        options.method = 'POST';
+        options.path = path;
+        if (contentType != null) {
+            options.headers = { 'Content-Type': contentType };
+        }
+        return httpRequest(options, data) as Promise<string>;
     }
 
     async getParameterGroup(groupNames: string) {
@@ -196,6 +200,13 @@ export class CameraVapix extends EventEmitter {
         });
     }
 
+    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: NodeJS.WritableStream) {
+        const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
+        const res = (await this.vapixGet(path, true)) as http.IncomingMessage;
+        res.pipe(outputStream);
+        return outputStream;
+    }
+
     async getEventDeclarations() {
         const data =
             '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
@@ -208,193 +219,77 @@ export class CameraVapix extends EventEmitter {
         return prettifyXml(declarations) as string;
     }
 
-    private isReservedEventName(eventName: string) {
-        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect';
-    }
-
-    eventsConnect(channel = 'RTSP') {
+    eventsConnect(): void {
         if (this.ws != null) {
             throw new Error('Websocket is already opened.');
         }
-        if (this.rtsp != null) {
-            throw new Error('RTSP is already opened.');
-        }
-        if (channel == 'RTSP') {
-            this.rtspConnect();
-        } else if (channel == 'websocket') {
-            this.websocketConnect();
-        } else {
-            throw new Error('Unknown channel.');
-        }
+        const options: WsClientOptions = {
+            tls: this.tls,
+            tlsInsecure: this.tlsInsecure,
+            auth: this.auth,
+            ip: this.ip,
+            port: this.port,
+            address: '/vapix/ws-data-stream?sources=events',
+        };
+        this.ws = new WsClient(options);
+
+        this.ws.on('open', () => {
+            const topics = [];
+            const eventNames = this.eventNames();
+            for (let i = 0; i < eventNames.length; i++) {
+                if (!this.isReservedEventName(eventNames[i])) {
+                    const topic = {
+                        topicFilter: eventNames[i],
+                    };
+                    topics.push(topic);
+                }
+            }
+
+            const topicFilter = {
+                apiVersion: '1.0',
+                method: 'events:configure',
+                params: {
+                    eventFilterList: topics,
+                },
+            };
+            this.ws.send(JSON.stringify(topicFilter));
+        });
+        this.ws.on('message', (data: Buffer) => {
+            const dataJSON = JSON.parse(data.toString());
+            if (dataJSON.method === 'events:configure') {
+                if (dataJSON.error === undefined) {
+                    this.emit('eventsConnect');
+                } else {
+                    this.emit('eventsDisconnect', dataJSON.error as Error);
+                    this.eventsDisconnect();
+                }
+                return;
+            }
+            const eventName: string = dataJSON.params.notification.topic;
+            this.emit(eventName, dataJSON as object);
+        });
+        this.ws.on('error', (error: Error) => {
+            this.emit('eventsDisconnect', error);
+            this.ws = null;
+        });
+        this.ws.on('close', () => {
+            if (this.ws !== null) {
+                this.emit('eventsClose');
+            }
+            this.ws = null;
+        });
+
+        this.ws.open();
     }
 
     eventsDisconnect() {
-        if (this.rtsp != null) {
-            this.rtsp.disconnect();
-        }
         if (this.ws != null) {
             this.ws.close();
         }
     }
 
-    private rtspConnect() {
-        this.rtsp = new RtspClient({
-            ip: this.ip,
-            port: this.port,
-            auth: this.auth,
-        });
-
-        this.rtsp.on('connect', () => {
-            this.emit('eventsConnect');
-        });
-        this.rtsp.on('disconnect', (err: string) => {
-            this.emit('eventsDisconnect', new Error(err));
-            this.rtsp = null;
-        });
-        this.rtsp.on('event', (event: string) => {
-            const eventNames = this.eventNames();
-            for (let i = 0; i < eventNames.length; i++) {
-                if (!this.isReservedEventName(eventNames[i])) {
-                    let name = eventNames[i];
-                    // Remove special chars from the end
-                    while (name[name.length - 1] == '.' || name[name.length - 1] == '/') {
-                        name = name.substring(0, name.length - 1);
-                    }
-                    // Find registered event name in the message
-                    if (event.indexOf(name) != -1) {
-                        // Convert to JSON and emit signal
-                        parseString(event, (err: Error, eventJson: object) => {
-                            if (err != null) {
-                                this.eventsDisconnect();
-                                return;
-                            }
-                            this.emit(eventNames[i], eventJson);
-                        });
-                        break;
-                    }
-                }
-            }
-        });
-
-        let eventTopicFilter = '';
-        const eventNames = this.eventNames();
-        for (let i = 0; i < eventNames.length; i++) {
-            if (!this.isReservedEventName(eventNames[i])) {
-                if (eventTopicFilter.length != 0) {
-                    eventTopicFilter += '|';
-                }
-
-                let topic = eventNames[i].replace(/tns1/g, 'onvif');
-                topic = topic.replace(/tnsaxis/g, 'axis');
-                eventTopicFilter += topic;
-            }
-        }
-        this.rtsp.connect(eventTopicFilter);
-    }
-
-    private websocketConnect(digestHeader?: string) {
-        const protocol = this.tls ? 'wss' : 'ws';
-        const address = `${protocol}://${this.ip}:${this.port}/vapix/ws-data-stream?sources=events`;
-
-        const options = {
-            auth: this.auth,
-            rejectUnauthorized: !this.tlsInsecure,
-            headers: {},
-        };
-
-        if (digestHeader != undefined) {
-            const userPass = this.auth.split(':');
-            options['headers'] ??= {};
-            options['headers']['Authorization'] = Digest.getAuthHeader(
-                userPass[0],
-                userPass[1],
-                'GET',
-                '/vapix/ws-data-stream?sources=events',
-                digestHeader
-            );
-        }
-
-        return new Promise<void>((resolve, reject) => {
-            this.ws = new WebSocket(address, options);
-
-            this.ws.on('open', () => {
-                const topics = [];
-                const eventNames = this.eventNames();
-                for (let i = 0; i < eventNames.length; i++) {
-                    if (!this.isReservedEventName(eventNames[i])) {
-                        const topic = {
-                            topicFilter: eventNames[i],
-                        };
-                        topics.push(topic);
-                    }
-                }
-
-                const topicFilter = {
-                    apiVersion: '1.0',
-                    method: 'events:configure',
-                    params: {
-                        eventFilterList: topics,
-                    },
-                };
-                this.ws.send(JSON.stringify(topicFilter));
-            });
-
-            this.ws.on('unexpected-response', async (req, res) => {
-                if (res.statusCode == 401 && res.headers['www-authenticate'] != undefined)
-                    this.websocketConnect(res.headers['www-authenticate']).then(resolve, reject);
-                else {
-                    reject('Error: status code: ' + res.statusCode + ', ' + res.data);
-                }
-            });
-
-            this.ws.on('message', (data: string) => {
-                const dataJSON = JSON.parse(data);
-                if (dataJSON.method === 'events:configure') {
-                    if (dataJSON.error === undefined) {
-                        this.emit('eventsConnect');
-                    } else {
-                        this.emit('eventsDisconnect', dataJSON.error as Error);
-                        this.eventsDisconnect();
-                    }
-                    return;
-                }
-                const eventName: string = dataJSON.params.notification.topic;
-                this.emit(eventName, dataJSON as object);
-            });
-            this.ws.on('error', (error: Error) => {
-                this.emit('eventsDisconnect', error);
-                this.ws = null;
-            });
-            this.ws.on('close', () => {
-                if (this.ws !== null) {
-                    this.emit('websocketDisconnect');
-                }
-                this.ws = null;
-            });
-        });
-    }
-
-    vapixGet(path: string, noWaitForData = false) {
-        const options = this.getBaseVapixConnectionParams();
-        options.path = encodeURI(path);
-        return httpRequest(options, undefined, noWaitForData);
-    }
-
-    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: NodeJS.WritableStream) {
-        const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-        const res = (await this.vapixGet(path, true)) as http.IncomingMessage;
-        res.pipe(outputStream);
-        return outputStream;
-    }
-
-    vapixPost(path: string, data: string, contentType?: string) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = path;
-        if (contentType != null) {
-            options.headers = { 'Content-Type': contentType };
-        }
-        return httpRequest(options, data) as Promise<string>;
+    private isReservedEventName(eventName: string) {
+        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect' || eventName == 'websocketDisconnect';
     }
 
     private getBaseVapixConnectionParams(): HttpRequestOptions {

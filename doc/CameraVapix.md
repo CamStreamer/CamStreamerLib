@@ -1,20 +1,21 @@
 # CameraVapix
 
-Access to Axis camera VAPIX interface. For more details see documentation for Axis camera VAPIX library.
+Access to Axis camera VAPIX interface. For more details see documentation for [Axis camera VAPIX library](https://www.axis.com/vapix-library/).
 
 ## Methods
 
--   **CameraVapix(options)**
+-   **CameraVapix(options)** - Options parameter contains access to the camera and specifies which protocol should be used. Values mentioned
+    in example below are default.
 
-    ```javascript
-    CameraVapix({
-        tls: false,
-        tlsInsecure: false,
-        protocol: 'http',
-        ip: '127.0.0.1',
-        port: 80,
-    });
-    ```
+        ```javascript
+        CameraVapix({
+            tls: false,
+            tlsInsecure: false,
+            ip: '127.0.0.1',
+            port: 80,
+            auth: '',
+        });
+        ```
 
 -   **vapixGet(groupNames)** - Universal method for HTTP GET requests to camera VAPIX API.
 
@@ -31,13 +32,13 @@ Access to Axis camera VAPIX interface. For more details see documentation for Ax
 -   **getParameterGroup(groupNames)** - Get parameters from the camera.
 
     ```javascript
-    getParameterGroup('camscripter', 'camoverlay');
+    getParameterGroup('camscripter,camoverlay');
     ```
 
 -   **setParameter(params)** - Set parameters to the camera.
 
     ```javascript
-    setParameter('{"root.camscripter.Enabled": "1"}');
+    setParameter({ 'root.camscripter.Enabled': '1' });
     ```
 
 -   **getPTZPresetList(channel)** - Get a list of PTZ presets for the specified channel. Channels are numbered from 1.
@@ -88,11 +89,29 @@ Access to Axis camera VAPIX interface. For more details see documentation for Ax
     getEventDeclarations();
     ```
 
+-   **getCameraImage(camera, compression, resolution, outputStream)**
+
+    -   Get image of the camera using specified compression and resolution, write it in stream given as the outputStream argument.
+
+    **eventsConnect()** - Start reading all subscribed events from VAPIX library.
+
+    ```javascript
+    eventsConnect();
+    ```
+
+    **eventsDisconnect()** - End reading all subscribed events.
+
+    ```javascript
+    eventsDisconnect();
+    ```
+
 ## Events
 
--   **eventsConnect** - Events connection is ready
+-   **eventsConnect** - Websocket connection is ready
 
--   **eventsDisconnect(err)** - Events connection error
+-   **eventsDisconnect(err)** - Websocket connection error
+
+-   **eventsClose** - Websocket connection closed
 
 -   **\*** - You can listen for events from camera by registrating the appropriate topic
 

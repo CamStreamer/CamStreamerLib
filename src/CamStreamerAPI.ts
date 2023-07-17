@@ -1,14 +1,7 @@
-import { httpRequest } from './HTTPRequest';
-import { HttpRequestOptions } from './HTTPRequest';
+import { Options } from './common';
+import { httpRequest, HttpRequestOptions } from './HttpRequest';
 
-export type CamStreamerAPIOptions = {
-    protocol?: string; // deprecated (replaced by tls)
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CamStreamerAPIOptions = Options;
 
 export class CamStreamerAPI {
     private tls: boolean;
@@ -19,9 +12,6 @@ export class CamStreamerAPI {
 
     constructor(options?: CamStreamerAPIOptions) {
         this.tls = options?.tls ?? false;
-        if (options?.tls === undefined && options?.protocol !== undefined) {
-            this.tls = options.protocol === 'https';
-        }
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);

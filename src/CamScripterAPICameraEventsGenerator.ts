@@ -1,15 +1,9 @@
-import * as WebSocket from 'ws';
 import * as EventEmitter from 'events';
 
-import { Digest } from './Digest';
+import { Options } from './common';
+import { WsClient, WsClientOptions } from './WsClient';
 
-export type CamScripterOptions = {
-    tls?: boolean;
-    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
-    ip?: string;
-    port?: number;
-    auth?: string;
-};
+export type CamScripterOptions = Options;
 
 export type Declaration = {
     type?: '' | 'SOURCE' | 'DATA';
@@ -68,7 +62,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
-    private ws: WebSocket = null;
+    private ws: WsClient = null;
 
     constructor(options?: CamScripterOptions) {
         super();
@@ -92,83 +86,6 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         } catch (err) {
             this.reportErr(err);
         }
-    }
-
-    private openWebsocket(digestHeader?: string) {
-        return new Promise<void>((resolve, reject) => {
-            const userPass = this.auth.split(':');
-            const protocol = this.tls ? 'wss' : 'ws';
-            const addr = `${protocol}://${this.ip}:${this.port}/local/camscripter/ws`;
-
-            const options = {
-                auth: this.auth,
-                rejectUnauthorized: !this.tlsInsecure,
-                headers: {},
-            };
-            if (digestHeader !== undefined) {
-                options.headers['Authorization'] = Digest.getAuthHeader(
-                    userPass[0],
-                    userPass[1],
-                    'GET',
-                    '/local/camscripter/ws',
-                    digestHeader
-                );
-            }
-
-            this.ws = new WebSocket(addr, 'camera-events', options);
-            this.ws.binaryType = 'arraybuffer';
-
-            this.ws.isAlive = true;
-            const pingTimer = setInterval(() => {
-                if (this.ws.readyState !== this.ws.OPEN || this.ws.isAlive === false) {
-                    return this.ws.terminate();
-                }
-                this.ws.isAlive = false;
-                this.ws.ping();
-            }, 30000);
-
-            this.ws.on('open', () => {
-                resolve();
-            });
-
-            this.ws.on('pong', () => {
-                this.ws.isAlive = true;
-            });
-
-            this.ws.on('message', (data: string) => {
-                const dataJSON = JSON.parse(data);
-                if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if (dataJSON.hasOwnProperty('error')) {
-                        this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
-                    } else {
-                        this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
-                    }
-                    delete this.sendMessages[dataJSON['call_id']];
-                }
-
-                if (dataJSON.hasOwnProperty('error')) {
-                    this.reportErr(new Error(dataJSON.error));
-                }
-            });
-
-            this.ws.on('unexpected-response', async (req, res) => {
-                if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined)
-                    this.openWebsocket(res.headers['www-authenticate']).then(resolve, reject);
-                else {
-                    reject('Error: status code: ' + res.statusCode + ', ' + res.data);
-                }
-            });
-
-            this.ws.on('error', (error: Error) => {
-                this.reportErr(error);
-                reject(error);
-            });
-
-            this.ws.on('close', () => {
-                clearInterval(pingTimer);
-                this.reportClose();
-            });
-        });
     }
 
     declareEvent(eventDeclaration: EventDeclaration) {
@@ -207,8 +124,52 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
+    private openWebsocket() {
+        return new Promise<void>((resolve, reject) => {
+            const options: WsClientOptions = {
+                auth: this.auth,
+                tlsInsecure: this.tlsInsecure,
+                tls: this.tls,
+                ip: this.ip,
+                port: this.port,
+                address: '/local/camscripter/ws',
+                protocol: 'camera-events',
+            };
+
+            this.ws = new WsClient(options);
+
+            this.ws.on('open', () => {
+                resolve();
+            });
+            this.ws.on('message', (data: Buffer) => {
+                const dataJSON = JSON.parse(data.toString());
+                if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
+                    if (dataJSON.hasOwnProperty('error')) {
+                        this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
+                    } else {
+                        this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
+                    }
+                    delete this.sendMessages[dataJSON['call_id']];
+                }
+
+                if (dataJSON.hasOwnProperty('error')) {
+                    this.reportErr(new Error(dataJSON.error));
+                }
+            });
+            this.ws.on('error', (error: Error) => {
+                this.reportErr(error);
+                reject(error);
+            });
+            this.ws.on('close', () => {
+                this.reportClose();
+            });
+
+            this.ws.open();
+        });
+    }
+
     private reportErr(err: Error) {
-        this.ws?.terminate();
+        this.ws.close();
         this.emit('error', err);
     }
 
