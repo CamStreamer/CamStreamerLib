@@ -17,6 +17,7 @@ export class WsClient extends EventEmitter {
     private protocol: string;
     private pingInterval: number;
     private wsOptions: any;
+    private digestAddress: string;
 
     private isAlive = true;
     private pingTimer: NodeJS.Timeout = null;
@@ -33,6 +34,7 @@ export class WsClient extends EventEmitter {
 
         const protocol = tls ? 'wss' : 'ws';
         this.address = `${protocol}://${ip}:${port}${options.address}`;
+        this.digestAddress = options.address;
         this.pingInterval = options.pingInterval ?? 30000;
         this.protocol = options.protocol;
         this.userPass = auth.split(':');
@@ -70,7 +72,7 @@ export class WsClient extends EventEmitter {
                 this.userPass[0],
                 this.userPass[1],
                 'GET',
-                '/local/camoverlay/ws',
+                this.digestAddress,
                 digestHeader
             );
         }
