@@ -5,17 +5,17 @@ Module for easy control of streaming in CamStreamer Acap application.
 ## Methods
 
 -   **CamStreamerAPI(options)** - Options parameter contains access to the camera and specifies which protocol should be used. Values mentioned
-in example below are default.
+    in example below are default.
 
-    ```javascript
-    CamStreamerAPI({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        auth: 'root:pass',
-    });
-    ```
+        ```javascript
+        CamStreamerAPI({
+            tls: false,
+            tlsInsecure: false,
+            ip: '127.0.0.1',
+            port: 80,
+            auth: 'root:pass',
+        });
+        ```
 
 -   **getStreamList()** - Get info about CamStreamer streams in JSON format.
 

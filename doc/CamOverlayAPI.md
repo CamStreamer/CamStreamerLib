@@ -13,7 +13,7 @@ Module for access to CamOverlay HTTP interface.
         ip: '127.0.0.1',
         port: 80,
         auth: 'root:pass',
-        serviceID: -1
+        serviceID: -1,
     });
     ```
 

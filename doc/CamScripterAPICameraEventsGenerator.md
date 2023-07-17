@@ -5,17 +5,17 @@ Module for Axis camera events generation.
 ## Methods
 
 -   **CamScripterAPICameraEventsGenerator(options)** - Options parameter contains access to the camera with CamScripter installed.
-Values mentioned in example below are default.
+    Values mentioned in example below are default.
 
-    ```javascript
-    CamScripterAPICameraEventsGenerator({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        auth: 'root:pass',
-    });
-    ```
+        ```javascript
+        CamScripterAPICameraEventsGenerator({
+            tls: false,
+            tlsInsecure: false,
+            ip: '127.0.0.1',
+            port: 80,
+            auth: 'root:pass',
+        });
+        ```
 
 -   **connect()** - Connect to the CamScripter camera events websocket API.
 
@@ -93,4 +93,3 @@ Values mentioned in example below are default.
 -   **close** - API connection closed
 
 -   **error(err)** - API connection error
-
