@@ -2,6 +2,8 @@ import * as AdmZip from 'adm-zip';
 import * as Path from 'path';
 import * as fs from 'fs';
 
+import { execSync } from 'child_process';
+
 function isDirectory(path: string) {
     const stat = fs.statSync(path);
     return stat.isDirectory();
@@ -12,6 +14,8 @@ type ZipOptions = {
     typeScriptPackage: boolean;
     excludedFileNames: string[];
 };
+
+const productionModulesFolder = 'production_modules';
 
 function getPackageVersion(folder: string) {
     try {
@@ -32,19 +36,34 @@ function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
         if (
             file[0] === '.' ||
             zipFileRegex.test(file) ||
-            (file === 'node_modules' && !options.includeNodeModules) ||
+            file === 'node_modules' ||
             (file === 'src' && options.typeScriptPackage) ||
             options.excludedFileNames.includes(file)
         ) {
             continue;
         } else if (file === 'dist' && options.typeScriptPackage) {
             zip.addLocalFolder(path);
+        } else if (file === productionModulesFolder && options.includeNodeModules) {
+            zip.addLocalFolder(Path.join(productionModulesFolder, 'node_modules'), 'node_modules');
         } else if (isDir) {
             zip.addLocalFolder(path, file);
         } else {
             zip.addLocalFile(path);
         }
     }
+}
+
+function installDependencies() {
+    if (!fs.existsSync(productionModulesFolder)) {
+        fs.mkdirSync(productionModulesFolder, {});
+    }
+
+    fs.cpSync('package.json', Path.join(productionModulesFolder, 'package.json'));
+    fs.cpSync('package-lock.json', Path.join(productionModulesFolder, 'package-lock.json'));
+
+    execSync(`npm ci --omit=dev`, {
+        cwd: Path.join(process.cwd(), productionModulesFolder),
+    });
 }
 
 function main(args: string[]) {
@@ -60,6 +79,10 @@ function main(args: string[]) {
         if (arg.startsWith('-e=') || arg.startsWith('-exclude=')) {
             options.excludedFileNames = arg.substring(arg.indexOf('=') + 1).split(',');
         }
+    }
+
+    if (options.includeNodeModules) {
+        installDependencies();
     }
     if (fs.existsSync('dist')) {
         options.typeScriptPackage = true;
