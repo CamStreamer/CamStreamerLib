@@ -289,7 +289,7 @@ export class CameraVapix extends EventEmitter {
     }
 
     private isReservedEventName(eventName: string) {
-        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect' || eventName == 'websocketDisconnect';
+        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect' || eventName == 'eventsClose';
     }
 
     private getBaseVapixConnectionParams(): HttpRequestOptions {

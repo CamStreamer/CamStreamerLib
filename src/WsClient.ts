@@ -79,6 +79,8 @@ export class WsClient extends EventEmitter {
 
         this.ws.on('unexpected-response', async (req, res) => {
             if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined) {
+                this.ws.removeAllListeners();
+                clearInterval(this.pingTimer);
                 this.open(res.headers['www-authenticate']);
             } else {
                 const e = new Error('Error: status code: ' + res.statusCode + ', ' + res.data);
