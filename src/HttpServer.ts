@@ -82,7 +82,7 @@ export class HttpServer extends EventEmitter {
             });
         });
 
-        this.server.on('error', function (err) {
+        this.server.on('error', (err) => {
             this.emit('error', err);
         });
 
