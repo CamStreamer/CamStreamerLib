@@ -64,7 +64,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
-    private ws: WsClient = null;
+    private ws?: WsClient;
     constructor(options?: CamOverlayDrawingOptions) {
         super();
 
@@ -93,6 +93,12 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             this.emit('open');
         } catch (err) {
             this.reportError(err);
+        }
+    }
+
+    disconnect() {
+        if (this.ws !== undefined) {
+            this.ws.close();
         }
     }
 
@@ -188,6 +194,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 reject(error);
             });
             this.ws.on('close', () => {
+                this.ws = undefined;
                 this.reportClose();
             });
 
@@ -200,6 +207,10 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson['call_id'] = this.callId++;
+
+                if (this.ws === undefined) {
+                    throw new Error('No CamOverlay connection');
+                }
                 this.ws.send(JSON.stringify(msgJson));
             } catch (err) {
                 this.reportError(new Error(`Send message error: ${err}`));
@@ -221,6 +232,10 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 headerView.setInt32(1, jsonBuffer.byteLength);
 
                 const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
+
+                if (this.ws === undefined) {
+                    throw new Error('No CamOverlay connection');
+                }
                 this.ws.send(msgBuffer);
             } catch (err) {
                 this.reportError(new Error(`Send binary message error: ${err}`));
