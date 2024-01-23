@@ -92,7 +92,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             await this.openWebsocket();
             this.emit('open');
         } catch (err) {
-            this.reportError(err);
+            // Error is already reported
         }
     }
 
@@ -248,7 +248,9 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private reportError(err: Error) {
-        this.ws.close();
+        if (this.ws !== undefined) {
+            this.ws.close();
+        }
         this.emit('error', err);
     }
 
