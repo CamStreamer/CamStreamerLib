@@ -83,7 +83,7 @@ export class WsClient extends EventEmitter {
                 clearInterval(this.pingTimer);
                 this.open(res.headers['www-authenticate']);
             } else {
-                const e = new Error('Error: status code: ' + res.statusCode + ', ' + res.data);
+                const e = new Error('Status code: ' + res.statusCode);
                 this.emit('error', e);
             }
         });
@@ -91,7 +91,7 @@ export class WsClient extends EventEmitter {
         this.ws.on('open', () => this.emit('open'));
         this.ws.on('message', (data: Buffer) => this.emit('message', data));
         this.ws.on('error', (error: Error) => this.emit('error', error));
-        this.ws.on('close', () => this.emit('close'));
+        this.ws.on('close', () => this.handleCloseEvent());
     }
 
     send(data: Buffer | string): void {
@@ -103,13 +103,15 @@ export class WsClient extends EventEmitter {
     close(): void {
         try {
             this.handleCloseEvent();
-            this.ws.close();
+            if (this.ws.readyState !== this.ws.CLOSING && this.ws.readyState !== this.ws.CLOSED) {
+                this.ws.close();
+            }
         } catch (err) {
-            this.emit('error', err);
+            // Ignore errors like: WebSocket was closed before the connection was established
         }
 
         setTimeout(() => {
-            if (this.ws.readyState == this.ws.OPEN || this.ws.readyState == this.ws.CLOSING) {
+            if (this.ws.readyState !== this.ws.CLOSED) {
                 this.ws.terminate();
             }
         }, 5000);
