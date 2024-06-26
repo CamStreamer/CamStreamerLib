@@ -1,4 +1,5 @@
 import { CamOverlayDrawingAPI, UploadImageResponse, Align } from './CamOverlayDrawingAPI';
+import { ResourceManager } from './ResourceManager';
 
 type RGB = [number, number, number];
 type RGBA = [number, number, number, number];
@@ -25,7 +26,7 @@ export default class CairoFrame {
     private fontColor: RGB;
     private bgColor?: RGBA;
 
-    private font?: string;
+    private fontName?: string;
     private bgType: 'fit' | 'stretch' | 'plain';
     private textType: TMF;
     private align: Align;
@@ -34,7 +35,7 @@ export default class CairoFrame {
     private bgHeight?: number;
     protected children = new Array<CairoFrame>();
 
-    constructor(opt: Options) {
+    constructor(opt: Options, private cod: CamOverlayDrawingAPI, private rm: ResourceManager) {
         this.posX = opt.x;
         this.posY = opt.y;
         this.width = opt.width;
@@ -61,8 +62,8 @@ export default class CairoFrame {
             this.fontColor = color;
         }
     }
-    setFont(fontdata: string): void {
-        this.font = fontdata;
+    setFont(fontName: string): void {
+        this.fontName = fontName;
     }
     setBgImage(imageData: UploadImageResponse, type: 'fit' | 'stretch' | 'plain'): void {
         this.bgImage = imageData.var;
@@ -89,38 +90,40 @@ export default class CairoFrame {
     //  ---------------------------
     //    CairoFrame displaying
     //  ---------------------------
-    displayImage(cod: CamOverlayDrawingAPI, cairo: string, parentPos: [number, number], scale = 1): void {
+    displayImage(cairo: string, parentPos: [number, number], scale = 1): void {
         const ppX = parentPos[0];
         const ppY = parentPos[1];
 
-        this.displayOwnImage(cod, cairo, this.posX + ppX, this.posY + ppY, scale);
+        this.displayOwnImage(cairo, this.posX + ppX, this.posY + ppY, scale);
         for (const child of this.children) {
-            child.displayImage(cod, cairo, [this.posX + ppX, this.posY + ppY], scale);
+            child.displayImage(cairo, [this.posX + ppX, this.posY + ppY], scale);
         }
     }
-    protected displayOwnImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale: number): void {
-        void cod.cairo('cairo_identity_matrix', cairo);
-        void cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY);
-        void cod.cairo('cairo_scale', cairo, scale, scale);
+    protected displayOwnImage(cairo: string, ppX: number, ppY: number, scale: number): void {
+        void this.cod.cairo('cairo_identity_matrix', cairo);
+        void this.cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY);
+        void this.cod.cairo('cairo_scale', cairo, scale, scale);
 
-        if (this.font !== undefined) {
-            void cod.cairo('cairo_set_font_face', cairo, this.font);
+        if (this.fontName) {
+            this.rm.font(this.fontName).then((fontData) => {
+                void this.cod.cairo('cairo_set_font_face', cairo, fontData);
+            });
         } else {
-            void cod.cairo('cairo_set_font_face', cairo, 'NULL');
+            void this.cod.cairo('cairo_set_font_face', cairo, 'NULL');
         }
         if (this.bgColor) {
-            this.drawFrame(cod, cairo);
+            this.drawFrame(cairo);
         }
         if (this.bgImage) {
-            this.drawImage(cod, cairo);
+            this.drawImage(cairo);
         }
         if (this.text) {
-            this.drawText(cod, cairo);
+            this.drawText(cairo);
         }
     }
 
-    private drawFrame(cod: CamOverlayDrawingAPI, cairo: string): void {
-        void cod.cairo(
+    private drawFrame(cairo: string): void {
+        void this.cod.cairo(
             'cairo_set_source_rgba',
             cairo,
             this.bgColor[0],
@@ -128,22 +131,24 @@ export default class CairoFrame {
             this.bgColor[2],
             this.bgColor[3]
         );
-        cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height);
-        cod.cairo('cairo_fill', cairo);
-        cod.cairo('cairo_stroke', cairo);
+        this.cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height);
+        this.cod.cairo('cairo_fill', cairo);
+        this.cod.cairo('cairo_stroke', cairo);
     }
-    private drawImage(cod: CamOverlayDrawingAPI, cairo: string): void {
+    private drawImage(cairo: string): void {
         if (this.bgType === 'fit' && this.bgWidth !== undefined && this.bgHeight !== undefined) {
             const sx = this.width / this.bgWidth;
             const sy = this.height / this.bgHeight;
-            void cod.cairo('cairo_scale', cairo, sx, sy);
+            void this.cod.cairo('cairo_scale', cairo, sx, sy);
         }
-        void cod.cairo('cairo_set_source_surface', cairo, this.bgImage, 0, 0);
-        void cod.cairo('cairo_paint', cairo);
+        this.rm.image(this.bgImage).then((imageData) => {
+            void this.cod.cairo('cairo_set_source_surface', cairo, imageData, 0, 0);
+            void this.cod.cairo('cairo_paint', cairo);
+        });
     }
-    private drawText(cod: CamOverlayDrawingAPI, cairo: string): void {
-        void cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2]);
-        void cod.writeText(
+    private drawText(cairo: string): void {
+        void this.cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2]);
+        void this.cod.writeText(
             cairo,
             '' + this.text,
             0,
