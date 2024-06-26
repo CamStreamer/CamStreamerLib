@@ -5,11 +5,13 @@
   "prettier": "@camstreamer/prettier-config",
   "dependencies": {
     "adm-zip": "^0.5.9",
-    "crypto": "^1.0.1",
     "eventemitter2": "^5.0.1",
     "prettify-xml": "^1.2.0",
     "ws": "^7.4.2",
     "xml2js": "^0.5.0"
+  },
+  "engine": {
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@camstreamer/prettier-config": "^2.0.4",
