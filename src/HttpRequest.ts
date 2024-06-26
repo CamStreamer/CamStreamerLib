@@ -1,12 +1,8 @@
-import * as http from 'http';
-import * as https from 'https';
 import { Digest } from './Digest';
 
-type Resp = {
-    resp: http.IncomingMessage;
-    data?: string;
-};
-
+export class ErrorStatusCode {
+    constructor(public code: number, public body: Response) {}
+}
 export type HttpRequestOptions = {
     method?: string;
     protocol?: string;
@@ -19,88 +15,57 @@ export type HttpRequestOptions = {
     rejectUnauthorized?: boolean;
 };
 
-export async function httpRequest(options: HttpRequestOptions, postData?: Buffer | string, noWaitForData = false) {
-    options.timeout = options.timeout ?? 10000;
-    if (postData !== undefined) {
-        options.headers ??= {};
-        options.headers['Content-Type'] ??= 'application/x-www-form-urlencoded';
-        options.headers['Content-Length'] = Buffer.byteLength(postData);
+function getURL(options: HttpRequestOptions) {
+    let url = new URL(options.protocol + options.host);
+
+    if (options.port) {
+        url.port = options.port.toString();
+    }
+    if (options.path) {
+        url.pathname = options.path;
     }
 
-    let response = await request(options, postData, undefined, noWaitForData);
+    return url.toString();
+}
+function getDigestHeader(options: HttpRequestOptions, digestHeader: string) {
+    if (options.auth == undefined) {
+        throw new Error('No credentials found');
+    }
+    const auth = options.auth.split(':');
+    delete options.auth;
 
-    if (response.resp.statusCode == 200) {
-        return noWaitForData ? response.resp : response.data;
-    } else if (response.resp.statusCode == 401) {
-        if (
-            response.resp.headers['www-authenticate'] != undefined &&
-            response.resp.headers['www-authenticate'].indexOf('Digest') != -1
-        ) {
-            response = await request(options, postData, response.resp.headers['www-authenticate'], noWaitForData);
-            if (response.resp.statusCode == 200) {
-                return noWaitForData ? response.resp : response.data;
-            }
-        }
-    }
-    if (noWaitForData) {
-        throw new Error(`Error: status code: ${response.resp.statusCode}`);
-    } else {
-        throw new Error(`Error: status code: ${response.resp.statusCode}, ${response.data}`);
-    }
+    options.method ??= 'GET';
+    options.headers ??= {};
+
+    return Digest.getAuthHeader(auth[0], auth[1], options.method, options.path, digestHeader);
 }
 
-function request(
-    options: HttpRequestOptions,
-    postData?: Buffer | string,
-    digestHeader?: string,
-    noWaitForData?: boolean
-) {
-    return new Promise<Resp>((resolve, reject) => {
-        if (digestHeader != undefined) {
-            if (options.auth == undefined) {
-                reject(new Error('No credentials found'));
+export async function sendRequest(options: HttpRequestOptions, postData?: Buffer | string, digestHeader?: string) {
+    const url = getURL(options);
+    if (digestHeader) {
+        options['headers']['Authorization'] = getDigestHeader(options, digestHeader);
+    }
+
+    const controller = new AbortController();
+    setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
+
+    let req = new Request(url, { body: postData });
+    let res = await fetch(req, { signal: controller.signal });
+
+    if (res.ok) {
+        return res;
+    } else if (res.status == 401) {
+        if (res.headers['www-authenticate'] != undefined && res.headers['www-authenticate'].indexOf('Digest') != -1) {
+            res = await sendRequest(options, postData, res.headers['www-authenticate']);
+            if (res.ok) {
+                return res;
             }
-            const auth = options.auth.split(':');
-            delete options.auth;
-
-            options.method ??= 'GET';
-            options.headers ??= {};
-
-            options['headers']['Authorization'] = Digest.getAuthHeader(
-                auth[0],
-                auth[1],
-                options.method,
-                options.path,
-                digestHeader
-            );
         }
+    }
 
-        let client = options.protocol === 'https:' ? https : http;
-        let req = client
-            .request(options, (resp) => {
-                if (!noWaitForData) {
-                    let data = '';
-                    resp.on('data', (chunk) => {
-                        data += chunk;
-                    });
-                    resp.on('end', () => {
-                        resolve({ resp: resp, data: data });
-                    });
-                } else {
-                    resolve({ resp: resp });
-                }
-            })
-            .on('error', (err) => {
-                reject(err);
-            });
-
-        req.on('timeout', () => {
-            req.destroy(new Error('Request timeout'));
-        });
-
-        if (postData != undefined) {
-            req.write(postData);
-        }
-        req.end();
-    });
+    throw new ErrorStatusCode(res.status, res);
+}
+export async function getResponse(options: HttpRequestOptions, postData?: Buffer | string, digestHeader?: string) {
+    let res = await sendRequest(options, postData, digestHeader);
+    return res.text();
 }
