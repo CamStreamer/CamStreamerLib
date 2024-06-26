@@ -3,7 +3,7 @@ import * as EventEmitter from 'events';
 import { Options } from './common';
 import { WsClient, WsClientOptions } from './WsClient';
 
-type CamOverlayDrawingOptions = Options & {
+export type CamOverlayDrawingOptions = Options & {
     camera?: number | number[];
     zIndex?: number;
 };
@@ -176,7 +176,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 resolve();
             });
             this.ws.on('message', (data: Buffer) => {
-                let dataJSON = JSON.parse(data.toString());
+                const dataJSON = JSON.parse(data.toString());
                 if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
                     if (dataJSON.hasOwnProperty('error')) {
                         this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
@@ -199,7 +199,9 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             this.ws.on('close', () => {
                 this.ws = undefined;
                 this.reportClose();
-                this.openWebsocket();
+                if (this.connected) {
+                    this.openWebsocket();
+                }
             });
 
             this.ws.open();
