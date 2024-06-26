@@ -64,6 +64,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
+    private connected = false;
     private ws?: WsClient;
     constructor(options?: CamOverlayDrawingOptions) {
         super();
@@ -91,12 +92,14 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         try {
             await this.openWebsocket();
             this.emit('open');
+            this.connected = true;
         } catch (err) {
             // Error is already reported
         }
     }
 
     disconnect() {
+        this.connected = false;
         if (this.ws !== undefined) {
             this.ws.close();
         }
@@ -196,6 +199,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             this.ws.on('close', () => {
                 this.ws = undefined;
                 this.reportClose();
+                this.openWebsocket();
             });
 
             this.ws.open();
