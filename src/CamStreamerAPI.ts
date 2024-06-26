@@ -1,5 +1,5 @@
 import { Options } from './common';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { getResponse, HttpRequestOptions } from './HttpRequest';
 
 export type CamStreamerAPIOptions = Options;
 
@@ -40,7 +40,7 @@ export class CamStreamerAPI {
     async get(path: string) {
         const options = this.getBaseConnectionParams();
         options.path = encodeURI(path);
-        const data = (await httpRequest(options)) as string;
+        const data = await getResponse(options);
         return JSON.parse(data);
     }
 

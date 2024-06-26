@@ -1,11 +1,10 @@
-import * as http from 'http';
 import * as prettifyXml from 'prettify-xml';
 import { parseString } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { Options } from './common';
 import { WsClient, WsClientOptions } from './WsClient';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { sendRequest, getResponse, HttpRequestOptions } from './HttpRequest';
 
 export type CameraVapixOptions = Options;
 
@@ -66,10 +65,16 @@ export class CameraVapix extends EventEmitter {
         this.auth = options?.auth ?? '';
     }
 
-    vapixGet(path: string, noWaitForData = false) {
+    vapixGet(path: string) {
         const options = this.getBaseVapixConnectionParams();
         options.path = encodeURI(path);
-        return httpRequest(options, undefined, noWaitForData);
+        return getResponse(options, undefined);
+    }
+
+    vapixGetNoWait(path: string) {
+        const options = this.getBaseVapixConnectionParams();
+        options.path = encodeURI(path);
+        return sendRequest(options, undefined);
     }
 
     vapixPost(path: string, data: string, contentType?: string) {
@@ -79,7 +84,7 @@ export class CameraVapix extends EventEmitter {
         if (contentType != null) {
             options.headers = { 'Content-Type': contentType };
         }
-        return httpRequest(options, data) as Promise<string>;
+        return getResponse(options, data);
     }
 
     async getParameterGroup(groupNames: string) {
@@ -185,7 +190,7 @@ export class CameraVapix extends EventEmitter {
 
     getApplicationList() {
         return new Promise<Application[]>(async (resolve, reject) => {
-            const xml = (await this.vapixGet('/axis-cgi/applications/list.cgi')) as string;
+            const xml = await this.vapixGet('/axis-cgi/applications/list.cgi');
             parseString(xml, (err, result: ApplicationList) => {
                 if (err) {
                     reject(err);
@@ -200,10 +205,10 @@ export class CameraVapix extends EventEmitter {
         });
     }
 
-    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: NodeJS.WritableStream) {
+    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
         const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-        const res = (await this.vapixGet(path, true)) as http.IncomingMessage;
-        res.pipe(outputStream);
+        const res = await this.vapixGetNoWait(path);
+        res.body.pipeTo(outputStream);
         return outputStream;
     }
 

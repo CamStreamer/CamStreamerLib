@@ -1,5 +1,5 @@
 import { Options } from './common';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { sendRequest, getResponse, HttpRequestOptions } from './HttpRequest';
 
 export type CamOverlayOptions = Options;
 
@@ -71,21 +71,21 @@ export class CamOverlayAPI {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'GET';
         options.path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
-        await httpRequest(options);
+        await sendRequest(options);
     }
 
     async setEnabled(serviceID: number, enabled: boolean) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'POST';
         options.path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`);
-        await httpRequest(options);
+        await sendRequest(options);
     }
 
     async isEnabled(serviceID: number) {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'GET';
         options.path = '/local/camoverlay/api/services.cgi?action=get';
-        const response = (await httpRequest(options)) as string;
+        const response = await getResponse(options);
         const data: ServiceList = JSON.parse(response);
 
         for (let service of data.services) {
@@ -100,7 +100,7 @@ export class CamOverlayAPI {
         const options = this.getBaseVapixConnectionParams();
         options.method = 'POST';
         options.path = '/local/camoverlay/api/services.cgi?action=set';
-        await httpRequest(options, JSON.stringify(servicesJson));
+        await sendRequest(options, JSON.stringify(servicesJson));
     }
 
     updateCGImageFromData(serviceID: number, imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
@@ -118,7 +118,7 @@ export class CamOverlayAPI {
         if (contentType && data) {
             options.headers = { 'Content-Type': contentType };
         }
-        await httpRequest(options, data);
+        await sendRequest(options, data);
     }
 
     /*

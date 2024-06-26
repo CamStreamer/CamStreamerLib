@@ -2,7 +2,7 @@ import * as EventEmitter from 'events';
 
 import { Options } from './common';
 import { WsClient, WsClientOptions } from './WsClient';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { getResponse, HttpRequestOptions } from './HttpRequest';
 
 export type CamSwitcherAPIOptions = Options;
 
@@ -102,7 +102,7 @@ export class CamSwitcherAPI extends EventEmitter {
     async get(path: string) {
         const options = this.getBaseConnectionParams();
         options.path = encodeURI(path);
-        const data = (await httpRequest(options)) as string;
+        const data = await getResponse(options);
         try {
             const response = JSON.parse(data);
             if (response.status == 200) {
