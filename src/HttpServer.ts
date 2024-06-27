@@ -90,7 +90,7 @@ export class HttpServer extends EventEmitter {
         this.sockets = {};
         let idTracker = 0;
         this.server.on('connection', (socket) => {
-            let socketID = idTracker++;
+            const socketID = idTracker++;
             this.sockets[socketID] = socket;
             socket.on('close', () => {
                 delete this.sockets[socketID];
@@ -104,7 +104,7 @@ export class HttpServer extends EventEmitter {
 
     close() {
         this.server.close();
-        for (let key in this.sockets) {
+        for (const key in this.sockets) {
             this.sockets[key].destroy();
         }
     }

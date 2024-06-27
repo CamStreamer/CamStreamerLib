@@ -106,7 +106,7 @@ export class CameraVapix extends EventEmitter {
 
     setParameter(params: object) {
         let postData = 'action=update&';
-        for (let key in params) {
+        for (const key in params) {
             postData += key + '=' + params[key] + '&';
         }
         postData = postData.slice(0, postData.length - 1);
@@ -119,7 +119,7 @@ export class CameraVapix extends EventEmitter {
         )) as string;
         const positions: string[] = [];
         const lines = response.split(/[\r\n]/);
-        for (let line of lines) {
+        for (const line of lines) {
             if (line.length > 0 && line.indexOf('presetposno') != -1) {
                 const p = line.split('=');
                 if (p.length >= 2) {

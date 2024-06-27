@@ -30,7 +30,7 @@ function getPackageVersion(folder: string) {
 function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
     const zipFileRegex = new RegExp(`${Path.basename(folder)}(_[0-9]){3}\\.zip`);
     const files = fs.readdirSync(folder);
-    for (let file of files) {
+    for (const file of files) {
         const path = Path.join(folder, file);
         const isDir = isDirectory(path);
         if (
@@ -72,7 +72,7 @@ function main(args: string[]) {
         typeScriptPackage: false,
         excludedFileNames: [],
     };
-    for (let arg of args) {
+    for (const arg of args) {
         if (arg === '-i' || arg === '-includeNodeModules') {
             options.includeNodeModules = true;
         }

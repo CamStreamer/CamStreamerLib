@@ -11,12 +11,12 @@ export type HttpRequestOptions = {
     path?: string;
     auth?: string;
     timeout?: number;
-    headers?: any;
+    headers?: Record<string, string>;
     rejectUnauthorized?: boolean;
 };
 
 function getURL(options: HttpRequestOptions) {
-    let url = new URL(options.protocol + options.host);
+    const url = new URL(options.protocol + options.host);
 
     if (options.port) {
         url.port = options.port.toString();
@@ -49,7 +49,7 @@ export async function sendRequest(options: HttpRequestOptions, postData?: Buffer
     const controller = new AbortController();
     setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
 
-    let req = new Request(url, { body: postData });
+    const req = new Request(url, { body: postData });
     let res = await fetch(req, { signal: controller.signal });
 
     if (res.ok) {
@@ -66,6 +66,6 @@ export async function sendRequest(options: HttpRequestOptions, postData?: Buffer
     throw new ErrorStatusCode(res.status, res);
 }
 export async function getResponse(options: HttpRequestOptions, postData?: Buffer | string, digestHeader?: string) {
-    let res = await sendRequest(options, postData, digestHeader);
+    const res = await sendRequest(options, postData, digestHeader);
     return res.text();
 }

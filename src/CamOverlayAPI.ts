@@ -45,7 +45,7 @@ export class CamOverlayAPI {
     updateCGText(serviceID: number, fields: Field[]) {
         let field_specs = '';
 
-        for (let field of fields) {
+        for (const field of fields) {
             const name = field.field_name;
             field_specs += `&${name}=${field.text}`;
             if (field.color !== undefined) {
@@ -88,7 +88,7 @@ export class CamOverlayAPI {
         const response = await getResponse(options);
         const data: ServiceList = JSON.parse(response);
 
-        for (let service of data.services) {
+        for (const service of data.services) {
             if (service.id === serviceID) {
                 return service.enabled === 1;
             }
