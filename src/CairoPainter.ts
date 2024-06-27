@@ -1,4 +1,5 @@
 import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } from './CamOverlayDrawingAPI';
+import { ResourceManager } from './ResourceManager'
 import CairoFrame from './CairoFrame';
 
 const COORD: Record<string, [number, number]> = {
@@ -32,8 +33,8 @@ export default class CairoPainter extends CairoFrame {
     private cairo?: string;
     private cod: CamOverlayDrawingAPI;
 
-    constructor(opt: Options, coopt: CamOverlayDrawingOptions) {
-        super(opt);
+    constructor(opt: Options, coopt: CamOverlayDrawingOptions, rm: ResourceManager) {
+        super(opt, rm);
         this.coAlignment = COORD[opt.coAlignment];
         this.screenWidth = opt.screenWidth;
         this.screenHeight = opt.screenHeight;
@@ -41,13 +42,13 @@ export default class CairoPainter extends CairoFrame {
         this.cod = new CamOverlayDrawingAPI(coopt);
     }
 
-    async generate(scale = 1) {
+    async display(scale = 1) {
         const access = await this.begin(scale);
         this.surface = access[0];
         this.cairo = access[1];
-        this.generateOwnImage(this.cod, this.cairo, 0, 0, scale);
+        this.displayOwnImage(this.cod, this.cairo, 0, 0, scale);
         for (const child of this.children) {
-            child.generateImage(this.cod, this.cairo, [0, 0], scale);
+            child.displayImage(this.cod, this.cairo, [0, 0], scale);
         }
         await this.cod.showCairoImage(
             this.surface,
