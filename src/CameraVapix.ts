@@ -1,5 +1,5 @@
 import * as prettifyXml from 'prettify-xml';
-import { parseString } from 'xml2js';
+import { parseStringPromise } from 'xml2js';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { Options } from './common';
@@ -32,17 +32,17 @@ export type Application = {
 
 export type GuardTour = {
     id: string;
-    camNbr: any;
+    camNbr: unknown;
     name: string;
-    randomEnabled: any;
+    randomEnabled: unknown;
     running: string;
-    timeBetweenSequences: any;
+    timeBetweenSequences: unknown;
     tour: {
-        moveSpeed: any;
-        position: any;
-        presetNbr: any;
-        waitTime: any;
-        waitTimeViewType: any;
+        moveSpeed: unknown;
+        position: unknown;
+        presetNbr: unknown;
+        waitTime: unknown;
+        waitTimeViewType: unknown;
     }[];
 };
 
@@ -188,21 +188,15 @@ export class CameraVapix extends EventEmitter {
         return this.vapixPost('/axis-cgi/io/port.cgi', `action=${encodeURIComponent(port)}:${active ? '/' : '\\'}`);
     }
 
-    getApplicationList() {
-        return new Promise<Application[]>(async (resolve, reject) => {
-            const xml = await this.vapixGet('/axis-cgi/applications/list.cgi');
-            parseString(xml, (err, result: ApplicationList) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-                const apps = [];
-                for (let i = 0; i < result.reply.application.length; i++) {
-                    apps.push(result.reply.application[i].$);
-                }
-                resolve(apps);
-            });
-        });
+    async getApplicationList() {
+        const xml = await this.vapixGet('/axis-cgi/applications/list.cgi');
+        const result = (await parseStringPromise(xml)) as ApplicationList;
+
+        const apps = [];
+        for (let i = 0; i < result.reply.application.length; i++) {
+            apps.push(result.reply.application[i].$);
+        }
+        return apps;
     }
 
     async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {

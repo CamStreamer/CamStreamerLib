@@ -45,7 +45,7 @@ export type Response = {
 type Message = {
     call_id: number;
     command: string;
-    data: any;
+    data: unknown;
 };
 
 type AsyncMessage = {
@@ -143,8 +143,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             });
             this.ws.on('message', (data: Buffer) => {
                 const dataJSON = JSON.parse(data.toString());
-                if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if (dataJSON.hasOwnProperty('error')) {
+                if ({}.hasOwnProperty.call(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
+                    if ({}.hasOwnProperty.call(dataJSON, 'error')) {
                         this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
                     } else {
                         this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
@@ -152,7 +152,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
                     delete this.sendMessages[dataJSON['call_id']];
                 }
 
-                if (dataJSON.hasOwnProperty('error')) {
+                if ({}.hasOwnProperty.call(dataJSON, 'error')) {
                     this.reportErr(new Error(dataJSON.error));
                 }
             });

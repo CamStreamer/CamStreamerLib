@@ -16,7 +16,7 @@ export class WsClient extends EventEmitter {
     private address: string;
     private protocol: string;
     private pingInterval: number;
-    private wsOptions: any;
+    private wsOptions: { auth: string; rejectUnauthorized: boolean; headers: object };
     private digestAddress: string;
 
     private isAlive = true;
