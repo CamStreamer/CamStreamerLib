@@ -1,5 +1,5 @@
 import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } from './CamOverlayDrawingAPI';
-import { ResourceManager } from './ResourceManager'
+import ResourceManager from './ResourceManager';
 import CairoFrame from './CairoFrame';
 
 const COORD: Record<string, [number, number]> = {
@@ -32,6 +32,7 @@ export default class CairoPainter extends CairoFrame {
     private surface?: string;
     private cairo?: string;
     private cod: CamOverlayDrawingAPI;
+    private connected = false;
 
     constructor(opt: Options, coopt: CamOverlayDrawingOptions, rm: ResourceManager) {
         super(opt, rm);
@@ -40,6 +41,24 @@ export default class CairoPainter extends CairoFrame {
         this.screenHeight = opt.screenHeight;
 
         this.cod = new CamOverlayDrawingAPI(coopt);
+    }
+
+    connect() {
+        this.cod.removeAllListeners();
+        this.cod.on('open', () => {
+            this.connected = true;
+        });
+        this.cod.on('close', () => {
+            if (this.connected) {
+                this.rm.clear();
+                this.connect();
+            }
+        });
+        this.cod.connect();
+    }
+    disconnect() {
+        this.cod.disconnect();
+        this.connected = false;
     }
 
     async display(scale = 1) {
@@ -85,3 +104,5 @@ export default class CairoPainter extends CairoFrame {
         await this.cod.cairo('cairo_destroy', this.cairo);
     }
 }
+
+export { CairoPainter, CairoFrame, ResourceManager }

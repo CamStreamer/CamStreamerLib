@@ -1,30 +1,30 @@
 import { CamOverlayDrawingAPI, UploadImageResponse } from './CamOverlayDrawingAPI';
 import * as fs from 'fs';
 
-export class ResourceManager {
+export default class ResourceManager {
     private imgFiles: Record<string, string> = {};
     private fontFiles: Record<string, string> = {};
     private images: Record<string, UploadImageResponse> = {};
     private fonts: Record<string, string> = {};
 
-    constructor(private co: CamOverlayDrawingAPI) {}
+    constructor() {}
 
-    async image(moniker: string) {
+    async image(co: CamOverlayDrawingAPI, moniker: string) {
         if (moniker in this.images) {
             return this.images[moniker];
         } else if (moniker in this.imgFiles) {
             const imgData = fs.readFileSync(this.imgFiles[moniker]);
-            this.images[moniker] = await this.co.uploadImageData(imgData);
+            this.images[moniker] = await co.uploadImageData(imgData);
             return this.images[moniker];
         } else {
             throw new Error('Error! Unknown image requested!');
         }
     }
-    async font(moniker: string) {
+    async font(co: CamOverlayDrawingAPI, moniker: string) {
         if (moniker in this.fonts) {
             return this.fonts[moniker];
         } else if (moniker in this.fontFiles) {
-            this.fonts[moniker] = await this.loadTTF(this.fontFiles[moniker]);
+            this.fonts[moniker] = await this.loadTTF(co, this.fontFiles[moniker]);
             return this.fonts[moniker];
         } else {
             throw new Error('Error! Unknown font requested!');
@@ -42,10 +42,10 @@ export class ResourceManager {
         this.fonts = {};
     }
 
-    private loadTTF(fileName: string) {
+    private loadTTF(co: CamOverlayDrawingAPI, fileName: string) {
         return new Promise<string>((resolve, reject) => {
             const imgData = fs.readFileSync(fileName);
-            this.co.uploadFontData(imgData).then((fontRes) => {
+            co.uploadFontData(imgData).then((fontRes) => {
                 resolve(fontRes.var);
             }, reject);
         });

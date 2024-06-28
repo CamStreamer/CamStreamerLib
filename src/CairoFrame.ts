@@ -1,5 +1,5 @@
 import { CamOverlayDrawingAPI, Align } from './CamOverlayDrawingAPI';
-import { ResourceManager } from './ResourceManager';
+import ResourceManager from './ResourceManager';
 
 type RGB = [number, number, number];
 type RGBA = [number, number, number, number];
@@ -94,7 +94,7 @@ export default class CairoFrame {
         void cod.cairo('cairo_scale', cairo, scale, scale);
 
         if (this.fontName) {
-            this.rm.font(this.fontName).then((fontData) => {
+            this.rm.font(cod, this.fontName).then((fontData) => {
                 void cod.cairo('cairo_set_font_face', cairo, fontData);
             });
         } else {
@@ -113,7 +113,7 @@ export default class CairoFrame {
 
     private drawFrame(cod: CamOverlayDrawingAPI, cairo: string): void {
         if (this.bgType === 'stretch') {
-            this.rm.image(this.bgImage).then((imageData) => {
+            this.rm.image(cod, this.bgImage).then((imageData) => {
                 this.width = imageData.width;
                 this.height = imageData.height;
             });
@@ -132,7 +132,7 @@ export default class CairoFrame {
         cod.cairo('cairo_stroke', cairo);
     }
     private drawImage(cod: CamOverlayDrawingAPI, cairo: string): void {
-        this.rm.image(this.bgImage).then((imageData) => {
+        this.rm.image(cod, this.bgImage).then((imageData) => {
             const bgImage = imageData.var;
             const bgWidth = imageData.width;
             const bgHeight = imageData.height;
