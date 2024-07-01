@@ -43,7 +43,7 @@ export default class CairoPainter extends CairoFrame {
         this.cod = new CamOverlayDrawingAPI(coopt);
     }
 
-    connect() {
+    async connect() {
         this.cod.removeAllListeners();
         this.cod.on('open', () => {
             this.connected = true;
@@ -54,7 +54,7 @@ export default class CairoPainter extends CairoFrame {
                 this.connect();
             }
         });
-        this.cod.connect();
+        return this.cod.connect();
     }
     disconnect() {
         this.cod.disconnect();
@@ -62,12 +62,10 @@ export default class CairoPainter extends CairoFrame {
     }
 
     async display(scale = 1) {
-        const access = await this.begin(scale);
-        this.surface = access[0];
-        this.cairo = access[1];
-        this.displayOwnImage(this.cod, this.cairo, 0, 0, scale);
+        [this.surface, this.cairo] = await this.begin(scale);
+        await this.displayOwnImage(this.cod, this.cairo, 0, 0, scale);
         for (const child of this.children) {
-            child.displayImage(this.cod, this.cairo, [0, 0], scale);
+            await child.displayImage(this.cod, this.cairo, [0, 0], scale);
         }
         await this.cod.showCairoImage(
             this.surface,
@@ -105,4 +103,4 @@ export default class CairoPainter extends CairoFrame {
     }
 }
 
-export { CairoPainter, CairoFrame, ResourceManager }
+export { CairoPainter, CairoFrame, ResourceManager };
