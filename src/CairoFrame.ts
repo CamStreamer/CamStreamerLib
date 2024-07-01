@@ -90,79 +90,86 @@ export default class CairoFrame {
         }
         return Promise.all(promises);
     }
-    protected async displayOwnImage(
-        cod: CamOverlayDrawingAPI,
-        cairo: string,
-        ppX: number,
-        ppY: number,
-        scale: number
-    ): Promise<void> {
-        void cod.cairo('cairo_identity_matrix', cairo);
-        void cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY);
-        void cod.cairo('cairo_scale', cairo, scale, scale);
+    protected async displayOwnImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale: number) {
+        const promises = new Array<Promise<unknown>>();
+        promises.push(cod.cairo('cairo_identity_matrix', cairo));
+        promises.push(cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY));
+        promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
 
         if (this.fontName) {
             const fontData = await this.rm.font(cod, this.fontName);
-            cod.cairo('cairo_set_font_face', cairo, fontData);
+            promises.push(cod.cairo('cairo_set_font_face', cairo, fontData));
         } else {
-            void cod.cairo('cairo_set_font_face', cairo, 'NULL');
+            promises.push(cod.cairo('cairo_set_font_face', cairo, 'NULL'));
         }
         if (this.bgColor) {
-            await this.drawFrame(cod, cairo);
+            promises.push(this.drawFrame(cod, cairo));
         }
         if (this.bgImage) {
-            await this.drawImage(cod, cairo);
+            promises.push(this.drawImage(cod, cairo));
         }
         if (this.text) {
-            this.drawText(cod, cairo);
+            promises.push(this.drawText(cod, cairo));
         }
+        return promises;
     }
 
-    private async drawFrame(cod: CamOverlayDrawingAPI, cairo: string): Promise<void> {
+    private async drawFrame(cod: CamOverlayDrawingAPI, cairo: string) {
         if (this.bgType === 'stretch') {
             const imageData = await this.rm.image(cod, this.bgImage);
             this.width = imageData.width;
             this.height = imageData.height;
         }
 
-        void cod.cairo(
-            'cairo_set_source_rgba',
-            cairo,
-            this.bgColor[0],
-            this.bgColor[1],
-            this.bgColor[2],
-            this.bgColor[3]
+        const promises = new Array<Promise<unknown>>();
+        promises.push(
+            cod.cairo(
+                'cairo_set_source_rgba',
+                cairo,
+                this.bgColor[0],
+                this.bgColor[1],
+                this.bgColor[2],
+                this.bgColor[3]
+            )
         );
-        cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height);
-        cod.cairo('cairo_fill', cairo);
-        cod.cairo('cairo_stroke', cairo);
+        promises.push(cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height));
+        promises.push(cod.cairo('cairo_fill', cairo));
+        promises.push(cod.cairo('cairo_stroke', cairo));
     }
-    private async drawImage(cod: CamOverlayDrawingAPI, cairo: string): Promise<void> {
+    private async drawImage(cod: CamOverlayDrawingAPI, cairo: string) {
         const imageData = await this.rm.image(cod, this.bgImage);
         const bgImage = imageData.var;
         const bgWidth = imageData.width;
         const bgHeight = imageData.height;
 
+        const promises = new Array<Promise<unknown>>();
         if (this.bgType === 'fit' && bgWidth !== undefined && bgHeight !== undefined) {
             const sx = this.width / bgWidth;
             const sy = this.height / bgHeight;
-            void cod.cairo('cairo_scale', cairo, sx, sy);
+            promises.push(cod.cairo('cairo_scale', cairo, sx, sy));
         }
 
-        void cod.cairo('cairo_set_source_surface', cairo, bgImage, 0, 0);
-        void cod.cairo('cairo_paint', cairo);
+        promises.push(cod.cairo('cairo_set_source_surface', cairo, bgImage, 0, 0));
+        promises.push(cod.cairo('cairo_paint', cairo));
+        return Promise.all(promises);
     }
-    private drawText(cod: CamOverlayDrawingAPI, cairo: string): void {
-        void cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2]);
-        void cod.writeText(
-            cairo,
-            '' + this.text,
-            0,
-            0,
-            Math.floor(this.width),
-            Math.floor(this.height),
-            this.align,
-            this.textType
+    private drawText(cod: CamOverlayDrawingAPI, cairo: string) {
+        const promises = new Array<Promise<unknown>>();
+        promises.push(
+            cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2])
         );
+        promises.push(
+            cod.writeText(
+                cairo,
+                '' + this.text,
+                0,
+                0,
+                Math.floor(this.width),
+                Math.floor(this.height),
+                this.align,
+                this.textType
+            )
+        );
+        return Promise.all(promises);
     }
 }

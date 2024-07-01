@@ -63,10 +63,7 @@ export default class CairoPainter extends CairoFrame {
 
     async display(scale = 1) {
         [this.surface, this.cairo] = await this.begin(scale);
-        await this.displayOwnImage(this.cod, this.cairo, 0, 0, scale);
-        for (const child of this.children) {
-            await child.displayImage(this.cod, this.cairo, [0, 0], scale);
-        }
+        await this.displayImage(this.cod, this.cairo, [0, 0], scale);
         await this.cod.showCairoImage(
             this.surface,
             this.convertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
