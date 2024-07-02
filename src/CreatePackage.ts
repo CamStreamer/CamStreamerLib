@@ -96,7 +96,7 @@ function main(args: string[]) {
         try {
             fs.unlinkSync(zipFile);
         } catch (error) {
-            console.log('An error occured: ', error);
+            console.error('An error occured: ', error);
             process.exit(1);
         }
     }

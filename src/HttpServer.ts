@@ -19,17 +19,19 @@ export class HttpServer extends EventEmitter {
 
     constructor(options?: HttpServerOptions) {
         super();
-        this.port = options?.port ?? parseInt(process.env.HTTP_PORT);
+        this.port = options?.port ?? parseInt(process.env.HTTP_PORT ?? '80');
 
         this.registeredPaths = new Map();
         this.server = http.createServer((req, res) => {
             this.emit('access', req.method + ' ' + req.url);
 
             // Parse URL
-            const parsedUrl = url.parse(req.url);
+            const parsedUrl = url.parse(req.url ?? '');
+            parsedUrl.pathname ??= '';
+
             // Find path in registered paths
             if (this.registeredPaths.has(parsedUrl.pathname)) {
-                this.registeredPaths.get(parsedUrl.pathname)(req, res);
+                this.registeredPaths.get(parsedUrl.pathname)!(req, res);
                 return;
             }
             // Extract URL path
@@ -37,7 +39,7 @@ export class HttpServer extends EventEmitter {
             // Based on the URL path, extract the file extention. e.g. .js, .doc, ...
             const ext = path.parse(pathname).ext;
             // Maps file extention to MIME typere
-            const map = {
+            const map: Record<string, string> = {
                 '.ico': 'image/x-icon',
                 '.html': 'text/html',
                 '.js': 'text/javascript',

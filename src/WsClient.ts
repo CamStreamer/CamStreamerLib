@@ -6,7 +6,7 @@ import { Options } from './common';
 
 export type WsClientOptions = Options & {
     address: string;
-    headers?: object;
+    headers?: Record<string, string>;
     pingInterval?: number;
     protocol?: string;
 };
@@ -14,16 +14,16 @@ export type WsClientOptions = Options & {
 export class WsClient extends EventEmitter {
     private userPass: string[];
     private address: string;
-    private protocol: string;
+    private protocol?: string;
     private pingInterval: number;
-    private wsOptions: { auth: string; rejectUnauthorized: boolean; headers: object };
+    private wsOptions: { auth: string; rejectUnauthorized: boolean; headers: Record<string, string> };
     private digestAddress: string;
 
     private isAlive = true;
-    private pingTimer: NodeJS.Timeout = null;
-    private ws: WebSocket = null;
+    private pingTimer?: NodeJS.Timeout;
+    private ws?: WebSocket;
 
-    constructor(options?: WsClientOptions) {
+    constructor(options: WsClientOptions) {
         super();
 
         const tls = options?.tls ?? false;
@@ -39,14 +39,14 @@ export class WsClient extends EventEmitter {
         this.protocol = options.protocol;
         this.userPass = auth.split(':');
         this.wsOptions = {
-            auth: options.auth,
+            auth: auth,
             rejectUnauthorized: !tlsInsecure,
             headers: options.headers ?? {},
         };
     }
 
     open(digestHeader?: string): void {
-        if (this.protocol == undefined) {
+        if (this.protocol === undefined) {
             this.ws = new WebSocket(this.address, this.wsOptions);
         } else {
             this.ws = new WebSocket(this.address, this.protocol, this.wsOptions);
@@ -55,12 +55,12 @@ export class WsClient extends EventEmitter {
 
         this.isAlive = true;
         this.pingTimer = setInterval(() => {
-            if (this.ws.readyState !== this.ws.OPEN || this.isAlive === false) {
+            if (this.ws!.readyState !== this.ws!.OPEN || this.isAlive === false) {
                 this.emit('error', new Error('Connection timeout'));
                 this.close();
             } else {
                 this.isAlive = false;
-                this.ws.ping();
+                this.ws!.ping();
             }
         }, this.pingInterval);
         this.ws.on('pong', () => {
@@ -77,10 +77,10 @@ export class WsClient extends EventEmitter {
             );
         }
 
-        this.ws.on('unexpected-response', async (req, res) => {
+        this.ws.on('unexpected-response', (req, res) => {
             if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined) {
-                this.ws.removeAllListeners();
-                clearInterval(this.pingTimer);
+                this.ws!.removeAllListeners();
+                clearInterval(this.pingTimer!);
                 this.open(res.headers['www-authenticate']);
             } else {
                 const e = new Error('Status code: ' + res.statusCode);
@@ -95,12 +95,18 @@ export class WsClient extends EventEmitter {
     }
 
     send(data: Buffer | string): void {
+        if (this.ws === undefined) {
+            throw new Error("This websocket hasn't been opened yet.");
+        }
         if (this.ws.readyState === this.ws.OPEN) {
             this.ws.send(data);
         }
     }
 
     close(): void {
+        if (this.ws === undefined) {
+            throw new Error("This websocket hasn't been opened yet.");
+        }
         try {
             this.handleCloseEvent();
             if (this.ws.readyState !== this.ws.CLOSING && this.ws.readyState !== this.ws.CLOSED) {
@@ -111,15 +117,15 @@ export class WsClient extends EventEmitter {
         }
 
         setTimeout(() => {
-            if (this.ws.readyState !== this.ws.CLOSED) {
-                this.ws.terminate();
+            if (this.ws!.readyState !== this.ws!.CLOSED) {
+                this.ws!.terminate();
             }
         }, 5000);
     }
 
     private handleCloseEvent(): void {
-        this.ws.removeAllListeners();
-        clearInterval(this.pingTimer);
+        this.ws!.removeAllListeners();
+        clearInterval(this.pingTimer!);
         this.emit('close');
     }
 }
