@@ -20,11 +20,13 @@ export default class ResourceManager {
             throw new Error('Error! Unknown image requested!');
         }
     }
+
     async font(co: CamOverlayDrawingAPI, moniker: string) {
         if (moniker in this.fonts) {
             return this.fonts[moniker];
         } else if (moniker in this.fontFiles) {
-            this.fonts[moniker] = await this.loadTTF(co, this.fontFiles[moniker]);
+            const fontData = fs.readFileSync(this.imgFiles[moniker]);
+            this.fonts[moniker] = (await co.uploadFontData(fontData)).var;
             return this.fonts[moniker];
         } else {
             throw new Error('Error! Unknown font requested!');
@@ -34,20 +36,13 @@ export default class ResourceManager {
     registerImage(moniker: string, fileName: string) {
         this.imgFiles[moniker] = process.env.INSTALL_PATH + '/images/' + fileName;
     }
+
     registerFont(moniker: string, fileName: string) {
         this.fontFiles[moniker] = process.env.INSTALL_PATH + '/fonts/' + fileName;
     }
+
     clear() {
         this.images = {};
         this.fonts = {};
-    }
-
-    private loadTTF(co: CamOverlayDrawingAPI, fileName: string) {
-        return new Promise<string>((resolve, reject) => {
-            const imgData = fs.readFileSync(fileName);
-            co.uploadFontData(imgData).then((fontRes) => {
-                resolve(fontRes.var);
-            }, reject);
-        });
     }
 }
