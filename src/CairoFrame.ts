@@ -16,6 +16,7 @@ type Options = {
 type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
 type ObjectFitType = 'fill' | 'contain' | 'cover';
 
+export type DrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
 export default class CairoFrame {
     protected posX: number;
     protected posY: number;
@@ -34,7 +35,7 @@ export default class CairoFrame {
 
     protected children = new Array<CairoFrame>();
 
-    constructor(opt: Options, protected rm: ResourceManager) {
+    constructor(opt: Options, protected rm: ResourceManager, private customDraw?: DrawingCallback) {
         this.posX = opt.x;
         this.posY = opt.y;
         this.width = opt.width;
@@ -112,6 +113,9 @@ export default class CairoFrame {
         }
         if (this.text) {
             promises.push(this.drawText(cod, cairo));
+        }
+        if (this.customDraw) {
+            promises.push(this.customDraw(cod, cairo));
         }
         return promises;
     }
