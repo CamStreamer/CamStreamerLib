@@ -2,7 +2,7 @@ import * as EventEmitter from 'events';
 
 import { Options } from './common';
 import { WsClient, WsClientOptions } from './WsClient';
-import { getResponse, HttpRequestOptions } from './HttpRequest';
+import { HttpRequestOptions, sendRequest } from './HttpRequest';
 
 export type CamSwitcherAPIOptions = Options;
 
@@ -13,7 +13,7 @@ export class CamSwitcherAPI extends EventEmitter {
     private port: number;
     private auth: string;
 
-    private ws: WsClient;
+    private ws?: WsClient;
 
     constructor(options?: CamSwitcherAPIOptions) {
         super();
@@ -44,7 +44,7 @@ export class CamSwitcherAPI extends EventEmitter {
             this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
-                this.ws.send(JSON.stringify({ authorization: token }));
+                this.ws!.send(JSON.stringify({ authorization: token }));
             });
             this.ws.on('message', (data: Buffer) => {
                 try {
@@ -100,26 +100,28 @@ export class CamSwitcherAPI extends EventEmitter {
     }
 
     async get(path: string) {
-        const options = this.getBaseConnectionParams();
-        options.path = encodeURI(path);
-        const data = await getResponse(options);
-        try {
-            const response = JSON.parse(data);
-            if (response.status == 200) {
-                return response.data as object;
+        const options = this.getBaseConnectionParams(path);
+        const res = await sendRequest(options);
+
+        if (res.ok) {
+            const responseText = JSON.parse(await res.text());
+            if (responseText.status === 200) {
+                return responseText.data as object;
             } else {
-                throw new Error(`Request (${path}) error, response: ${JSON.stringify(response)}`);
+                throw new Error(`Request (${path}) error, response: ${JSON.stringify(responseText)}`);
             }
-        } catch (err) {
-            throw new Error(`Request (${path}) error: ${err}, msg: ${data}`);
+        } else {
+            throw new Error(JSON.stringify(res));
         }
     }
 
-    private getBaseConnectionParams(): HttpRequestOptions {
+    private getBaseConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
         return {
+            method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
+            path: path,
             auth: this.auth,
             rejectUnauthorized: !this.tlsInsecure,
         };

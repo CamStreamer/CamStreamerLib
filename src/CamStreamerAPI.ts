@@ -1,5 +1,5 @@
 import { Options } from './common';
-import { getResponse, HttpRequestOptions } from './HttpRequest';
+import { HttpRequestOptions, sendRequest } from './HttpRequest';
 
 export type CamStreamerAPIOptions = Options;
 
@@ -38,17 +38,23 @@ export class CamStreamerAPI {
     }
 
     async get(path: string) {
-        const options = this.getBaseConnectionParams();
-        options.path = encodeURI(path);
-        const data = await getResponse(options);
-        return JSON.parse(data);
+        const options = this.getBaseConnectionParams(path);
+        const res = await sendRequest(options);
+
+        if (res.ok) {
+            return JSON.parse(await res.text());
+        } else {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
-    private getBaseConnectionParams(): HttpRequestOptions {
+    private getBaseConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
         return {
+            method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
+            path: path,
             auth: this.auth,
             rejectUnauthorized: !this.tlsInsecure,
         };

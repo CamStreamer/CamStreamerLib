@@ -1,5 +1,5 @@
 import { Options } from './common';
-import { sendRequest, getResponse, HttpRequestOptions } from './HttpRequest';
+import { sendRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CamOverlayOptions = Options;
 
@@ -68,39 +68,52 @@ export class CamOverlayAPI {
     }
 
     async updateInfoticker(serviceID: number, text: string) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'GET';
-        options.path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
-        await sendRequest(options);
+        const path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
+        const options = this.getBaseVapixConnectionParams(path);
+        const res = await sendRequest(options);
+
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     async setEnabled(serviceID: number, enabled: boolean) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`);
-        await sendRequest(options);
+        const path = `/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`;
+        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        const res = await sendRequest(options);
+
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     async isEnabled(serviceID: number) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'GET';
-        options.path = '/local/camoverlay/api/services.cgi?action=get';
-        const response = await getResponse(options);
-        const data: ServiceList = JSON.parse(response);
+        const path = '/local/camoverlay/api/services.cgi?action=get';
+        const options = this.getBaseVapixConnectionParams(path);
+        const res = await sendRequest(options);
 
-        for (const service of data.services) {
-            if (service.id === serviceID) {
-                return service.enabled === 1;
+        if (res.ok) {
+            const data: ServiceList = JSON.parse(await res.text());
+
+            for (const service of data.services) {
+                if (service.id === serviceID) {
+                    return service.enabled === 1;
+                }
             }
+            throw new Error('Service not found.');
+        } else {
+            throw new Error(JSON.stringify(res));
         }
-        throw new Error('Service not found.');
     }
 
     async updateServices(servicesJson: ServiceList) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = '/local/camoverlay/api/services.cgi?action=set';
-        await sendRequest(options, JSON.stringify(servicesJson));
+        const path = '/local/camoverlay/api/services.cgi?action=set';
+        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        const res = await sendRequest(options, JSON.stringify(servicesJson));
+
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     updateCGImageFromData(serviceID: number, imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
@@ -110,15 +123,15 @@ export class CamOverlayAPI {
     }
 
     async promiseCGUpdate(serviceID: number, action: string, params: string, contentType?: string, data?: Buffer) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = encodeURI(
-            `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`
-        );
-        if (contentType && data) {
+        const path = `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`;
+        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        if (contentType !== undefined && data) {
             options.headers = { 'Content-Type': contentType };
         }
-        await sendRequest(options, data);
+        const res = await sendRequest(options, data);
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     /*
@@ -135,11 +148,13 @@ export class CamOverlayAPI {
         return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
     }
 
-    private getBaseVapixConnectionParams(): HttpRequestOptions {
+    private getBaseVapixConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
         return {
+            method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
+            path: path,
             auth: this.auth,
             rejectUnauthorized: !this.tlsInsecure,
         };

@@ -1,10 +1,11 @@
 import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
+import { WritableStream } from 'node:stream/web';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { Options } from './common';
 import { WsClient, WsClientOptions } from './WsClient';
-import { sendRequest, getResponse, HttpRequestOptions } from './HttpRequest';
+import { sendRequest, HttpRequestOptions } from './HttpRequest';
 
 export type CameraVapixOptions = Options;
 
@@ -53,7 +54,7 @@ export class CameraVapix extends EventEmitter {
     private port: number;
     private auth: string;
 
-    private ws: WsClient = null;
+    private ws?: WsClient;
 
     constructor(options?: CameraVapixOptions) {
         super();
@@ -66,32 +67,23 @@ export class CameraVapix extends EventEmitter {
     }
 
     vapixGet(path: string) {
-        const options = this.getBaseVapixConnectionParams();
-        options.path = encodeURI(path);
-        return getResponse(options, undefined);
-    }
-
-    vapixGetNoWait(path: string) {
-        const options = this.getBaseVapixConnectionParams();
-        options.path = encodeURI(path);
+        const options = this.getBaseVapixConnectionParams(path);
         return sendRequest(options, undefined);
     }
 
     vapixPost(path: string, data: string, contentType?: string) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = path;
-        if (contentType != null) {
+        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        if (contentType !== undefined) {
             options.headers = { 'Content-Type': contentType };
         }
-        return getResponse(options, data);
+        return sendRequest(options, data);
     }
 
     async getParameterGroup(groupNames: string) {
-        const response = (await this.vapixGet(
-            `/axis-cgi/param.cgi?action=list&group=${encodeURIComponent(groupNames)}`
-        )) as string;
-        const params = {};
+        const response = await (
+            await this.vapixGet(`/axis-cgi/param.cgi?action=list&group=${encodeURIComponent(groupNames)}`)
+        ).text();
+        const params: Record<string, string> = {};
         const lines = response.split(/[\r\n]/);
         for (let i = 0; i < lines.length; i++) {
             if (lines[i].length) {
@@ -104,7 +96,7 @@ export class CameraVapix extends EventEmitter {
         return params;
     }
 
-    setParameter(params: object) {
+    setParameter(params: Record<string, string>) {
         let postData = 'action=update&';
         for (const key in params) {
             postData += key + '=' + params[key] + '&';
@@ -114,13 +106,13 @@ export class CameraVapix extends EventEmitter {
     }
 
     async getPTZPresetList(channel: string) {
-        const response = (await this.vapixGet(
-            `/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`
-        )) as string;
+        const response = await (
+            await this.vapixGet(`/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`)
+        ).text();
         const positions: string[] = [];
         const lines = response.split(/[\r\n]/);
         for (const line of lines) {
-            if (line.length > 0 && line.indexOf('presetposno') != -1) {
+            if (line.length > 0 && line.indexOf('presetposno') !== -1) {
                 const p = line.split('=');
                 if (p.length >= 2) {
                     positions.push(p[1]);
@@ -174,14 +166,16 @@ export class CameraVapix extends EventEmitter {
     }
 
     setGuardTourEnabled(gourTourID: string, enable: boolean) {
-        const options = {};
+        const options: Record<string, string> = {};
         options[gourTourID + '.Running'] = enable ? 'yes' : 'no';
         return this.setParameter(options);
     }
 
     async getInputState(port: number) {
-        const response = await this.vapixPost('/axis-cgi/io/port.cgi', `checkactive=${encodeURIComponent(port)}`);
-        return response.split('=')[1].indexOf('active') == 0;
+        const response = await (
+            await this.vapixPost('/axis-cgi/io/port.cgi', `checkactive=${encodeURIComponent(port)}`)
+        ).text();
+        return response.split('=')[1].indexOf('active') === 0;
     }
 
     setOutputState(port: number, active: boolean) {
@@ -201,8 +195,8 @@ export class CameraVapix extends EventEmitter {
 
     async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
         const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-        const res = await this.vapixGetNoWait(path);
-        res.body.pipeTo(outputStream);
+        const res = await this.vapixGet(path);
+        void res.body!.pipeTo(outputStream);
         return outputStream;
     }
 
@@ -219,7 +213,7 @@ export class CameraVapix extends EventEmitter {
     }
 
     eventsConnect(): void {
-        if (this.ws != null) {
+        if (this.ws !== undefined) {
             throw new Error('Websocket is already opened.');
         }
         const options: WsClientOptions = {
@@ -251,7 +245,7 @@ export class CameraVapix extends EventEmitter {
                     eventFilterList: topics,
                 },
             };
-            this.ws.send(JSON.stringify(topicFilter));
+            this.ws!.send(JSON.stringify(topicFilter));
         });
         this.ws.on('message', (data: Buffer) => {
             const dataJSON = JSON.parse(data.toString());
@@ -269,33 +263,35 @@ export class CameraVapix extends EventEmitter {
         });
         this.ws.on('error', (error: Error) => {
             this.emit('eventsDisconnect', error);
-            this.ws = null;
+            this.ws = undefined;
         });
         this.ws.on('close', () => {
-            if (this.ws !== null) {
+            if (this.ws !== undefined) {
                 this.emit('eventsClose');
             }
-            this.ws = null;
+            this.ws = undefined;
         });
 
         this.ws.open();
     }
 
     eventsDisconnect() {
-        if (this.ws != null) {
+        if (this.ws !== undefined) {
             this.ws.close();
         }
     }
 
     private isReservedEventName(eventName: string) {
-        return eventName == 'eventsConnect' || eventName == 'eventsDisconnect' || eventName == 'eventsClose';
+        return eventName === 'eventsConnect' || eventName === 'eventsDisconnect' || eventName === 'eventsClose';
     }
 
-    private getBaseVapixConnectionParams(): HttpRequestOptions {
+    private getBaseVapixConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
         return {
+            method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
+            path: path,
             auth: this.auth,
             rejectUnauthorized: !this.tlsInsecure,
         };
