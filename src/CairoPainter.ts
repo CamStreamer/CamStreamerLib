@@ -32,7 +32,6 @@ export default class CairoPainter extends CairoFrame {
     private surface?: string;
     private cairo?: string;
     private cod: CamOverlayDrawingAPI;
-    private connected = false;
 
     constructor(opt: Options, coopt: CamOverlayDrawingOptions, rm: ResourceManager) {
         super(opt, rm);
@@ -44,34 +43,26 @@ export default class CairoPainter extends CairoFrame {
     }
 
     async connect() {
-        this.cod.removeAllListeners();
-        this.cod.on('open', () => {
-            this.connected = true;
-        });
         this.cod.on('close', () => {
-            if (this.connected) {
-                this.rm.clear();
-                this.connect();
-            }
+            this.rm.clear();
         });
         return this.cod.connect();
     }
     disconnect() {
         this.cod.disconnect();
-        this.connected = false;
     }
 
     async display(scale = 1) {
-        [this.surface, this.cairo] = await this.begin(scale);
+        [this.surface, this.cairo] = await this.prepareDrawing(scale);
         await this.displayImage(this.cod, this.cairo, [0, 0], scale);
         await this.cod.showCairoImage(
             this.surface,
-            this.convertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
-            this.convertor(this.coAlignment[1], this.screenHeight, this.posY, scale * this.height)
+            this.positionConvertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
+            this.positionConvertor(this.coAlignment[1], this.screenHeight, this.posY, scale * this.height)
         );
         await this.destroy();
     }
-    private convertor(alignment: number, screenSize: number, position: number, graphicsSize: number): number {
+    private positionConvertor(alignment: number, screenSize: number, position: number, graphicsSize: number): number {
         switch (alignment) {
             case -1:
                 return alignment + (2.0 * position) / screenSize;
@@ -83,7 +74,7 @@ export default class CairoPainter extends CairoFrame {
                 throw new Error('Invalid graphics alignment.');
         }
     }
-    private async begin(scale: number) {
+    private async prepareDrawing(scale: number) {
         const surface = (await this.cod.cairo(
             'cairo_image_surface_create',
             'CAIRO_FORMAT_ARGB32',

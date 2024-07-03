@@ -14,6 +14,7 @@ type Options = {
     bgColor?: RGBA;
 };
 type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
+type ObjectFitType = 'fill' | 'contain' | 'cover';
 
 export default class CairoFrame {
     protected posX: number;
@@ -21,15 +22,15 @@ export default class CairoFrame {
     protected width: number;
     protected height: number;
 
-    private text: string;
-    private align: Align;
-    private textType: TMF;
+    private text = '';
+    private align: Align = 'A_LEFT';
+    private textType: TMF = 'TFM_OVERFLOW';
     private fontColor: RGB;
     private fontName?: string;
 
     private bgColor?: RGBA;
     private bgImage?: string;
-    private bgType: 'fit' | 'stretch' | 'plain';
+    private bgType: ObjectFitType;
 
     protected children = new Array<CairoFrame>();
 
@@ -41,9 +42,10 @@ export default class CairoFrame {
 
         this.setText(opt.text ?? '', 'A_LEFT');
         this.fontColor = opt.fontColor ?? [1.0, 1.0, 1.0];
-        this.bgColor = opt.bgColor; //RGBA
-        if (opt.bgImage) {
-            this.setBgImage(opt.bgImage, 'plain');
+        this.bgColor = opt.bgColor; // RGBA
+        this.bgType = 'cover';
+        if (opt.bgImage !== undefined) {
+            this.setBgImage(opt.bgImage, 'cover');
         }
     }
 
@@ -61,7 +63,7 @@ export default class CairoFrame {
     setFont(fontName: string): void {
         this.fontName = fontName;
     }
-    setBgImage(imageName: string, type: 'fit' | 'stretch' | 'plain'): void {
+    setBgImage(imageName: string, type: ObjectFitType): void {
         this.bgImage = imageName;
         this.bgType = type;
     }
@@ -96,16 +98,16 @@ export default class CairoFrame {
         promises.push(cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY));
         promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
 
-        if (this.fontName) {
+        if (this.fontName !== undefined) {
             const fontData = await this.rm.font(cod, this.fontName);
             promises.push(cod.cairo('cairo_set_font_face', cairo, fontData));
         } else {
             promises.push(cod.cairo('cairo_set_font_face', cairo, 'NULL'));
         }
-        if (this.bgColor) {
+        if (this.bgColor !== undefined) {
             promises.push(this.drawFrame(cod, cairo));
         }
-        if (this.bgImage) {
+        if (this.bgImage !== undefined) {
             promises.push(this.drawImage(cod, cairo));
         }
         if (this.text) {
@@ -114,39 +116,39 @@ export default class CairoFrame {
         return promises;
     }
 
-    private async drawFrame(cod: CamOverlayDrawingAPI, cairo: string) {
-        if (this.bgType === 'stretch') {
-            const imageData = await this.rm.image(cod, this.bgImage);
-            this.width = imageData.width;
-            this.height = imageData.height;
-        }
-
+    private drawFrame(cod: CamOverlayDrawingAPI, cairo: string) {
         const promises = new Array<Promise<unknown>>();
         promises.push(
             cod.cairo(
                 'cairo_set_source_rgba',
                 cairo,
-                this.bgColor[0],
-                this.bgColor[1],
-                this.bgColor[2],
-                this.bgColor[3]
+                this.bgColor![0],
+                this.bgColor![1],
+                this.bgColor![2],
+                this.bgColor![3]
             )
         );
         promises.push(cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height));
         promises.push(cod.cairo('cairo_fill', cairo));
         promises.push(cod.cairo('cairo_stroke', cairo));
+        return Promise.all(promises);
     }
     private async drawImage(cod: CamOverlayDrawingAPI, cairo: string) {
-        const imageData = await this.rm.image(cod, this.bgImage);
+        const imageData = await this.rm.image(cod, this.bgImage!);
         const bgImage = imageData.var;
         const bgWidth = imageData.width;
         const bgHeight = imageData.height;
 
         const promises = new Array<Promise<unknown>>();
-        if (this.bgType === 'fit' && bgWidth !== undefined && bgHeight !== undefined) {
+        if (this.bgType === 'fill') {
             const sx = this.width / bgWidth;
             const sy = this.height / bgHeight;
             promises.push(cod.cairo('cairo_scale', cairo, sx, sy));
+        } else if (this.bgType === 'contain') {
+            const sx = this.width / bgWidth;
+            const sy = this.height / bgHeight;
+            const scaleRatio = Math.min(sx, sy);
+            promises.push(cod.cairo('cairo_scale', cairo, scaleRatio, scaleRatio));
         }
 
         promises.push(cod.cairo('cairo_set_source_surface', cairo, bgImage, 0, 0));
