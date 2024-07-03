@@ -1,5 +1,5 @@
-import { Options } from './common';
-import { HttpRequestOptions, sendRequest } from './HttpRequest';
+import { Options } from './internal/common';
+import { HttpRequestOptions, sendRequest } from './internal/HttpRequest';
 
 export type CamStreamerAPIOptions = Options;
 

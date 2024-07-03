@@ -1,4 +1,4 @@
-import { CamOverlayDrawingAPI, Align } from './CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI, Align } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
 
 type RGB = [number, number, number];

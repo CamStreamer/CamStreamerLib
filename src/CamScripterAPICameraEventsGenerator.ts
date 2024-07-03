@@ -1,7 +1,7 @@
 import * as EventEmitter from 'events';
 
-import { Options } from './common';
-import { WsClient, WsClientOptions } from './WsClient';
+import { Options } from './internal/common';
+import { WsClient, WsClientOptions } from './internal/WsClient';
 
 export type CamScripterOptions = Options;
 

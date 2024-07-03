@@ -1,8 +1,8 @@
 import * as EventEmitter from 'events';
 
-import { Options } from './common';
-import { WsClient, WsClientOptions } from './WsClient';
-import { HttpRequestOptions, sendRequest } from './HttpRequest';
+import { Options } from './internal/common';
+import { WsClient, WsClientOptions } from './internal/WsClient';
+import { HttpRequestOptions, sendRequest } from './internal/HttpRequest';
 
 export type CamSwitcherAPIOptions = Options;
 

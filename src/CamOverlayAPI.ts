@@ -1,5 +1,5 @@
-import { Options } from './common';
-import { sendRequest, HttpRequestOptions } from './HttpRequest';
+import { Options } from './internal/common';
+import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
 
 export type CamOverlayOptions = Options;
 

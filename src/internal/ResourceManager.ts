@@ -1,4 +1,4 @@
-import { CamOverlayDrawingAPI, UploadImageResponse } from './CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI, UploadImageResponse } from '../CamOverlayDrawingAPI';
 import * as fs from 'fs';
 
 export default class ResourceManager {

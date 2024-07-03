@@ -1,6 +1,6 @@
 import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } from './CamOverlayDrawingAPI';
-import ResourceManager from './ResourceManager';
-import CairoFrame from './CairoFrame';
+import ResourceManager from './internal/ResourceManager';
+import CairoFrame from './internal/CairoFrame';
 
 const COORD: Record<string, [number, number]> = {
     top_left: [-1, -1],

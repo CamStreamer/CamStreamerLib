@@ -3,9 +3,9 @@ import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { Options } from './common';
-import { WsClient, WsClientOptions } from './WsClient';
-import { sendRequest, HttpRequestOptions } from './HttpRequest';
+import { Options } from './internal/common';
+import { WsClient, WsClientOptions } from './internal/WsClient';
+import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
 
 export type CameraVapixOptions = Options;
 
