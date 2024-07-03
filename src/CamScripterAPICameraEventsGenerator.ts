@@ -49,8 +49,8 @@ type Message = {
 };
 
 type AsyncMessage = {
-    resolve;
-    reject;
+    resolve: (value: Response) => void;
+    reject: (reason?: any) => void;
 };
 
 export class CamScripterAPICameraEventsGenerator extends EventEmitter {
@@ -62,7 +62,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
-    private ws: WsClient = null;
+    private ws?: WsClient;
 
     constructor(options?: CamScripterOptions) {
         super();
@@ -84,7 +84,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             await this.openWebsocket();
             this.emit('open');
         } catch (err) {
-            this.reportErr(err);
+            this.reportErr(err as Error);
         }
     }
 
@@ -114,6 +114,9 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
 
     private sendMessage(msgJson: Message) {
         return new Promise<Response>((resolve, reject) => {
+            if (this.ws === undefined) {
+                throw new Error("Websocket hasn't been opened yet.");
+            }
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson.call_id = this.callId++;
@@ -143,8 +146,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             });
             this.ws.on('message', (data: Buffer) => {
                 const dataJSON = JSON.parse(data.toString());
-                if ({}.hasOwnProperty.call(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if ({}.hasOwnProperty.call(dataJSON, 'error')) {
+                if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
+                    if (Object.hasOwn(dataJSON, 'error')) {
                         this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
                     } else {
                         this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
@@ -152,7 +155,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
                     delete this.sendMessages[dataJSON['call_id']];
                 }
 
-                if ({}.hasOwnProperty.call(dataJSON, 'error')) {
+                if (Object.hasOwn(dataJSON, 'error')) {
                     this.reportErr(new Error(dataJSON.error));
                 }
             });
@@ -169,7 +172,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     }
 
     private reportErr(err: Error) {
-        this.ws.close();
+        this.ws!.close();
         this.emit('error', err);
     }
 

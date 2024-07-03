@@ -10,6 +10,7 @@ export type CamOverlayDrawingOptions = Options & {
 
 export type Message = {
     command: string;
+    call_id?: number;
     params?: unknown[];
 };
 
@@ -49,7 +50,7 @@ export type WriteTextParams = [string, string, number, number, number, number, A
 
 type Response = CairoResponse | CairoCreateResponse | UploadImageResponse;
 type AsyncMessage = {
-    resolve: (value: PromiseLike<Response>) => void;
+    resolve: (value: Response) => void;
     reject: (reason: Error) => void;
 };
 
@@ -77,7 +78,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.zIndex = options?.zIndex ?? 0;
         this.cameraList = [0];
         if (Array.isArray(options?.camera)) {
-            this.cameraList = options.camera;
+            this.cameraList = options!.camera;
         } else if (typeof options?.camera === 'number') {
             this.cameraList = [options.camera];
         }
@@ -172,21 +173,20 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
-                this.reportMessage('Websocket opened');
                 resolve();
             });
             this.ws.on('message', (data: Buffer) => {
                 const dataJSON = JSON.parse(data.toString());
-                if ({}.hasOwnProperty.call(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if ({}.hasOwnProperty.call(dataJSON, 'error')) {
-                        this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
+                if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
+                    if (Object.hasOwn(dataJSON, 'error')) {
+                        this.sendMessages[dataJSON.call_id].reject(new Error(dataJSON.error));
                     } else {
-                        this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
+                        this.sendMessages[dataJSON.call_id].resolve(dataJSON);
                     }
                     delete this.sendMessages[dataJSON['call_id']];
                 }
 
-                if ({}.hasOwnProperty.call(dataJSON, 'error')) {
+                if (Object.hasOwn(dataJSON, 'error')) {
                     this.reportError(new Error(dataJSON.error));
                 } else {
                     this.reportMessage(data.toString());
@@ -200,7 +200,9 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.ws = undefined;
                 this.reportClose();
                 if (this.connected) {
-                    this.openWebsocket();
+                    setTimeout(() => {
+                        void this.openWebsocket();
+                    }, 10000);
                 }
             });
 
