@@ -26,7 +26,7 @@ export default class ResourceManager {
             return this.fonts[moniker];
         } else if (moniker in this.fontFiles) {
             const fontData = await fs.readFile(this.imgFiles[moniker]);
-            this.fonts[moniker] = (await co.uploadFontData(fontData));
+            this.fonts[moniker] = await co.uploadFontData(fontData);
             return this.fonts[moniker];
         } else {
             throw new Error('Error! Unknown font requested!');

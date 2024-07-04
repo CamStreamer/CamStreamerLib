@@ -37,10 +37,10 @@
     "build": "npm-run-all clean tsc copyPackage",
     "tsc": "tsc",
     "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
-    "pretty": "prettier --write \"./{src,doc}/*.{ts,tsx,md}\"",
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
-    "pretty:check": "prettier --check \"./{src,doc}/*.{ts,tsx,md}\"",
+    "pretty": "prettier --write \"./{src,doc}/**/*.{ts,tsx,md}\"",
+    "pretty:check": "prettier --check \"./{src,doc}/**/*.{ts,tsx,md}\"",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "files": [
