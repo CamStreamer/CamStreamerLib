@@ -45,9 +45,8 @@ export default class Frame {
         this.setText(opt.text ?? '', 'A_LEFT');
         this.fontColor = opt.fontColor ?? [1.0, 1.0, 1.0];
         this.bgColor = opt.bgColor; // RGBA
-        if (opt.bgImage !== undefined) {
-            this.setBgImage(opt.bgImage, opt.bgType);
-        }
+        this.bgImage = opt.bgImage;
+        this.bgType = opt.bgType;
     }
 
     //  --------------------------------
