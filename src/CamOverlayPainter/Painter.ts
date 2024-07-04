@@ -2,7 +2,7 @@ import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } f
 import ResourceManager from './ResourceManager';
 import Frame from './Frame';
 
-const COORD: Record<string, [number, number]> = {
+export const COORD: Record<string, [number, number]> = {
     top_left: [-1, -1],
     center_left: [-1, 0],
     bottom_left: [-1, 1],
@@ -14,7 +14,7 @@ const COORD: Record<string, [number, number]> = {
     bottom_right: [1, 1],
 };
 
-type Options = {
+export type Options = {
     x: number;
     y: number;
     width: number;
@@ -50,6 +50,14 @@ export default class Painter extends Frame {
     }
     disconnect() {
         this.cod.disconnect();
+    }
+
+    setScreenSize(sw: number, sh: number) {
+        this.screenWidth = sw;
+        this.screenHeight = sh;
+    }
+    setCoAlignment(coa: string) {
+        this.coAlignment = COORD[coa];
     }
 
     async display(scale = 1) {

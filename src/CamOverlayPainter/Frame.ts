@@ -1,9 +1,11 @@
 import { CamOverlayDrawingAPI, Align } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
 
-type RGB = [number, number, number];
-type RGBA = [number, number, number, number];
-type Options = {
+export type RGB = [number, number, number];
+export type RGBA = [number, number, number, number];
+export type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
+export type ObjectFitType = 'fill' | 'fit' | 'none';
+export type Options = {
     x: number;
     y: number;
     width: number;
@@ -12,9 +14,8 @@ type Options = {
     text?: string;
     fontColor?: RGB;
     bgColor?: RGBA;
+    bgType?: ObjectFitType;
 };
-type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
-type ObjectFitType = 'fill' | 'contain' | 'cover';
 
 export type DrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
 export default class Frame {
@@ -31,7 +32,7 @@ export default class Frame {
 
     private bgColor?: RGBA;
     private bgImage?: string;
-    private bgType: ObjectFitType;
+    private bgType?: ObjectFitType;
 
     protected children = new Array<Frame>();
 
@@ -44,15 +45,22 @@ export default class Frame {
         this.setText(opt.text ?? '', 'A_LEFT');
         this.fontColor = opt.fontColor ?? [1.0, 1.0, 1.0];
         this.bgColor = opt.bgColor; // RGBA
-        this.bgType = 'cover';
         if (opt.bgImage !== undefined) {
-            this.setBgImage(opt.bgImage, 'cover');
+            this.setBgImage(opt.bgImage, opt.bgType);
         }
     }
 
     //  --------------------------------
     //    Frame's content setting
     //  --------------------------------
+    setFramePosition(x: number, y: number) {
+        this.posX = x;
+        this.posY = y;
+    }
+    setFrameSize(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+    }
     setText(text: string, align: Align, textType: TMF = 'TFM_OVERFLOW', color?: RGB): void {
         this.text = text;
         this.align = align;
@@ -64,7 +72,10 @@ export default class Frame {
     setFont(fontName: string): void {
         this.fontName = fontName;
     }
-    setBgImage(imageName: string, type: ObjectFitType): void {
+    setBGColor(color: RGBA): void {
+        this.bgColor = color;
+    }
+    setBgImage(imageName: string, type: ObjectFitType = 'fit'): void {
         this.bgImage = imageName;
         this.bgType = type;
     }
@@ -148,7 +159,7 @@ export default class Frame {
             const sx = this.width / bgWidth;
             const sy = this.height / bgHeight;
             promises.push(cod.cairo('cairo_scale', cairo, sx, sy));
-        } else if (this.bgType === 'contain') {
+        } else if (this.bgType === 'fit') {
             const sx = this.width / bgWidth;
             const sy = this.height / bgHeight;
             const scaleRatio = Math.min(sx, sy);
