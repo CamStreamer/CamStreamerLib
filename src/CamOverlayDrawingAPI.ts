@@ -1,4 +1,5 @@
 import * as EventEmitter from 'events';
+import { setTimeout } from 'timers/promises';
 
 import { Options } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
@@ -8,9 +9,8 @@ export type CamOverlayDrawingOptions = Options & {
     zIndex?: number;
 };
 
-export type Message = {
+type Message = {
     command: string;
-    call_id?: number;
     params?: unknown[];
 };
 
@@ -92,7 +92,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     async connect() {
         try {
             await this.openWebsocket();
-            this.emit('open');
             this.connected = true;
         } catch (err) {
             // Error is already reported
@@ -173,6 +172,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
+                this.emit('open');
                 resolve();
             });
             this.ws.on('message', (data: Buffer) => {
@@ -196,13 +196,16 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.reportError(error);
                 reject(error);
             });
-            this.ws.on('close', () => {
+            this.ws.on('close', async () => {
                 this.ws = undefined;
                 this.reportClose();
                 if (this.connected) {
-                    setTimeout(() => {
+                    try {
+                        await setTimeout(10000);
                         void this.openWebsocket();
-                    }, 10000);
+                    } catch (err) {
+                        // Error is already reported
+                    }
                 }
             });
 
@@ -214,7 +217,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
-                msgJson['call_id'] = this.callId++;
 
                 if (this.ws === undefined) {
                     throw new Error('No CamOverlay connection');
@@ -230,7 +232,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
-                msgJson['call_id'] = this.callId++;
 
                 const jsonBuffer = Buffer.from(JSON.stringify(msgJson));
 

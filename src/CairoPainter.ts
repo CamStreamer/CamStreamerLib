@@ -43,7 +43,7 @@ export default class CairoPainter extends CairoFrame {
     }
 
     async connect() {
-        this.cod.on('close', () => {
+        this.cod.on('open', () => {
             this.rm.clear();
         });
         return this.cod.connect();
