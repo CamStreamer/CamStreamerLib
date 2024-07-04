@@ -101,7 +101,7 @@ export default class CairoFrame {
 
         if (this.fontName !== undefined) {
             const fontData = await this.rm.font(cod, this.fontName);
-            promises.push(cod.cairo('cairo_set_font_face', cairo, fontData));
+            promises.push(cod.cairo('cairo_set_font_face', cairo, fontData.var));
         } else {
             promises.push(cod.cairo('cairo_set_font_face', cairo, 'NULL'));
         }

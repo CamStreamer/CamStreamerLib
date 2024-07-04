@@ -1,11 +1,11 @@
-import { CamOverlayDrawingAPI, UploadImageResponse } from '../CamOverlayDrawingAPI';
-import * as fs from 'fs';
+import { CamOverlayDrawingAPI, UploadImageResponse, CairoCreateResponse } from '../CamOverlayDrawingAPI';
+import * as fs from 'fs/promises';
 
 export default class ResourceManager {
     private imgFiles: Record<string, string> = {};
     private fontFiles: Record<string, string> = {};
     private images: Record<string, UploadImageResponse> = {};
-    private fonts: Record<string, string> = {};
+    private fonts: Record<string, CairoCreateResponse> = {};
 
     constructor() {}
 
@@ -13,7 +13,7 @@ export default class ResourceManager {
         if (moniker in this.images) {
             return this.images[moniker];
         } else if (moniker in this.imgFiles) {
-            const imgData = fs.readFileSync(this.imgFiles[moniker]);
+            const imgData = await fs.readFile(this.imgFiles[moniker]);
             this.images[moniker] = await co.uploadImageData(imgData);
             return this.images[moniker];
         } else {
@@ -25,8 +25,8 @@ export default class ResourceManager {
         if (moniker in this.fonts) {
             return this.fonts[moniker];
         } else if (moniker in this.fontFiles) {
-            const fontData = fs.readFileSync(this.imgFiles[moniker]);
-            this.fonts[moniker] = (await co.uploadFontData(fontData)).var;
+            const fontData = await fs.readFile(this.imgFiles[moniker]);
+            this.fonts[moniker] = (await co.uploadFontData(fontData));
             return this.fonts[moniker];
         } else {
             throw new Error('Error! Unknown font requested!');
