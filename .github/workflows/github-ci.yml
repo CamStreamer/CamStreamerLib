@@ -33,7 +33,7 @@ jobs:
       # Runs a single command using the runners shell
       - name: Init
         run: |
-          npm install --production=false
+          npm install
       # Runs 
       - name: Transpilation
         run: npm run build
