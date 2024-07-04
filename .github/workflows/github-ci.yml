@@ -27,7 +27,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '16.x'
+          node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
 
       # Runs a single command using the runners shell
@@ -40,6 +40,9 @@ jobs:
       # Runs 
       - name: Automatic test (using Jest library)
         run: npm run test
+      # Runs a set of commands using the runners shell
+      - name: Eslint Check
+        run: npm run lint
       # Runs a set of commands using the runners shell
       - name: Prettier Check
         run: npm run pretty:check
