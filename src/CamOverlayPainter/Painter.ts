@@ -1,6 +1,6 @@
-import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } from './CamOverlayDrawingAPI';
-import ResourceManager from './internal/ResourceManager';
-import CairoFrame from './internal/CairoFrame';
+import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } from '../CamOverlayDrawingAPI';
+import ResourceManager from './ResourceManager';
+import Frame from './Frame';
 
 const COORD: Record<string, [number, number]> = {
     top_left: [-1, -1],
@@ -24,7 +24,7 @@ type Options = {
     coAlignment: string;
 };
 
-export default class CairoPainter extends CairoFrame {
+export default class Painter extends Frame {
     private screenWidth: number;
     private screenHeight: number;
     private coAlignment: [number, number];
@@ -91,4 +91,4 @@ export default class CairoPainter extends CairoFrame {
     }
 }
 
-export { CairoPainter, CairoFrame, ResourceManager };
+export { Painter, Frame, ResourceManager };

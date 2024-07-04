@@ -17,7 +17,7 @@ type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
 type ObjectFitType = 'fill' | 'contain' | 'cover';
 
 export type DrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
-export default class CairoFrame {
+export default class Frame {
     protected posX: number;
     protected posY: number;
     protected width: number;
@@ -33,7 +33,7 @@ export default class CairoFrame {
     private bgImage?: string;
     private bgType: ObjectFitType;
 
-    protected children = new Array<CairoFrame>();
+    protected children = new Array<Frame>();
 
     constructor(opt: Options, protected rm: ResourceManager, private customDraw?: DrawingCallback) {
         this.posX = opt.x;
@@ -51,7 +51,7 @@ export default class CairoFrame {
     }
 
     //  --------------------------------
-    //    CairoFrame's content setting
+    //    Frame's content setting
     //  --------------------------------
     setText(text: string, align: Align, textType: TMF = 'TFM_OVERFLOW', color?: RGB): void {
         this.text = text;
@@ -75,12 +75,12 @@ export default class CairoFrame {
         this.bgColor = undefined;
         this.bgImage = undefined;
     }
-    insert(...frames: CairoFrame[]): void {
+    insert(...frames: Frame[]): void {
         this.children.push(...frames); // Order of insertion is order of rendering
     }
 
     //  ---------------------------
-    //    CairoFrame displaying
+    //    Frame displaying
     //  ---------------------------
     displayImage(cod: CamOverlayDrawingAPI, cairo: string, parentPos: [number, number], scale = 1) {
         const ppX = parentPos[0];
