@@ -92,16 +92,14 @@ export default class Frame {
     //  ---------------------------
     //    Frame displaying
     //  ---------------------------
-    displayImage(cod: CamOverlayDrawingAPI, cairo: string, parentPos: [number, number], scale = 1) {
+    async displayImage(cod: CamOverlayDrawingAPI, cairo: string, parentPos: [number, number], scale = 1) {
         const ppX = parentPos[0];
         const ppY = parentPos[1];
 
-        const promises = new Array<Promise<unknown>>();
-        promises.push(this.displayOwnImage(cod, cairo, this.posX + ppX, this.posY + ppY, scale));
+        await this.displayOwnImage(cod, cairo, this.posX + ppX, this.posY + ppY, scale);
         for (const child of this.children) {
-            promises.push(child.displayImage(cod, cairo, [this.posX + ppX, this.posY + ppY], scale));
+            await child.displayImage(cod, cairo, [this.posX + ppX, this.posY + ppY], scale);
         }
-        return Promise.all(promises);
     }
     protected async displayOwnImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale: number) {
         const promises = new Array<Promise<unknown>>();
@@ -127,7 +125,7 @@ export default class Frame {
         if (this.customDraw) {
             promises.push(this.customDraw(cod, cairo));
         }
-        return promises;
+        return Promise.all(promises);
     }
 
     private drawFrame(cod: CamOverlayDrawingAPI, cairo: string) {
