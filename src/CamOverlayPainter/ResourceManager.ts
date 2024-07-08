@@ -25,7 +25,7 @@ export default class ResourceManager {
         if (moniker in this.fonts) {
             return this.fonts[moniker];
         } else if (moniker in this.fontFiles) {
-            const fontData = await fs.readFile(this.imgFiles[moniker]);
+            const fontData = await fs.readFile(this.fontFiles[moniker]);
             this.fonts[moniker] = await co.uploadFontData(fontData);
             return this.fonts[moniker];
         } else {
