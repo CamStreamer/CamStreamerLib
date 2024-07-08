@@ -11,6 +11,7 @@ export type CamOverlayDrawingOptions = Options & {
 
 type Message = {
     command: string;
+    call_id?: number;
     params?: unknown[];
 };
 
@@ -217,6 +218,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
+                msgJson['call_id'] = this.callId++;
 
                 if (this.ws === undefined) {
                     throw new Error('No CamOverlay connection');
@@ -232,6 +234,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
+                msgJson['call_id'] = this.callId++;
 
                 const jsonBuffer = Buffer.from(JSON.stringify(msgJson));
 
