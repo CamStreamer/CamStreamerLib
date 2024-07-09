@@ -10,6 +10,8 @@ export type FrameOptions = {
     y: number;
     width: number;
     height: number;
+    enabled?: boolean;
+
     bgImage?: string;
     text?: string;
     fontColor?: RGB;
@@ -23,6 +25,7 @@ export default class Frame {
     protected posY: number;
     protected width: number;
     protected height: number;
+    protected enabled: boolean;
 
     private text = '';
     private align: Align = 'A_LEFT';
@@ -41,6 +44,7 @@ export default class Frame {
         this.posY = opt.y;
         this.width = opt.width;
         this.height = opt.height;
+        this.enabled = opt.enabled ?? true;
 
         this.setText(opt.text ?? '', 'A_LEFT');
         this.fontColor = opt.fontColor ?? [1.0, 1.0, 1.0];
@@ -49,9 +53,9 @@ export default class Frame {
         this.bgType = opt.bgType;
     }
 
-    //  --------------------------------
-    //    Frame's content setting
-    //  --------------------------------
+    //  -------------------------------
+    //      Frame's content setting
+    //  -------------------------------
     setFramePosition(x: number, y: number) {
         this.posX = x;
         this.posY = y;
@@ -89,16 +93,22 @@ export default class Frame {
         this.children.push(...frames); // Order of insertion is order of rendering
     }
 
-    //  ---------------------------
-    //    Frame displaying
-    //  ---------------------------
-    async displayImage(cod: CamOverlayDrawingAPI, cairo: string, parentPos: [number, number], scale = 1) {
-        const ppX = parentPos[0];
-        const ppY = parentPos[1];
+    //  ------------------------
+    //      Frame displaying
+    //  ------------------------
+    enable() {
+        this.enabled = true;
+    }
+    disable() {
+        this.enabled = false;
+    }
 
-        await this.displayOwnImage(cod, cairo, ppX, ppY, scale);
-        for (const child of this.children) {
-            await child.displayImage(cod, cairo, [this.posX + ppX, this.posY + ppY], scale);
+    protected async displayImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale = 1) {
+        if (this.enabled) {
+            await this.displayOwnImage(cod, cairo, ppX, ppY, scale);
+            for (const child of this.children) {
+                await child.displayImage(cod, cairo, this.posX + ppX, this.posY + ppY, scale);
+            }
         }
     }
     protected async displayOwnImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale: number) {

@@ -58,7 +58,7 @@ export default class Painter extends Frame {
 
     async display(scale = 1) {
         [this.surface, this.cairo] = await this.prepareDrawing(scale);
-        await this.displayImage(this.cod, this.cairo, [0, 0], scale);
+        await this.displayImage(this.cod, this.cairo, 0, 0, scale);
         await this.cod.showCairoImage(
             this.surface,
             this.positionConvertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
