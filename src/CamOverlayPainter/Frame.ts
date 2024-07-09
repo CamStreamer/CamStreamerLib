@@ -5,7 +5,7 @@ export type RGB = [number, number, number];
 export type RGBA = [number, number, number, number];
 export type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
 export type ObjectFitType = 'fill' | 'fit' | 'none';
-export type Options = {
+export type FrameOptions = {
     x: number;
     y: number;
     width: number;
@@ -36,7 +36,7 @@ export default class Frame {
 
     protected children = new Array<Frame>();
 
-    constructor(opt: Options, protected rm: ResourceManager, private customDraw?: DrawingCallback) {
+    constructor(opt: FrameOptions, protected rm: ResourceManager, private customDraw?: DrawingCallback) {
         this.posX = opt.x;
         this.posY = opt.y;
         this.width = opt.width;
@@ -187,3 +187,5 @@ export default class Frame {
         return Promise.all(promises);
     }
 }
+
+export { Frame };

@@ -1,6 +1,6 @@
 import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
-import Frame from './Frame';
+import { Frame, FrameOptions } from './Frame';
 
 export const COORD: Record<string, [number, number]> = {
     top_left: [-1, -1],
@@ -14,11 +14,7 @@ export const COORD: Record<string, [number, number]> = {
     bottom_right: [1, 1],
 };
 
-export type Options = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
+export type PainterOptions = FrameOptions & {
     screenWidth: number;
     screenHeight: number;
     coAlignment: string;
@@ -33,7 +29,7 @@ export default class Painter extends Frame {
     private cairo?: string;
     private cod: CamOverlayDrawingAPI;
 
-    constructor(opt: Options, coopt: CamOverlayDrawingOptions, rm: ResourceManager) {
+    constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions, rm: ResourceManager) {
         super(opt, rm);
         this.coAlignment = COORD[opt.coAlignment];
         this.screenWidth = opt.screenWidth;
@@ -99,4 +95,4 @@ export default class Painter extends Frame {
     }
 }
 
-export { Painter, Frame, ResourceManager };
+export { Painter, Frame, FrameOptions, ResourceManager };
