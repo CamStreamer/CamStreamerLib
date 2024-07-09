@@ -96,7 +96,7 @@ export default class Frame {
         const ppX = parentPos[0];
         const ppY = parentPos[1];
 
-        await this.displayOwnImage(cod, cairo, this.posX + ppX, this.posY + ppY, scale);
+        await this.displayOwnImage(cod, cairo, ppX, ppY, scale);
         for (const child of this.children) {
             await child.displayImage(cod, cairo, [this.posX + ppX, this.posY + ppY], scale);
         }
@@ -104,8 +104,6 @@ export default class Frame {
     protected async displayOwnImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale: number) {
         const promises = new Array<Promise<unknown>>();
         promises.push(cod.cairo('cairo_identity_matrix', cairo));
-        promises.push(cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY));
-        promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
 
         if (this.fontName !== undefined) {
             const fontData = await this.rm.font(cod, this.fontName);
@@ -117,14 +115,15 @@ export default class Frame {
             promises.push(this.drawFrame(cod, cairo));
         }
         if (this.bgImage !== undefined) {
-            promises.push(this.drawImage(cod, cairo));
+            promises.push(this.drawImage(cod, cairo, scale, ppX, ppY));
         }
         if (this.text) {
-            promises.push(this.drawText(cod, cairo));
+            promises.push(this.drawText(cod, cairo, scale));
         }
         if (this.customDraw) {
             promises.push(this.customDraw(cod, cairo));
         }
+
         return Promise.all(promises);
     }
 
@@ -145,7 +144,7 @@ export default class Frame {
         promises.push(cod.cairo('cairo_stroke', cairo));
         return Promise.all(promises);
     }
-    private async drawImage(cod: CamOverlayDrawingAPI, cairo: string) {
+    private async drawImage(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
         const imageData = await this.rm.image(cod, this.bgImage!);
         const bgImage = imageData.var;
         const bgWidth = imageData.width;
@@ -153,21 +152,24 @@ export default class Frame {
 
         const promises = new Array<Promise<unknown>>();
         if (this.bgType === 'fill') {
-            const sx = this.width / bgWidth;
-            const sy = this.height / bgHeight;
+            const sx = (scale * this.width) / bgWidth;
+            const sy = (scale * this.height) / bgHeight;
             promises.push(cod.cairo('cairo_scale', cairo, sx, sy));
         } else if (this.bgType === 'fit') {
             const sx = this.width / bgWidth;
             const sy = this.height / bgHeight;
-            const scaleRatio = Math.min(sx, sy);
+            const scaleRatio = scale * Math.min(sx, sy);
             promises.push(cod.cairo('cairo_scale', cairo, scaleRatio, scaleRatio));
+        } else {
+            promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
         }
 
+        promises.push(cod.cairo('cairo_translate', cairo, ppX, ppY));
         promises.push(cod.cairo('cairo_set_source_surface', cairo, bgImage, 0, 0));
         promises.push(cod.cairo('cairo_paint', cairo));
         return Promise.all(promises);
     }
-    private drawText(cod: CamOverlayDrawingAPI, cairo: string) {
+    private drawText(cod: CamOverlayDrawingAPI, cairo: string, scale: number) {
         const promises = new Array<Promise<unknown>>();
         promises.push(
             cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2])
@@ -176,10 +178,10 @@ export default class Frame {
             cod.writeText(
                 cairo,
                 '' + this.text,
-                0,
-                0,
-                Math.floor(this.width),
-                Math.floor(this.height),
+                Math.floor(scale * this.posX),
+                Math.floor(scale * this.posY),
+                Math.floor(scale * this.width),
+                Math.floor(scale * this.height),
                 this.align,
                 this.textType
             )
