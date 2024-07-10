@@ -13,6 +13,7 @@ type ZipOptions = {
     includeNodeModules: boolean;
     typeScriptPackage: boolean;
     excludedFileNames: string[];
+    outputFolder: string;
 };
 
 const productionModulesFolder = 'production_modules';
@@ -70,11 +71,15 @@ function main(args: string[]) {
     const options: ZipOptions = {
         includeNodeModules: false,
         typeScriptPackage: false,
+        outputFolder: '.',
         excludedFileNames: [],
     };
     for (const arg of args) {
         if (arg === '-i' || arg === '-includeNodeModules') {
             options.includeNodeModules = true;
+        }
+        if (arg.startsWith('-w=') || arg.startsWith('-where=')) {
+            options.outputFolder = arg.substring(arg.indexOf('=') + 1);
         }
         if (arg.startsWith('-e=') || arg.startsWith('-exclude=')) {
             options.excludedFileNames = arg.substring(arg.indexOf('=') + 1).split(',');
@@ -90,7 +95,7 @@ function main(args: string[]) {
 
     const folder = Path.resolve('.');
     const packageVersion = getPackageVersion(folder);
-    const zipFile = `${Path.basename(folder)}_${packageVersion}.zip`;
+    const zipFile = `${options.outputFolder}/${Path.basename(folder)}_${packageVersion}.zip`;
 
     if (fs.existsSync(zipFile)) {
         try {
