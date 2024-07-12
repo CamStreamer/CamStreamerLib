@@ -74,6 +74,8 @@ Module for easy control of CamOverlay drawing API. For more details on supported
 
 ## Events
 
+-   **open** - WebSocket opened or reopened
+
 -   **msg(msg)** - WebSocket message received
 
 -   **error(err)** - An error occurs
