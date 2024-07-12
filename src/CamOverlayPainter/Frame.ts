@@ -139,16 +139,8 @@ export default class Frame {
 
     private drawFrame(cod: CamOverlayDrawingAPI, cairo: string) {
         const promises = new Array<Promise<unknown>>();
-        promises.push(
-            cod.cairo(
-                'cairo_set_source_rgba',
-                cairo,
-                this.bgColor![0],
-                this.bgColor![1],
-                this.bgColor![2],
-                this.bgColor![3]
-            )
-        );
+        const bgColor = this.bgColor!;
+        promises.push(cod.cairo('cairo_set_source_rgba', cairo, bgColor[0], bgColor[1], bgColor[2], bgColor[3]));
         promises.push(cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height));
         promises.push(cod.cairo('cairo_fill', cairo));
         promises.push(cod.cairo('cairo_stroke', cairo));

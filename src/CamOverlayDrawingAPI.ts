@@ -78,8 +78,8 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.auth = options?.auth ?? '';
         this.zIndex = options?.zIndex ?? 0;
         this.cameraList = [0];
-        if (Array.isArray(options?.camera)) {
-            this.cameraList = options!.camera;
+        if (options && Array.isArray(options.camera)) {
+            this.cameraList = options.camera;
         } else if (typeof options?.camera === 'number') {
             this.cameraList = [options.camera];
         }

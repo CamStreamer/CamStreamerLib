@@ -30,8 +30,9 @@ export class HttpServer extends EventEmitter {
             parsedUrl.pathname ??= '';
 
             // Find path in registered paths
-            if (this.registeredPaths.has(parsedUrl.pathname)) {
-                this.registeredPaths.get(parsedUrl.pathname)!(req, res);
+            const requestCallback = this.registeredPaths.get(parsedUrl.pathname);
+            if (requestCallback) {
+                requestCallback(req, res);
                 return;
             }
             // Extract URL path

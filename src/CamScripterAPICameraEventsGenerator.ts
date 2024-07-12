@@ -172,7 +172,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     }
 
     private reportErr(err: Error) {
-        this.ws!.close();
+        this.ws?.close();
         this.emit('error', err);
     }
 

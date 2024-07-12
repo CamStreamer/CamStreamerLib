@@ -62,12 +62,9 @@ export async function sendRequest(options: HttpRequestOptions, postData?: Buffer
     const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
     const res = await fetch(req, { signal: controller.signal });
 
-    if (
-        res.status === 401 &&
-        res.headers.has('www-authenticate') &&
-        res.headers.get('www-authenticate')!.indexOf('Digest') !== -1
-    ) {
-        return sendRequestWithDigest(options, res.headers.get('www-authenticate')!, postData);
+    const wwwAuthenticateHeader = res.headers.get('www-authenticate');
+    if (res.status === 401 && wwwAuthenticateHeader !== null && wwwAuthenticateHeader.indexOf('Digest') !== -1) {
+        return sendRequestWithDigest(options, wwwAuthenticateHeader, postData);
     } else {
         return res;
     }

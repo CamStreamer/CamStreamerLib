@@ -55,12 +55,12 @@ export class WsClient extends EventEmitter {
 
         this.isAlive = true;
         this.pingTimer = setInterval(() => {
-            if (this.ws!.readyState !== this.ws!.OPEN || this.isAlive === false) {
+            if ((this.ws && this.ws.readyState !== WebSocket.OPEN) || this.isAlive === false) {
                 this.emit('error', new Error('Connection timeout'));
                 this.close();
             } else {
                 this.isAlive = false;
-                this.ws!.ping();
+                this.ws?.ping();
             }
         }, this.pingInterval);
         this.ws.on('pong', () => {
@@ -79,8 +79,9 @@ export class WsClient extends EventEmitter {
 
         this.ws.on('unexpected-response', (req, res) => {
             if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined) {
-                this.ws!.removeAllListeners();
-                clearInterval(this.pingTimer!);
+                if (this.pingTimer) {
+                    clearInterval(this.pingTimer);
+                }
                 this.open(res.headers['www-authenticate']);
             } else {
                 const e = new Error('Status code: ' + res.statusCode);
@@ -109,7 +110,7 @@ export class WsClient extends EventEmitter {
         }
         try {
             this.handleCloseEvent();
-            if (this.ws.readyState !== this.ws.CLOSING && this.ws.readyState !== this.ws.CLOSED) {
+            if (this.ws.readyState !== WebSocket.CLOSING && this.ws.readyState !== WebSocket.CLOSED) {
                 this.ws.close();
             }
         } catch (err) {
@@ -117,15 +118,17 @@ export class WsClient extends EventEmitter {
         }
 
         setTimeout(() => {
-            if (this.ws!.readyState !== this.ws!.CLOSED) {
-                this.ws!.terminate();
+            if (this.ws && this.ws.readyState !== WebSocket.CLOSED) {
+                this.ws.terminate();
             }
         }, 5000);
     }
 
     private handleCloseEvent(): void {
-        this.ws!.removeAllListeners();
-        clearInterval(this.pingTimer!);
+        this.ws?.removeAllListeners();
+        if (this.pingTimer) {
+            clearInterval(this.pingTimer);
+        }
         this.emit('close');
     }
 }

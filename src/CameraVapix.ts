@@ -196,7 +196,9 @@ export class CameraVapix extends EventEmitter {
     async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
         const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
         const res = await this.vapixGet(path);
-        void res.body!.pipeTo(outputStream);
+        if (res.body) {
+            void res.body.pipeTo(outputStream);
+        }
         return outputStream;
     }
 
@@ -245,7 +247,7 @@ export class CameraVapix extends EventEmitter {
                     eventFilterList: topics,
                 },
             };
-            this.ws!.send(JSON.stringify(topicFilter));
+            this.ws?.send(JSON.stringify(topicFilter));
         });
         this.ws.on('message', (data: Buffer) => {
             const dataJSON = JSON.parse(data.toString());
