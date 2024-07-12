@@ -95,4 +95,4 @@ export default class Painter extends Frame {
     }
 }
 
-export { Painter, Frame, FrameOptions, ResourceManager };
+export { Painter, Frame, FrameOptions, ResourceManager, CamOverlayDrawingOptions };
