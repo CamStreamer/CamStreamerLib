@@ -1,10 +1,10 @@
-import { CamOverlayDrawingAPI, Align } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI, TAlign } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
 
-export type RGB = [number, number, number];
-export type RGBA = [number, number, number, number];
-export type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
-export type ObjectFitType = 'fill' | 'fit' | 'none';
+export type TRgb = [number, number, number];
+export type TRgba = [number, number, number, number];
+export type TTmf = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
+export type TObjectFitType = 'fill' | 'fit' | 'none';
 export type FrameOptions = {
     x: number;
     y: number;
@@ -14,12 +14,12 @@ export type FrameOptions = {
 
     bgImage?: string;
     text?: string;
-    fontColor?: RGB;
-    bgColor?: RGBA;
-    bgType?: ObjectFitType;
+    fontColor?: TRgb;
+    bgColor?: TRgba;
+    bgType?: TObjectFitType;
 };
 
-export type DrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
+export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
 export default class Frame {
     protected posX: number;
     protected posY: number;
@@ -28,18 +28,18 @@ export default class Frame {
     protected enabled: boolean;
 
     private text = '';
-    private align: Align = 'A_LEFT';
-    private textType: TMF = 'TFM_OVERFLOW';
-    private fontColor: RGB;
+    private align: TAlign = 'A_LEFT';
+    private textType: TTmf = 'TFM_OVERFLOW';
+    private fontColor: TRgb;
     private fontName?: string;
 
-    private bgColor?: RGBA;
+    private bgColor?: TRgba;
     private bgImage?: string;
-    private bgType?: ObjectFitType;
+    private bgType?: TObjectFitType;
 
     protected children = new Array<Frame>();
 
-    constructor(opt: FrameOptions, protected rm: ResourceManager, private customDraw?: DrawingCallback) {
+    constructor(opt: FrameOptions, protected rm: ResourceManager, private customDraw?: TDrawingCallback) {
         this.posX = opt.x;
         this.posY = opt.y;
         this.width = opt.width;
@@ -64,7 +64,7 @@ export default class Frame {
         this.width = width;
         this.height = height;
     }
-    setText(text: string, align: Align, textType: TMF = 'TFM_OVERFLOW', color?: RGB): void {
+    setText(text: string, align: TAlign, textType: TTmf = 'TFM_OVERFLOW', color?: TRgb): void {
         this.text = text;
         this.align = align;
         this.textType = textType;
@@ -75,10 +75,10 @@ export default class Frame {
     setFont(fontName: string): void {
         this.fontName = fontName;
     }
-    setBgColor(color: RGBA): void {
+    setBgColor(color: TRgba): void {
         this.bgColor = color;
     }
-    setBgImage(imageName: string, type: ObjectFitType = 'fit'): void {
+    setBgImage(imageName: string, type: TObjectFitType = 'fit'): void {
         this.bgImage = imageName;
         this.bgType = type;
     }

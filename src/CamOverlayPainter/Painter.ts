@@ -1,4 +1,4 @@
-import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, CairoCreateResponse } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, TCairoCreateResponse } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
 import { Frame, FrameOptions } from './Frame';
 
@@ -91,8 +91,8 @@ export default class Painter extends Frame {
             'CAIRO_FORMAT_ARGB32',
             Math.floor(this.width * scale),
             Math.floor(this.height * scale)
-        )) as CairoCreateResponse;
-        const cairo = (await this.cod.cairo('cairo_create', surface.var)) as CairoCreateResponse;
+        )) as TCairoCreateResponse;
+        const cairo = (await this.cod.cairo('cairo_create', surface.var)) as TCairoCreateResponse;
 
         return [surface.var, cairo.var];
     }

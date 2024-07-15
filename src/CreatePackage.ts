@@ -9,7 +9,7 @@ function isDirectory(path: string) {
     return stat.isDirectory();
 }
 
-type ZipOptions = {
+type TZipOptions = {
     includeNodeModules: boolean;
     typeScriptPackage: boolean;
     excludedFileNames: string[];
@@ -28,7 +28,7 @@ function getPackageVersion(folder: string) {
     }
 }
 
-function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
+function createZipArchive(zip: AdmZip, folder: string, options: TZipOptions) {
     const zipFileRegex = new RegExp(`${Path.basename(folder)}(_[0-9]){3}\\.zip`);
     const files = fs.readdirSync(folder);
     for (const file of files) {
@@ -68,7 +68,7 @@ function installDependencies() {
 }
 
 function main(args: string[]) {
-    const options: ZipOptions = {
+    const options: TZipOptions = {
         includeNodeModules: false,
         typeScriptPackage: false,
         outputFolder: '.',

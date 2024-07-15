@@ -9,11 +9,11 @@ export type HttpServerOptions = {
     port?: number;
 };
 
-type OnRequestCallback = (req: http.IncomingMessage, res: http.ServerResponse) => void;
+type TOnRequestCallback = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
 export class HttpServer extends EventEmitter {
     private port: number;
-    private registeredPaths: Map<string, OnRequestCallback>;
+    private registeredPaths: Map<string, TOnRequestCallback>;
     private server: http.Server;
     private sockets: Record<number, Socket>;
 
@@ -101,7 +101,7 @@ export class HttpServer extends EventEmitter {
         });
     }
 
-    onRequest(path: string, callback: OnRequestCallback) {
+    onRequest(path: string, callback: TOnRequestCallback) {
         this.registeredPaths.set(path, callback);
     }
 

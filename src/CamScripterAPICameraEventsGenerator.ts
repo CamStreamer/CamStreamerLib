@@ -5,7 +5,7 @@ import { WsClient, WsClientOptions } from './internal/WsClient';
 
 export type CamScripterOptions = Options;
 
-export type Declaration = {
+export type TDeclaration = {
     type?: '' | 'SOURCE' | 'DATA';
     namespace: string;
     key: string;
@@ -15,41 +15,41 @@ export type Declaration = {
     value_nice_name?: string;
 };
 
-export type EventDeclaration = {
+export type TEventDeclaration = {
     declaration_id: string;
     stateless: boolean;
-    declaration: Declaration[];
+    declaration: TDeclaration[];
 };
 
-export type EventUndeclaration = {
+export type TEventUndeclaration = {
     declaration_id: string;
 };
 
-export type EventData = {
+export type TEventData = {
     namespace: string;
     key: string;
     value: string | boolean | number;
     value_type: 'STRING' | 'INT' | 'BOOL' | 'DOUBLE';
 };
 
-export type Event = {
+export type TEvent = {
     declaration_id: string;
-    event_data: EventData[];
+    event_data: TEventData[];
 };
 
-export type Response = {
+export type TResponse = {
     call_id: number;
     message: string;
 };
 
-type Message = {
+type TMessage = {
     call_id: number;
     command: string;
     data: unknown;
 };
 
-type AsyncMessage = {
-    resolve: (value: Response) => void;
+type TAsyncMessage = {
+    resolve: (value: TResponse) => void;
     reject: (reason?: any) => void;
 };
 
@@ -60,7 +60,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private port: number;
     private auth: string;
     private callId: number;
-    private sendMessages: Record<number, AsyncMessage>;
+    private sendMessages: Record<number, TAsyncMessage>;
 
     private ws?: WsClient;
 
@@ -88,7 +88,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         }
     }
 
-    declareEvent(eventDeclaration: EventDeclaration) {
+    declareEvent(eventDeclaration: TEventDeclaration) {
         return this.sendMessage({
             call_id: 0,
             command: 'declare_event',
@@ -96,7 +96,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
-    undeclareEvent(eventUndeclaration: EventUndeclaration) {
+    undeclareEvent(eventUndeclaration: TEventUndeclaration) {
         return this.sendMessage({
             call_id: 0,
             command: 'undeclare_event',
@@ -104,7 +104,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
-    sendEvent(event: Event) {
+    sendEvent(event: TEvent) {
         return this.sendMessage({
             call_id: 0,
             command: 'send_event',
@@ -112,8 +112,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
-    private sendMessage(msgJson: Message) {
-        return new Promise<Response>((resolve, reject) => {
+    private sendMessage(msgJson: TMessage) {
+        return new Promise<TResponse>((resolve, reject) => {
             if (this.ws === undefined) {
                 throw new Error("Websocket hasn't been opened yet.");
             }

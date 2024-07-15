@@ -9,16 +9,16 @@ import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
 
 export type CameraVapixOptions = Options;
 
-export type ApplicationList = {
+export type TApplicationList = {
     reply: {
         $: { result: string };
         application: {
-            $: Application;
+            $: TApplication;
         }[];
     };
 };
 
-export type Application = {
+export type TApplication = {
     Name: string;
     NiceName: string;
     Vendor: string;
@@ -31,7 +31,7 @@ export type Application = {
     LicenseName?: string;
 };
 
-export type GuardTour = {
+export type TGuardTour = {
     id: string;
     camNbr: unknown;
     name: string;
@@ -130,12 +130,12 @@ export class CameraVapix extends EventEmitter {
     }
 
     async getGuardTourList() {
-        const gTourList = new Array<GuardTour>();
+        const gTourList = new Array<TGuardTour>();
         const response = await this.getParameterGroup('GuardTour');
         for (let i = 0; i < 20; i++) {
             const gTourBaseName = 'root.GuardTour.G' + i;
             if (gTourBaseName + '.CamNbr' in response) {
-                const gTour: GuardTour = {
+                const gTour: TGuardTour = {
                     id: gTourBaseName,
                     camNbr: response[gTourBaseName + '.CamNbr'],
                     name: response[gTourBaseName + '.Name'],
@@ -184,7 +184,7 @@ export class CameraVapix extends EventEmitter {
 
     async getApplicationList() {
         const xml = await this.vapixGet('/axis-cgi/applications/list.cgi');
-        const result = (await parseStringPromise(xml)) as ApplicationList;
+        const result = (await parseStringPromise(xml)) as TApplicationList;
 
         const apps = [];
         for (let i = 0; i < result.reply.application.length; i++) {

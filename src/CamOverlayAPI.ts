@@ -3,13 +3,13 @@ import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
 
 export type CamOverlayOptions = Options;
 
-export type Field = {
+export type TField = {
     field_name: string;
     text: string;
     color?: string;
 };
 
-export type Service = {
+export type TService = {
     id: number;
     enabled: number;
     schedule: string;
@@ -18,8 +18,8 @@ export type Service = {
     cameraList: number[];
 };
 
-export type ServiceList = {
-    services: Service[];
+export type TServiceList = {
+    services: TService[];
 };
 
 export enum ImageType {
@@ -42,7 +42,7 @@ export class CamOverlayAPI {
         this.auth = options?.auth ?? '';
     }
 
-    updateCGText(serviceID: number, fields: Field[]) {
+    updateCGText(serviceID: number, fields: TField[]) {
         let field_specs = '';
 
         for (const field of fields) {
@@ -93,7 +93,7 @@ export class CamOverlayAPI {
         const res = await sendRequest(options);
 
         if (res.ok) {
-            const data: ServiceList = JSON.parse(await res.text());
+            const data: TServiceList = JSON.parse(await res.text());
 
             for (const service of data.services) {
                 if (service.id === serviceID) {
@@ -106,7 +106,7 @@ export class CamOverlayAPI {
         }
     }
 
-    async updateServices(servicesJson: ServiceList) {
+    async updateServices(servicesJson: TServiceList) {
         const path = '/local/camoverlay/api/services.cgi?action=set';
         const options = this.getBaseVapixConnectionParams(path, 'POST');
         const res = await sendRequest(options, JSON.stringify(servicesJson));

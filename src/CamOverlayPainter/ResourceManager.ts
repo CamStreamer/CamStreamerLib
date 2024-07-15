@@ -1,11 +1,11 @@
-import { CamOverlayDrawingAPI, UploadImageResponse, CairoCreateResponse } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI, TUploadImageResponse, TCairoCreateResponse } from '../CamOverlayDrawingAPI';
 import * as fs from 'fs/promises';
 
 export default class ResourceManager {
     private imgFiles: Record<string, string> = {};
     private fontFiles: Record<string, string> = {};
-    private images: Record<string, UploadImageResponse> = {};
-    private fonts: Record<string, CairoCreateResponse> = {};
+    private images: Record<string, TUploadImageResponse> = {};
+    private fonts: Record<string, TCairoCreateResponse> = {};
 
     constructor() {}
 

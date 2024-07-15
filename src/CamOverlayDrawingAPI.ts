@@ -9,30 +9,30 @@ export type CamOverlayDrawingOptions = Options & {
     zIndex?: number;
 };
 
-type Message = {
+type TMessage = {
     command: string;
     call_id?: number;
     params?: unknown[];
 };
 
-export type CairoResponse = {
+export type TCairoResponse = {
     message: string;
     call_id: number;
 };
 
-export type CairoCreateResponse = {
+export type TCairoCreateResponse = {
     var: string;
     call_id: number;
 };
 
-export type UploadImageResponse = {
+export type TUploadImageResponse = {
     var: string;
     width: number;
     height: number;
     call_id: number;
 };
 
-export type Service = {
+export type TService = {
     id: number;
     enabled: number;
     schedule: string;
@@ -41,15 +41,15 @@ export type Service = {
     cameraList: number[];
 };
 
-export type ServiceList = {
-    services: Service[];
+export type TServiceList = {
+    services: TService[];
 };
 
-export type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
+export type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
 export type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
-export type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
+export type TWriteTextParams = [string, string, number, number, number, number, TAlign, TextFit?];
 
-type Response = CairoResponse | CairoCreateResponse | UploadImageResponse;
+type Response = TCairoResponse | TCairoCreateResponse | TUploadImageResponse;
 type AsyncMessage = {
     resolve: (value: Response) => void;
     reject: (reason: Error) => void;
@@ -107,11 +107,11 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     cairo(command: string, ...params: unknown[]) {
-        return this.sendMessage({ command: command, params: params }) as Promise<CairoResponse | CairoCreateResponse>;
+        return this.sendMessage({ command: command, params: params }) as Promise<TCairoResponse | TCairoCreateResponse>;
     }
 
-    writeText(...params: WriteTextParams) {
-        return this.sendMessage({ command: 'write_text', params: params }) as Promise<CairoResponse>;
+    writeText(...params: TWriteTextParams) {
+        return this.sendMessage({ command: 'write_text', params: params }) as Promise<TCairoResponse>;
     }
 
     uploadImageData(imgBuffer: Buffer) {
@@ -121,7 +121,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 params: [],
             },
             imgBuffer
-        ) as Promise<UploadImageResponse>;
+        ) as Promise<TUploadImageResponse>;
     }
 
     uploadFontData(fontBuffer: Buffer) {
@@ -131,14 +131,14 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 params: [fontBuffer.toString('base64')],
             },
             fontBuffer
-        ) as Promise<CairoCreateResponse>;
+        ) as Promise<TCairoCreateResponse>;
     }
 
     showCairoImage(cairoImage: string, posX: number, posY: number) {
         return this.sendMessage({
             command: 'show_cairo_image_v2',
             params: [cairoImage, posX, posY, this.cameraList, this.zIndex],
-        }) as Promise<CairoResponse>;
+        }) as Promise<TCairoResponse>;
     }
 
     showCairoImageAbsolute(cairoImage: string, posX: number, posY: number, width: number, height: number) {
@@ -151,11 +151,11 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.cameraList,
                 this.zIndex,
             ],
-        }) as Promise<CairoResponse>;
+        }) as Promise<TCairoResponse>;
     }
 
     removeImage() {
-        return this.sendMessage({ command: 'remove_image_v2' }) as Promise<CairoResponse>;
+        return this.sendMessage({ command: 'remove_image_v2' }) as Promise<TCairoResponse>;
     }
 
     private openWebsocket(): Promise<void> {
@@ -214,7 +214,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         });
     }
 
-    private sendMessage(msgJson: Message) {
+    private sendMessage(msgJson: TMessage) {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
@@ -230,7 +230,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         });
     }
 
-    private sendBinaryMessage(msgJson: Message, data: Buffer) {
+    private sendBinaryMessage(msgJson: TMessage, data: Buffer) {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
