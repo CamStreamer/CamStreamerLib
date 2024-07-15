@@ -139,16 +139,27 @@ export default class Frame {
     }
 
     private drawFrame(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
-        const promises = new Array<Promise<unknown>>();
-        const bgColor = this.bgColor!;
-        promises.push(cod.cairo('cairo_identity_matrix', cairo));
-        promises.push(cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY));
-        promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
-        promises.push(cod.cairo('cairo_set_source_rgba', cairo, bgColor[0], bgColor[1], bgColor[2], bgColor[3]));
-        promises.push(cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height));
-        promises.push(cod.cairo('cairo_fill', cairo));
-        promises.push(cod.cairo('cairo_stroke', cairo));
-        return Promise.all(promises);
+        if (this.bgColor) {
+            const promises = [
+                cod.cairo('cairo_identity_matrix', cairo),
+                cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY),
+                cod.cairo('cairo_scale', cairo, scale, scale),
+                cod.cairo(
+                    'cairo_set_source_rgba',
+                    cairo,
+                    this.bgColor[0],
+                    this.bgColor[1],
+                    this.bgColor[2],
+                    this.bgColor[3]
+                ),
+                cod.cairo('cairo_rectangle', cairo, 0, 0, this.width, this.height),
+                cod.cairo('cairo_fill', cairo),
+                cod.cairo('cairo_stroke', cairo),
+            ];
+            return Promise.all(promises);
+        } else {
+            throw new Error('Colour of this frame is undefined.');
+        }
     }
     private async drawImage(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
         const imageData = await this.rm.image(cod, this.bgImage!);
@@ -177,12 +188,9 @@ export default class Frame {
         return Promise.all(promises);
     }
     private drawText(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
-        const promises = new Array<Promise<unknown>>();
-        promises.push(cod.cairo('cairo_identity_matrix', cairo));
-        promises.push(
-            cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2])
-        );
-        promises.push(
+        const promises = [
+            cod.cairo('cairo_identity_matrix', cairo),
+            cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2]),
             cod.writeText(
                 cairo,
                 '' + this.text,
@@ -192,8 +200,8 @@ export default class Frame {
                 Math.floor(scale * this.height),
                 this.align,
                 this.textType
-            )
-        );
+            ),
+        ];
         return Promise.all(promises);
     }
 }
