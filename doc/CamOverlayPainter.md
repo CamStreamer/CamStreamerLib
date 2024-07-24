@@ -8,7 +8,7 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **registerImage(moniker: string, fileName: string), registerFont(moniker: string, fileName: string)** - Adds the resource specified by `fileName` to this `ResourceManager`.
 
--   **async image(co: CamOverlayDrawingAPI, moniker: string): TUploadImageResponse** - Uploads the image specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the imasge and its resolution.
+-   **async image(co: CamOverlayDrawingAPI, moniker: string): TUploadImageResponse** - Uploads the image specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the images and its resolution.
 
     ```typescript
     type TUploadImageResponse = {
@@ -34,7 +34,7 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   Represents one field of graphics. Manages the display of an image, text or background colour. Supports nested frames too.
 
--   **Frame(options: FrameOptions, rm: ResourceManager, customDraw?: DrawingCallback)**
+-   **Frame(options: FrameOptions, rm: ResourceManager, customDraw?: TDrawingCallback)**
 
     ```typescript
     type FrameOptions = {
@@ -53,7 +53,7 @@ Three modules for even easier control of CamOverlay drawing API.
     ```
 
     ```typescript
-    type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
+    type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<void>;
     ```
 
 -   **setFramePosition(x: number, y: number)** - Sets this frame position to [x,y] relative to the upper left edge of the parent frame.
@@ -69,9 +69,11 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **setFont(fontName: string)** - As a fontName use the moniker registered in ResourceManager.
 
--   **setBGColor(color: RGBA)** - Sets colour displayed on the frame background.
+-   **setBgColor(color: RGBA)** - Sets colour displayed on the frame background.
 
 -   **setBgImage(imageName: string, type: ObjectFitType)** - As an imageName use the moniker registered in ResourceManager.
+
+-   **setCustomDraw(customDraw: TDrawingCallback)** - Sets a callback which is run when the entire frame is displayed.
 
     ```typescript
     type TObjectFitType = 'fill' | 'fit' | 'none';
