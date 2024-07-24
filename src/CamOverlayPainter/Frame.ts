@@ -135,10 +135,10 @@ export default class Frame {
             promises.push(this.customDraw(cod, cairo));
         }
 
-        return Promise.all(promises);
+        await Promise.all(promises);
     }
 
-    private drawFrame(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
+    private async drawFrame(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
         if (this.bgColor) {
             const promises = [
                 cod.cairo('cairo_identity_matrix', cairo),
@@ -156,7 +156,7 @@ export default class Frame {
                 cod.cairo('cairo_fill', cairo),
                 cod.cairo('cairo_stroke', cairo),
             ];
-            return Promise.all(promises);
+            await Promise.all(promises);
         } else {
             throw new Error('Colour of this frame is undefined.');
         }
@@ -185,9 +185,9 @@ export default class Frame {
 
         promises.push(cod.cairo('cairo_set_source_surface', cairo, bgImage, 0, 0));
         promises.push(cod.cairo('cairo_paint', cairo));
-        return Promise.all(promises);
+        await Promise.all(promises);
     }
-    private drawText(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
+    private async drawText(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
         const promises = [
             cod.cairo('cairo_identity_matrix', cairo),
             cod.cairo('cairo_set_source_rgb', cairo, this.fontColor[0], this.fontColor[1], this.fontColor[2]),
@@ -202,7 +202,7 @@ export default class Frame {
                 this.textType
             ),
         ];
-        return Promise.all(promises);
+        await Promise.all(promises);
     }
 }
 
