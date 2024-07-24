@@ -40,8 +40,8 @@
     "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
-    "pretty": "prettier --write \"./{src,doc}/**/*.{ts,tsx,md}\"",
-    "pretty:check": "prettier --check \"./{src,doc}/**/*.{ts,tsx,md}\"",
+    "pretty": "prettier --write \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
+    "pretty:check": "prettier --check \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "files": [
