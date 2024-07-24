@@ -8,9 +8,27 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **registerImage(moniker: string, fileName: string), registerFont(moniker: string, fileName: string)** - Adds the resource specified by `fileName` to this `ResourceManager`.
 
--   **async image(co: CamOverlayDrawingAPI, moniker: string), async font(co: CamOverlayDrawingAPI, moniker: string)** - Uploads the resource specified by `moniker` to the camera, if it hasn't been done already. Returns the data, which that camera sent as a response.
+-   **async image(co: CamOverlayDrawingAPI, moniker: string): TUploadImageResponse** - Uploads the image specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the imasge and its resolution.
 
--   **clear()** - Removes all data from ResourceManager. However, all resorces will be still registered.
+    ```typescript
+    type TUploadImageResponse = {
+        var: string;
+        width: number;
+        height: number;
+        call_id: number;
+    };
+    ```
+
+-   **async font(co: CamOverlayDrawingAPI, moniker: string): TCairoCreateResponse** - Uploads the font specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the font.
+
+    ```typescript
+    type TCairoCreateResponse = {
+        var: string;
+        call_id: number;
+    };
+    ```
+
+-   **clear()** - Removes all data from ResourceManager. Call this function when the connection to CamOverlay is closed.
 
 ## Frame
 
