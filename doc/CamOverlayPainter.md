@@ -32,6 +32,8 @@ Three modules for even easier control of CamOverlay drawing API.
 
 ## Frame
 
+-   Represents one field of graphics. Manages the display of an image, text or background colour. Supports nested frames too.
+
 -   **Frame(options: FrameOptions, rm: ResourceManager, customDraw?: DrawingCallback)**
 
     ```typescript
@@ -88,6 +90,8 @@ Three modules for even easier control of CamOverlay drawing API.
 -   **disable()** - Disallows this frame and its children to display.
 
 ## Painter
+
+-   Represents one widget, manages the connection to CamOverlay and the display of graphics as a whole.
 
 -   **constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions, rm: ResourceManager)**
 
