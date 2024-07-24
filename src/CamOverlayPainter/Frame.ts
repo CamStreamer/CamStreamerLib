@@ -19,7 +19,12 @@ export type FrameOptions = {
     bgType?: TObjectFitType;
 };
 
-export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
+export type TFrameInfo = {
+    width: number;
+    height: number;
+};
+export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string, info: TFrameInfo) => Promise<void>;
+
 export default class Frame {
     protected posX: number;
     protected posY: number;
@@ -82,6 +87,9 @@ export default class Frame {
         this.bgImage = imageName;
         this.bgType = type;
     }
+    setCustomDraw(customDraw: TDrawingCallback) {
+        this.customDraw = customDraw;
+    }
     clear(): void {
         this.text = '';
         this.align = 'A_LEFT';
@@ -132,7 +140,10 @@ export default class Frame {
             promises.push(this.drawText(cod, cairo, scale, ppX, ppY));
         }
         if (this.customDraw) {
-            promises.push(this.customDraw(cod, cairo));
+            promises.push(cod.cairo('cairo_identity_matrix', cairo));
+            promises.push(cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY));
+            promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
+            promises.push(this.customDraw(cod, cairo, { width: this.width, height: this.height }));
         }
 
         await Promise.all(promises);
