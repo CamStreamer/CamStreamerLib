@@ -37,12 +37,12 @@ export class CamStreamerAPI {
         return response.data.is_streaming;
     }
 
-    async get(path: string) {
+    async get(path: string): Promise<any> {
         const options = this.getBaseConnectionParams(path);
         const res = await sendRequest(options);
 
         if (res.ok) {
-            return JSON.parse(await res.text());
+            return await res.json();
         } else {
             throw new Error(JSON.stringify(res));
         }
