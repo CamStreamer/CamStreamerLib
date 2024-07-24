@@ -18,12 +18,6 @@ function getURL(options: HttpRequestOptions) {
     url.port = options.port.toString();
     url.pathname = options.path;
 
-    if (options.auth !== undefined) {
-        const [user, pass] = options.auth.split(':');
-        url.username = user;
-        url.password = pass;
-    }
-
     return url.toString();
 }
 
@@ -57,7 +51,14 @@ export async function sendRequest(options: HttpRequestOptions, postData?: Buffer
     const url = getURL(options);
 
     const controller = new AbortController();
-    setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
+    if (options.timeout !== undefined) {
+        setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
+    }
+
+    if (options.auth !== undefined) {
+        options.headers ??= {};
+        options.headers['Authorization'] = `Basic ${btoa(options.auth)}`;
+    }
 
     const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
     const res = await fetch(req, { signal: controller.signal });
