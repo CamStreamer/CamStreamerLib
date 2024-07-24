@@ -1,4 +1,4 @@
-# CamOverlayDrawingAPI
+# CamOverlayPainter
 
 Three modules for even easier control of CamOverlay drawing API.
 
@@ -34,24 +34,24 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **Frame(options: FrameOptions, rm: ResourceManager, customDraw?: DrawingCallback)**
 
-    ```javascript
+    ```typescript
     type FrameOptions = {
-        x: number,
-        y: number,
-        width: number,
-        height: number,
+        x: number;
+        y: number;
+        width: number;
+        height: number;
 
-        enabled?: boolean, // default: true
-        bgImage?: string, // default: undefined
-        text?: string, // default: ''
-        fontColor?: RGB, // default: [1.0, 1.0, 1.0]
-        bgColor?: RGBA, // default: undefined
-        bgType?: ObjectFitType, // dafault: undefined
+        enabled?: boolean; // default: true
+        bgImage?: string; // default: undefined
+        text?: string; // default: ''
+        fontColor?: RGB; // default: [1.0, 1.0, 1.0]
+        bgColor?: RGBA; // default: undefined
+        bgType?: ObjectFitType; // dafault: undefined
     };
     ```
 
-    ```javascript
-    type DrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
+    ```typescript
+    type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string) => Promise<unknown>;
     ```
 
 -   **setFramePosition(x: number, y: number)** - Sets this frame position to [x,y] relative to the upper left edge of the parent frame.
@@ -60,9 +60,9 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **setText(text: string, align: Align, textType: TMF = 'TFM_OVERFLOW', color?: RGB)** - Sets which text will be displayed in this frame, its aligment, how to solve the situation when the text does not fit into the frame and optionally new color of the text.
 
-    ```javascript
-    type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
-    type TMF = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
+    ```typescript
+    type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
+    type TTmf = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
     ```
 
 -   **setFont(fontName: string)** - As a fontName use the moniker registered in ResourceManager.
@@ -71,8 +71,8 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **setBgImage(imageName: string, type: ObjectFitType)** - As an imageName use the moniker registered in ResourceManager.
 
-    ```javascript
-    type ObjectFitType = 'fill' | 'fit' | 'none';
+    ```typescript
+    type TObjectFitType = 'fill' | 'fit' | 'none';
     ```
 
     > fill: The image will be stretched to cover the entire frame area.
@@ -91,11 +91,11 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions, rm: ResourceManager)**
 
-    ```javascript
+    ```typescript
     type PainterOptions = FrameOptions & {
-        screenWidth: number,
-        screenHeight: number,
-        coAlignment: string,
+        screenWidth: number;
+        screenHeight: number;
+        coAlignment: string;
     };
     ```
 
@@ -112,23 +112,3 @@ Three modules for even easier control of CamOverlay drawing API.
     > top_right,center_right,bottom_right
 
 -   **async display(scale = 1)** - Renders this painter, including all inserted frames.
-
--   **CamOverlayDrawingAPI(options)** - Options parameter contains access to the camera. Values mentioned in example below are default.
-
-    ```javascript
-    CamOverlayDrawingAPI({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        auth: '',
-        camera?: [0],
-        zIndex?: 0
-    });
-    ```
-
--   **removeImage()** - Remove image from the camera stream.
-
-    ```javascript
-    removeImage();
-    ```

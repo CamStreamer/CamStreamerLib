@@ -19,7 +19,7 @@ npm install camstreamerlib
 -   [CamOverlayAPI](doc/CamOverlayAPI.md) is a module to access CamOverlay HTTP interface.
 -   [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) is a module for easy control of CamOverlay drawing API. For more details on supported video overlay drawing functions see https://camstreamer.com/camoverlay-api1
 -   [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) is a module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.
--   [CamOverlayPainter/](doc/CamOverlayPainter.md) contains three modules  which makes easier to use CamOverlayDrawingAPI.
+-   [CamOverlayPainter/](doc/CamOverlayPainter.md) contains three modules which makes easier to use CamOverlayDrawingAPI.
 
 ## For Developers
 
@@ -59,25 +59,25 @@ The zip package is created in the current directory. You can choose different lo
 }
 ```
 
-### Breaking changes when moving from version 1.\*.* to 2.\*.*
+### Breaking changes when moving from version 1.\*.\* to 2.\*.\*
 
-- Renamed file HTTPRequest.ts to HttpRequest.ts
-- Removed deprecated protocol attribute from all options objects (use tls instead).
-- Removed RTSP
-  > Previously CameraVapix.ts supported both WebSocket and RTSP.
-  > Starting with version 2.0.0, it supports WebSocket only.
-- ServiceID shouldn't be passed to CamOverlayAPI by the options object. Pass it as a parameter.
-- Renamed CamOverlayDrawingAPI event msg to message.
-- Drawing services extracted from CamOverlayAPI.ts to a separate file.
-  > Please read [CamOverlayAPI](doc/CamOverlayAPI.md) and [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) for more information.
+-   Renamed file HTTPRequest.ts to HttpRequest.ts
+-   Removed deprecated protocol attribute from all options objects (use tls instead).
+-   Removed RTSP
+    > Previously CameraVapix.ts supported both WebSocket and RTSP.
+    > Starting with version 2.0.0, it supports WebSocket only.
+-   ServiceID shouldn't be passed to CamOverlayAPI by the options object. Pass it as a parameter.
+-   Renamed CamOverlayDrawingAPI event msg to message.
+-   Drawing services extracted from CamOverlayAPI.ts to a separate file.
+    > Please read [CamOverlayAPI](doc/CamOverlayAPI.md) and [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) for more information.
 
-### Breaking changes when moving from version 2.\*.* to 3.\*.*
+### Breaking changes when moving from version 2.\*.\* to 3.\*.\*
 
-- CamStreamerlib requiers Node.js version 18 or higher.
-- CamOverlayDrawingAPI tries to reconnect when the websocket is closed. You don't have to do it manually.
-   > However, events `open` and `close` are still emitted in case you need to react to them.
-- Files common.ts, Digest.ts, HttpRequest.ts and WsClient.ts moved to a folder internal.
-- Removed function httpRequest(). Use sendRequest() instead. It uses the same interface except for the "noWaitForData" parameter.
-  > It returns (Response object)[https://developer.mozilla.org/en-US/docs/Web/API/Response] which doesn't contain data by default.
-  > If you need to wait for data, you can call for example the function `await res.text()`.
-  > This change affects the function `vapixGet` from(CameraVapix)[doc/CameraVapix.md] too.
+-   CamStreamerlib requiers Node.js version 18 or higher.
+-   CamOverlayDrawingAPI tries to reconnect when the websocket is closed. You don't have to do it manually.
+    > However, events `open` and `close` are still emitted in case you need to react to them.
+-   Files common.ts, Digest.ts, HttpRequest.ts and WsClient.ts moved to a folder internal.
+-   Removed function httpRequest(). Use sendRequest() instead. It uses the same interface except for the "noWaitForData" parameter.
+    > It returns (Response object)[https://developer.mozilla.org/en-US/docs/Web/API/Response] which doesn't contain data by default.
+    > If you need to wait for data, you can call for example the function `await res.text()`.
+    > This change affects the function `vapixGet` from (CameraVapix)[doc/CameraVapix.md] too.
