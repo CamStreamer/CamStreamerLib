@@ -14,11 +14,8 @@ export type HttpRequestOptions = {
 };
 
 function getURL(options: HttpRequestOptions) {
-    const url = new URL(options.protocol + options.host);
-
+    const url = new URL(options.protocol + options.host + options.path);
     url.port = options.port.toString();
-    url.pathname = options.path;
-
     return url.toString();
 }
 
@@ -26,8 +23,6 @@ function getDigestHeader(options: HttpRequestOptions, digestHeader: string) {
     if (options.user === undefined || options.pass === undefined) {
         throw new Error('No credentials found');
     }
-    const auth = options.auth.split(':');
-    delete options.auth;
 
     options.method ??= 'GET';
     options.headers ??= {};
@@ -41,7 +36,9 @@ async function sendRequestWithDigest(options: HttpRequestOptions, digestHeader: 
     options.headers['Authorization'] = getDigestHeader(options, digestHeader);
 
     const controller = new AbortController();
-    setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
+    if (options.timeout !== undefined) {
+        setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
+    }
 
     const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
     const res = await fetch(req, { signal: controller.signal });
@@ -50,7 +47,6 @@ async function sendRequestWithDigest(options: HttpRequestOptions, digestHeader: 
 
 export async function sendRequest(options: HttpRequestOptions, postData?: Buffer | string) {
     const url = getURL(options);
-
     const controller = new AbortController();
     if (options.timeout !== undefined) {
         setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
