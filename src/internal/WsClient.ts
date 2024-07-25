@@ -12,7 +12,8 @@ export type WsClientOptions = Options & {
 };
 
 export class WsClient extends EventEmitter {
-    private userPass: string[];
+    private user: string;
+    private pass: string;
     private address: string;
     private protocol?: string;
     private pingInterval: number;
@@ -30,16 +31,16 @@ export class WsClient extends EventEmitter {
         const tlsInsecure = options?.tlsInsecure ?? false;
         const ip = options?.ip ?? '127.0.0.1';
         const port = options?.port ?? (tls ? 443 : 80);
-        const auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
 
         const protocol = tls ? 'wss' : 'ws';
         this.address = `${protocol}://${ip}:${port}${options.address}`;
         this.digestAddress = options.address;
         this.pingInterval = options.pingInterval ?? 30000;
         this.protocol = options.protocol;
-        this.userPass = auth.split(':');
         this.wsOptions = {
-            auth: auth,
+            auth: `${this.user}:${this.pass}`,
             rejectUnauthorized: !tlsInsecure,
             headers: options.headers ?? {},
         };
@@ -69,8 +70,8 @@ export class WsClient extends EventEmitter {
 
         if (digestHeader !== undefined) {
             this.wsOptions.headers['Authorization'] = Digest.getAuthHeader(
-                this.userPass[0],
-                this.userPass[1],
+                this.user,
+                this.pass,
                 'GET',
                 this.digestAddress,
                 digestHeader

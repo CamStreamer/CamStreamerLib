@@ -6,7 +6,8 @@ export type HttpRequestOptions = {
     host: string;
     port: number;
     path: string;
-    auth?: string;
+    user?: string;
+    pass?: string;
     timeout?: number;
     headers?: Record<string, string>;
     rejectUnauthorized?: boolean;
@@ -22,7 +23,7 @@ function getURL(options: HttpRequestOptions) {
 }
 
 function getDigestHeader(options: HttpRequestOptions, digestHeader: string) {
-    if (options.auth === undefined) {
+    if (options.user === undefined || options.pass === undefined) {
         throw new Error('No credentials found');
     }
     const auth = options.auth.split(':');
@@ -31,7 +32,7 @@ function getDigestHeader(options: HttpRequestOptions, digestHeader: string) {
     options.method ??= 'GET';
     options.headers ??= {};
 
-    return Digest.getAuthHeader(auth[0], auth[1], options.method, options.path, digestHeader);
+    return Digest.getAuthHeader(options.user, options.pass, options.method, options.path, digestHeader);
 }
 
 async function sendRequestWithDigest(options: HttpRequestOptions, digestHeader: string, postData?: Buffer | string) {
@@ -55,9 +56,9 @@ export async function sendRequest(options: HttpRequestOptions, postData?: Buffer
         setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
     }
 
-    if (options.auth !== undefined) {
+    if (options.user !== undefined && options.pass !== undefined) {
         options.headers ??= {};
-        options.headers['Authorization'] = `Basic ${btoa(options.auth)}`;
+        options.headers['Authorization'] = `Basic ${btoa(options.user + ':' + options.pass)}`;
     }
 
     const req = new Request(url, { body: postData, method: options.method, headers: options.headers });

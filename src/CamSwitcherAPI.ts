@@ -11,7 +11,8 @@ export class CamSwitcherAPI extends EventEmitter {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
 
     private ws?: WsClient;
 
@@ -22,7 +23,8 @@ export class CamSwitcherAPI extends EventEmitter {
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
 
         EventEmitter.call(this);
     }
@@ -34,7 +36,8 @@ export class CamSwitcherAPI extends EventEmitter {
             const options: WsClientOptions = {
                 ip: this.ip,
                 port: this.port,
-                auth: this.auth,
+                user: this.user,
+                pass: this.pass,
                 tls: this.tls,
                 tlsInsecure: this.tlsInsecure,
 
@@ -122,7 +125,8 @@ export class CamSwitcherAPI extends EventEmitter {
             host: this.ip,
             port: this.port,
             path: path,
-            auth: this.auth,
+            user: this.user,
+            pass: this.pass,
             rejectUnauthorized: !this.tlsInsecure,
         };
     }

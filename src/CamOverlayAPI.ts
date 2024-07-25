@@ -32,14 +32,16 @@ export class CamOverlayAPI {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
 
     constructor(options?: CamOverlayOptions) {
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
     }
 
     updateCGText(serviceID: number, fields: TField[]) {
@@ -155,7 +157,8 @@ export class CamOverlayAPI {
             host: this.ip,
             port: this.port,
             path: path,
-            auth: this.auth,
+            user: this.user,
+            pass: this.pass,
             rejectUnauthorized: !this.tlsInsecure,
         };
     }

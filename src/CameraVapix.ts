@@ -52,7 +52,8 @@ export class CameraVapix extends EventEmitter {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
 
     private ws?: WsClient;
 
@@ -63,7 +64,8 @@ export class CameraVapix extends EventEmitter {
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
     }
 
     vapixGet(path: string) {
@@ -221,7 +223,8 @@ export class CameraVapix extends EventEmitter {
         const options: WsClientOptions = {
             tls: this.tls,
             tlsInsecure: this.tlsInsecure,
-            auth: this.auth,
+            user: this.user,
+            pass: this.pass,
             ip: this.ip,
             port: this.port,
             address: '/vapix/ws-data-stream?sources=events',
@@ -294,7 +297,8 @@ export class CameraVapix extends EventEmitter {
             host: this.ip,
             port: this.port,
             path: path,
-            auth: this.auth,
+            user: this.user,
+            pass: this.pass,
             rejectUnauthorized: !this.tlsInsecure,
         };
     }

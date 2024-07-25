@@ -58,7 +58,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
     private callId: number;
     private sendMessages: Record<number, TAsyncMessage>;
 
@@ -71,7 +72,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
 
         this.callId = 0;
         this.sendMessages = {};
@@ -130,7 +132,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private openWebsocket() {
         return new Promise<void>((resolve, reject) => {
             const options: WsClientOptions = {
-                auth: this.auth,
+                user: this.user,
+                pass: this.pass,
                 tlsInsecure: this.tlsInsecure,
                 tls: this.tls,
                 ip: this.ip,
