@@ -1,4 +1,4 @@
-import { CamOverlayDrawingAPI, TAlign } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI, TAlign, TUploadImageResponse } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
 
 export type TRgb = [number, number, number];
@@ -39,7 +39,7 @@ export default class Frame {
     private fontName?: string;
 
     private bgColor?: TRgba;
-    private bgImage?: string;
+    private bgImage?: string | TUploadImageResponse;
     private bgType?: TObjectFitType;
 
     protected children = new Array<Frame>();
@@ -85,6 +85,10 @@ export default class Frame {
     }
     setBgImage(imageName: string, type: TObjectFitType = 'fit'): void {
         this.bgImage = imageName;
+        this.bgType = type;
+    }
+    setBgImageData(imageData: TUploadImageResponse, type: TObjectFitType = 'fit') {
+        this.bgImage = imageData;
         this.bgType = type;
     }
     setCustomDraw(customDraw: TDrawingCallback) {
@@ -194,7 +198,7 @@ export default class Frame {
         ppX: number,
         ppY: number
     ) {
-        const imageData = await rm.image(this.bgImage!);
+        const imageData = typeof this.bgImage === 'string' ? await rm.image(this.bgImage) : this.bgImage!;
         const bgImage = imageData.var;
         const bgWidth = imageData.width;
         const bgHeight = imageData.height;
