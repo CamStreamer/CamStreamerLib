@@ -73,24 +73,23 @@ export default class Painter extends Frame {
     }
 
     async display(scale = 1) {
-        [this.surface, this.cairo] = await this.prepareDrawing(scale);
-
         if (this.enabled) {
+            [this.surface, this.cairo] = await this.prepareDrawing(scale);
+
             await this.displayOwnImage(this.cod, this.rm, this.cairo, 0, 0, scale);
             for (const child of this.children) {
                 await child.displayImage(this.cod, this.rm, this.cairo, 0, 0, scale);
             }
-        }
 
-        await this.cod.showCairoImage(
-            this.surface,
-            this.positionConvertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
-            this.positionConvertor(this.coAlignment[1], this.screenHeight, this.posY, scale * this.height)
-        );
-        await this.destroy();
+            await this.cod.showCairoImage(
+                this.surface,
+                this.positionConvertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
+                this.positionConvertor(this.coAlignment[1], this.screenHeight, this.posY, scale * this.height)
+            );
+            await this.destroy();
+        }
     }
-    async disable() {
-        this.enabled = false;
+    async hide() {
         await this.cod.removeImage();
     }
 

@@ -140,31 +140,33 @@ export default class Frame {
         ppY: number,
         scale: number
     ) {
-        const promises = new Array<Promise<unknown>>();
+        if (this.enabled) {
+            const promises = new Array<Promise<unknown>>();
 
-        if (this.fontName !== undefined) {
-            const fontData = await rm.font(this.fontName);
-            promises.push(cod.cairo('cairo_set_font_face', cairo, fontData.var));
-        } else {
-            promises.push(cod.cairo('cairo_set_font_face', cairo, 'NULL'));
-        }
-        if (this.bgColor !== undefined) {
-            promises.push(this.drawFrame(cod, cairo, scale, ppX, ppY));
-        }
-        if (this.bgImage !== undefined) {
-            promises.push(this.drawImage(cod, rm, cairo, scale, ppX, ppY));
-        }
-        if (this.text) {
-            promises.push(this.drawText(cod, cairo, scale, ppX, ppY));
-        }
-        if (this.customDraw) {
-            promises.push(cod.cairo('cairo_identity_matrix', cairo));
-            promises.push(cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY));
-            promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
-            promises.push(this.customDraw(cod, cairo, { width: this.width, height: this.height }));
-        }
+            if (this.fontName !== undefined) {
+                const fontData = await rm.font(this.fontName);
+                promises.push(cod.cairo('cairo_set_font_face', cairo, fontData.var));
+            } else {
+                promises.push(cod.cairo('cairo_set_font_face', cairo, 'NULL'));
+            }
+            if (this.bgColor !== undefined) {
+                promises.push(this.drawFrame(cod, cairo, scale, ppX, ppY));
+            }
+            if (this.bgImage !== undefined) {
+                promises.push(this.drawImage(cod, rm, cairo, scale, ppX, ppY));
+            }
+            if (this.text) {
+                promises.push(this.drawText(cod, cairo, scale, ppX, ppY));
+            }
+            if (this.customDraw) {
+                promises.push(cod.cairo('cairo_identity_matrix', cairo));
+                promises.push(cod.cairo('cairo_translate', cairo, scale * ppX, scale * ppY));
+                promises.push(cod.cairo('cairo_scale', cairo, scale, scale));
+                promises.push(this.customDraw(cod, cairo, { width: this.width, height: this.height }));
+            }
 
-        await Promise.all(promises);
+            await Promise.all(promises);
+        }
     }
 
     private async drawFrame(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
