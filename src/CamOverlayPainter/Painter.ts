@@ -30,6 +30,13 @@ export default class Painter extends Frame {
     private cod: CamOverlayDrawingAPI;
     private rm: ResourceManager;
 
+    get camOverlayDrawingAPI() {
+        return this.cod;
+    }
+    get resourceManager() {
+        return this.rm;
+    }
+
     constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions) {
         super(opt);
         this.coAlignment = COORD[opt.coAlignment];
