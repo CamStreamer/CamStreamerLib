@@ -1,15 +1,15 @@
-import { Options } from './common';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { Options } from './internal/common';
+import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
 
 export type CamOverlayOptions = Options;
 
-export type Field = {
+export type TField = {
     field_name: string;
     text: string;
     color?: string;
 };
 
-export type Service = {
+export type TService = {
     id: number;
     enabled: number;
     schedule: string;
@@ -18,8 +18,8 @@ export type Service = {
     cameraList: number[];
 };
 
-export type ServiceList = {
-    services: Service[];
+export type TServiceList = {
+    services: TService[];
 };
 
 export enum ImageType {
@@ -32,20 +32,22 @@ export class CamOverlayAPI {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
 
     constructor(options?: CamOverlayOptions) {
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
     }
 
-    updateCGText(serviceID: number, fields: Field[]) {
+    updateCGText(serviceID: number, fields: TField[]) {
         let field_specs = '';
 
-        for (let field of fields) {
+        for (const field of fields) {
             const name = field.field_name;
             field_specs += `&${name}=${field.text}`;
             if (field.color !== undefined) {
@@ -68,39 +70,52 @@ export class CamOverlayAPI {
     }
 
     async updateInfoticker(serviceID: number, text: string) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'GET';
-        options.path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
-        await httpRequest(options);
+        const path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
+        const options = this.getBaseVapixConnectionParams(path);
+        const res = await sendRequest(options);
+
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     async setEnabled(serviceID: number, enabled: boolean) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = encodeURI(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`);
-        await httpRequest(options);
+        const path = `/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`;
+        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        const res = await sendRequest(options);
+
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     async isEnabled(serviceID: number) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'GET';
-        options.path = '/local/camoverlay/api/services.cgi?action=get';
-        const response = (await httpRequest(options)) as string;
-        const data: ServiceList = JSON.parse(response);
+        const path = '/local/camoverlay/api/services.cgi?action=get';
+        const options = this.getBaseVapixConnectionParams(path);
+        const res = await sendRequest(options);
 
-        for (let service of data.services) {
-            if (service.id === serviceID) {
-                return service.enabled === 1;
+        if (res.ok) {
+            const data: TServiceList = JSON.parse(await res.text());
+
+            for (const service of data.services) {
+                if (service.id === serviceID) {
+                    return service.enabled === 1;
+                }
             }
+            throw new Error('Service not found.');
+        } else {
+            throw new Error(JSON.stringify(res));
         }
-        throw new Error('Service not found.');
     }
 
-    async updateServices(servicesJson: ServiceList) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = '/local/camoverlay/api/services.cgi?action=set';
-        await httpRequest(options, JSON.stringify(servicesJson));
+    async updateServices(servicesJson: TServiceList) {
+        const path = '/local/camoverlay/api/services.cgi?action=set';
+        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        const res = await sendRequest(options, JSON.stringify(servicesJson));
+
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     updateCGImageFromData(serviceID: number, imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
@@ -110,15 +125,15 @@ export class CamOverlayAPI {
     }
 
     async promiseCGUpdate(serviceID: number, action: string, params: string, contentType?: string, data?: Buffer) {
-        const options = this.getBaseVapixConnectionParams();
-        options.method = 'POST';
-        options.path = encodeURI(
-            `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`
-        );
-        if (contentType && data) {
+        const path = `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`;
+        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        if (contentType !== undefined && data) {
             options.headers = { 'Content-Type': contentType };
         }
-        await httpRequest(options, data);
+        const res = await sendRequest(options, data);
+        if (!res.ok) {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
     /*
@@ -135,12 +150,15 @@ export class CamOverlayAPI {
         return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
     }
 
-    private getBaseVapixConnectionParams(): HttpRequestOptions {
+    private getBaseVapixConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
         return {
+            method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
-            auth: this.auth,
+            path: path,
+            user: this.user,
+            pass: this.pass,
             rejectUnauthorized: !this.tlsInsecure,
         };
     }

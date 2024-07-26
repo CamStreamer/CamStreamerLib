@@ -1,11 +1,19 @@
 {
-    "compilerOptions": {
-        "target": "es6",
-        "module": "commonjs",
-        "declaration": true,
-        "removeComments": true,
-        "outDir": "dist"
-    },
+  "compilerOptions": {
+    "target": "es6",
+    "lib": [ "ES2022" ],
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "outDir": "dist",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "typeRoots": [
+      "typings",
+      "node_modules/@types"
+    ]
+  },
     "include": ["src"],
     "exclude": ["node_modules"]
 }

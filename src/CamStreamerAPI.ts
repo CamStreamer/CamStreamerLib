@@ -1,5 +1,5 @@
-import { Options } from './common';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { Options } from './internal/common';
+import { HttpRequestOptions, sendRequest } from './internal/HttpRequest';
 
 export type CamStreamerAPIOptions = Options;
 
@@ -8,14 +8,16 @@ export class CamStreamerAPI {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
 
     constructor(options?: CamStreamerAPIOptions) {
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
     }
 
     async getStreamList() {
@@ -37,19 +39,26 @@ export class CamStreamerAPI {
         return response.data.is_streaming;
     }
 
-    async get(path: string) {
-        const options = this.getBaseConnectionParams();
-        options.path = encodeURI(path);
-        const data = (await httpRequest(options)) as string;
-        return JSON.parse(data);
+    async get(path: string): Promise<any> {
+        const options = this.getBaseConnectionParams(path);
+        const res = await sendRequest(options);
+
+        if (res.ok) {
+            return await res.json();
+        } else {
+            throw new Error(JSON.stringify(res));
+        }
     }
 
-    private getBaseConnectionParams(): HttpRequestOptions {
+    private getBaseConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
         return {
+            method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
-            auth: this.auth,
+            path: path,
+            user: this.user,
+            pass: this.pass,
             rejectUnauthorized: !this.tlsInsecure,
         };
     }

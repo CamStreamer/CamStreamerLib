@@ -9,10 +9,11 @@ function isDirectory(path: string) {
     return stat.isDirectory();
 }
 
-type ZipOptions = {
+type TZipOptions = {
     includeNodeModules: boolean;
     typeScriptPackage: boolean;
     excludedFileNames: string[];
+    outputFolder: string;
 };
 
 const productionModulesFolder = 'production_modules';
@@ -27,10 +28,10 @@ function getPackageVersion(folder: string) {
     }
 }
 
-function createZipArchive(zip: AdmZip, folder: string, options: ZipOptions) {
+function createZipArchive(zip: AdmZip, folder: string, options: TZipOptions) {
     const zipFileRegex = new RegExp(`${Path.basename(folder)}(_[0-9]){3}\\.zip`);
     const files = fs.readdirSync(folder);
-    for (let file of files) {
+    for (const file of files) {
         const path = Path.join(folder, file);
         const isDir = isDirectory(path);
         if (
@@ -67,14 +68,18 @@ function installDependencies() {
 }
 
 function main(args: string[]) {
-    const options: ZipOptions = {
+    const options: TZipOptions = {
         includeNodeModules: false,
         typeScriptPackage: false,
+        outputFolder: '.',
         excludedFileNames: [],
     };
-    for (let arg of args) {
+    for (const arg of args) {
         if (arg === '-i' || arg === '-includeNodeModules') {
             options.includeNodeModules = true;
+        }
+        if (arg.startsWith('-w=') || arg.startsWith('-where=')) {
+            options.outputFolder = arg.substring(arg.indexOf('=') + 1);
         }
         if (arg.startsWith('-e=') || arg.startsWith('-exclude=')) {
             options.excludedFileNames = arg.substring(arg.indexOf('=') + 1).split(',');
@@ -90,13 +95,13 @@ function main(args: string[]) {
 
     const folder = Path.resolve('.');
     const packageVersion = getPackageVersion(folder);
-    const zipFile = `${Path.basename(folder)}_${packageVersion}.zip`;
+    const zipFile = `${options.outputFolder}/${Path.basename(folder)}_${packageVersion}.zip`;
 
     if (fs.existsSync(zipFile)) {
         try {
             fs.unlinkSync(zipFile);
         } catch (error) {
-            console.log('An error occured: ', error);
+            console.error('An error occured: ', error);
             process.exit(1);
         }
     }

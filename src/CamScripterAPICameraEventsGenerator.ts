@@ -1,11 +1,11 @@
 import * as EventEmitter from 'events';
 
-import { Options } from './common';
-import { WsClient, WsClientOptions } from './WsClient';
+import { Options } from './internal/common';
+import { WsClient, WsClientOptions } from './internal/WsClient';
 
 export type CamScripterOptions = Options;
 
-export type Declaration = {
+export type TDeclaration = {
     type?: '' | 'SOURCE' | 'DATA';
     namespace: string;
     key: string;
@@ -15,42 +15,42 @@ export type Declaration = {
     value_nice_name?: string;
 };
 
-export type EventDeclaration = {
+export type TEventDeclaration = {
     declaration_id: string;
     stateless: boolean;
-    declaration: Declaration[];
+    declaration: TDeclaration[];
 };
 
-export type EventUndeclaration = {
+export type TEventUndeclaration = {
     declaration_id: string;
 };
 
-export type EventData = {
+export type TEventData = {
     namespace: string;
     key: string;
     value: string | boolean | number;
     value_type: 'STRING' | 'INT' | 'BOOL' | 'DOUBLE';
 };
 
-export type Event = {
+export type TEvent = {
     declaration_id: string;
-    event_data: EventData[];
+    event_data: TEventData[];
 };
 
-export type Response = {
+export type TResponse = {
     call_id: number;
     message: string;
 };
 
-type Message = {
+type TMessage = {
     call_id: number;
     command: string;
-    data: any;
+    data: unknown;
 };
 
-type AsyncMessage = {
-    resolve;
-    reject;
+type TAsyncMessage = {
+    resolve: (value: TResponse) => void;
+    reject: (reason?: any) => void;
 };
 
 export class CamScripterAPICameraEventsGenerator extends EventEmitter {
@@ -58,11 +58,12 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
     private callId: number;
-    private sendMessages: Record<number, AsyncMessage>;
+    private sendMessages: Record<number, TAsyncMessage>;
 
-    private ws: WsClient = null;
+    private ws?: WsClient;
 
     constructor(options?: CamScripterOptions) {
         super();
@@ -71,7 +72,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
 
         this.callId = 0;
         this.sendMessages = {};
@@ -84,11 +86,11 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             await this.openWebsocket();
             this.emit('open');
         } catch (err) {
-            this.reportErr(err);
+            this.reportErr(err as Error);
         }
     }
 
-    declareEvent(eventDeclaration: EventDeclaration) {
+    declareEvent(eventDeclaration: TEventDeclaration) {
         return this.sendMessage({
             call_id: 0,
             command: 'declare_event',
@@ -96,7 +98,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
-    undeclareEvent(eventUndeclaration: EventUndeclaration) {
+    undeclareEvent(eventUndeclaration: TEventUndeclaration) {
         return this.sendMessage({
             call_id: 0,
             command: 'undeclare_event',
@@ -104,7 +106,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
-    sendEvent(event: Event) {
+    sendEvent(event: TEvent) {
         return this.sendMessage({
             call_id: 0,
             command: 'send_event',
@@ -112,8 +114,11 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
-    private sendMessage(msgJson: Message) {
-        return new Promise<Response>((resolve, reject) => {
+    private sendMessage(msgJson: TMessage) {
+        return new Promise<TResponse>((resolve, reject) => {
+            if (this.ws === undefined) {
+                throw new Error("Websocket hasn't been opened yet.");
+            }
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson.call_id = this.callId++;
@@ -127,7 +132,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private openWebsocket() {
         return new Promise<void>((resolve, reject) => {
             const options: WsClientOptions = {
-                auth: this.auth,
+                user: this.user,
+                pass: this.pass,
                 tlsInsecure: this.tlsInsecure,
                 tls: this.tls,
                 ip: this.ip,
@@ -143,8 +149,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             });
             this.ws.on('message', (data: Buffer) => {
                 const dataJSON = JSON.parse(data.toString());
-                if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if (dataJSON.hasOwnProperty('error')) {
+                if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
+                    if (Object.hasOwn(dataJSON, 'error')) {
                         this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
                     } else {
                         this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
@@ -152,7 +158,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
                     delete this.sendMessages[dataJSON['call_id']];
                 }
 
-                if (dataJSON.hasOwnProperty('error')) {
+                if (Object.hasOwn(dataJSON, 'error')) {
                     this.reportErr(new Error(dataJSON.error));
                 }
             });
@@ -169,7 +175,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     }
 
     private reportErr(err: Error) {
-        this.ws.close();
+        this.ws?.close();
         this.emit('error', err);
     }
 

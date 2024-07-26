@@ -9,27 +9,30 @@ export type HttpServerOptions = {
     port?: number;
 };
 
-type OnRequestCallback = (req: http.IncomingMessage, res: http.ServerResponse) => void;
+type TOnRequestCallback = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
 export class HttpServer extends EventEmitter {
     private port: number;
-    private registeredPaths: Map<string, OnRequestCallback>;
+    private registeredPaths: Map<string, TOnRequestCallback>;
     private server: http.Server;
     private sockets: Record<number, Socket>;
 
     constructor(options?: HttpServerOptions) {
         super();
-        this.port = options?.port ?? parseInt(process.env.HTTP_PORT);
+        this.port = options?.port ?? parseInt(process.env.HTTP_PORT ?? '80');
 
         this.registeredPaths = new Map();
         this.server = http.createServer((req, res) => {
             this.emit('access', req.method + ' ' + req.url);
 
             // Parse URL
-            const parsedUrl = url.parse(req.url);
+            const parsedUrl = url.parse(req.url ?? '');
+            parsedUrl.pathname ??= '';
+
             // Find path in registered paths
-            if (this.registeredPaths.has(parsedUrl.pathname)) {
-                this.registeredPaths.get(parsedUrl.pathname)(req, res);
+            const requestCallback = this.registeredPaths.get(parsedUrl.pathname);
+            if (requestCallback) {
+                requestCallback(req, res);
                 return;
             }
             // Extract URL path
@@ -37,7 +40,7 @@ export class HttpServer extends EventEmitter {
             // Based on the URL path, extract the file extention. e.g. .js, .doc, ...
             const ext = path.parse(pathname).ext;
             // Maps file extention to MIME typere
-            const map = {
+            const map: Record<string, string> = {
                 '.ico': 'image/x-icon',
                 '.html': 'text/html',
                 '.js': 'text/javascript',
@@ -90,7 +93,7 @@ export class HttpServer extends EventEmitter {
         this.sockets = {};
         let idTracker = 0;
         this.server.on('connection', (socket) => {
-            let socketID = idTracker++;
+            const socketID = idTracker++;
             this.sockets[socketID] = socket;
             socket.on('close', () => {
                 delete this.sockets[socketID];
@@ -98,13 +101,13 @@ export class HttpServer extends EventEmitter {
         });
     }
 
-    onRequest(path: string, callback: OnRequestCallback) {
+    onRequest(path: string, callback: TOnRequestCallback) {
         this.registeredPaths.set(path, callback);
     }
 
     close() {
         this.server.close();
-        for (let key in this.sockets) {
+        for (const key in this.sockets) {
             this.sockets[key].destroy();
         }
     }

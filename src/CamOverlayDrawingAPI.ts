@@ -1,36 +1,38 @@
 import * as EventEmitter from 'events';
+import { setTimeout } from 'timers/promises';
 
-import { Options } from './common';
-import { WsClient, WsClientOptions } from './WsClient';
+import { Options } from './internal/common';
+import { WsClient, WsClientOptions } from './internal/WsClient';
 
-type CamOverlayDrawingOptions = Options & {
+export type CamOverlayDrawingOptions = Options & {
     camera?: number | number[];
     zIndex?: number;
 };
 
-export type Message = {
+type TMessage = {
     command: string;
-    params?: any[];
+    call_id?: number;
+    params?: unknown[];
 };
 
-export type CairoResponse = {
+export type TCairoResponse = {
     message: string;
     call_id: number;
 };
 
-export type CairoCreateResponse = {
+export type TCairoCreateResponse = {
     var: string;
     call_id: number;
 };
 
-export type UploadImageResponse = {
+export type TUploadImageResponse = {
     var: string;
     width: number;
     height: number;
     call_id: number;
 };
 
-export type Service = {
+export type TService = {
     id: number;
     enabled: number;
     schedule: string;
@@ -39,17 +41,17 @@ export type Service = {
     cameraList: number[];
 };
 
-export type ServiceList = {
-    services: Service[];
+export type TServiceList = {
+    services: TService[];
 };
 
-export type Align = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
+export type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
 export type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
-export type WriteTextParams = [string, string, number, number, number, number, Align, TextFit?];
+export type TWriteTextParams = [string, string, number, number, number, number, TAlign, TextFit?];
 
-type Response = CairoResponse | CairoCreateResponse | UploadImageResponse;
+type Response = TCairoResponse | TCairoCreateResponse | TUploadImageResponse;
 type AsyncMessage = {
-    resolve: (value: PromiseLike<Response>) => void;
+    resolve: (value: Response) => void;
     reject: (reason: Error) => void;
 };
 
@@ -58,12 +60,14 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
     private cameraList: number[];
     private zIndex: number;
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
 
+    private connected = false;
     private ws?: WsClient;
     constructor(options?: CamOverlayDrawingOptions) {
         super();
@@ -72,10 +76,11 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
         this.zIndex = options?.zIndex ?? 0;
         this.cameraList = [0];
-        if (Array.isArray(options?.camera)) {
+        if (options && Array.isArray(options.camera)) {
             this.cameraList = options.camera;
         } else if (typeof options?.camera === 'number') {
             this.cameraList = [options.camera];
@@ -90,24 +95,25 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     async connect() {
         try {
             await this.openWebsocket();
-            this.emit('open');
+            this.connected = true;
         } catch (err) {
             // Error is already reported
         }
     }
 
     disconnect() {
+        this.connected = false;
         if (this.ws !== undefined) {
             this.ws.close();
         }
     }
 
-    cairo(command: string, ...params: any[]) {
-        return this.sendMessage({ command: command, params: params }) as Promise<CairoResponse | CairoCreateResponse>;
+    cairo(command: string, ...params: unknown[]) {
+        return this.sendMessage({ command: command, params: params }) as Promise<TCairoResponse | TCairoCreateResponse>;
     }
 
-    writeText(...params: WriteTextParams) {
-        return this.sendMessage({ command: 'write_text', params: params }) as Promise<CairoResponse>;
+    writeText(...params: TWriteTextParams) {
+        return this.sendMessage({ command: 'write_text', params: params }) as Promise<TCairoResponse>;
     }
 
     uploadImageData(imgBuffer: Buffer) {
@@ -117,7 +123,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 params: [],
             },
             imgBuffer
-        ) as Promise<UploadImageResponse>;
+        ) as Promise<TUploadImageResponse>;
     }
 
     uploadFontData(fontBuffer: Buffer) {
@@ -127,14 +133,14 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 params: [fontBuffer.toString('base64')],
             },
             fontBuffer
-        ) as Promise<CairoCreateResponse>;
+        ) as Promise<TCairoCreateResponse>;
     }
 
     showCairoImage(cairoImage: string, posX: number, posY: number) {
         return this.sendMessage({
             command: 'show_cairo_image_v2',
             params: [cairoImage, posX, posY, this.cameraList, this.zIndex],
-        }) as Promise<CairoResponse>;
+        }) as Promise<TCairoResponse>;
     }
 
     showCairoImageAbsolute(cairoImage: string, posX: number, posY: number, width: number, height: number) {
@@ -147,11 +153,11 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.cameraList,
                 this.zIndex,
             ],
-        }) as Promise<CairoResponse>;
+        }) as Promise<TCairoResponse>;
     }
 
     removeImage() {
-        return this.sendMessage({ command: 'remove_image_v2' }) as Promise<CairoResponse>;
+        return this.sendMessage({ command: 'remove_image_v2' }) as Promise<TCairoResponse>;
     }
 
     private openWebsocket(): Promise<void> {
@@ -162,28 +168,29 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 address: '/local/camoverlay/ws',
                 protocol: 'cairo-api',
 
-                auth: this.auth,
+                user: this.user,
+                pass: this.pass,
                 tls: this.tls,
                 tlsInsecure: this.tlsInsecure,
             };
             this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
-                this.reportMessage('Websocket opened');
+                this.emit('open');
                 resolve();
             });
             this.ws.on('message', (data: Buffer) => {
-                let dataJSON = JSON.parse(data.toString());
-                if (dataJSON.hasOwnProperty('call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if (dataJSON.hasOwnProperty('error')) {
-                        this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
+                const dataJSON = JSON.parse(data.toString());
+                if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
+                    if (Object.hasOwn(dataJSON, 'error')) {
+                        this.sendMessages[dataJSON.call_id].reject(new Error(dataJSON.error));
                     } else {
-                        this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
+                        this.sendMessages[dataJSON.call_id].resolve(dataJSON);
                     }
                     delete this.sendMessages[dataJSON['call_id']];
                 }
 
-                if (dataJSON.hasOwnProperty('error')) {
+                if (Object.hasOwn(dataJSON, 'error')) {
                     this.reportError(new Error(dataJSON.error));
                 } else {
                     this.reportMessage(data.toString());
@@ -193,16 +200,24 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.reportError(error);
                 reject(error);
             });
-            this.ws.on('close', () => {
+            this.ws.on('close', async () => {
                 this.ws = undefined;
                 this.reportClose();
+                if (this.connected) {
+                    try {
+                        await setTimeout(10000);
+                        void this.openWebsocket();
+                    } catch (err) {
+                        // Error is already reported
+                    }
+                }
             });
 
             this.ws.open();
         });
     }
 
-    private sendMessage(msgJson: Message) {
+    private sendMessage(msgJson: TMessage) {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
@@ -218,7 +233,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         });
     }
 
-    private sendBinaryMessage(msgJson: Message, data: Buffer) {
+    private sendBinaryMessage(msgJson: TMessage, data: Buffer) {
         return new Promise<Response>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };

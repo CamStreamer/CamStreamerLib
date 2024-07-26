@@ -1,7 +1,8 @@
 export type Options = {
     ip?: string;
     port?: number;
-    auth?: string;
+    user?: string;
+    pass?: string;
     tls?: boolean;
     tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
 };

@@ -1,35 +1,47 @@
 {
   "name": "camstreamerlib",
-  "version": "2.0.6",
+  "version": "3.0.0",
   "description": "Helper library for CamStreamer ACAP applications.",
   "prettier": "@camstreamer/prettier-config",
   "dependencies": {
     "adm-zip": "^0.5.9",
-    "crypto": "^1.0.1",
     "eventemitter2": "^5.0.1",
     "prettify-xml": "^1.2.0",
     "ws": "^7.4.2",
     "xml2js": "^0.5.0"
   },
+  "engine": {
+    "node": ">=18.0.0"
+  },
   "devDependencies": {
+    "@camstreamer/eslint-config": "^1.0.0",
     "@camstreamer/prettier-config": "^2.0.4",
+    "@types/adm-zip": "^0.5.5",
     "@types/jest": "^28.0.0",
-    "@types/node": "^18.0.6",
+    "@types/node": "^18.19.39",
+    "@types/ws": "^8.5.10",
+    "@types/xml2js": "^0.4.14",
+    "@typescript-eslint/eslint-plugin": "^6.8.0",
+    "@typescript-eslint/parser": "^6.8.0",
+    "eslint": "^8.51.0",
+    "eslint-plugin-deprecation": "^2.0.0",
+    "eslint-plugin-unused-imports": "^3.0.0",
     "jest": "^28.1.3",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
-    "rimraf": "^3.0.2",
     "ts-jest": "^28.0.0",
     "ts-node": "^10.7.0",
-    "typescript": "^4.7.4"
+    "typescript": "^5.2.2"
   },
   "scripts": {
     "clean": "rimraf dist/*",
     "build": "npm-run-all clean tsc copyPackage",
     "tsc": "tsc",
     "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
-    "pretty": "prettier --write \"./{src,doc}/*.{ts,tsx,md}\"",
-    "pretty:check": "prettier --check \"./{src,doc}/*.{ts,tsx,md}\"",
+    "lint": "eslint \"src/**/*.ts\"",
+    "lint:fix": "eslint \"src/**/*.ts\" --fix",
+    "pretty": "prettier --write \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
+    "pretty:check": "prettier --check \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "files": [

@@ -1,8 +1,8 @@
 import * as EventEmitter from 'events';
 
-import { Options } from './common';
-import { WsClient, WsClientOptions } from './WsClient';
-import { httpRequest, HttpRequestOptions } from './HttpRequest';
+import { Options } from './internal/common';
+import { WsClient, WsClientOptions } from './internal/WsClient';
+import { HttpRequestOptions, sendRequest } from './internal/HttpRequest';
 
 export type CamSwitcherAPIOptions = Options;
 
@@ -11,9 +11,10 @@ export class CamSwitcherAPI extends EventEmitter {
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
-    private auth: string;
+    private user: string;
+    private pass: string;
 
-    private ws: WsClient;
+    private ws?: WsClient;
 
     constructor(options?: CamSwitcherAPIOptions) {
         super();
@@ -22,7 +23,8 @@ export class CamSwitcherAPI extends EventEmitter {
         this.tlsInsecure = options?.tlsInsecure ?? false;
         this.ip = options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.auth = options?.auth ?? '';
+        this.user = options?.user ?? '';
+        this.pass = options?.pass ?? '';
 
         EventEmitter.call(this);
     }
@@ -34,7 +36,8 @@ export class CamSwitcherAPI extends EventEmitter {
             const options: WsClientOptions = {
                 ip: this.ip,
                 port: this.port,
-                auth: this.auth,
+                user: this.user,
+                pass: this.pass,
                 tls: this.tls,
                 tlsInsecure: this.tlsInsecure,
 
@@ -44,7 +47,7 @@ export class CamSwitcherAPI extends EventEmitter {
             this.ws = new WsClient(options);
 
             this.ws.on('open', () => {
-                this.ws.send(JSON.stringify({ authorization: token }));
+                this.ws?.send(JSON.stringify({ authorization: token }));
             });
             this.ws.on('message', (data: Buffer) => {
                 try {
@@ -100,27 +103,30 @@ export class CamSwitcherAPI extends EventEmitter {
     }
 
     async get(path: string) {
-        const options = this.getBaseConnectionParams();
-        options.path = encodeURI(path);
-        const data = (await httpRequest(options)) as string;
-        try {
-            const response = JSON.parse(data);
-            if (response.status == 200) {
-                return response.data as object;
+        const options = this.getBaseConnectionParams(path);
+        const res = await sendRequest(options);
+
+        if (res.ok) {
+            const responseText = JSON.parse(await res.text());
+            if (responseText.status === 200) {
+                return responseText.data as object;
             } else {
-                throw new Error(`Request (${path}) error, response: ${JSON.stringify(response)}`);
+                throw new Error(`Request (${path}) error, response: ${JSON.stringify(responseText)}`);
             }
-        } catch (err) {
-            throw new Error(`Request (${path}) error: ${err}, msg: ${data}`);
+        } else {
+            throw new Error(JSON.stringify(res));
         }
     }
 
-    private getBaseConnectionParams(): HttpRequestOptions {
+    private getBaseConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
         return {
+            method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
-            auth: this.auth,
+            path: path,
+            user: this.user,
+            pass: this.pass,
             rejectUnauthorized: !this.tlsInsecure,
         };
     }

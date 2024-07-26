@@ -1,4 +1,4 @@
-import {Digest} from "../dist/Digest";
+import {Digest} from "../dist/internal/Digest";
 
 import {describe, test, expect} from "@jest/globals";
 
