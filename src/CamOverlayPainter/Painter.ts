@@ -50,6 +50,13 @@ export default class Painter extends Frame {
         this.cod.disconnect();
     }
 
+    registerImage(moniker: string, fileName: string) {
+        this.rm.registerImage(moniker, fileName);
+    }
+    registerFont(moniker: string, fileName: string) {
+        this.rm.registerFont(moniker, fileName);
+    }
+
     setScreenSize(sw: number, sh: number) {
         this.screenWidth = sw;
         this.screenHeight = sh;
