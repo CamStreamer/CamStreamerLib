@@ -8,7 +8,7 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **registerImage(moniker: string, fileName: string), registerFont(moniker: string, fileName: string)** - Adds the resource specified by `fileName` to this `ResourceManager`.
 
--   **async image(co: CamOverlayDrawingAPI, moniker: string): TUploadImageResponse** - Uploads the image specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the images and its resolution.
+-   **async image(moniker: string): TUploadImageResponse** - Uploads the image specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the images and its resolution.
 
     ```typescript
     type TUploadImageResponse = {
@@ -19,7 +19,7 @@ Three modules for even easier control of CamOverlay drawing API.
     };
     ```
 
--   **async font(co: CamOverlayDrawingAPI, moniker: string): TCairoCreateResponse** - Uploads the font specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the font.
+-   **async font(moniker: string): TCairoCreateResponse** - Uploads the font specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the font.
 
     ```typescript
     type TCairoCreateResponse = {
@@ -34,7 +34,7 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   Represents one field of graphics. Manages the display of an image, text or background colour. Supports nested frames too.
 
--   **Frame(options: FrameOptions, rm: ResourceManager, customDraw?: TDrawingCallback)**
+-   **Frame(options: FrameOptions, customDraw?: TDrawingCallback)**
 
     ```typescript
     type FrameOptions = {
@@ -73,6 +73,8 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **setBgImage(imageName: string, type: ObjectFitType)** - As an imageName use the moniker registered in ResourceManager.
 
+-   **setBgImageData(imageData: TUploadImageResponse, type: ObjectFitType)** - Allows to display image not registered in ResourceManager.
+
 -   **setCustomDraw(customDraw: TDrawingCallback)** - Sets a callback which is run when the entire frame is displayed.
 
     ```typescript
@@ -95,7 +97,7 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   Represents one widget, manages the connection to CamOverlay and the display of graphics as a whole.
 
--   **constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions, rm: ResourceManager)**
+-   **constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions)**
 
     ```typescript
     type PainterOptions = FrameOptions & {
@@ -105,9 +107,15 @@ Three modules for even easier control of CamOverlay drawing API.
     };
     ```
 
+-   **get camOverlayDrawingAPI()** - Returns the internal `CamOverlayDrawingAPI` object.
+
+-   **get resourceManager()** - Returns the internal `ResourceManager` object.
+
 -   **async connect()** - Opens CamOverlayDrawingAPI.
 
 -   **disconnect()** - Closes CamOverlayDrawingAPI.
+
+-   **registerImage(moniker: string, fileName: string), registerFont(moniker: string, fileName: string)** - Adds the resource specified by `fileName` to the internal `ResourceManager`.
 
 -   **setScreenSize(width: number, height: number)** - Sets the size of the screen to draw on. The resolution of the screen is expected.
 
@@ -118,3 +126,5 @@ Three modules for even easier control of CamOverlay drawing API.
     > top_right,center_right,bottom_right
 
 -   **async display(scale = 1)** - Renders this painter, including all inserted frames.
+
+-   **async hide()** - Removes the displayed image from the camera. It has no effect on this `Painter` state.
