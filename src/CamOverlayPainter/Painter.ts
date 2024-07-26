@@ -75,6 +75,11 @@ export default class Painter extends Frame {
         );
         await this.destroy();
     }
+    async disable() {
+        this.enabled = false;
+        await this.cod.removeImage();
+    }
+
     private positionConvertor(alignment: number, screenSize: number, position: number, graphicsSize: number): number {
         switch (alignment) {
             case -1:
