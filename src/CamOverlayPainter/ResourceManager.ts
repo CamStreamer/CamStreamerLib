@@ -7,26 +7,26 @@ export default class ResourceManager {
     private images: Record<string, TUploadImageResponse> = {};
     private fonts: Record<string, TCairoCreateResponse> = {};
 
-    constructor() {}
+    constructor(private co: CamOverlayDrawingAPI) {}
 
-    async image(co: CamOverlayDrawingAPI, moniker: string) {
+    async image(moniker: string) {
         if (moniker in this.images) {
             return this.images[moniker];
         } else if (moniker in this.imgFiles) {
             const imgData = await fs.readFile(this.imgFiles[moniker]);
-            this.images[moniker] = await co.uploadImageData(imgData);
+            this.images[moniker] = await this.co.uploadImageData(imgData);
             return this.images[moniker];
         } else {
             throw new Error('Error! Unknown image requested!');
         }
     }
 
-    async font(co: CamOverlayDrawingAPI, moniker: string) {
+    async font(moniker: string) {
         if (moniker in this.fonts) {
             return this.fonts[moniker];
         } else if (moniker in this.fontFiles) {
             const fontData = await fs.readFile(this.fontFiles[moniker]);
-            this.fonts[moniker] = await co.uploadFontData(fontData);
+            this.fonts[moniker] = await this.co.uploadFontData(fontData);
             return this.fonts[moniker];
         } else {
             throw new Error('Error! Unknown font requested!');

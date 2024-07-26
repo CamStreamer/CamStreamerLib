@@ -44,7 +44,7 @@ export default class Frame {
 
     protected children = new Array<Frame>();
 
-    constructor(opt: FrameOptions, protected rm: ResourceManager, private customDraw?: TDrawingCallback) {
+    constructor(opt: FrameOptions, private customDraw?: TDrawingCallback) {
         this.posX = opt.x;
         this.posY = opt.y;
         this.width = opt.width;
@@ -111,21 +111,35 @@ export default class Frame {
         this.enabled = false;
     }
 
-    public async displayImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale = 1) {
+    public async displayImage(
+        cod: CamOverlayDrawingAPI,
+        rm: ResourceManager,
+        cairo: string,
+        ppX: number,
+        ppY: number,
+        scale = 1
+    ) {
         if (this.enabled) {
             ppX += this.posX;
             ppY += this.posY;
-            await this.displayOwnImage(cod, cairo, ppX, ppY, scale);
+            await this.displayOwnImage(cod, rm, cairo, ppX, ppY, scale);
             for (const child of this.children) {
-                await child.displayImage(cod, cairo, ppX, ppY, scale);
+                await child.displayImage(cod, rm, cairo, ppX, ppY, scale);
             }
         }
     }
-    protected async displayOwnImage(cod: CamOverlayDrawingAPI, cairo: string, ppX: number, ppY: number, scale: number) {
+    protected async displayOwnImage(
+        cod: CamOverlayDrawingAPI,
+        rm: ResourceManager,
+        cairo: string,
+        ppX: number,
+        ppY: number,
+        scale: number
+    ) {
         const promises = new Array<Promise<unknown>>();
 
         if (this.fontName !== undefined) {
-            const fontData = await this.rm.font(cod, this.fontName);
+            const fontData = await rm.font(this.fontName);
             promises.push(cod.cairo('cairo_set_font_face', cairo, fontData.var));
         } else {
             promises.push(cod.cairo('cairo_set_font_face', cairo, 'NULL'));
@@ -134,7 +148,7 @@ export default class Frame {
             promises.push(this.drawFrame(cod, cairo, scale, ppX, ppY));
         }
         if (this.bgImage !== undefined) {
-            promises.push(this.drawImage(cod, cairo, scale, ppX, ppY));
+            promises.push(this.drawImage(cod, rm, cairo, scale, ppX, ppY));
         }
         if (this.text) {
             promises.push(this.drawText(cod, cairo, scale, ppX, ppY));
@@ -172,8 +186,15 @@ export default class Frame {
             throw new Error('Colour of this frame is undefined.');
         }
     }
-    private async drawImage(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
-        const imageData = await this.rm.image(cod, this.bgImage!);
+    private async drawImage(
+        cod: CamOverlayDrawingAPI,
+        rm: ResourceManager,
+        cairo: string,
+        scale: number,
+        ppX: number,
+        ppY: number
+    ) {
+        const imageData = await rm.image(this.bgImage!);
         const bgImage = imageData.var;
         const bgWidth = imageData.width;
         const bgHeight = imageData.height;
