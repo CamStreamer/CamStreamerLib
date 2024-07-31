@@ -30,7 +30,11 @@ function getDigestHeader(options: HttpRequestOptions, digestHeader: string) {
     return Digest.getAuthHeader(options.user, options.pass, options.method, options.path, digestHeader);
 }
 
-async function sendRequestWithDigest(options: HttpRequestOptions, digestHeader: string, postData?: Buffer | string) {
+async function sendRequestWithDigest(
+    options: HttpRequestOptions,
+    digestHeader: string,
+    postData?: Buffer | string | FormData
+) {
     const url = getURL(options);
     options.headers ??= {};
     options.headers['Authorization'] = getDigestHeader(options, digestHeader);
@@ -45,7 +49,7 @@ async function sendRequestWithDigest(options: HttpRequestOptions, digestHeader: 
     return res;
 }
 
-export async function sendRequest(options: HttpRequestOptions, postData?: Buffer | string) {
+export async function sendRequest(options: HttpRequestOptions, postData?: Buffer | string | FormData) {
     const url = getURL(options);
     const controller = new AbortController();
     if (options.timeout !== undefined) {
