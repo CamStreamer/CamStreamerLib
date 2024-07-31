@@ -1,23 +1,17 @@
-import { Options } from './internal/common';
-import { HttpRequestOptions, sendRequest } from './internal/HttpRequest';
+import { Options, IClient, isClient } from './internal/common';
+import { DefaultAgent } from './DefaultAgent';
 
 export type CamStreamerAPIOptions = Options;
 
 export class CamStreamerAPI {
-    private tls: boolean;
-    private tlsInsecure: boolean;
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
+    private client: IClient;
 
-    constructor(options?: CamStreamerAPIOptions) {
-        this.tls = options?.tls ?? false;
-        this.tlsInsecure = options?.tlsInsecure ?? false;
-        this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+    constructor(options: CamStreamerAPIOptions | IClient = {}) {
+        if (isClient(options)) {
+            this.client = options;
+        } else {
+            this.client = new DefaultAgent(options);
+        }
     }
 
     async getStreamList() {
@@ -40,26 +34,12 @@ export class CamStreamerAPI {
     }
 
     async get(path: string): Promise<any> {
-        const options = this.getBaseConnectionParams(path);
-        const res = await sendRequest(options);
+        const res = await this.client.get(path);
 
         if (res.ok) {
             return await res.json();
         } else {
             throw new Error(JSON.stringify(res));
         }
-    }
-
-    private getBaseConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
-        return {
-            method: method,
-            protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            user: this.user,
-            pass: this.pass,
-            rejectUnauthorized: !this.tlsInsecure,
-        };
     }
 }

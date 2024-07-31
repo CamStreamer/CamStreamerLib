@@ -3,9 +3,8 @@ import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { Options } from './internal/common';
-import { WsClient, WsClientOptions } from './internal/WsClient';
-import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
+import { IClient, isClient, Options } from './internal/common';
+import { DefaultAgent } from './DefaultAgent';
 
 export type CameraVapixOptions = Options;
 
@@ -48,37 +47,28 @@ export type TGuardTour = {
 };
 
 export class CameraVapix extends EventEmitter {
-    private tls: boolean;
-    private tlsInsecure: boolean;
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
+    private client: IClient;
 
-    private ws?: WsClient;
-
-    constructor(options?: CameraVapixOptions) {
+    constructor(options: CameraVapixOptions | IClient = {}) {
         super();
 
-        this.tls = options?.tls ?? false;
-        this.tlsInsecure = options?.tlsInsecure ?? false;
-        this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+        if (isClient(options)) {
+            this.client = options;
+        } else {
+            this.client = new DefaultAgent(options);
+    }
     }
 
     vapixGet(path: string) {
-        const options = this.getBaseVapixConnectionParams(path);
-        return sendRequest(options, undefined);
+        return this.client.get(path);
     }
 
     vapixPost(path: string, data: string, contentType?: string) {
-        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        let headers = {};
         if (contentType !== undefined) {
-            options.headers = { 'Content-Type': contentType };
+            headers = { 'Content-Type': contentType };
         }
-        return sendRequest(options, data);
+        return this.client.post(path, data, {}, headers);
     }
 
     async getParameterGroup(groupNames: string) {
@@ -290,16 +280,4 @@ export class CameraVapix extends EventEmitter {
         return eventName === 'eventsConnect' || eventName === 'eventsDisconnect' || eventName === 'eventsClose';
     }
 
-    private getBaseVapixConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
-        return {
-            method: method,
-            protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            user: this.user,
-            pass: this.pass,
-            rejectUnauthorized: !this.tlsInsecure,
-        };
-    }
 }

@@ -1,30 +1,21 @@
 import * as EventEmitter from 'events';
 
-import { Options } from './internal/common';
-import { WsClient, WsClientOptions } from './internal/WsClient';
-import { HttpRequestOptions, sendRequest } from './internal/HttpRequest';
+import { DefaultAgent } from './DefaultAgent';
+import { IClient, isClient, Options } from './internal/common';
 
 export type CamSwitcherAPIOptions = Options;
 
 export class CamSwitcherAPI extends EventEmitter {
-    private tls: boolean;
-    private tlsInsecure: boolean;
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
+    private client: IClient;
 
-    private ws?: WsClient;
-
-    constructor(options?: CamSwitcherAPIOptions) {
+    constructor(options: CamSwitcherAPIOptions | IClient = {}) {
         super();
 
-        this.tls = options?.tls ?? false;
-        this.tlsInsecure = options?.tlsInsecure ?? false;
-        this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+        if (isClient(options)) {
+            this.client = options;
+        } else {
+            this.client = new DefaultAgent(options);
+        }
 
         EventEmitter.call(this);
     }
@@ -103,8 +94,7 @@ export class CamSwitcherAPI extends EventEmitter {
     }
 
     async get(path: string) {
-        const options = this.getBaseConnectionParams(path);
-        const res = await sendRequest(options);
+        const res = await this.client.get(path);
 
         if (res.ok) {
             const responseText = JSON.parse(await res.text());
@@ -116,18 +106,5 @@ export class CamSwitcherAPI extends EventEmitter {
         } else {
             throw new Error(JSON.stringify(res));
         }
-    }
-
-    private getBaseConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
-        return {
-            method: method,
-            protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            user: this.user,
-            pass: this.pass,
-            rejectUnauthorized: !this.tlsInsecure,
-        };
     }
 }
