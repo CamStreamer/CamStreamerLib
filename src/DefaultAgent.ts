@@ -50,28 +50,28 @@ export class DefaultAgent implements IClient {
         };
     }
 
-    async get(url: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
-        const options = this.getBaseConnectionParams('GET', url, parameters);
+    async get(path: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
+        const options = this.getBaseConnectionParams('GET', path, parameters);
         options.headers = headers;
         return sendRequest(options);
     }
     async post(
-        url: string,
+        path: string,
         data: string | Buffer,
         parameters: Record<string, string> = {},
         headers?: Record<string, string>
     ) {
-        const options = this.getBaseConnectionParams('POST', url, parameters);
+        const options = this.getBaseConnectionParams('POST', path, parameters);
         options.headers = headers;
         return sendRequest(options, data);
     }
     async postFormData(
-        url: string,
+        path: string,
         data: FormData,
         parameters: Record<string, string> = {},
         headers?: Record<string, string>
     ) {
-        const options = this.getBaseConnectionParams('POST', url, parameters);
+        const options = this.getBaseConnectionParams('POST', path, parameters);
         options.headers = headers;
         return sendRequest(options, data);
     }
