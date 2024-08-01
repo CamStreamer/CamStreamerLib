@@ -44,8 +44,15 @@ async function sendRequestWithDigest(
         setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
     }
 
-    const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
-    const res = await fetch(req, { signal: controller.signal });
+    let res: Response;
+    if (options.rejectUnauthorized) {
+        const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
+        res = await fetch(req, { signal: controller.signal });
+    } else {
+        const myFetch = await import('./fetchInsecure');
+        const req = new myFetch.Request(url, { body: postData, method: options.method, headers: options.headers });
+        res = await myFetch.fetchInsecure(req, { signal: controller.signal });
+    }
     return res;
 }
 
@@ -61,10 +68,15 @@ export async function sendRequest(options: HttpRequestOptions, postData?: Buffer
         options.headers['Authorization'] = `Basic ${btoa(options.user + ':' + options.pass)}`;
     }
 
-    const myFetch = options.rejectUnauthorized ? fetch : (await import('./fetchInsecure')).fetchInsecure;
-
-    const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
-    const res = await myFetch(req, { signal: controller.signal });
+    let res: Response;
+    if (options.rejectUnauthorized) {
+        const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
+        res = await fetch(req, { signal: controller.signal });
+    } else {
+        const myFetch = await import('./fetchInsecure');
+        const req = new myFetch.Request(url, { body: postData, method: options.method, headers: options.headers });
+        res = await myFetch.fetchInsecure(req, { signal: controller.signal });
+    }
 
     const wwwAuthenticateHeader = res.headers.get('www-authenticate');
     if (res.status === 401 && wwwAuthenticateHeader !== null && wwwAuthenticateHeader.indexOf('Digest') !== -1) {
