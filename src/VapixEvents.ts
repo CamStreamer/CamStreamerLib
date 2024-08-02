@@ -3,9 +3,9 @@ import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 import { Options } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
 
-export type CameraVapixOptions = Options;
+export type VapixEventsOptions = Options;
 
-export class CameraVapix extends EventEmitter {
+export class VapixEvents extends EventEmitter {
     private ws?: WsClient;
 
     private tls: boolean;
@@ -15,7 +15,7 @@ export class CameraVapix extends EventEmitter {
     private user: string;
     private pass: string;
 
-    constructor(options: CameraVapixOptions = {}) {
+    constructor(options: VapixEventsOptions = {}) {
         super();
 
         this.tls = options.tls ?? false;

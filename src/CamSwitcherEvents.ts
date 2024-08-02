@@ -4,9 +4,9 @@ import { Options } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
 import { DefaultAgent } from './DefaultAgent';
 
-export type CamSwitcherAPIOptions = Options;
+export type CamSwitcherEventsOptions = Options;
 
-export class CamSwitcherAPI extends EventEmitter {
+export class CamSwitcherEvents extends EventEmitter {
     private ws?: WsClient;
     private client: DefaultAgent;
 
@@ -17,7 +17,7 @@ export class CamSwitcherAPI extends EventEmitter {
     private user: string;
     private pass: string;
 
-    constructor(options: CamSwitcherAPIOptions = {}) {
+    constructor(options: CamSwitcherEventsOptions = {}) {
         super();
 
         this.tls = options.tls ?? false;
