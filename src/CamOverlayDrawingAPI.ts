@@ -198,7 +198,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             });
             this.ws.on('error', (error: Error) => {
                 this.reportError(error);
-                reject(error);
             });
             this.ws.on('close', async () => {
                 this.ws = undefined;
