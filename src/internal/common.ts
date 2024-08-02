@@ -14,13 +14,7 @@ export type TGetFunction = (
 ) => Promise<Response>;
 export type TPostFunction = (
     url: string,
-    data: string | Buffer,
-    parameters?: Record<string, string>,
-    headers?: Record<string, string>
-) => Promise<Response>;
-export type TPostFormDataFunction = (
-    url: string,
-    data: FormData,
+    data: string | Buffer | FormData,
     parameters?: Record<string, string>,
     headers?: Record<string, string>
 ) => Promise<Response>;
@@ -28,7 +22,6 @@ export type TPostFormDataFunction = (
 export interface IClient {
     get: TGetFunction;
     post: TPostFunction;
-    postFormData: TPostFormDataFunction;
 }
 export function isClient(arg: Options | IClient = {}): arg is IClient {
     return 'get' in arg && 'post' in arg;

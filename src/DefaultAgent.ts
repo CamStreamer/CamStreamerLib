@@ -57,17 +57,7 @@ export class DefaultAgent implements IClient {
     }
     async post(
         path: string,
-        data: string | Buffer,
-        parameters: Record<string, string> = {},
-        headers?: Record<string, string>
-    ) {
-        const options = this.getBaseConnectionParams('POST', path, parameters);
-        options.headers = headers;
-        return sendRequest(options, data);
-    }
-    async postFormData(
-        path: string,
-        data: FormData,
+        data: string | Buffer | FormData,
         parameters: Record<string, string> = {},
         headers?: Record<string, string>
     ) {
