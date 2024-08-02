@@ -35,16 +35,14 @@ export class AxisCameraStationEvents {
         }
     }
 
-    async sendEvent(text: string, eventType: string) {
+    async sendEvent(data: Record<string, string>, eventType: string) {
         const dateString = getDate();
         const event = {
             addExternalDataRequest: {
                 occurrenceTime: dateString,
                 source: this.sourceKey,
                 externalDataType: eventType,
-                data: {
-                    Code: text,
-                },
+                data: data,
             },
         };
         const eventData = JSON.stringify(event);
