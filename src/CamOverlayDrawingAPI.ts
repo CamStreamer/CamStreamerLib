@@ -198,6 +198,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             });
             this.ws.on('error', (error: Error) => {
                 this.reportError(error);
+                reject(error);
             });
             this.ws.on('close', async () => {
                 this.ws = undefined;
@@ -205,9 +206,10 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 if (this.connected) {
                     try {
                         await setTimeout(10000);
-                        void this.openWebsocket();
+                        await this.openWebsocket();
+                        resolve();
                     } catch (err) {
-                        // Error is already reported
+                        reject(err);
                     }
                 }
             });
