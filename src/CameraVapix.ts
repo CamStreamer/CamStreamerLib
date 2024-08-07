@@ -3,9 +3,8 @@ import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { Options } from './internal/common';
-import { WsClient, WsClientOptions } from './internal/WsClient';
-import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
+import { IClient, isClient, Options } from './internal/common';
+import { DefaultAgent } from './DefaultAgent';
 
 export type CameraVapixOptions = Options;
 
@@ -48,37 +47,28 @@ export type TGuardTour = {
 };
 
 export class CameraVapix extends EventEmitter {
-    private tls: boolean;
-    private tlsInsecure: boolean;
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
+    private client: IClient;
 
-    private ws?: WsClient;
-
-    constructor(options?: CameraVapixOptions) {
+    constructor(options: CameraVapixOptions | IClient = {}) {
         super();
 
-        this.tls = options?.tls ?? false;
-        this.tlsInsecure = options?.tlsInsecure ?? false;
-        this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+        if (isClient(options)) {
+            this.client = options;
+        } else {
+            this.client = new DefaultAgent(options);
+        }
     }
 
     vapixGet(path: string) {
-        const options = this.getBaseVapixConnectionParams(path);
-        return sendRequest(options, undefined);
+        return this.client.get(path);
     }
 
     vapixPost(path: string, data: string, contentType?: string) {
-        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        let headers = {};
         if (contentType !== undefined) {
-            options.headers = { 'Content-Type': contentType };
+            headers = { 'Content-Type': contentType };
         }
-        return sendRequest(options, data);
+        return this.client.post(path, data, {}, headers);
     }
 
     async getParameterGroup(groupNames: string) {
@@ -214,92 +204,5 @@ export class CameraVapix extends EventEmitter {
             '</s:Envelope>';
         const declarations = await this.vapixPost('/vapix/services', data, 'application/soap+xml');
         return prettifyXml(declarations) as string;
-    }
-
-    eventsConnect(): void {
-        if (this.ws !== undefined) {
-            throw new Error('Websocket is already opened.');
-        }
-        const options: WsClientOptions = {
-            tls: this.tls,
-            tlsInsecure: this.tlsInsecure,
-            user: this.user,
-            pass: this.pass,
-            ip: this.ip,
-            port: this.port,
-            address: '/vapix/ws-data-stream?sources=events',
-        };
-        this.ws = new WsClient(options);
-
-        this.ws.on('open', () => {
-            const topics = [];
-            const eventNames = this.eventNames();
-            for (let i = 0; i < eventNames.length; i++) {
-                if (!this.isReservedEventName(eventNames[i])) {
-                    const topic = {
-                        topicFilter: eventNames[i],
-                    };
-                    topics.push(topic);
-                }
-            }
-
-            const topicFilter = {
-                apiVersion: '1.0',
-                method: 'events:configure',
-                params: {
-                    eventFilterList: topics,
-                },
-            };
-            this.ws?.send(JSON.stringify(topicFilter));
-        });
-        this.ws.on('message', (data: Buffer) => {
-            const dataJSON = JSON.parse(data.toString());
-            if (dataJSON.method === 'events:configure') {
-                if (dataJSON.error === undefined) {
-                    this.emit('eventsConnect');
-                } else {
-                    this.emit('eventsDisconnect', dataJSON.error as Error);
-                    this.eventsDisconnect();
-                }
-                return;
-            }
-            const eventName: string = dataJSON.params.notification.topic;
-            this.emit(eventName, dataJSON as object);
-        });
-        this.ws.on('error', (error: Error) => {
-            this.emit('eventsDisconnect', error);
-            this.ws = undefined;
-        });
-        this.ws.on('close', () => {
-            if (this.ws !== undefined) {
-                this.emit('eventsClose');
-            }
-            this.ws = undefined;
-        });
-
-        this.ws.open();
-    }
-
-    eventsDisconnect() {
-        if (this.ws !== undefined) {
-            this.ws.close();
-        }
-    }
-
-    private isReservedEventName(eventName: string) {
-        return eventName === 'eventsConnect' || eventName === 'eventsDisconnect' || eventName === 'eventsClose';
-    }
-
-    private getBaseVapixConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
-        return {
-            method: method,
-            protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            user: this.user,
-            pass: this.pass,
-            rejectUnauthorized: !this.tlsInsecure,
-        };
     }
 }

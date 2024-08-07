@@ -1,65 +1,70 @@
-import { Options } from './internal/common';
-import { HttpRequestOptions, sendRequest } from './internal/HttpRequest';
+import { Options, IClient, isClient } from './internal/common';
+import { DefaultAgent } from './DefaultAgent';
 
 export type CamStreamerAPIOptions = Options;
 
-export class CamStreamerAPI {
-    private tls: boolean;
-    private tlsInsecure: boolean;
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
+export type TStreamAttributes = {
+    enabled: string;
+    active: string;
+    audioSource: string;
+    avSyncMsec: string;
+    internalVapixParameters: string;
+    userVapixParameters: string;
+    outputParameters: string;
+    outputType: string;
+    mediaServerUrl: string;
+    inputType: string;
+    inputUrl: string;
+    forceStereo: string;
+    streamDelay: string;
+    statusLed: string;
+    statusPort: string;
+    callApi: string;
+    trigger: string;
+    schedule: string;
+    prepareAhead: string;
+    startTime: string;
+    stopTime: string;
+};
+export type TStreamList = Record<string, TStreamAttributes>;
 
-    constructor(options?: CamStreamerAPIOptions) {
-        this.tls = options?.tls ?? false;
-        this.tlsInsecure = options?.tlsInsecure ?? false;
-        this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+export class CamStreamerAPI {
+    private client: IClient;
+
+    constructor(options: CamStreamerAPIOptions | IClient = {}) {
+        if (isClient(options)) {
+            this.client = options;
+        } else {
+            this.client = new DefaultAgent(options);
+        }
     }
 
-    async getStreamList() {
+    async getStreamList(): Promise<TStreamList> {
         const streamListRes = await this.get('/local/camstreamer/stream/list.cgi');
         return streamListRes.data;
     }
 
-    async getStreamParameter(streamID: string, paramName: string) {
+    async getStreamParameter(streamID: string, paramName: string): Promise<string> {
         const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);
         return stream.data[paramName];
     }
 
-    async setStreamParameter(streamID: string, paramName: string, value: string) {
-        return await this.get(`/local/camstreamer/stream/set.cgi?stream_id=${streamID}&${paramName}=${value}`);
+    async setStreamParameter(streamID: string, paramName: string, value: string): Promise<void> {
+        await this.get(`/local/camstreamer/stream/set.cgi?stream_id=${streamID}&${paramName}=${value}`);
     }
 
-    async isStreaming(streamID: string) {
+    async isStreaming(streamID: string): Promise<boolean> {
         const response = await this.get(`/local/camstreamer/get_streamstat.cgi?stream_id=${streamID}`);
-        return response.data.is_streaming;
+        return response.data.is_streaming === 1;
     }
 
     async get(path: string): Promise<any> {
-        const options = this.getBaseConnectionParams(path);
-        const res = await sendRequest(options);
+        const res = await this.client.get(path);
 
         if (res.ok) {
             return await res.json();
         } else {
             throw new Error(JSON.stringify(res));
         }
-    }
-
-    private getBaseConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
-        return {
-            method: method,
-            protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            user: this.user,
-            pass: this.pass,
-            rejectUnauthorized: !this.tlsInsecure,
-        };
     }
 }

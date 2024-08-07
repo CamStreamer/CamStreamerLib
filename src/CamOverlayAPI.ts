@@ -1,5 +1,5 @@
-import { Options } from './internal/common';
-import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
+import { IClient, isClient, Options } from './internal/common';
+import { DefaultAgent } from './DefaultAgent';
 
 export type CamOverlayOptions = Options;
 
@@ -28,20 +28,14 @@ export enum ImageType {
 }
 
 export class CamOverlayAPI {
-    private tls: boolean;
-    private tlsInsecure: boolean;
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
+    private client: IClient;
 
-    constructor(options?: CamOverlayOptions) {
-        this.tls = options?.tls ?? false;
-        this.tlsInsecure = options?.tlsInsecure ?? false;
-        this.ip = options?.ip ?? '127.0.0.1';
-        this.port = options?.port ?? (this.tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+    constructor(options: CamOverlayOptions | IClient = {}) {
+        if (isClient(options)) {
+            this.client = options;
+        } else {
+            this.client = new DefaultAgent(options);
+        }
     }
 
     updateCGText(serviceID: number, fields: TField[]) {
@@ -71,8 +65,7 @@ export class CamOverlayAPI {
 
     async updateInfoticker(serviceID: number, text: string) {
         const path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
-        const options = this.getBaseVapixConnectionParams(path);
-        const res = await sendRequest(options);
+        const res = await this.client.get(path);
 
         if (!res.ok) {
             throw new Error(JSON.stringify(res));
@@ -81,8 +74,7 @@ export class CamOverlayAPI {
 
     async setEnabled(serviceID: number, enabled: boolean) {
         const path = `/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`;
-        const options = this.getBaseVapixConnectionParams(path, 'POST');
-        const res = await sendRequest(options);
+        const res = await this.client.post(path, '');
 
         if (!res.ok) {
             throw new Error(JSON.stringify(res));
@@ -91,8 +83,7 @@ export class CamOverlayAPI {
 
     async isEnabled(serviceID: number) {
         const path = '/local/camoverlay/api/services.cgi?action=get';
-        const options = this.getBaseVapixConnectionParams(path);
-        const res = await sendRequest(options);
+        const res = await this.client.get(path);
 
         if (res.ok) {
             const data: TServiceList = JSON.parse(await res.text());
@@ -110,8 +101,7 @@ export class CamOverlayAPI {
 
     async updateServices(servicesJson: TServiceList) {
         const path = '/local/camoverlay/api/services.cgi?action=set';
-        const options = this.getBaseVapixConnectionParams(path, 'POST');
-        const res = await sendRequest(options, JSON.stringify(servicesJson));
+        const res = await this.client.post(path, JSON.stringify(servicesJson));
 
         if (!res.ok) {
             throw new Error(JSON.stringify(res));
@@ -126,11 +116,12 @@ export class CamOverlayAPI {
 
     async promiseCGUpdate(serviceID: number, action: string, params: string, contentType?: string, data?: Buffer) {
         const path = `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`;
-        const options = this.getBaseVapixConnectionParams(path, 'POST');
+        let headers = {};
         if (contentType !== undefined && data) {
-            options.headers = { 'Content-Type': contentType };
+            headers = { 'Content-Type': contentType };
         }
-        const res = await sendRequest(options, data);
+
+        const res = await this.client.post(path, data ?? '', {}, headers);
         if (!res.ok) {
             throw new Error(JSON.stringify(res));
         }
@@ -148,18 +139,5 @@ export class CamOverlayAPI {
     */
     private formCoordinates(coordinates: string, x: number, y: number) {
         return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
-    }
-
-    private getBaseVapixConnectionParams(path: string, method = 'GET'): HttpRequestOptions {
-        return {
-            method: method,
-            protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
-            port: this.port,
-            path: path,
-            user: this.user,
-            pass: this.pass,
-            rejectUnauthorized: !this.tlsInsecure,
-        };
     }
 }

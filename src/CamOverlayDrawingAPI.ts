@@ -206,9 +206,10 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 if (this.connected) {
                     try {
                         await setTimeout(10000);
-                        void this.openWebsocket();
+                        await this.openWebsocket();
+                        resolve();
                     } catch (err) {
-                        // Error is already reported
+                        reject(err);
                     }
                 }
             });
@@ -228,7 +229,8 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 }
                 this.ws.send(JSON.stringify(msgJson));
             } catch (err) {
-                this.reportError(new Error(`Send message error: ${err}`));
+                const errorMessage = (err instanceof Error) ? err.message : err;
+                this.reportError(new Error(`Send message error: ${errorMessage}`));
             }
         });
     }
@@ -253,7 +255,8 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 }
                 this.ws.send(msgBuffer);
             } catch (err) {
-                this.reportError(new Error(`Send binary message error: ${err}`));
+                const errorMessage = (err instanceof Error) ? err.message : err;
+                this.reportError(new Error(`Send binary message error: ${errorMessage}`));
             }
         });
     }
