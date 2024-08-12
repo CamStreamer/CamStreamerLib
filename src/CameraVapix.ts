@@ -77,12 +77,12 @@ export class CameraVapix extends EventEmitter {
         ).text();
         const params: Record<string, string> = {};
         const lines = response.split(/[\r\n]/);
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].length) {
-                const p = lines[i].split('=');
-                if (p.length >= 2) {
-                    params[p[0]] = p[1];
-                }
+        for (const line of lines) {
+            const delimiterPos = line.indexOf('=');
+            if (delimiterPos !== -1) {
+                const key = line.substring(0, delimiterPos);
+                const value = line.substring(delimiterPos + 1);
+                params[key] = value;
             }
         }
         return params;
@@ -104,10 +104,11 @@ export class CameraVapix extends EventEmitter {
         const positions: string[] = [];
         const lines = response.split(/[\r\n]/);
         for (const line of lines) {
-            if (line.length > 0 && line.indexOf('presetposno') !== -1) {
-                const p = line.split('=');
-                if (p.length >= 2) {
-                    positions.push(p[1]);
+            if (line.indexOf('presetposno') !== -1) {
+                const delimiterPos = line.indexOf('=');
+                if (delimiterPos !== -1) {
+                    const value = line.substring(delimiterPos + 1);
+                    positions.push(value);
                 }
             }
         }
