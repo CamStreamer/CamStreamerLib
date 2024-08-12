@@ -3,7 +3,8 @@ import * as EventEmitter from 'events';
 import { WsOptions } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
 
-export type CamScripterOptions = WsOptions;
+// CamScripter can have different name in case of CamScripter bundle with microapp
+export type CamScripterOptions = WsOptions & { camScripterAcapName?: string };
 
 export type TDeclaration = {
     type?: '' | 'SOURCE' | 'DATA';
@@ -60,6 +61,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private port: number;
     private user: string;
     private pass: string;
+    private camScripterAcapName: string;
     private callId: number;
     private sendMessages: Record<number, TAsyncMessage>;
 
@@ -74,6 +76,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.user = options?.user ?? '';
         this.pass = options?.pass ?? '';
+        this.camScripterAcapName = options?.camScripterAcapName ?? 'camscripter';
 
         this.callId = 0;
         this.sendMessages = {};
@@ -138,7 +141,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
                 tls: this.tls,
                 ip: this.ip,
                 port: this.port,
-                address: '/local/camscripter/ws',
+                address: `/local/${this.camScripterAcapName}/ws`,
                 protocol: 'camera-events',
             };
 
