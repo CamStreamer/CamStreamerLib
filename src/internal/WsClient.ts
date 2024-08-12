@@ -2,9 +2,9 @@ import * as EventEmitter from 'events';
 import * as WebSocket from 'ws';
 
 import { Digest } from './Digest';
-import { Options } from './common';
+import { WsOptions } from './common';
 
-export type WsClientOptions = Options & {
+export type WsClientOptions = WsOptions & {
     address: string;
     headers?: Record<string, string>;
     pingInterval?: number;

@@ -1,10 +1,10 @@
 import * as EventEmitter from 'events';
 import { setTimeout } from 'timers/promises';
 
-import { Options } from './internal/common';
+import { WsOptions } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
 
-export type CamOverlayDrawingOptions = Options & {
+export type CamOverlayDrawingOptions = WsOptions & {
     camera?: number | number[];
     zIndex?: number;
 };
@@ -167,7 +167,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 port: this.port,
                 address: '/local/camoverlay/ws',
                 protocol: 'cairo-api',
-
                 user: this.user,
                 pass: this.pass,
                 tls: this.tls,
@@ -229,7 +228,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 }
                 this.ws.send(JSON.stringify(msgJson));
             } catch (err) {
-                const errorMessage = (err instanceof Error) ? err.message : err;
+                const errorMessage = err instanceof Error ? err.message : err;
                 this.reportError(new Error(`Send message error: ${errorMessage}`));
             }
         });
@@ -255,7 +254,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 }
                 this.ws.send(msgBuffer);
             } catch (err) {
-                const errorMessage = (err instanceof Error) ? err.message : err;
+                const errorMessage = err instanceof Error ? err.message : err;
                 this.reportError(new Error(`Send binary message error: ${errorMessage}`));
             }
         });

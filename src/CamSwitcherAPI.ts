@@ -1,9 +1,9 @@
 import * as EventEmitter from 'events';
 
 import { DefaultAgent } from './DefaultAgent';
-import { IClient, isClient, Options } from './internal/common';
+import { HttpOptions, IClient, isClient } from './internal/common';
 
-export type CamSwitcherAPIOptions = Options;
+export type CamSwitcherAPIOptions = HttpOptions;
 
 export type TStreamInfo = {
     id: string;

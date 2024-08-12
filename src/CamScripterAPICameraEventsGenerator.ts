@@ -1,9 +1,9 @@
 import * as EventEmitter from 'events';
 
-import { Options } from './internal/common';
+import { WsOptions } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
 
-export type CamScripterOptions = Options;
+export type CamScripterOptions = WsOptions;
 
 export type TDeclaration = {
     type?: '' | 'SOURCE' | 'DATA';

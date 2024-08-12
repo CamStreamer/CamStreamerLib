@@ -1,10 +1,10 @@
 import * as EventEmitter from 'events';
 
-import { Options } from './internal/common';
+import { HttpOptions } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
 import { DefaultAgent } from './DefaultAgent';
 
-export type CamSwitcherEventsOptions = Options;
+export type CamSwitcherEventsOptions = HttpOptions;
 
 export class CamSwitcherEvents extends EventEmitter {
     private ws?: WsClient;
@@ -42,7 +42,6 @@ export class CamSwitcherEvents extends EventEmitter {
                 pass: this.pass,
                 tls: this.tls,
                 tlsInsecure: this.tlsInsecure,
-
                 address: '/local/camswitcher/events',
                 protocol: 'events',
             };

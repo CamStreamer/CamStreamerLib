@@ -3,10 +3,10 @@ import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { IClient, isClient, Options } from './internal/common';
+import { HttpOptions, IClient, isClient } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
-export type CameraVapixOptions = Options;
+export type CameraVapixOptions = HttpOptions;
 
 export type TApplicationList = {
     reply: {
