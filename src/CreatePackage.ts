@@ -4,11 +4,6 @@ import * as fs from 'fs';
 
 import { execSync } from 'child_process';
 
-function isDirectory(path: string) {
-    const stat = fs.statSync(path);
-    return stat.isDirectory();
-}
-
 type TZipOptions = {
     includeNodeModules: boolean;
     typeScriptPackage: boolean;
@@ -16,13 +11,26 @@ type TZipOptions = {
     outputFolder: string;
 };
 
+type TManifestInfo = {
+    packageName: string;
+    packageVersion: string;
+};
+
 const productionModulesFolder = 'production_modules';
 
-function getPackageVersion(folder: string) {
+function isDirectory(path: string) {
+    const stat = fs.statSync(path);
+    return stat.isDirectory();
+}
+
+function getPackageInfo(folder: string): TManifestInfo | undefined {
     try {
         const manifest = fs.readFileSync(Path.join(folder, 'manifest.json'));
         const manifestParsed = JSON.parse(manifest.toString());
-        return manifestParsed.package_version.replace(/\./g, '_');
+        return {
+            packageName: manifestParsed.package_name,
+            packageVersion: manifestParsed.package_version.replace(/\./g, '_'),
+        };
     } catch (err) {
         console.error('Get package version:', err);
     }
@@ -94,9 +102,13 @@ function main(args: string[]) {
     }
 
     const folder = Path.resolve('.');
-    const packageVersion = getPackageVersion(folder);
-    const zipFile = `${options.outputFolder}/${Path.basename(folder)}_${packageVersion}.zip`;
+    const packageInfo = getPackageInfo(folder);
+    if (packageInfo === undefined) {
+        console.error('Package info not found');
+        process.exit(1);
+    }
 
+    const zipFile = `${options.outputFolder}/${packageInfo.packageName}_${packageInfo.packageVersion}.zip`;
     if (fs.existsSync(zipFile)) {
         try {
             fs.unlinkSync(zipFile);
