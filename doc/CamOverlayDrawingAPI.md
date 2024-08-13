@@ -12,16 +12,23 @@ Module for easy control of CamOverlay drawing API. For more details on supported
         tlsInsecure: false,
         ip: '127.0.0.1',
         port: 80,
-        auth: '',
+        user: '',
+        pass: '',
         camera?: [0],
         zIndex?: 0
     });
     ```
 
--   **connect()** - Connect to CamOverlay WebSocket drawing API.
+-   **connect()** - Connect to CamOverlay WebSocket drawing API. The Websocket is reconnected in case of connection error.
 
     ```javascript
     connect();
+    ```
+
+-   **disconnect()** - Close the WebSocket connection.
+
+    ```javascript
+    disconnect();
     ```
 
 -   **cairo(command, args...)** - Call a function from Cairo library. See https://cairographics.org/manual/

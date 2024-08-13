@@ -12,7 +12,8 @@ Module for access to CamOverlay HTTP interface.
         tlsInsecure: false,
         ip: '127.0.0.1',
         port: 80,
-        auth: '',
+        user: '',
+        pass: '',
     });
     ```
 

@@ -14,12 +14,22 @@ npm install camstreamerlib
 # Documentation for Node.js modules
 
 -   [HttpServer](doc/HttpServer.md) is a module for processing HTTP requests in your scripts. It also automatically serves up the content from html directory or you can register paths which you can process by your own (e.g. http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi).
+
 -   [CameraVapix](doc/CameraVapix.md) is a module to access Axis camera VAPIX interface.
+
 -   [CamStreamerAPI](doc/CamStreamerAPI.md) is a module for easy control of video streaming in the CamStreamer ACAP application (RTMP, HLS, SRT and MPEG-TS protocols).
+
 -   [CamOverlayAPI](doc/CamOverlayAPI.md) is a module to access CamOverlay HTTP interface.
+
 -   [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) is a module for easy control of CamOverlay drawing API. For more details on supported video overlay drawing functions see https://camstreamer.com/camoverlay-api1
--   [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) is a module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.
+
 -   [CamOverlayPainter/](doc/CamOverlayPainter.md) contains three modules which makes easier to use CamOverlayDrawingAPI.
+
+-   [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) is a module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.
+
+-   [CamSwitcherEvents](doc/CamSwitcherEvents.md) is a module which allows receiving events from CamSwitcher ACAP application.
+
+-   [VapixEvents](doc/VapixEvents.md) is a module which allows receiving camera events from the VAPIX API.
 
 ## For Developers
 

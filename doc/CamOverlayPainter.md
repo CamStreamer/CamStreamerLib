@@ -42,7 +42,6 @@ Three modules for even easier control of CamOverlay drawing API.
         y: number;
         width: number;
         height: number;
-
         enabled?: boolean; // default: true
         bgImage?: string; // default: undefined
         text?: string; // default: ''
