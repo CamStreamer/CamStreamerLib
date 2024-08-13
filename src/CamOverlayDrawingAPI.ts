@@ -1,5 +1,4 @@
 import * as EventEmitter from 'events';
-import { setTimeout } from 'timers/promises';
 
 import { WsOptions } from './internal/common';
 import { WsClient, WsClientOptions } from './internal/WsClient';
@@ -66,9 +65,9 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private zIndex: number;
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
+    private wsConnected: boolean;
+    private ws!: WsClient;
 
-    private connected = false;
-    private ws?: WsClient;
     constructor(options?: CamOverlayDrawingOptions) {
         super();
 
@@ -89,23 +88,22 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.callId = 0;
         this.sendMessages = {};
 
+        this.wsConnected = false;
+        this.createWsClient();
+
         EventEmitter.call(this);
     }
 
-    async connect() {
-        try {
-            await this.openWebsocket();
-            this.connected = true;
-        } catch (err) {
-            // Error is already reported
-        }
+    connect() {
+        this.ws.open();
     }
 
     disconnect() {
-        this.connected = false;
-        if (this.ws !== undefined) {
-            this.ws.close();
-        }
+        this.ws.close();
+    }
+
+    isConnected() {
+        return this.wsConnected;
     }
 
     cairo(command: string, ...params: unknown[]) {
@@ -160,60 +158,46 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         return this.sendMessage({ command: 'remove_image_v2' }) as Promise<TCairoResponse>;
     }
 
-    private openWebsocket(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const options: WsClientOptions = {
-                ip: this.ip,
-                port: this.port,
-                address: '/local/camoverlay/ws',
-                protocol: 'cairo-api',
-                user: this.user,
-                pass: this.pass,
-                tls: this.tls,
-                tlsInsecure: this.tlsInsecure,
-            };
-            this.ws = new WsClient(options);
+    private createWsClient() {
+        const options: WsClientOptions = {
+            ip: this.ip,
+            port: this.port,
+            address: '/local/camoverlay/ws',
+            protocol: 'cairo-api',
+            user: this.user,
+            pass: this.pass,
+            tls: this.tls,
+            tlsInsecure: this.tlsInsecure,
+        };
+        this.ws = new WsClient(options);
 
-            this.ws.on('open', () => {
-                this.emit('open');
-                resolve();
-            });
-            this.ws.on('message', (data: Buffer) => {
-                const dataJSON = JSON.parse(data.toString());
-                if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
-                    if (Object.hasOwn(dataJSON, 'error')) {
-                        this.sendMessages[dataJSON.call_id].reject(new Error(dataJSON.error));
-                    } else {
-                        this.sendMessages[dataJSON.call_id].resolve(dataJSON);
-                    }
-                    delete this.sendMessages[dataJSON['call_id']];
-                }
-
+        this.ws.on('open', () => {
+            this.wsConnected = true;
+            this.emit('open');
+        });
+        this.ws.on('message', (data: Buffer) => {
+            const dataJSON = JSON.parse(data.toString());
+            if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
                 if (Object.hasOwn(dataJSON, 'error')) {
-                    this.reportError(new Error(dataJSON.error));
+                    this.sendMessages[dataJSON.call_id].reject(new Error(dataJSON.error));
                 } else {
-                    this.reportMessage(data.toString());
+                    this.sendMessages[dataJSON.call_id].resolve(dataJSON);
                 }
-            });
-            this.ws.on('error', (error: Error) => {
-                this.reportError(error);
-                reject(error);
-            });
-            this.ws.on('close', async () => {
-                this.ws = undefined;
-                this.reportClose();
-                if (this.connected) {
-                    try {
-                        await setTimeout(10000);
-                        await this.openWebsocket();
-                        resolve();
-                    } catch (err) {
-                        reject(err);
-                    }
-                }
-            });
+                delete this.sendMessages[dataJSON['call_id']];
+            }
 
-            this.ws.open();
+            if (Object.hasOwn(dataJSON, 'error')) {
+                this.reportError(new Error(dataJSON.error));
+            } else {
+                this.reportMessage(data.toString());
+            }
+        });
+        this.ws.on('error', (error: Error) => {
+            this.reportError(error);
+        });
+        this.ws.on('close', () => {
+            this.wsConnected = false;
+            this.reportClose();
         });
     }
 
@@ -223,7 +207,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson['call_id'] = this.callId++;
 
-                if (this.ws === undefined) {
+                if (!this.wsConnected) {
                     throw new Error('No CamOverlay connection');
                 }
                 this.ws.send(JSON.stringify(msgJson));
@@ -249,7 +233,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
                 const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
 
-                if (this.ws === undefined) {
+                if (!this.wsConnected) {
                     throw new Error('No CamOverlay connection');
                 }
                 this.ws.send(msgBuffer);
@@ -265,9 +249,6 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private reportError(err: Error) {
-        if (this.ws !== undefined) {
-            this.ws.close();
-        }
         this.emit('error', err);
     }
 

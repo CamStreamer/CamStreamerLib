@@ -7,15 +7,15 @@ import { DefaultAgent } from './DefaultAgent';
 export type CamSwitcherEventsOptions = HttpOptions;
 
 export class CamSwitcherEvents extends EventEmitter {
-    private ws?: WsClient;
-    private client: DefaultAgent;
-
     private tls: boolean;
     private tlsInsecure: boolean;
     private ip: string;
     private port: number;
     private user: string;
     private pass: string;
+
+    private client: DefaultAgent;
+    private ws!: WsClient;
 
     constructor(options: CamSwitcherEventsOptions = {}) {
         super();
@@ -28,52 +28,61 @@ export class CamSwitcherEvents extends EventEmitter {
         this.pass = options.pass ?? '';
 
         this.client = new DefaultAgent(options);
+        this.createWsClient();
 
         EventEmitter.call(this);
     }
 
-    async connect() {
-        try {
-            const token = await this.get('/local/camswitcher/ws_authorization.cgi');
-            const options: WsClientOptions = {
-                ip: this.ip,
-                port: this.port,
-                user: this.user,
-                pass: this.pass,
-                tls: this.tls,
-                tlsInsecure: this.tlsInsecure,
-                address: '/local/camswitcher/events',
-                protocol: 'events',
-            };
-            this.ws = new WsClient(options);
+    connect() {
+        this.ws.open();
+    }
 
-            this.ws.on('open', () => {
-                this.ws?.send(JSON.stringify({ authorization: token }));
-            });
-            this.ws.on('message', (data: Buffer) => {
-                try {
-                    const parsedData: object = JSON.parse(data.toString());
-                    this.emit('event', parsedData);
-                } catch (err) {
-                    console.log(err);
-                }
-            });
-            this.ws.on('close', () => {
-                this.emit('event_connection_close');
-            });
-            this.ws.on('error', (err: Error) => {
-                this.emit('event_connection_error', err);
-            });
+    disconnect() {
+        this.ws.close();
+    }
 
-            this.ws.open();
-        } catch (err) {
-            this.emit('event_connection_error', err as Error);
-        }
+    private createWsClient() {
+        const options: WsClientOptions = {
+            ip: this.ip,
+            port: this.port,
+            user: this.user,
+            pass: this.pass,
+            tls: this.tls,
+            tlsInsecure: this.tlsInsecure,
+            address: '/local/camswitcher/events',
+            protocol: 'events',
+        };
+        this.ws = new WsClient(options);
+
+        this.ws.on('open', async () => {
+            try {
+                const token = await this.get('/local/camswitcher/ws_authorization.cgi');
+                this.ws.send(JSON.stringify({ authorization: token }));
+                this.emit('open');
+            } catch (err) {
+                this.emit('error', err);
+                this.ws.close();
+                this.ws.open();
+            }
+        });
+        this.ws.on('message', (data: Buffer) => {
+            try {
+                const parsedData: object = JSON.parse(data.toString());
+                this.emit('event', parsedData);
+            } catch (err) {
+                console.error(err);
+            }
+        });
+        this.ws.on('error', (err: Error) => {
+            this.emit('error', err);
+        });
+        this.ws.on('close', () => {
+            this.emit('close');
+        });
     }
 
     private async get(path: string) {
         const res = await this.client.get(path);
-
         if (res.ok) {
             const responseText = JSON.parse(await res.text());
             if (responseText.status === 200) {
