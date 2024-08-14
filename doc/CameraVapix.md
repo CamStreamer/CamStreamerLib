@@ -13,7 +13,8 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
             tlsInsecure: false,
             ip: '127.0.0.1',
             port: 80,
-            auth: '',
+            user: '',
+            pass: '',
         });
         ```
 

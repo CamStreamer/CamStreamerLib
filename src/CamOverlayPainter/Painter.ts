@@ -47,19 +47,28 @@ export default class Painter extends Frame {
         this.rm = new ResourceManager(this.cod);
     }
 
-    async connect() {
+    connect() {
         this.cod.on('open', () => {
             this.rm.clear();
         });
-        return this.cod.connect();
+        this.cod.on('error', (err) => {
+            console.error('Painter:', err);
+        });
+        this.cod.connect();
     }
+
     disconnect() {
         this.cod.disconnect();
+    }
+
+    isConnected() {
+        return this.cod.isConnected();
     }
 
     registerImage(moniker: string, fileName: string) {
         this.rm.registerImage(moniker, fileName);
     }
+
     registerFont(moniker: string, fileName: string) {
         this.rm.registerFont(moniker, fileName);
     }
@@ -68,6 +77,7 @@ export default class Painter extends Frame {
         this.screenWidth = sw;
         this.screenHeight = sh;
     }
+
     setCoAlignment(coa: string) {
         this.coAlignment = COORD[coa];
     }
@@ -105,6 +115,7 @@ export default class Painter extends Frame {
                 throw new Error('Invalid graphics alignment.');
         }
     }
+
     private async prepareDrawing(scale: number) {
         const surface = (await this.cod.cairo(
             'cairo_image_surface_create',
@@ -116,6 +127,7 @@ export default class Painter extends Frame {
 
         return [surface.var, cairo.var];
     }
+
     private async destroy() {
         await this.cod.cairo('cairo_surface_destroy', this.surface);
         await this.cod.cairo('cairo_destroy', this.cairo);

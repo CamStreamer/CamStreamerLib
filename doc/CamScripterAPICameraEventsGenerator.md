@@ -13,14 +13,21 @@ Module for Axis camera events generation.
             tlsInsecure: false,
             ip: '127.0.0.1',
             port: 80,
-            auth: '',
+            user: '',
+            pass: '',
         });
         ```
 
--   **connect()** - Connect to the CamScripter camera events websocket API.
+-   **connect()** - Connect to the CamScripter camera events websocket API. The Websocket is reconnected in case of connection error.
 
     ```javascript
     connect();
+    ```
+
+-   **disconnect()** - Close the WebSocket connection.
+
+    ```javascript
+    disconnect();
     ```
 
 -   **declareEvent()** - Declare event in the camera. After declaration the event is available in Axis Event Rule engine and other application can subscribe for the event. If the websocket is disconnected all declared events are automatically removed from the camera.

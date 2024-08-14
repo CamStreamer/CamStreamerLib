@@ -1,7 +1,7 @@
-import { Options, IClient, isClient } from './internal/common';
+import { IClient, isClient, HttpOptions } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
-export type CamStreamerAPIOptions = Options;
+export type CamStreamerAPIOptions = HttpOptions;
 
 export type TStreamAttributes = {
     enabled: string;

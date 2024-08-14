@@ -1,5 +1,5 @@
 import { DefaultAgent } from '../DefaultAgent';
-import { isClient, IClient, Options } from '../internal/common';
+import { isClient, IClient, HttpOptions } from '../internal/common';
 
 function pad(num: number, size: number) {
     const sign = Math.sign(num) === -1 ? '-' : '';
@@ -22,7 +22,7 @@ function getDate() {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
-export type AcsEventsOptions = Options;
+export type AcsEventsOptions = HttpOptions;
 
 export class AxisCameraStationEvents {
     private client: IClient;

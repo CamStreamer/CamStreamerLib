@@ -1,7 +1,7 @@
-import { IClient, isClient, Options } from './internal/common';
+import { HttpOptions, IClient, isClient } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
-export type CamOverlayOptions = Options;
+export type CamOverlayOptions = HttpOptions;
 
 export type TField = {
     field_name: string;

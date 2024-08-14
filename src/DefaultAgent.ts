@@ -1,29 +1,45 @@
-import { Options, IClient } from './internal/common';
-import { sendRequest, HttpRequestOptions } from './internal/HttpRequest';
-
-function isBrowserEnvironment(): boolean {
-    return typeof process === 'undefined' || process.versions === null || process.versions.node === null;
-}
+import { IClient, HttpOptions } from './internal/common';
+import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './internal/HttpRequestSender';
 
 export class DefaultAgent implements IClient {
     private tls: boolean;
-    private tlsInsecure: boolean;
     private ip: string;
     private port: number;
     private user: string;
     private pass: string;
+    private httpRequestSender: HttpRequestSender;
 
-    constructor(opt: Options = {}) {
+    constructor(opt: HttpOptions = {}) {
         this.tls = opt.tls ?? false;
-        this.tlsInsecure = opt.tlsInsecure ?? false;
         this.ip = opt.ip ?? '127.0.0.1';
         this.port = opt.port ?? (this.tls ? 443 : 80);
         this.user = opt.user ?? '';
         this.pass = opt.pass ?? '';
 
-        if (isBrowserEnvironment() && opt.tlsInsecure) {
-            throw new Error("HTTPS insecure can't be used on the frontend side.");
+        let agentOptions: AgentOptions | undefined;
+        if (opt.tlsInsecure !== undefined || opt.keepAlive !== undefined) {
+            agentOptions = {
+                rejectUnaurhorized: !opt.tlsInsecure,
+                keepAlive: opt.keepAlive,
+            };
         }
+        this.httpRequestSender = new HttpRequestSender(agentOptions);
+    }
+
+    async get(path: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
+        const options = this.getBaseConnectionParams('GET', path, parameters);
+        options.headers = headers;
+        return this.httpRequestSender.sendRequest(options);
+    }
+    async post(
+        path: string,
+        data: string | Buffer | FormData,
+        parameters: Record<string, string> = {},
+        headers?: Record<string, string>
+    ) {
+        const options = this.getBaseConnectionParams('POST', path, parameters);
+        options.headers = headers;
+        return this.httpRequestSender.sendRequest(options, data);
     }
 
     private getBaseConnectionParams(method: string, path: string, params: Record<string, string>): HttpRequestOptions {
@@ -46,23 +62,6 @@ export class DefaultAgent implements IClient {
             path: path,
             user: this.user,
             pass: this.pass,
-            rejectUnauthorized: !this.tlsInsecure,
         };
-    }
-
-    async get(path: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
-        const options = this.getBaseConnectionParams('GET', path, parameters);
-        options.headers = headers;
-        return sendRequest(options);
-    }
-    async post(
-        path: string,
-        data: string | Buffer | FormData,
-        parameters: Record<string, string> = {},
-        headers?: Record<string, string>
-    ) {
-        const options = this.getBaseConnectionParams('POST', path, parameters);
-        options.headers = headers;
-        return sendRequest(options, data);
     }
 }
