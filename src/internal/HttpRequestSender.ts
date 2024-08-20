@@ -24,7 +24,8 @@ type AuthData = {
     port: number;
     user: string;
     pass: string;
-    authHeader: string;
+    wwwAuthenticateHeader?: string;
+    digest: Digest;
 };
 
 export class HttpRequestSender {
@@ -58,10 +59,10 @@ export class HttpRequestSender {
             setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
         }
 
-        const authData = this.getAuthorization(options, wwwAuthenticateHeader);
-        if (authData) {
+        const authorization = this.getAuthorization(options, wwwAuthenticateHeader);
+        if (authorization !== undefined) {
             options.headers ??= {};
-            options.headers['Authorization'] = authData.authHeader;
+            options.headers['Authorization'] = authorization;
         }
 
         let res: Response;
@@ -73,8 +74,11 @@ export class HttpRequestSender {
             res = await fetch(req, { signal: controller.signal });
         }
 
-        if (res.status === 401) {
+        if (!res.ok) {
             this.invalidateAuthorization();
+        }
+
+        if (res.status === 401) {
             const authenticateHeader = res.headers.get('www-authenticate');
             if (
                 authenticateHeader !== null &&
@@ -106,7 +110,8 @@ export class HttpRequestSender {
             (this.authData.host !== options.host ||
                 this.authData.port !== options.port ||
                 this.authData.user !== options.user ||
-                this.authData.pass !== options.pass)
+                this.authData.pass !== options.pass ||
+                (wwwAuthenticateHeader !== undefined && this.authData.wwwAuthenticateHeader !== wwwAuthenticateHeader))
         ) {
             this.authData = undefined;
         }
@@ -117,28 +122,30 @@ export class HttpRequestSender {
                 port: options.port,
                 user: options.user!,
                 pass: options.pass!,
-                authHeader: this.getAuthHeader(options, wwwAuthenticateHeader),
+                wwwAuthenticateHeader,
+                digest: new Digest(),
             };
         }
-        return this.authData;
+
+        return HttpRequestSender.getAuthHeader(options, this.authData);
     }
 
     private invalidateAuthorization() {
         this.authData = undefined;
     }
 
-    private getAuthHeader(options: HttpRequestOptions, wwwAuthenticateHeader: string = '') {
+    private static getAuthHeader(options: HttpRequestOptions, authData: AuthData) {
         if (options.user === undefined || options.pass === undefined) {
             throw new Error('No credentials found');
         }
 
-        if (wwwAuthenticateHeader.indexOf('Digest') !== -1) {
-            return Digest.getAuthHeader(
+        if (authData.wwwAuthenticateHeader !== undefined && authData.wwwAuthenticateHeader.indexOf('Digest') !== -1) {
+            return authData.digest.getAuthHeader(
                 options.user,
                 options.pass,
                 options.method ?? 'GET',
                 options.path,
-                wwwAuthenticateHeader
+                authData.wwwAuthenticateHeader
             );
         } else {
             return `Basic ${btoa(options.user + ':' + options.pass)}`;
