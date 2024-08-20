@@ -76,7 +76,7 @@ export class WsClient extends EventEmitter {
         });
 
         if (wwwAuthenticateHeader !== undefined) {
-            this.wsOptions.headers['Authorization'] = Digest.getAuthHeader(
+            this.wsOptions.headers['Authorization'] = new Digest().getAuthHeader(
                 this.user,
                 this.pass,
                 'GET',
