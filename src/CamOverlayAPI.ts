@@ -22,6 +22,17 @@ export type TServiceList = {
     services: TService[];
 };
 
+export type TNetworkCameraList = {
+    name: string;
+    ip: string;
+}[];
+
+export type TImage = {
+    name: string;
+    path: string;
+    storage: string;
+};
+
 export enum ImageType {
     PNG,
     JPEG,
@@ -37,7 +48,48 @@ export class CamOverlayAPI {
             this.client = new DefaultAgent(options);
         }
     }
+    
+    async getCameraTime(): Promise<boolean> {
+        const cameraTime = await this.get('/local/camoverlay/api/camera_time.cgi');
+        return cameraTime.state;
+    }
 
+    async getServices(): Promise<TService[]> {
+        const serviceList = await this.get('/local/camoverlay/api/services.cgi?action=get');
+        return serviceList.services;
+    }
+
+    async getSingleService(serviceId: number): Promise<TService> {
+        return this.get('/local/camoverlay/api/services.cgi', { action: 'get', service_id: serviceId.toString() });
+    }
+
+    async updateSingleService(serviceId: number, serviceJson: TService): Promise<void> {
+        const path = '/local/camoverlay/api/services.cgi';
+        await this.post(path, JSON.stringify(serviceJson), {
+            action: 'set',
+            service_id: serviceId.toString(),
+        });
+    }
+
+    async listImages(): Promise<TImage[]> {
+        const images = await this.get('/local/camoverlay/api/upload_image.cgi?action=list');
+        return images.list;
+    }
+
+    async uploadImage(file: Buffer, fileName: string): Promise<void> {
+        const formData = new FormData();
+        formData.append('target', 'SD0');
+        formData.append('uploadedFile[]', file, fileName);
+
+        const path = '/local/camoverlay/api/upload_image.cgi?action=upload';
+        await this.post(path, formData);
+    }
+
+    async getNetworkCameraList(): Promise<TNetworkCameraList> {
+        const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
+        return response.camera_list;
+    }
+    
     updateCGText(serviceID: number, fields: TField[]) {
         let field_specs = '';
 
@@ -139,5 +191,24 @@ export class CamOverlayAPI {
     */
     private formCoordinates(coordinates: string, x: number, y: number) {
         return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
+    }
+
+    private async get(path: string, params?: Record<string, string>): Promise<any> {
+        const res = await this.client.get(path, params);
+
+        if (res.ok) {
+            return await res.json();
+        } else {
+            throw new Error(JSON.stringify(res));
+        }
+    }
+    private async post(path: string, data: string | Buffer | FormData, params?: Record<string, string>): Promise<any> {
+        const res = await this.client.post(path, data, params);
+
+        if (res.ok) {
+            return await res.json();
+        } else {
+            throw new Error(JSON.stringify(res));
+        }
     }
 }
