@@ -56,6 +56,13 @@ export class CamSwitcherEvents extends EventEmitter {
         this.ws.close();
     }
 
+    resendInitData() {
+        const request = {
+            command: 'sendInitData',
+        };
+        this.ws.send(JSON.stringify(request));
+    }
+
     private createWsClient() {
         const options: WsClientOptions = {
             ip: this.ip,
@@ -73,19 +80,25 @@ export class CamSwitcherEvents extends EventEmitter {
             try {
                 const token = await this.get('/local/camswitcher/ws_authorization.cgi');
                 this.ws.send(JSON.stringify({ authorization: token }));
-                this.emit('open');
             } catch (err) {
-                this.emit('error', err);
-                this.ws.close();
-                this.ws.open();
+                this.emit('error', err as Error);
             }
         });
         this.ws.on('message', (data: Buffer) => {
             try {
-                const parsedData: object = JSON.parse(data.toString());
-                this.emit('event', parsedData);
+                const parsedData = JSON.parse(data.toString());
+
+                if (parsedData.type === 'authorization') {
+                    if (parsedData.state === 'OK') {
+                        this.emit('open');
+                    } else {
+                        this.emit('error', new Error(data.toString()));
+                    }
+                } else {
+                    this.emit('event', parsedData);
+                }
             } catch (err) {
-                console.error(err);
+                this.emit('error', err as Error);
             }
         });
         this.ws.on('error', (err: Error) => {
