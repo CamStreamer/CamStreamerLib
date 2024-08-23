@@ -5,7 +5,22 @@ import { WsClient, WsClientOptions } from './internal/WsClient';
 import { DefaultAgent } from './DefaultAgent';
 
 export type CamSwitcherEventsOptions = HttpOptions;
+export type TEvent = {
+    type: string;
+    date: Record<string, string | number | boolean> & { type: string };
+};
 
+export interface CamSwitcherEvents {
+    on(event: 'open', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
+    on(event: 'event', listener: (data: TEvent) => void): this;
+    on(event: 'error', listener: (err: Error) => void): this;
+
+    emit(event: 'open'): boolean;
+    emit(event: 'close'): boolean;
+    emit(event: 'event', data: TEvent): boolean;
+    emit(event: 'error', err: Error): boolean;
+}
 export class CamSwitcherEvents extends EventEmitter {
     private tls: boolean;
     private tlsInsecure: boolean;
