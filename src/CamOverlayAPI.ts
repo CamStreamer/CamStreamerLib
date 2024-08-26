@@ -38,6 +38,18 @@ export enum ImageType {
     JPEG,
 }
 
+export type TCoordinates =
+    | 'top_left'
+    | 'top_right'
+    | 'top'
+    | 'bottom_left'
+    | 'bottom_right'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'center'
+    | '';
+
 export class CamOverlayAPI {
     private client: IClient;
 
@@ -48,27 +60,10 @@ export class CamOverlayAPI {
             this.client = new DefaultAgent(options);
         }
     }
-    
+
     async getCameraTime(): Promise<boolean> {
         const cameraTime = await this.get('/local/camoverlay/api/camera_time.cgi');
         return cameraTime.state;
-    }
-
-    async getServices(): Promise<TService[]> {
-        const serviceList = await this.get('/local/camoverlay/api/services.cgi?action=get');
-        return serviceList.services;
-    }
-
-    async getSingleService(serviceId: number): Promise<TService> {
-        return this.get('/local/camoverlay/api/services.cgi', { action: 'get', service_id: serviceId.toString() });
-    }
-
-    async updateSingleService(serviceId: number, serviceJson: TService): Promise<void> {
-        const path = '/local/camoverlay/api/services.cgi';
-        await this.post(path, JSON.stringify(serviceJson), {
-            action: 'set',
-            service_id: serviceId.toString(),
-        });
     }
 
     async listImages(): Promise<TImage[]> {
@@ -89,32 +84,11 @@ export class CamOverlayAPI {
         const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
         return response.camera_list;
     }
+
+    //   ----------------------------------------
+    //             CamOverlay services
+    //   ----------------------------------------
     
-    updateCGText(serviceID: number, fields: TField[]) {
-        let field_specs = '';
-
-        for (const field of fields) {
-            const name = field.field_name;
-            field_specs += `&${name}=${field.text}`;
-            if (field.color !== undefined) {
-                field_specs += `&${name}_color=${field.color}`;
-            }
-        }
-
-        return this.promiseCGUpdate(serviceID, 'update_text', field_specs);
-    }
-
-    updateCGImagePos(serviceID: number, coordinates = '', x = 0, y = 0) {
-        const coord = this.formCoordinates(coordinates, x, y);
-        return this.promiseCGUpdate(serviceID, 'update_image', coord);
-    }
-
-    updateCGImage(serviceID: number, path: string, coordinates = '', x = 0, y = 0) {
-        const coord = this.formCoordinates(coordinates, x, y);
-        const update = `&image=${path}`;
-        return this.promiseCGUpdate(serviceID, 'update_image', update + coord);
-    }
-
     async updateInfoticker(serviceID: number, text: string) {
         const path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
         const res = await this.client.get(path);
@@ -151,6 +125,23 @@ export class CamOverlayAPI {
         }
     }
 
+    async getSingleService(serviceId: number): Promise<TService> {
+        return this.get('/local/camoverlay/api/services.cgi', { action: 'get', service_id: serviceId.toString() });
+    }
+
+    async getServices(): Promise<TService[]> {
+        const serviceList = await this.get('/local/camoverlay/api/services.cgi?action=get');
+        return serviceList.services;
+    }
+
+    async updateSingleService(serviceId: number, serviceJson: TService): Promise<void> {
+        const path = '/local/camoverlay/api/services.cgi';
+        await this.post(path, JSON.stringify(serviceJson), {
+            action: 'set',
+            service_id: serviceId.toString(),
+        });
+    }
+
     async updateServices(servicesJson: TServiceList) {
         const path = '/local/camoverlay/api/services.cgi?action=set';
         const res = await this.client.post(path, JSON.stringify(servicesJson));
@@ -160,13 +151,55 @@ export class CamOverlayAPI {
         }
     }
 
-    updateCGImageFromData(serviceID: number, imageType: ImageType, imageData: Buffer, coordinates = '', x = 0, y = 0) {
+    //   ----------------------------------------
+    //               Custom Graphics
+    //   ----------------------------------------
+
+    updateCGText(serviceID: number, fields: TField[]) {
+        let field_specs = '';
+
+        for (const field of fields) {
+            const name = field.field_name;
+            field_specs += `&${name}=${field.text}`;
+            if (field.color !== undefined) {
+                field_specs += `&${name}_color=${field.color}`;
+            }
+        }
+
+        return this.promiseCGUpdate(serviceID, 'update_text', field_specs);
+    }
+
+    updateCGImagePos(serviceID: number, coordinates: TCoordinates = '', x = 0, y = 0) {
+        const coord = this.formCoordinates(coordinates, x, y);
+        return this.promiseCGUpdate(serviceID, 'update_image', coord);
+    }
+
+    updateCGImage(serviceID: number, path: string, coordinates: TCoordinates = '', x = 0, y = 0) {
+        const coord = this.formCoordinates(coordinates, x, y);
+        const update = `&image=${path}`;
+        return this.promiseCGUpdate(serviceID, 'update_image', update + coord);
+    }
+
+    updateCGImageFromData(
+        serviceID: number,
+        imageType: ImageType,
+        imageData: Buffer,
+        coordinates: TCoordinates = '',
+        x = 0,
+        y = 0
+    ) {
         const coord = this.formCoordinates(coordinates, x, y);
         const contentType = imageType === ImageType.PNG ? 'image/png' : 'image/jpeg';
         return this.promiseCGUpdate(serviceID, 'update_image', coord, contentType, imageData);
     }
 
-    async promiseCGUpdate(serviceID: number, action: string, params: string, contentType?: string, data?: Buffer) {
+    private async promiseCGUpdate(
+        serviceID: number,
+        action: string,
+        params: string,
+        contentType?: string,
+        data?: Buffer
+    ) {
         const path = `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`;
         let headers = {};
         if (contentType !== undefined && data) {
@@ -179,17 +212,7 @@ export class CamOverlayAPI {
         }
     }
 
-    /*
-    coorinates =
-        left
-        right
-        top
-        bottom
-        top_left
-        center
-        ...
-    */
-    private formCoordinates(coordinates: string, x: number, y: number) {
+    private formCoordinates(coordinates: TCoordinates, x: number, y: number) {
         return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
     }
 
