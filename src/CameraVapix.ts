@@ -1,7 +1,6 @@
 import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
-import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
 import { HttpOptions, IClient, isClient } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
@@ -46,12 +45,10 @@ export type TGuardTour = {
     }[];
 };
 
-export class CameraVapix extends EventEmitter {
+export class CameraVapix {
     private client: IClient;
 
     constructor(options: CameraVapixOptions | IClient = {}) {
-        super();
-
         if (isClient(options)) {
             this.client = options;
         } else {
@@ -59,11 +56,11 @@ export class CameraVapix extends EventEmitter {
         }
     }
 
-    vapixGet(path: string) {
-        return this.client.get(path);
+    vapixGet(path: string, parameters?: Record<string, string>) {
+        return this.client.get(path, parameters);
     }
 
-    vapixPost(path: string, data: string, contentType?: string) {
+    vapixPost(path: string, data: string | Buffer | FormData, contentType?: string) {
         let headers = {};
         if (contentType !== undefined) {
             headers = { 'Content-Type': contentType };
@@ -71,18 +68,43 @@ export class CameraVapix extends EventEmitter {
         return this.client.post(path, data, {}, headers);
     }
 
+    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
+        const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
+        const res = await this.vapixGet(path);
+        if (res.body) {
+            void res.body.pipeTo(outputStream);
+        }
+        return outputStream;
+    }
+
+    async getEventDeclarations() {
+        const data =
+            '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
+            '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' +
+            'xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
+            '<GetEventInstances xmlns="http://www.axis.com/vapix/ws/event1"/>' +
+            '</s:Body>' +
+            '</s:Envelope>';
+        const declarations = await (await this.vapixPost('/vapix/services', data, 'application/soap+xml')).text();
+        return prettifyXml(declarations) as string;
+    }
+
+    //  -------------------------------
+    //            param.cgi
+    //  -------------------------------
+
     async getParameterGroup(groupNames: string) {
         const response = await (
             await this.vapixGet(`/axis-cgi/param.cgi?action=list&group=${encodeURIComponent(groupNames)}`)
         ).text();
         const params: Record<string, string> = {};
         const lines = response.split(/[\r\n]/);
-        for (const line of lines) {
-            const delimiterPos = line.indexOf('=');
-            if (delimiterPos !== -1) {
-                const key = line.substring(0, delimiterPos);
-                const value = line.substring(delimiterPos + 1);
-                params[key] = value;
+        for (let i = 0; i < lines.length; i++) {
+            if (lines[i].length) {
+                const p = lines[i].split('=');
+                if (p.length >= 2) {
+                    params[p[0]] = p[1];
+                }
             }
         }
         return params;
@@ -95,31 +117,6 @@ export class CameraVapix extends EventEmitter {
         }
         postData = postData.slice(0, postData.length - 1);
         return this.vapixPost('/axis-cgi/param.cgi', postData);
-    }
-
-    async getPTZPresetList(channel: string) {
-        const response = await (
-            await this.vapixGet(`/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`)
-        ).text();
-        const positions: string[] = [];
-        const lines = response.split(/[\r\n]/);
-        for (const line of lines) {
-            if (line.indexOf('presetposno') !== -1) {
-                const delimiterPos = line.indexOf('=');
-                if (delimiterPos !== -1) {
-                    const value = line.substring(delimiterPos + 1);
-                    positions.push(value);
-                }
-            }
-        }
-        return positions;
-    }
-
-    goToPreset(channel: number, presetName: string) {
-        return this.vapixPost(
-            '/axis-cgi/com/ptz.cgi',
-            `camera=${encodeURIComponent(channel)}&gotoserverpresetname=${encodeURIComponent(presetName)}`
-        );
     }
 
     async getGuardTourList() {
@@ -164,6 +161,39 @@ export class CameraVapix extends EventEmitter {
         return this.setParameter(options);
     }
 
+    //  -------------------------------
+    //             ptz.cgi
+    //  -------------------------------
+
+    async getPTZPresetList(channel: string) {
+        const response = await (
+            await this.vapixGet(`/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`)
+        ).text();
+        const positions: string[] = [];
+        const lines = response.split(/[\r\n]/);
+        for (const line of lines) {
+            if (line.indexOf('presetposno') !== -1) {
+                const delimiterPos = line.indexOf('=');
+                if (delimiterPos !== -1) {
+                    const value = line.substring(delimiterPos + 1);
+                    positions.push(value);
+                }
+            }
+        }
+        return positions;
+    }
+
+    goToPreset(channel: number, presetName: string) {
+        return this.vapixPost(
+            '/axis-cgi/com/ptz.cgi',
+            `camera=${encodeURIComponent(channel)}&gotoserverpresetname=${encodeURIComponent(presetName)}`
+        );
+    }
+
+    //  -------------------------------
+    //            port.cgi
+    //  -------------------------------
+
     async getInputState(port: number) {
         const response = await (
             await this.vapixPost('/axis-cgi/io/port.cgi', `checkactive=${encodeURIComponent(port)}`)
@@ -173,27 +203,6 @@ export class CameraVapix extends EventEmitter {
 
     setOutputState(port: number, active: boolean) {
         return this.vapixPost('/axis-cgi/io/port.cgi', `action=${encodeURIComponent(port)}:${active ? '/' : '\\'}`);
-    }
-
-    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
-        const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-        const res = await this.vapixGet(path);
-        if (res.body) {
-            void res.body.pipeTo(outputStream);
-        }
-        return outputStream;
-    }
-
-    async getEventDeclarations() {
-        const data =
-            '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
-            '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' +
-            'xmlns:xsd="http://www.w3.org/2001/XMLSchema">' +
-            '<GetEventInstances xmlns="http://www.axis.com/vapix/ws/event1"/>' +
-            '</s:Body>' +
-            '</s:Envelope>';
-        const declarations = await this.vapixPost('/vapix/services', data, 'application/soap+xml');
-        return prettifyXml(declarations) as string;
     }
 
     //  -------------------------------
