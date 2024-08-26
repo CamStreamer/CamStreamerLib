@@ -175,17 +175,6 @@ export class CameraVapix extends EventEmitter {
         return this.vapixPost('/axis-cgi/io/port.cgi', `action=${encodeURIComponent(port)}:${active ? '/' : '\\'}`);
     }
 
-    async getApplicationList() {
-        const xml = await this.vapixGet('/axis-cgi/applications/list.cgi');
-        const result = (await parseStringPromise(xml)) as TApplicationList;
-
-        const apps = [];
-        for (let i = 0; i < result.reply.application.length; i++) {
-            apps.push(result.reply.application[i].$);
-        }
-        return apps;
-    }
-
     async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
         const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
         const res = await this.vapixGet(path);
@@ -205,5 +194,66 @@ export class CameraVapix extends EventEmitter {
             '</s:Envelope>';
         const declarations = await this.vapixPost('/vapix/services', data, 'application/soap+xml');
         return prettifyXml(declarations) as string;
+    }
+
+    //  -------------------------------
+    //          application API
+    //  -------------------------------
+    
+    async getApplicationList() {
+        const xml = await this.vapixGet('/axis-cgi/applications/list.cgi');
+        const result = (await parseStringPromise(xml)) as TApplicationList;
+
+        const apps = [];
+        for (let i = 0; i < result.reply.application.length; i++) {
+            apps.push(result.reply.application[i].$);
+        }
+        return apps;
+    }
+
+    async startApplication(applicationID: string) {
+        const res = await this.vapixGet('/axis-cgi/applications/control.cgi', {
+            package: applicationID.toLowerCase(),
+            action: 'start',
+        });
+        const text = (await res.text()).trim().toLowerCase();
+
+        if (res.ok && (await text) === 'ok') {
+            return;
+        } else if (text.startsWith('error:') && text.substring(7) === '6') {
+            return;
+        } else {
+            throw new Error(JSON.stringify(res));
+        }
+    }
+
+    async restartApplication(applicationID: string) {
+        const res = await this.vapixGet('/axis-cgi/applications/control.cgi', {
+            package: applicationID.toLowerCase(),
+            action: 'restart',
+        });
+        const text = (await res.text()).trim().toLowerCase();
+
+        if (res.ok && (await text) === 'ok') {
+            return;
+        } else {
+            throw new Error(JSON.stringify(res));
+        }
+    }
+
+    async stopApplication(applicationID: string) {
+        const res = await this.vapixGet('/axis-cgi/applications/control.cgi', {
+            package: applicationID.toLowerCase(),
+            action: 'stop',
+        });
+        const text = (await res.text()).trim().toLowerCase();
+
+        if (res.ok && (await text) === 'ok') {
+            return;
+        } else if (text.startsWith('error:') && text.substring(7) === '6') {
+            return;
+        } else {
+            throw new Error(JSON.stringify(res));
+        }
     }
 }
