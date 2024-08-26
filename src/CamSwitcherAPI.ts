@@ -42,6 +42,14 @@ export type TOutputInfo = {
     ws: string;
     ws_initial_message: string;
 };
+export type TSilenceChannel = 'mono' | 'stereo';
+export type TAvailableCameraList = { camera_list: { name: string; ip: string }[] };
+export type TStorageInfo = {
+    storage: TClipStorage;
+    writable: boolean;
+    size: number;
+    available: number;
+};
 
 export class CamSwitcherAPI {
     private client: IClient;
@@ -52,17 +60,26 @@ export class CamSwitcherAPI {
         } else {
             this.client = new DefaultAgent(options);
         }
-
     }
 
+    generateSilence(sampleRate: number, channels: TSilenceChannel): Promise<void> {
+        return this.get('/local/camswitcher/generate_silence.cgi', { sample_rate: sampleRate.toString(), channels });
     }
 
+    getIpListFromNetworkCheck(): Promise<TAvailableCameraList> {
+        return this.get('/local/camswitcher/network_camera_list.cgi');
     }
 
+    getMaxFps(source: number): Promise<number> {
+        return this.get('/local/camswitcher/get_max_framerate.cgi', { video_source: source.toString() });
     }
 
+    getStorageInfo(): Promise<TStorageInfo[]> {
+        return this.get('/local/camswitcher/get_storage.cgi');
     }
 
+    getOutputInfo(): Promise<TOutputInfo> {
+        return this.get('/local/camswitcher/output_info.cgi');
     }
 
     //   ----------------------------------------
@@ -114,10 +131,6 @@ export class CamSwitcherAPI {
 
     removeClip(id: string, storage: TClipStorage): Promise<{}> {
         return this.get(`/local/camswitcher/clip_remove.cgi`, { clip_name: id, storage });
-    }
-
-    getOutputInfo(): Promise<TOutputInfo> {
-        return this.get('/local/camswitcher/output_info.cgi');
     }
 
     private async get(path: string, parameters: Record<string, string> = {}): Promise<any> {
