@@ -132,17 +132,21 @@ export class CameraVapix {
     }
 
     async checkSdCard(): Promise<TSDCardInfo> {
-        const postData = JSON.stringify({
+        const res = await this.vapixGet('/axis-cgi/disks/list.cgi', {
             diskid: 'SD_DISK',
         });
-        const res = await this.vapixPost('/axis-cgi/disks/list.cgi', postData);
-        const result = await parseStringPromise(await res.text());
+        const result = await parseStringPromise(await res.text(), {
+            ignoreAttrs: false,
+            mergeAttrs: true,
+            explicitArray: false,
+        });
+
         const data = result.root.disks.disk;
 
         return {
             available: data.status === 'OK',
-            totalSize: Number(data.totalsize),
-            freeSize: Number(data.freesize),
+            totalSize: parseInt(data.totalsize),
+            freeSize: parseInt(data.freesize),
         };
     }
 
@@ -156,29 +160,38 @@ export class CameraVapix {
         }
     }
 
-    async getMaxFps(source: number): Promise<number> {
+    async getMaxFps(channel: number): Promise<number> {
         const data = JSON.stringify({ apiVersion: '1.0', method: 'getCaptureModes' });
 
+        type TCaptureModeResponse = {
+            data: {
+                channel: number;
+                captureMode: {
+                    enabled: boolean;
+                    maxFPS: string;
+                }[];
+            }[];
+        };
         const res = await this.vapixPost('/axis-cgi/capturemode.cgi', data);
 
         if (!res.ok) {
             throw new Error(JSON.stringify(res));
         }
 
-        const response: any = res.json();
+        const response = (await res.json()) as TCaptureModeResponse;
 
         const channels = response.data;
         if (channels === undefined) {
             throw new Error(`Malformed reply from camera`);
         }
-        const channel = channels.find((x: any) => x.channel === source);
+        const channelData = channels.find((x) => x.channel === channel);
 
-        if (channel === undefined) {
-            throw new Error(`Video channel '${source}' not found`);
+        if (channelData === undefined) {
+            throw new Error(`Video channel '${channel}' not found`);
         }
 
-        const captureModes = channel.captureMode;
-        const captureMode = captureModes.find((x: any) => x.enabled === true);
+        const captureModes = channelData.captureMode;
+        const captureMode = captureModes.find((x) => x.enabled === true);
         if (captureMode === undefined) {
             throw new Error(`No enabled capture mode found.`);
         }
