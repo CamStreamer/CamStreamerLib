@@ -377,7 +377,7 @@ export class CameraVapix {
         return parsed;
     }
 
-    async getPTZPresetList(channel: string) {
+    async getPTZPresetList(channel: number) {
         const response = await (
             await this.vapixGet(`/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`)
         ).text();
@@ -455,7 +455,7 @@ export class CameraVapix {
         return response.split('=')[1].indexOf('active') === 0;
     }
 
-    setOutputState(port: number, active: boolean) {
+    async setOutputState(port: number, active: boolean) {
         return this.vapixPost('/axis-cgi/io/port.cgi', `action=${encodeURIComponent(port)}:${active ? '/' : '\\'}`);
     }
 
@@ -463,7 +463,7 @@ export class CameraVapix {
     //          application API
     //  -------------------------------
 
-    async getApplicationList() {
+    async getApplicationList(): Promise<TApplication[]> {
         const xml = await (await this.vapixGet('/axis-cgi/applications/list.cgi')).text();
         const result = (await parseStringPromise(xml)) as TApplicationList;
 
