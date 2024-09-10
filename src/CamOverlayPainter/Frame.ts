@@ -77,6 +77,7 @@ export default class Frame {
             this.fontColor = color;
         }
     }
+
     setFont(fontName: string): void {
         this.fontName = fontName;
     }
@@ -94,12 +95,32 @@ export default class Frame {
     setCustomDraw(customDraw: TDrawingCallback) {
         this.customDraw = customDraw;
     }
+
+    resetFont(): void {
+        this.fontName = undefined;
+    }
+    resetBgColor(): void {
+        this.bgColor = undefined;
+    }
+    resetBgImage(): void {
+        this.bgImage = undefined;
+        this.bgType = undefined;
+    }
+    resetCustomDraw(): void {
+        this.customDraw = undefined;
+    }
+
     clear(): void {
         this.text = '';
         this.align = 'A_LEFT';
+        this.textType = 'TFM_OVERFLOW';
         this.fontColor = [1.0, 1.0, 1.0];
+        this.fontName = undefined;
+
         this.bgColor = undefined;
         this.bgImage = undefined;
+        this.bgType = undefined;
+        this.customDraw = undefined;
     }
     insert(...frames: Frame[]): void {
         this.children.push(...frames); // Order of insertion is order of rendering
