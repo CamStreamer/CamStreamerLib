@@ -2,7 +2,7 @@ import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 
-import { HttpOptions, IClient, isClient } from './internal/common';
+import { HttpOptions, IClient, isClient, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
 export type CameraVapixOptions = HttpOptions;
@@ -156,7 +156,7 @@ export class CameraVapix {
         if (res.ok) {
             return res;
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -175,7 +175,7 @@ export class CameraVapix {
         const res = await this.vapixPost('/axis-cgi/capturemode.cgi', data);
 
         if (!res.ok) {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
 
         const response = (await res.json()) as TCaptureModeResponse;
@@ -211,7 +211,7 @@ export class CameraVapix {
         if (res.ok) {
             return ((await res.json()) as any)?.timeZone ?? 'Europe/Prague';
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -499,7 +499,7 @@ export class CameraVapix {
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -513,7 +513,7 @@ export class CameraVapix {
         if (res.ok && (await text) === 'ok') {
             return;
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -529,7 +529,7 @@ export class CameraVapix {
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 }
