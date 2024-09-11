@@ -1,5 +1,5 @@
 import { DefaultAgent } from './DefaultAgent';
-import { HttpOptions, IClient, isClient } from './internal/common';
+import { HttpOptions, IClient, isClient, responseStringify } from './internal/common';
 
 export type CamSwitcherAPIOptions = HttpOptions;
 
@@ -51,6 +51,15 @@ export type TStorageInfo = {
     available: number;
 };
 
+const cgiNames = {
+    camera: 'streams',
+    audio: 'audios',
+    playlist: 'playlists',
+    clip: 'clips',
+    tracker: 'trackers',
+};
+export type TSourceType = keyof typeof cgiNames;
+
 export class CamSwitcherAPI {
     private client: IClient;
 
@@ -66,20 +75,20 @@ export class CamSwitcherAPI {
         return this.get('/local/camswitcher/generate_silence.cgi', { sample_rate: sampleRate.toString(), channels });
     }
 
-    getIpListFromNetworkCheck(): Promise<TAvailableCameraList> {
-        return this.get('/local/camswitcher/network_camera_list.cgi');
+    async getIpListFromNetworkCheck(): Promise<TAvailableCameraList> {
+        return (await this.get('/local/camswitcher/network_camera_list.cgi')).data;
     }
 
-    getMaxFps(source: number): Promise<number> {
-        return this.get('/local/camswitcher/get_max_framerate.cgi', { video_source: source.toString() });
+    async getMaxFps(source: number): Promise<number> {
+        return (await this.get('/local/camswitcher/get_max_framerate.cgi', { video_source: source.toString() })).data;
     }
 
-    getStorageInfo(): Promise<TStorageInfo[]> {
-        return this.get('/local/camswitcher/get_storage.cgi');
+    async getStorageInfo(): Promise<TStorageInfo[]> {
+        return (await this.get('/local/camswitcher/get_storage.cgi')).data;
     }
 
-    getOutputInfo(): Promise<TOutputInfo> {
-        return this.get('/local/camswitcher/output_info.cgi');
+    async getOutputInfo(): Promise<TOutputInfo> {
+        return (await this.get('/local/camswitcher/output_info.cgi')).data;
     }
 
     //   ----------------------------------------
@@ -139,7 +148,7 @@ export class CamSwitcherAPI {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 }

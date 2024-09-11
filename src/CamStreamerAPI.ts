@@ -1,4 +1,4 @@
-import { IClient, isClient, HttpOptions } from './internal/common';
+import { IClient, isClient, HttpOptions, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
 export type CamStreamerAPIOptions = HttpOptions;
@@ -80,7 +80,7 @@ export class CamStreamerAPI {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 }
