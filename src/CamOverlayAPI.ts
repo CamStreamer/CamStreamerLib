@@ -1,4 +1,4 @@
-import { HttpOptions, IClient, isClient } from './internal/common';
+import { HttpOptions, IClient, isClient, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
 export type CamOverlayOptions = HttpOptions;
@@ -9,14 +9,7 @@ export type TField = {
     color?: string;
 };
 
-export type TService = {
-    id: number;
-    enabled: number;
-    schedule: string;
-    name: string;
-    identifier: string;
-    cameraList: number[];
-};
+export type TService = Record<string, any>;
 
 export type TServiceList = {
     services: TService[];
@@ -88,13 +81,13 @@ export class CamOverlayAPI {
     //   ----------------------------------------
     //             CamOverlay services
     //   ----------------------------------------
-    
+
     async updateInfoticker(serviceID: number, text: string) {
         const path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
         const res = await this.client.get(path);
 
         if (!res.ok) {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -103,7 +96,7 @@ export class CamOverlayAPI {
         const res = await this.client.post(path, '');
 
         if (!res.ok) {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -121,7 +114,7 @@ export class CamOverlayAPI {
             }
             throw new Error('Service not found.');
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -147,7 +140,7 @@ export class CamOverlayAPI {
         const res = await this.client.post(path, JSON.stringify(servicesJson));
 
         if (!res.ok) {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -208,7 +201,7 @@ export class CamOverlayAPI {
 
         const res = await this.client.post(path, data ?? '', {}, headers);
         if (!res.ok) {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -222,7 +215,7 @@ export class CamOverlayAPI {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
     private async post(path: string, data: string | Buffer | FormData, params?: Record<string, string>): Promise<any> {
@@ -231,7 +224,7 @@ export class CamOverlayAPI {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(JSON.stringify(res));
+            throw new Error(await responseStringify(res));
         }
     }
 }
