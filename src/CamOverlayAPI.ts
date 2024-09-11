@@ -54,7 +54,7 @@ export class CamOverlayAPI {
         }
     }
 
-    async getCameraTime(): Promise<boolean> {
+    async checkCameraTime(): Promise<boolean> {
         const cameraTime = await this.get('/local/camoverlay/api/camera_time.cgi');
         return cameraTime.state;
     }
@@ -149,28 +149,37 @@ export class CamOverlayAPI {
     //   ----------------------------------------
 
     updateCGText(serviceID: number, fields: TField[]) {
-        let field_specs = '';
+        const params: Record<string, string> = {};
 
         for (const field of fields) {
             const name = field.field_name;
-            field_specs += `&${name}=${field.text}`;
+
+            params[name] = field.text;
             if (field.color !== undefined) {
-                field_specs += `&${name}_color=${field.color}`;
+                params[`${name}_color`] = field.color;
             }
         }
 
-        return this.promiseCGUpdate(serviceID, 'update_text', field_specs);
+        return this.promiseCGUpdate(serviceID, 'update_text', params);
     }
 
     updateCGImagePos(serviceID: number, coordinates: TCoordinates = '', x = 0, y = 0) {
-        const coord = this.formCoordinates(coordinates, x, y);
-        return this.promiseCGUpdate(serviceID, 'update_image', coord);
+        const params = {
+            coord_system: coordinates,
+            pos_x: x,
+            pos_y: y,
+        };
+        return this.promiseCGUpdate(serviceID, 'update_image', params);
     }
 
     updateCGImage(serviceID: number, path: string, coordinates: TCoordinates = '', x = 0, y = 0) {
-        const coord = this.formCoordinates(coordinates, x, y);
-        const update = `&image=${path}`;
-        return this.promiseCGUpdate(serviceID, 'update_image', update + coord);
+        const params = {
+            coord_system: coordinates,
+            pos_x: x,
+            pos_y: y,
+            image: path,
+        };
+        return this.promiseCGUpdate(serviceID, 'update_image', params);
     }
 
     updateCGImageFromData(
@@ -181,32 +190,41 @@ export class CamOverlayAPI {
         x = 0,
         y = 0
     ) {
-        const coord = this.formCoordinates(coordinates, x, y);
         const contentType = imageType === ImageType.PNG ? 'image/png' : 'image/jpeg';
-        return this.promiseCGUpdate(serviceID, 'update_image', coord, contentType, imageData);
+        const params = {
+            coord_system: coordinates,
+            pos_x: x,
+            pos_y: y,
+        };
+        return this.promiseCGUpdate(serviceID, 'update_image', params, contentType, imageData);
     }
 
     private async promiseCGUpdate(
         serviceID: number,
         action: string,
-        params: string,
+        params: Record<string, string | number> = {},
         contentType?: string,
         data?: Buffer
     ) {
-        const path = `/local/camoverlay/api/customGraphics.cgi?action=${action}&service_id=${serviceID}${params}`;
+        const path = `/local/camoverlay/api/customGraphics.cgi`;
         let headers = {};
         if (contentType !== undefined && data) {
             headers = { 'Content-Type': contentType };
         }
 
-        const res = await this.client.post(path, data ?? '', {}, headers);
+        const res = await this.client.post(
+            path,
+            data ?? '',
+            {
+                action: action,
+                service_id: serviceID.toString(),
+                ...params,
+            },
+            headers
+        );
         if (!res.ok) {
             throw new Error(await responseStringify(res));
         }
-    }
-
-    private formCoordinates(coordinates: TCoordinates, x: number, y: number) {
-        return coordinates !== '' ? `&coord_system=${coordinates}&pos_x=${x}&pos_y=${y}` : '';
     }
 
     private async get(path: string, params?: Record<string, string>): Promise<any> {

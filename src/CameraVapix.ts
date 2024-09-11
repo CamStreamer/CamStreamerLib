@@ -494,7 +494,7 @@ export class CameraVapix {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (res.ok && (await text) === 'ok') {
+        if (res.ok && text === 'ok') {
             return;
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
@@ -510,7 +510,7 @@ export class CameraVapix {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (res.ok && (await text) === 'ok') {
+        if (res.ok && text === 'ok') {
             return;
         } else {
             throw new Error(await responseStringify(res));
@@ -524,7 +524,7 @@ export class CameraVapix {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (res.ok && (await text) === 'ok') {
+        if (res.ok && text === 'ok') {
             return;
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
