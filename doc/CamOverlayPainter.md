@@ -76,6 +76,14 @@ Three modules for even easier control of CamOverlay drawing API.
 
 -   **setCustomDraw(customDraw: TDrawingCallback)** - Sets a callback which is run when the entire frame is displayed.
 
+-   **resetFont()** - Removes the font from this frame.
+
+-   **resetBgColor()** - Removes the background color from this frame.
+
+-   **resetBgImage()** - Removes the background image from this frame.
+
+-   **resetCustomDraw()** - Removes the customDraw callback from this frame.
+
     ```typescript
     type TObjectFitType = 'fill' | 'fit' | 'none';
     ```

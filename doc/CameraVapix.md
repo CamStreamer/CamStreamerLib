@@ -30,6 +30,26 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
     vapixPost('/axis-cgi/param.cgi', 'action=update&camscripter.enabled=1');
     ```
 
+-   **getCameraImage(camera, compression, resolution, outputStream)** - Get image of the camera using specified compression and resolution, write it in stream given as the outputStream argument.
+
+-   **getEventDeclarations()** - Get all the available camera events in JSON format.
+
+-   **getSupportedAudioSampleRate()** - Return all supported audio sample rates.
+
+-   **checkSdCard()** - Return info about camera's SD card.
+
+-   **downloadCameraReport()** - Generate and return a server report including product information, parameter settings and system logs.
+
+-   **getMaxFps(channel)** - Return the maximum supported FPS on the given channel.
+
+-   **getTimezone()** - Return timezone of the camera.
+
+-   **getHeaders()** - Read all custom HTTP headers from the camera.
+
+-   **setHeaders()** - Add custom HTTP headers to the camera.
+
+### param.cgi
+
 -   **getParameterGroup(groupNames)** - Get parameters from the camera.
 
     ```javascript
@@ -40,18 +60,6 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
 
     ```javascript
     setParameter({ 'root.camscripter.Enabled': '1' });
-    ```
-
--   **getPTZPresetList(channel)** - Get a list of PTZ presets for the specified channel. Channels are numbered from 1.
-
-    ```javascript
-    getPTZPresetList(1);
-    ```
-
--   **goToPreset(channel, presetName)** - Move the camera channel to the PTZ preset.
-
-    ```javascript
-    goToPreset(1, 'home');
     ```
 
 -   **getGuardTourList()** - Get the list of guard tours.
@@ -66,6 +74,26 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
     setGuardTourEnabled('root.GuardTour.G0', true);
     ```
 
+### ptz.cgi
+
+-   **getPTZPresetList(channel)** - Get a list of PTZ presets for the specified channel. Channels are numbered from 1.
+
+    ```javascript
+    getPTZPresetList(1);
+    ```
+
+-   **listPtzVideoSourceOverview()** - Return current preset positions for all video channels.
+
+-   **goToPreset(channel, presetName)** - Move the camera channel to the PTZ preset.
+
+    ```javascript
+    goToPreset(1, 'home');
+    ```
+
+-   **getPtzPosition(camera)** - Return values of pan, tilt and zoom for current position.
+
+### port.cgi
+
 -   **getInputState(port)** - Get the camera input state for the specified port number.
 
     ```javascript
@@ -78,44 +106,12 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
     setOutputState(2, true);
     ```
 
+### application API
+
 -   **getApplicationList()** - Get the list of installed Acap applications.
 
-    ```javascript
-    getApplicationList();
-    ```
+-   **startApplication(applicationID)** - Start the application whose name is given by the parameter `applicationID`.
 
--   **getEventDeclarations()** - Get all the available camera events in JSON format.
+-   **restartApplication(applicationID)** - Restart the application whose name is given by the parameter `applicationID`.
 
-    ```javascript
-    getEventDeclarations();
-    ```
-
--   **getCameraImage(camera, compression, resolution, outputStream)**
-
-    -   Get image of the camera using specified compression and resolution, write it in stream given as the outputStream argument.
-
-    **eventsConnect()** - Start reading all subscribed events from VAPIX library.
-
-    ```javascript
-    eventsConnect();
-    ```
-
-    **eventsDisconnect()** - End reading all subscribed events.
-
-    ```javascript
-    eventsDisconnect();
-    ```
-
-## Events
-
--   **eventsConnect** - Websocket connection is ready
-
--   **eventsDisconnect(err)** - Websocket connection error
-
--   **eventsClose** - Websocket connection closed
-
--   **\*** - You can listen for events from camera by registrating the appropriate topic
-
-    ```javascript
-    on('axis:CameraApplicationPlatform/VMD/Camera1Profile1/.', function (event) {});
-    ```
+-   **stopApplication(applicationID)** - Stop the application whose name is given by the parameter `applicationID`.
