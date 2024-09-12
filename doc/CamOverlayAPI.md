@@ -17,6 +17,33 @@ Module for access to CamOverlay HTTP interface.
     });
     ```
 
+-   **checkCameraTime()** - Verifies the time of the camera against the time of the camstreamer server.
+    Returns false if the times do not match or if the check did not take place.
+
+-   **listImages()** - Returns list of all images uploaded on the camera.
+
+-   **uploadImage(file, fileName)** - Uploads new image to the camera.
+
+-   **getNetworkCameraList()** - Returns list of all cameras available on the network.
+
+### CamOverlay services
+
+-   **updateInfoticker(serviceID, text)** - Updates text in Infoticker service, if any is running.
+
+-   **setEnabled(serviceID, enabled)** - Enables/disables the bound CO service.
+
+-   **isEnabled(serviceID)** - Returns whether the bound CO service is enabled (true) or disabled (false).
+
+-   **getSingleService(serviceId)** - Returns complete settings of the given CamOverlay service.
+
+-   **getServices()** - Returns complete settings of all CamOverlay services.
+
+-   **updateSingleService(serviceId, serviceJson)** - Changes settings of the given CamOverlay service.
+
+-   **updateServices(servicesJson)** - Changes settings of all CamOverlay services.
+
+### Custom Graphics
+
 -   **updateCGText(serviceID, fields)** - Updates text fields listed in parameter fields.
 
     One field is defined as follows. Parameter "color" is optional.
@@ -36,16 +63,5 @@ Module for access to CamOverlay HTTP interface.
 -   **updateCGImage(serviceID, path, [coordinates, x, y])** - Updates Custom Graphics background to an image with specified path on the camera.
     If no coordinates are specified, the service will use positioning from the last update.
 
--   **updateInfoticker(serviceID, text)** - Updates text in Infoticker service, if any is running.
-
--   **setEnabled(serviceID, enabled)** - Enables/disables the bound CO service.
-
--   **isEnabled(serviceID)** - Returns whether the bound CO service is enabled (true) or disabled (false).
-
-## Events
-
--   **msg(msg)** - WebSocket message received
-
--   **error(err)** - An error occurs
-
--   **close** - WebSocket closed
+-   **updateCGImageFromData(serviceID, imageType, imageData, [coordinates, x, y])** - Updates Custom Graphics background to an image passed as
+    the imageData argument. If no coordinates are specified, the service will use positioning from the last update.

@@ -12,6 +12,17 @@ export type WsClientOptions = WsOptions & {
     protocol?: string;
 };
 
+export interface WsClient {
+    on(event: 'open', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
+    on(event: 'message', listener: (data: Buffer) => void): this;
+    on(event: 'error', listener: (err: Error) => void): this;
+
+    emit(event: 'open'): boolean;
+    emit(event: 'close'): boolean;
+    emit(event: 'message', data: Buffer): boolean;
+    emit(event: 'error', err: Error): boolean;
+}
 export class WsClient extends EventEmitter {
     private user: string;
     private pass: string;

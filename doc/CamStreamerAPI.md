@@ -24,11 +24,15 @@ Module for easy control of streaming in CamStreamer Acap application.
     getStreamList();
     ```
 
+-   **getStream(streamID)** - Get info about the CamStreamer stream specified by `streamID`.
+
 -   **getStreamParameter(streamID, paramName)** - Get a single parameter of the stream with specified ID.
 
     ```javascript
     getStreamParameter('1234', 'enabled');
     ```
+
+-   **setStream(streamID, params)** - Set info about the CamStreamer stream specified by `streamID`.
 
 -   **setStreamParameter(streamID, paramName, value)** - Set value of stream parameter.
 
@@ -41,3 +45,5 @@ Module for easy control of streaming in CamStreamer Acap application.
     ```javascript
     isStreaming('1234');
     ```
+
+-   **deleteStream(streamID)** - Delete the CamStreamer stream specified by `streamID`.

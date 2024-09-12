@@ -5,6 +5,32 @@ import { WsClient, WsClientOptions } from './internal/WsClient';
 
 export type VapixEventsOptions = WsOptions;
 
+type TEventMessage = {
+    apiVersion: string;
+    method: string;
+    params: {
+        notification: {
+            timestamp: number;
+            topic: string;
+            message: {
+                source: Record<string, string>;
+                data: Record<string, string>;
+                key: Record<string, string>;
+            };
+        };
+    };
+};
+export interface VapixEvents {
+    on(event: 'open', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
+    on(event: 'error', listener: (err: Error) => void): this;
+    on(event: string, listener: (data: TEventMessage) => void): this;
+
+    emit(event: 'open'): boolean;
+    emit(event: 'close'): boolean;
+    emit(event: 'error', err: Error): boolean;
+    emit(event: string, msg: TEventMessage): boolean;
+}
 export class VapixEvents extends EventEmitter {
     private tls: boolean;
     private tlsInsecure: boolean;
@@ -83,7 +109,7 @@ export class VapixEvents extends EventEmitter {
                 return;
             }
             const eventName: string = dataJSON.params.notification.topic;
-            this.emit(eventName, dataJSON as object);
+            this.emit(eventName, dataJSON as TEventMessage);
         });
         this.ws.on('error', (error: Error) => {
             this.emit('error', error);

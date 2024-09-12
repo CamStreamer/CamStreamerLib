@@ -54,6 +54,15 @@ type TAsyncMessage = {
     reject: (reason?: any) => void;
 };
 
+export interface CamScripterAPICameraEventsGenerator {
+    on(event: 'open', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
+    on(event: 'error', listener: (err: Error) => void): this;
+
+    emit(event: 'open'): boolean;
+    emit(event: 'close'): boolean;
+    emit(event: 'error', err: Error): boolean;
+}
 export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private tls: boolean;
     private tlsInsecure: boolean;

@@ -35,3 +35,10 @@ export function isClient(arg: Options | IClient = {}): arg is IClient {
 export function isBrowserEnvironment() {
     return typeof process === 'undefined' || process.versions === null || process.versions.node === null;
 }
+
+export async function responseStringify(res: Response): Promise<string> {
+    return JSON.stringify({
+        status: res.status,
+        body: await res.text(),
+    });
+}

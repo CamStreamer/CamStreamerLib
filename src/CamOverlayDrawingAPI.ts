@@ -48,11 +48,23 @@ export type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
 export type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
 export type TWriteTextParams = [string, string, number, number, number, number, TAlign, TextFit?];
 
-type Response = TCairoResponse | TCairoCreateResponse | TUploadImageResponse;
+type TResponse = TCairoResponse | TCairoCreateResponse | TUploadImageResponse;
 type AsyncMessage = {
-    resolve: (value: Response) => void;
+    resolve: (value: TResponse) => void;
     reject: (reason: Error) => void;
 };
+
+export interface CamOverlayDrawingAPI {
+    on(event: 'open', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
+    on(event: 'error', listener: (err: Error) => void): this;
+    on(event: 'message', listener: (msg: string) => void): this;
+
+    emit(event: 'open'): boolean;
+    emit(event: 'close'): boolean;
+    emit(event: 'error', err: Error): boolean;
+    emit(event: 'message', msg: string): boolean;
+}
 
 export class CamOverlayDrawingAPI extends EventEmitter {
     private tls: boolean;
@@ -202,7 +214,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private sendMessage(msgJson: TMessage) {
-        return new Promise<Response>((resolve, reject) => {
+        return new Promise<TResponse>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson['call_id'] = this.callId++;
@@ -219,7 +231,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private sendBinaryMessage(msgJson: TMessage, data: Buffer) {
-        return new Promise<Response>((resolve, reject) => {
+        return new Promise<TResponse>((resolve, reject) => {
             try {
                 this.sendMessages[this.callId] = { resolve, reject };
                 msgJson['call_id'] = this.callId++;
