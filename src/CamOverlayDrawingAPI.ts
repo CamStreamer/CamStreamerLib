@@ -11,7 +11,7 @@ export type CamOverlayDrawingOptions = WsOptions & {
 type TMessage = {
     command: string;
     call_id?: number;
-    params?: unknown[];
+    params: unknown[];
 };
 
 export type TCairoResponse = {
@@ -167,7 +167,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     removeImage() {
-        return this.sendMessage({ command: 'remove_image_v2' }) as Promise<TCairoResponse>;
+        return this.sendMessage({ command: 'remove_image_v2', params: [] }) as Promise<TCairoResponse>;
     }
 
     private createWsClient() {
