@@ -53,11 +53,12 @@ export class HttpRequestSender {
         postData?: Buffer | string | FormData,
         wwwAuthenticateHeader?: string
     ): Promise<Response> {
+        options.timeout ??= 10000;
+
         const url = HttpRequestSender.getURL(options);
         const controller = new AbortController();
-        if (options.timeout !== undefined) {
-            setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
-        }
+
+        setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
 
         const authorization = this.getAuthorization(options, wwwAuthenticateHeader);
         if (authorization !== undefined) {
