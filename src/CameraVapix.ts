@@ -92,8 +92,7 @@ export class CameraVapix {
     }
 
     async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
-        const path = `/axis-cgi/jpg/image.cgi?resolution=${resolution}&compression=${compression}&camera=${camera}`;
-        const res = await this.vapixGet(path);
+        const res = await this.vapixGet('/axis-cgi/jpg/image.cgi', { resolution, compression, camera });
         if (res.body) {
             void res.body.pipeTo(outputStream);
         }
@@ -235,22 +234,20 @@ export class CameraVapix {
         return this.vapixPost('/axis-cgi/customhttpheader.cgi', data);
     }
 
-    private parseGetParametrs(response: string): Record<string, string> {
+    private parseParameters(response: string): Record<string, string> {
         const params: Record<string, string> = {};
         const lines = response.split(/[\r\n]/);
 
         for (let i = 0; i < lines.length; i++) {
-            if (lines[i].substring(0, 7) === '# Error') {
+            if (lines[i].length === 0 || lines[i].substring(0, 7) === '# Error') {
                 continue;
             }
-            if (lines[i].length) {
-                const p = lines[i].split(/=(.+)/);
-                if (p.length >= 2) {
-                    const paramName = p[0].replace('root.', '');
-                    params[paramName] = String(p[1]);
-                } else if (p[0].substring(0, 7) !== '# Error') {
-                    params[p[0].slice(0, -1)] = '';
-                }
+
+            const delimiterPos = lines[i].indexOf('=');
+            if (delimiterPos !== -1) {
+                const paramName = lines[i].substring(0, delimiterPos);
+                const paramValue = lines[i].substring(delimiterPos + 1);
+                params[paramName] = paramValue;
             }
         }
         return params;
@@ -261,20 +258,8 @@ export class CameraVapix {
     //  -------------------------------
 
     async getParameterGroup(groupNames: string) {
-        const response = await (
-            await this.vapixGet(`/axis-cgi/param.cgi?action=list&group=${encodeURIComponent(groupNames)}`)
-        ).text();
-        const params: Record<string, string> = {};
-        const lines = response.split(/[\r\n]/);
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].length) {
-                const p = lines[i].split('=');
-                if (p.length >= 2) {
-                    params[p[0]] = p[1];
-                }
-            }
-        }
-        return params;
+        const response = await this.vapixGet('/axis-cgi/param.cgi', { action: 'list', group: groupNames });
+        return this.parseParameters(await response.text());
     }
 
     setParameter(params: Record<string, string>) {
@@ -335,21 +320,20 @@ export class CameraVapix {
     private parsePtz(parsed: string[]): TCameraPTZItem[] {
         const res: TCameraPTZItem[] = [];
         parsed.forEach((value: string) => {
-            const valueData = value.split('=');
-            if (valueData.length < 2) {
+            const delimiterPos = value.indexOf('=');
+            if (delimiterPos === -1) {
                 return;
             }
-            if (!valueData[0].startsWith('presetposno')) {
+            if (!value.startsWith('presetposno')) {
                 return;
             }
 
-            const id = Number(valueData[0].replace('presetposno', ''));
+            const id = Number(value.substring(11, delimiterPos));
             if (Number.isNaN(id)) {
                 return;
             }
 
-            const data = valueData[1].split(':');
-
+            const data = value.substring(delimiterPos + 1).split(':');
             const getValue = (valueName: string) => {
                 for (const d of data) {
                     const p = d.split('=');
@@ -372,7 +356,7 @@ export class CameraVapix {
         });
         return res;
     }
-    private parseCameraPtzFromReq(response: string) {
+    private parseCameraPtzResponse(response: string) {
         const json = JSON.parse(response);
         const parsed: Record<number, TCameraPTZItem[]> = {};
 
@@ -392,7 +376,7 @@ export class CameraVapix {
 
     async getPTZPresetList(channel: number) {
         const response = await (
-            await this.vapixGet(`/axis-cgi/com/ptz.cgi?query=presetposcam&camera=${encodeURIComponent(channel)}`)
+            await this.vapixGet('/axis-cgi/com/ptz.cgi', { query: 'presetposcam', camera: channel.toString() })
         ).text();
         const positions: string[] = [];
         const lines = response.split(/[\r\n]/);
@@ -410,13 +394,12 @@ export class CameraVapix {
 
     async listPtzVideoSourceOverview(): Promise<TPtzOverview> {
         try {
-            const response = await this.vapixGet(`/axis-cgi/com/ptz.cgi`, {
+            const response = await this.vapixGet('/axis-cgi/com/ptz.cgi', {
                 query: 'presetposall',
                 format: 'json',
             });
 
-            // presetposall is not returning the data => ignore them
-            const data = this.parseCameraPtzFromReq(await response.text());
+            const data = this.parseCameraPtzResponse(await response.text());
 
             const res: TPtzOverview = {};
             Object.keys(data).forEach((camera) => {
@@ -429,31 +412,25 @@ export class CameraVapix {
     }
 
     goToPreset(channel: number, presetName: string) {
-        return this.vapixPost(
-            '/axis-cgi/com/ptz.cgi',
-            `camera=${encodeURIComponent(channel)}&gotoserverpresetname=${encodeURIComponent(presetName)}`
-        );
+        return this.vapixGet('/axis-cgi/com/ptz.cgi', { camera: channel.toString(), gotoserverpresetname: presetName });
     }
 
     async getPtzPosition(camera: number): Promise<TCameraPTZItemData> {
         try {
-            const res = await this.vapixGet(`/axis-cgi/com/ptz.cgi`, {
+            const res = await this.vapixGet('/axis-cgi/com/ptz.cgi', {
                 query: 'position',
                 camera: camera.toString(),
             });
-            const data = this.parseGetParametrs(await res.text());
+
+            const params = this.parseParameters(await res.text());
 
             return {
-                pan: Number(data.pan),
-                tilt: Number(data.tilt),
-                zoom: Number(data.zoom),
+                pan: Number(params.pan),
+                tilt: Number(params.tilt),
+                zoom: Number(params.zoom),
             };
         } catch (err) {
-            return {
-                pan: 0,
-                tilt: 0,
-                zoom: 0,
-            };
+            return { pan: 0, tilt: 0, zoom: 0 };
         }
     }
 
@@ -462,14 +439,12 @@ export class CameraVapix {
     //  -------------------------------
 
     async getInputState(port: number) {
-        const response = await (
-            await this.vapixPost('/axis-cgi/io/port.cgi', `checkactive=${encodeURIComponent(port)}`)
-        ).text();
+        const response = await (await this.vapixGet('/axis-cgi/io/port.cgi', { checkactive: port.toString() })).text();
         return response.split('=')[1].indexOf('active') === 0;
     }
 
     async setOutputState(port: number, active: boolean) {
-        return this.vapixPost('/axis-cgi/io/port.cgi', `action=${encodeURIComponent(port)}:${active ? '/' : '\\'}`);
+        return this.vapixGet('/axis-cgi/io/port.cgi', { action: active ? `${port}:/` : `${port}:\\` });
     }
 
     //  -------------------------------
