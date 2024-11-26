@@ -50,7 +50,7 @@ export class DefaultAgent implements IClient {
         }
 
         for (const key in params) {
-            path += `${key}=${params[key]}&`;
+            path += `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}&`;
         }
         path = path.slice(0, path.length - 1);
 
