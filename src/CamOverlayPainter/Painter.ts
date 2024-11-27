@@ -30,13 +30,6 @@ export default class Painter extends Frame {
     private cod: CamOverlayDrawingAPI;
     private rm: ResourceManager;
 
-    get camOverlayDrawingAPI() {
-        return this.cod;
-    }
-    get resourceManager() {
-        return this.rm;
-    }
-
     constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions) {
         super(opt);
         this.coAlignment = COORD[opt.coAlignment];
@@ -45,6 +38,13 @@ export default class Painter extends Frame {
 
         this.cod = new CamOverlayDrawingAPI(coopt);
         this.rm = new ResourceManager(this.cod);
+    }
+
+    get camOverlayDrawingAPI() {
+        return this.cod;
+    }
+    get resourceManager() {
+        return this.rm;
     }
 
     connect() {
@@ -78,18 +78,14 @@ export default class Painter extends Frame {
         this.screenHeight = sh;
     }
 
-    setCoAlignment(coa: string) {
-        this.coAlignment = COORD[coa];
+    setCoAlignment(coAlignment: string) {
+        this.coAlignment = COORD[coAlignment];
     }
 
     async display(scale = 1) {
         if (this.enabled) {
             [this.surface, this.cairo] = await this.prepareDrawing(scale);
-
-            await this.displayOwnImage(this.cod, this.rm, this.cairo, 0, 0, scale);
-            for (const child of this.children) {
-                await child.displayImage(this.cod, this.rm, this.cairo, 0, 0, scale);
-            }
+            await this.displayImage(this.cod, this.rm, this.cairo, 0, 0, scale);
 
             await this.cod.showCairoImage(
                 this.surface,
