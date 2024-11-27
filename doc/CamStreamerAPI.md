@@ -1,11 +1,11 @@
 # CamStreamerAPI
 
-Module for easy control of streaming in CamStreamer Acap application.
+Module for easy control of streaming in the CamStreamer Acap application.
 
 ## Methods
 
--   **CamStreamerAPI(options)** - Options parameter contains access to the camera and specifies which protocol should be used. Values mentioned
-    in example below are default.
+-   **CamStreamerAPI(options)** - The options parameter contains access to the camera and specifies which protocol should be used. Values mentioned
+    in the example below are default.
 
         ```javascript
         CamStreamerAPI({
@@ -26,7 +26,7 @@ Module for easy control of streaming in CamStreamer Acap application.
 
 -   **getStream(streamID)** - Get info about the CamStreamer stream specified by `streamID`.
 
--   **getStreamParameter(streamID, paramName)** - Get a single parameter of the stream with specified ID.
+-   **getStreamParameter(streamID, paramName)** - Get a single parameter of the stream with the specified ID.
 
     ```javascript
     getStreamParameter('1234', 'enabled');
@@ -34,7 +34,7 @@ Module for easy control of streaming in CamStreamer Acap application.
 
 -   **setStream(streamID, params)** - Set info about the CamStreamer stream specified by `streamID`.
 
--   **setStreamParameter(streamID, paramName, value)** - Set value of stream parameter.
+-   **setStreamParameter(streamID, paramName, value)** - Set the value of the stream parameter.
 
     ```javascript
     setStreamParameter('1234', 'enabled', '1');
