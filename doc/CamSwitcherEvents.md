@@ -1,11 +1,11 @@
 # CamSwitcherEvents
 
-Module for CamSwitcher events receiving.
+Module for receiving CamSwitcher events.
 
 ## Methods
 
--   **CamSwitcherEvents(options)** - Options parameter contains access to the camera with CamSwitcher installed.
-    Values mentioned in example below are default.
+-   **CamSwitcherEvents(options)** - The options parameter contains access to the camera with CamSwitcher installed.
+    Values mentioned in the example below are default.
 
         ```javascript
         CamSwitcherEvents({
@@ -18,7 +18,7 @@ Module for CamSwitcher events receiving.
         });
         ```
 
--   **connect()** - Connect to the CamSwitcher events websocket API. The Websocket is reconnected in case of connection error.
+-   **connect()** - Connect to the CamSwitcher events WebSocket API. The WebSocket is reconnected in case of a connection error.
 
     ```javascript
     connect();
@@ -38,4 +38,4 @@ Module for CamSwitcher events receiving.
 
 -   **error(err)** - API connection error
 
--   **event(eventDataJSON)** - event received from the CamSwitcher
+-   **event(eventDataJSON)** - Event received from the CamSwitcher
