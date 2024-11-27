@@ -1,11 +1,11 @@
 # HttpServer
 
-HttpServer is a module for processing HTTP requests in your scripts. It also automatically serves up the content from html directory or you can register paths which you can proccess by your own (e.g. http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi).
+HttpServer is a module for processing HTTP requests in your scripts. It also automatically serves up the content from the html directory, or you can register paths which you can process on your own (e.g. http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi).
 
 ## Methods
 
--   **HttpServer(options)** - Options parameter contains port which the created HttpServer listens on. Values mentioned
-    in example below are default.
+-   **HttpServer(options)** - The options parameter contains the port which the created HttpServer listens on. Values mentioned
+    in the example below are default.
 
         ```javascript
         HttpServer({
@@ -13,7 +13,7 @@ HttpServer is a module for processing HTTP requests in your scripts. It also aut
         });
         ```
 
--   **onRequest(path, callback)** - It registers callback for access to specified path. Callback has attributes - request and response.
+-   **onRequest(path, callback)** - It registers a callback for access to the specified path. The callback has attributes - request and response.
 
     ```javascript
     httpServer.onRequest('/settings.cgi', function (req, res) {
@@ -24,10 +24,10 @@ HttpServer is a module for processing HTTP requests in your scripts. It also aut
     });
     ```
 
--   **close()** - Closes httpServer service and frees up the occupied port.
+-   **close()** - Closes the httpServer service and frees up the occupied port.
 
 ## Events
 
--   **access(msg)** - The Event is emitted for all HTTP requests to this server
+-   **access(msg)** - The event is emitted for all HTTP requests to this server.
 
--   **error(err)** - An error occured
+-   **error(err)** - An error occurred.

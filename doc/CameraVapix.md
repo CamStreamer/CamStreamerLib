@@ -1,11 +1,10 @@
 # CameraVapix
 
-Access to Axis camera VAPIX interface. For more details see documentation for [Axis camera VAPIX library](https://www.axis.com/vapix-library/).
+Access the Axis camera VAPIX interface. For more details, see the documentation for the [Axis camera VAPIX library](https://www.axis.com/vapix-library/).
 
 ## Methods
 
--   **CameraVapix(options)** - Options parameter contains access to the camera and specifies which protocol should be used. Values mentioned
-    in example below are default.
+-   **CameraVapix(options)** - The options parameter contains access to the camera and specifies which protocol should be used. Values mentioned in the example below are default.
 
         ```javascript
         CameraVapix({
@@ -18,31 +17,31 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
         });
         ```
 
--   **vapixGet(groupNames)** - Universal method for HTTP GET requests to camera VAPIX API.
+-   **vapixGet(groupNames)** - Universal method for HTTP GET requests to the camera VAPIX API.
 
     ```javascript
     vapixGet('/axis-cgi/param.cgi?action=list&group=camscripter');
     ```
 
--   **vapixPost(groupNames)** - Universal method for HTTP POST requests to camera VAPIX API.
+-   **vapixPost(groupNames)** - Universal method for HTTP POST requests to the camera VAPIX API.
 
     ```javascript
     vapixPost('/axis-cgi/param.cgi', 'action=update&camscripter.enabled=1');
     ```
 
--   **getCameraImage(camera, compression, resolution, outputStream)** - Get image of the camera using specified compression and resolution, write it in stream given as the outputStream argument.
+-   **getCameraImage(camera, compression, resolution, outputStream)** - Get an image of the camera using the specified compression and resolution, and write it to the stream given as the outputStream argument.
 
 -   **getEventDeclarations()** - Get all the available camera events in JSON format.
 
 -   **getSupportedAudioSampleRate()** - Return all supported audio sample rates.
 
--   **checkSdCard()** - Return info about camera's SD card.
+-   **checkSdCard()** - Return info about the camera's SD card.
 
--   **downloadCameraReport()** - Generate and return a server report including product information, parameter settings and system logs.
+-   **downloadCameraReport()** - Generate and return a server report including product information, parameter settings, and system logs.
 
 -   **getMaxFps(channel)** - Return the maximum supported FPS on the given channel.
 
--   **getTimezone()** - Return timezone of the camera.
+-   **getTimezone()** - Return the timezone of the camera.
 
 -   **getHeaders()** - Read all custom HTTP headers from the camera.
 
@@ -68,7 +67,7 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
     getGuardTourList();
     ```
 
--   **setGuardTourEnabled(gourTourID, enable)** - Enable or disable the guard tour.
+-   **setGuardTourEnabled(guardTourID, enable)** - Enable or disable the guard tour.
 
     ```javascript
     setGuardTourEnabled('root.GuardTour.G0', true);
@@ -90,7 +89,7 @@ Access to Axis camera VAPIX interface. For more details see documentation for [A
     goToPreset(1, 'home');
     ```
 
--   **getPtzPosition(camera)** - Return values of pan, tilt and zoom for current position.
+-   **getPtzPosition(camera)** - Return values of pan, tilt, and zoom for the current position.
 
 ### port.cgi
 
