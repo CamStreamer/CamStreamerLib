@@ -34,12 +34,14 @@ Three modules for even easier control of the CamOverlay drawing API.
 
 ## Painter
 
--   Represents one widget, manages the connection to CamOverlay and the display of graphics as a whole.
+-   Represents one widget, manages the connection to CamOverlay, and the display of graphics as a whole.
 
--   **constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions)**
+-   **Layers Usage** - Layers are used to optimize drawing speed. It is possible to render the most dynamic frames to the top layer and update only this layer during the rendering process. If the layers are used, the painter caches the result of each layer to be able to partly refresh the image. It is also mandatory to use the `invalidateLayer` function if there is more than one layer in the layout; otherwise, only the top layer is updated during the rendering process.
+
+-   **constructor(opt: TPainterOptions, coopt: CamOverlayDrawingOptions)**
 
     ```typescript
-    type PainterOptions = FrameOptions & {
+    type TPainterOptions = TFrameOptions & {
         screenWidth: number;
         screenHeight: number;
         coAlignment: string;
@@ -72,14 +74,16 @@ Three modules for even easier control of the CamOverlay drawing API.
 
 -   **async hide()** - Removes the displayed image from the camera. It has no effect on this `Painter` state.
 
+-   **async invalidateLayer(layer: number)** - Invalidates the specified layer and all layers above it.
+
 ## Frame
 
 -   Represents one field of graphics. Manages the display of an image, text, or background color. Supports nested frames too.
 
--   **Frame(options: FrameOptions, customDraw?: TDrawingCallback)**
+-   **Frame(options: TFrameOptions, customDraw?: TDrawingCallback)**
 
     ```typescript
-    type FrameOptions = {
+    type TFrameOptions = {
         x: number;
         y: number;
         width: number;
@@ -93,6 +97,7 @@ Three modules for even easier control of the CamOverlay drawing API.
         borderRadius?: number; // default: 0
         borderWidth?: number; // default: 0
         borderColor?: TRgba; // default: [1.0, 1.0, 1.0, 1.0]
+        layer?: number; // default: 0
     };
     ```
 
@@ -157,6 +162,4 @@ Three modules for even easier control of the CamOverlay drawing API.
 
 -   **insert(...frames: Frame[])** - Inserts child frames into this frame.
 
--   **enable()** - Allows this frame and its children to display.
-
--   **disable()** - Disallows this frame and its children to display.
+-   **getLayers()** - Returns a set of unique layers used by this frame and its children.

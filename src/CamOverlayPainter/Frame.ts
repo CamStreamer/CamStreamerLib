@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import { CamOverlayDrawingAPI, TAlign, TCairoCreateResponse, TUploadImageResponse } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
 
@@ -5,7 +6,7 @@ export type TRgb = [number, number, number];
 export type TRgba = [number, number, number, number];
 export type TTmf = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
 export type TObjectFitType = 'fill' | 'fit' | 'none';
-export type FrameOptions = {
+export type TFrameOptions = {
     enabled?: boolean;
     x: number;
     y: number;
@@ -20,6 +21,8 @@ export type FrameOptions = {
     borderRadius?: number;
     borderWidth?: number;
     borderColor?: TRgba;
+    customDraw?: TDrawingCallback;
+    layer?: number;
 };
 
 export type TFrameInfo = {
@@ -28,7 +31,12 @@ export type TFrameInfo = {
 };
 export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string, info: TFrameInfo) => Promise<void>;
 
-export default class Frame {
+export interface Frame {
+    on(event: 'layoutChanged', listener: () => void): this;
+    emit(event: 'layoutChanged'): boolean;
+}
+
+export class Frame extends EventEmitter {
     protected enabled: boolean;
 
     protected posX: number;
@@ -50,9 +58,14 @@ export default class Frame {
     private borderWidth: number;
     private borderColor: TRgba;
 
+    private customDraw?: TDrawingCallback;
+    private layer: number;
+
     protected children = new Array<Frame>();
 
-    constructor(opt: FrameOptions, private customDraw?: TDrawingCallback) {
+    constructor(opt: TFrameOptions) {
+        super();
+
         this.enabled = opt.enabled ?? true;
         this.posX = opt.x;
         this.posY = opt.y;
@@ -70,6 +83,9 @@ export default class Frame {
         this.borderRadius = opt.borderRadius ?? 0;
         this.borderWidth = opt.borderWidth ?? 0;
         this.borderColor = opt.borderColor ?? [1, 1, 1, 1];
+
+        this.customDraw = opt.customDraw;
+        this.layer = opt.layer ?? 0;
     }
 
     //  -------------------------------
@@ -166,8 +182,32 @@ export default class Frame {
         this.bgType = undefined;
         this.customDraw = undefined;
     }
+
     insert(...frames: Frame[]): void {
-        this.children.push(...frames); // Order of insertion is order of rendering
+        // Order of insertion is order of rendering
+        this.children.push(...frames);
+
+        // Add listeners for layout changes
+        for (const frame of frames) {
+            frame.on('layoutChanged', () => this.layoutChanged());
+        }
+        this.layoutChanged();
+    }
+
+    getLayers() {
+        const uniqueLayers = new Set<number>();
+        uniqueLayers.add(this.layer);
+
+        for (const child of this.children) {
+            for (const layer of child.getLayers()) {
+                uniqueLayers.add(layer);
+            }
+        }
+        return uniqueLayers;
+    }
+
+    protected layoutChanged() {
+        this.emit('layoutChanged');
     }
 
     //  ------------------------
@@ -180,7 +220,8 @@ export default class Frame {
         cairo: string,
         ppX: number,
         ppY: number,
-        scale = 1.0
+        scale: number,
+        layer: number
     ) {
         if (this.enabled) {
             ppX += this.posX;
@@ -192,9 +233,11 @@ export default class Frame {
             await cod.cairo('cairo_save', cairo);
             await this.clipDrawing(cod, cairo, scale, ppX, ppY);
 
-            await this.displayOwnImage(cod, cairo, ppX, ppY, scale);
+            if (this.layer === layer) {
+                await this.displayOwnImage(cod, cairo, ppX, ppY, scale);
+            }
             for (const child of this.children) {
-                await child.displayImage(cod, resourceManager, cairo, ppX, ppY, scale);
+                await child.displayImage(cod, resourceManager, cairo, ppX, ppY, scale, layer);
             }
 
             await cod.cairo('cairo_restore', cairo);
@@ -382,5 +425,3 @@ export default class Frame {
         }
     }
 }
-
-export { Frame };
