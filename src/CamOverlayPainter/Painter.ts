@@ -1,6 +1,6 @@
 import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, TCairoCreateResponse } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
-import { Frame, FrameOptions } from './Frame';
+import { Frame, TFrameOptions } from './Frame';
 
 export const COORD: Record<string, [number, number]> = {
     top_left: [-1, -1],
@@ -14,30 +14,30 @@ export const COORD: Record<string, [number, number]> = {
     bottom_right: [1, 1],
 };
 
-export type PainterOptions = FrameOptions & {
+export type TPainterOptions = TFrameOptions & {
     screenWidth: number;
     screenHeight: number;
     coAlignment: string;
 };
 
-export default class Painter extends Frame {
+type TLayer = {
+    layer: number;
+    surfaceCache?: string;
+    cairoCache?: string;
+};
+
+export class Painter extends Frame {
     private screenWidth: number;
     private screenHeight: number;
     private coAlignment: [number, number];
 
-    private surface?: string;
-    private cairo?: string;
     private cod: CamOverlayDrawingAPI;
     private rm: ResourceManager;
 
-    get camOverlayDrawingAPI() {
-        return this.cod;
-    }
-    get resourceManager() {
-        return this.rm;
-    }
+    private refreshLayers = true;
+    private layers: TLayer[] = [];
 
-    constructor(opt: PainterOptions, coopt: CamOverlayDrawingOptions) {
+    constructor(opt: TPainterOptions, coopt: CamOverlayDrawingOptions) {
         super(opt);
         this.coAlignment = COORD[opt.coAlignment];
         this.screenWidth = opt.screenWidth;
@@ -45,6 +45,13 @@ export default class Painter extends Frame {
 
         this.cod = new CamOverlayDrawingAPI(coopt);
         this.rm = new ResourceManager(this.cod);
+    }
+
+    get camOverlayDrawingAPI() {
+        return this.cod;
+    }
+    get resourceManager() {
+        return this.rm;
     }
 
     connect() {
@@ -78,29 +85,125 @@ export default class Painter extends Frame {
         this.screenHeight = sh;
     }
 
-    setCoAlignment(coa: string) {
-        this.coAlignment = COORD[coa];
+    setCoAlignment(coAlignment: string) {
+        this.coAlignment = COORD[coAlignment];
     }
 
-    async display(scale = 1) {
-        if (this.enabled) {
-            [this.surface, this.cairo] = await this.prepareDrawing(scale);
+    // Overrides the Frame class
+    protected layoutChanged() {
+        this.refreshLayers = true;
+    }
 
-            await this.displayOwnImage(this.cod, this.rm, this.cairo, 0, 0, scale);
-            for (const child of this.children) {
-                await child.displayImage(this.cod, this.rm, this.cairo, 0, 0, scale);
+    async display(scale = 1.0) {
+        if (this.enabled) {
+            if (this.refreshLayers) {
+                this.refreshLayers = false;
+                await this.prepareLayers();
             }
 
-            await this.cod.showCairoImage(
-                this.surface,
-                this.positionConvertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
-                this.positionConvertor(this.coAlignment[1], this.screenHeight, this.posY, scale * this.height)
-            );
-            await this.destroy();
+            let cairo: string | undefined;
+            let surface: string | undefined;
+            let lastCachedLayer: TLayer | undefined;
+            for (let i = 0; i < this.layers.length; i++) {
+                const layer = this.layers[i];
+
+                // Skip layer if it is already rendered
+                if (
+                    layer.cairoCache !== undefined &&
+                    layer.surfaceCache !== undefined &&
+                    surface === undefined &&
+                    cairo === undefined
+                ) {
+                    lastCachedLayer = layer;
+                    continue;
+                }
+
+                // Create layer for drawing, use cache if possible
+                if (surface === undefined || cairo === undefined) {
+                    [surface, cairo] = await this.prepareSurface(
+                        scale,
+                        lastCachedLayer?.surfaceCache,
+                        lastCachedLayer?.cairoCache
+                    );
+                }
+
+                await this.displayImage(this.cod, this.rm, cairo, 0, 0, scale, layer.layer);
+
+                // Save layer to cache if it is not the last layer (last layer is the final image)
+                if (i < this.layers.length - 1) {
+                    const [surfaceToCache, cairoToCache] = await this.prepareSurface(scale, surface, cairo);
+                    layer.surfaceCache = surfaceToCache;
+                    layer.cairoCache = cairoToCache;
+                }
+            }
+
+            if (surface !== undefined && cairo !== undefined) {
+                await this.cod.showCairoImage(
+                    surface,
+                    this.positionConvertor(this.coAlignment[0], this.screenWidth, this.posX, scale * this.width),
+                    this.positionConvertor(this.coAlignment[1], this.screenHeight, this.posY, scale * this.height)
+                );
+                await this.cleanupSurface(surface, cairo);
+            }
         }
     }
     async hide() {
         await this.cod.removeImage();
+    }
+
+    async invalidateLayer(layer: number) {
+        const layerIdx = this.layers.findIndex((l) => l.layer === layer);
+        if (layerIdx === -1) {
+            return;
+        }
+
+        // Invalidate all layers above the specified layer
+        for (let i = layerIdx; i < this.layers.length; i++) {
+            const layer = this.layers[i];
+            if (layer.surfaceCache !== undefined && layer.cairoCache !== undefined) {
+                await this.cleanupSurface(layer.surfaceCache, layer.cairoCache);
+                layer.surfaceCache = undefined;
+                layer.cairoCache = undefined;
+            }
+        }
+    }
+
+    private async prepareLayers() {
+        // Clean up all layers
+        for (const layer of this.layers) {
+            if (layer.surfaceCache !== undefined && layer.cairoCache !== undefined) {
+                await this.cleanupSurface(layer.surfaceCache, layer.cairoCache);
+            }
+        }
+
+        // Create new layers
+        const uniqueLayers = this.getLayers();
+        const sortedLayers = Array.from(uniqueLayers).sort((a, b) => a - b);
+        this.layers = sortedLayers.map((layer): TLayer => {
+            return { layer };
+        });
+    }
+
+    private async prepareSurface(scale: number, cachedSurface?: string, cachedCairo?: string) {
+        const surface = (await this.cod.cairo(
+            'cairo_image_surface_create',
+            'CAIRO_FORMAT_ARGB32',
+            Math.floor(this.width * scale),
+            Math.floor(this.height * scale)
+        )) as TCairoCreateResponse;
+        const cairo = (await this.cod.cairo('cairo_create', surface.var)) as TCairoCreateResponse;
+
+        if (cachedSurface !== undefined && cachedCairo !== undefined) {
+            await this.cod.cairo('cairo_set_source_surface', cairo.var, cachedSurface, 0, 0);
+            await this.cod.cairo('cairo_paint', cairo.var);
+        }
+
+        return [surface.var, cairo.var];
+    }
+
+    private async cleanupSurface(surface: string, cairo: string) {
+        await this.cod.cairo('cairo_surface_destroy', surface);
+        await this.cod.cairo('cairo_destroy', cairo);
     }
 
     private positionConvertor(alignment: number, screenSize: number, position: number, graphicsSize: number): number {
@@ -115,23 +218,6 @@ export default class Painter extends Frame {
                 throw new Error('Invalid graphics alignment.');
         }
     }
-
-    private async prepareDrawing(scale: number) {
-        const surface = (await this.cod.cairo(
-            'cairo_image_surface_create',
-            'CAIRO_FORMAT_ARGB32',
-            Math.floor(this.width * scale),
-            Math.floor(this.height * scale)
-        )) as TCairoCreateResponse;
-        const cairo = (await this.cod.cairo('cairo_create', surface.var)) as TCairoCreateResponse;
-
-        return [surface.var, cairo.var];
-    }
-
-    private async destroy() {
-        await this.cod.cairo('cairo_surface_destroy', this.surface);
-        await this.cod.cairo('cairo_destroy', this.cairo);
-    }
 }
 
-export { Painter, Frame, FrameOptions, ResourceManager, CamOverlayDrawingOptions };
+export { Frame, TFrameOptions as FrameOptions, ResourceManager, CamOverlayDrawingOptions };

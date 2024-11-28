@@ -1,11 +1,11 @@
 # VapixEvents
 
-Module for Axis camera events receiving.
+Module for receiving Axis camera events.
 
 ## Methods
 
--   **VapixEvents(options)** - Options parameter contains access to the Axis camera.
-    Values mentioned in example below are default.
+-   **VapixEvents(options)** - The options parameter contains access details for the Axis camera.
+    Values mentioned in the example below are default.
 
         ```javascript
         VapixEvents({
@@ -18,7 +18,7 @@ Module for Axis camera events receiving.
         });
         ```
 
--   **connect()** - Connect to the VAPIX websocket API. The Websocket is reconnected in case of connection error.
+-   **connect()** - Connect to the VAPIX WebSocket API. The WebSocket is reconnected in case of a connection error.
 
     ```javascript
     connect();
@@ -38,4 +38,4 @@ Module for Axis camera events receiving.
 
 -   **error(err)** - API connection error
 
--   **${topic}(eventDataJSON)** - event received from the AXIS camera
+-   **${topic}(eventDataJSON)** - Event received from the AXIS camera

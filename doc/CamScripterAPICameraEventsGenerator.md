@@ -4,8 +4,8 @@ Module for Axis camera events generation.
 
 ## Methods
 
--   **CamScripterAPICameraEventsGenerator(options)** - Options parameter contains access to the camera with CamScripter installed.
-    Values mentioned in example below are default.
+-   **CamScripterAPICameraEventsGenerator(options)** - The options parameter contains access to the camera with CamScripter installed.
+    Values mentioned in the example below are default.
 
         ```javascript
         CamScripterAPICameraEventsGenerator({
@@ -18,7 +18,7 @@ Module for Axis camera events generation.
         });
         ```
 
--   **connect()** - Connect to the CamScripter camera events websocket API. The Websocket is reconnected in case of connection error.
+-   **connect()** - Connect to the CamScripter camera events WebSocket API. The WebSocket is reconnected in case of a connection error.
 
     ```javascript
     connect();
@@ -30,7 +30,7 @@ Module for Axis camera events generation.
     disconnect();
     ```
 
--   **declareEvent()** - Declare event in the camera. After declaration the event is available in Axis Event Rule engine and other application can subscribe for the event. If the websocket is disconnected all declared events are automatically removed from the camera.
+-   **declareEvent()** - Declare an event in the camera. After declaration, the event is available in the Axis Event Rule engine and other applications can subscribe to the event. If the WebSocket is disconnected, all declared events are automatically removed from the camera.
 
     ```javascript
     declareEvent({
@@ -77,7 +77,7 @@ Module for Axis camera events generation.
     });
     ```
 
--   **sendEvent()** - Send event which is delivered to all event receivers.
+-   **sendEvent()** - Send an event which is delivered to all event receivers.
 
     ```javascript
     sendEvent({

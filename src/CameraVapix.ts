@@ -307,9 +307,9 @@ export class CameraVapix {
         return gTourList;
     }
 
-    setGuardTourEnabled(gourTourID: string, enable: boolean) {
+    setGuardTourEnabled(guardTourID: string, enable: boolean) {
         const options: Record<string, string> = {};
-        options[gourTourID + '.Running'] = enable ? 'yes' : 'no';
+        options[guardTourID + '.Running'] = enable ? 'yes' : 'no';
         return this.setParameter(options);
     }
 
