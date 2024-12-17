@@ -127,7 +127,7 @@ export class Painter extends Frame {
                     );
                 }
 
-                await this.displayImage(this.cod, this.rm, cairo, 0, 0, scale, layer.layer);
+                await this.displayImage(this.cod, this.rm, cairo, -this.posX, -this.posY, scale, layer.layer);
 
                 // Save layer to cache if it is not the last layer (last layer is the final image)
                 if (i < this.layers.length - 1) {
