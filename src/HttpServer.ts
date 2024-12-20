@@ -101,6 +101,10 @@ export class HttpServer extends EventEmitter {
         });
     }
 
+    getServer() {
+        return this.server;
+    }
+
     onRequest(path: string, callback: TOnRequestCallback) {
         this.registeredPaths.set(path, callback);
     }
