@@ -32,7 +32,12 @@ export type TFrameInfo = {
 export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string, info: TFrameInfo) => Promise<void>;
 
 export interface Frame {
+    on(event: 'open', listener: () => void): this;
+    on(event: 'close', listener: () => void): this;
     on(event: 'layoutChanged', listener: () => void): this;
+
+    emit(event: 'open'): boolean;
+    emit(event: 'close'): boolean;
     emit(event: 'layoutChanged'): boolean;
 }
 
@@ -46,12 +51,14 @@ export class Frame extends EventEmitter {
 
     private text = '';
     private fontColor: TRgb;
-    private font?: string | TCairoCreateResponse;
+    private fontName?: string;
+    private font?: TCairoCreateResponse;
     private align: TAlign = 'A_LEFT';
     private textType: TTmf = 'TFM_OVERFLOW';
 
     private bgColor?: TRgba;
-    private bgImage?: string | TUploadImageResponse;
+    private bgImageName?: string;
+    private bgImage?: TUploadImageResponse;
     private bgType?: TObjectFitType;
 
     private borderRadius: number;
@@ -74,10 +81,10 @@ export class Frame extends EventEmitter {
 
         this.setText(opt.text ?? '', 'A_LEFT');
         this.fontColor = opt.fontColor ?? [1.0, 1.0, 1.0];
-        this.font = opt.font;
+        this.fontName = opt.font;
 
         this.bgColor = opt.bgColor; // RGBA
-        this.bgImage = opt.bgImage;
+        this.bgImageName = opt.bgImage;
         this.bgType = opt.bgType;
 
         this.borderRadius = opt.borderRadius ?? 0;
@@ -120,19 +127,23 @@ export class Frame extends EventEmitter {
         this.fontColor = fontColor;
     }
     setFont(fontName: string): void {
-        this.font = fontName;
+        this.fontName = fontName;
+        this.font = undefined;
     }
     setFontData(fontData: TCairoCreateResponse): void {
+        this.fontName = undefined;
         this.font = fontData;
     }
     setBgColor(color: TRgba): void {
         this.bgColor = color;
     }
     setBgImage(imageName: string, type: TObjectFitType = 'fit'): void {
-        this.bgImage = imageName;
+        this.bgImageName = imageName;
+        this.bgImage = undefined;
         this.bgType = type;
     }
     setBgImageData(imageData: TUploadImageResponse, type: TObjectFitType = 'fit') {
+        this.bgImageName = undefined;
         this.bgImage = imageData;
         this.bgType = type;
     }
@@ -245,11 +256,11 @@ export class Frame extends EventEmitter {
     }
 
     private async prepareResources(resourceManager: ResourceManager) {
-        if (typeof this.bgImage === 'string') {
-            this.bgImage = await resourceManager.image(this.bgImage);
+        if (this.bgImageName !== undefined) {
+            this.bgImage = await resourceManager.image(this.bgImageName);
         }
-        if (typeof this.font === 'string') {
-            this.font = await resourceManager.font(this.font);
+        if (this.fontName !== undefined) {
+            this.font = await resourceManager.font(this.fontName);
         }
     }
 
@@ -259,7 +270,7 @@ export class Frame extends EventEmitter {
         }
 
         const promises = new Array<Promise<unknown>>();
-        if (this.font !== undefined && typeof this.font !== 'string') {
+        if (this.font !== undefined) {
             promises.push(cod.cairo('cairo_set_font_face', cairo, this.font.var));
         } else {
             promises.push(cod.cairo('cairo_set_font_face', cairo, 'NULL'));
@@ -323,7 +334,7 @@ export class Frame extends EventEmitter {
     }
 
     private async drawImage(cod: CamOverlayDrawingAPI, cairo: string, scale: number, ppX: number, ppY: number) {
-        if (this.bgImage === undefined || typeof this.bgImage === 'string') {
+        if (this.bgImage === undefined) {
             return;
         }
 

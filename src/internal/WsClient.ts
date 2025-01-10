@@ -140,6 +140,10 @@ export class WsClient extends EventEmitter {
         this.closeWsConnection();
     }
 
+    reconnect() {
+        this.closeWsConnection();
+    }
+
     private closeWsConnection() {
         if (this.ws === undefined) {
             return;

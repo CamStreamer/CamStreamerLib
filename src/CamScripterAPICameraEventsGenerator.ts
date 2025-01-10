@@ -43,6 +43,11 @@ export type TResponse = {
     message: string;
 };
 
+export type TErrorResponse = {
+    error: string;
+    call_id?: number;
+};
+
 type TMessage = {
     call_id: number;
     command: string;
@@ -52,6 +57,7 @@ type TMessage = {
 type TAsyncMessage = {
     resolve: (value: TResponse) => void;
     reject: (reason?: any) => void;
+    sentTimestamp: number;
 };
 
 export interface CamScripterAPICameraEventsGenerator {
@@ -73,6 +79,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private camScripterAcapName: string;
     private callId: number;
     private sendMessages: Record<number, TAsyncMessage>;
+    private timeoutCheckTimer: NodeJS.Timeout | undefined;
     private wsConnected: boolean;
     private ws!: WsClient;
 
@@ -98,10 +105,12 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
 
     connect() {
         this.ws.open();
+        this.startMsgsTimeoutCheck();
     }
 
     disconnect() {
         this.ws.close();
+        this.stopMsgsTimeoutCheck();
     }
 
     declareEvent(eventDeclaration: TEventDeclaration) {
@@ -146,21 +155,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             this.wsConnected = true;
             this.emit('open');
         });
-        this.ws.on('message', (data: Buffer) => {
-            const dataJSON = JSON.parse(data.toString());
-            if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
-                if (Object.hasOwn(dataJSON, 'error')) {
-                    this.sendMessages[dataJSON['call_id']].reject(new Error(dataJSON.error));
-                } else {
-                    this.sendMessages[dataJSON['call_id']].resolve(dataJSON);
-                }
-                delete this.sendMessages[dataJSON['call_id']];
-            }
-
-            if (Object.hasOwn(dataJSON, 'error')) {
-                this.reportErr(new Error(dataJSON.error));
-            }
-        });
+        this.ws.on('message', (msgData: Buffer) => this.incomingWsMessageHandler(msgData));
         this.ws.on('error', (error: Error) => {
             this.reportErr(error);
         });
@@ -170,19 +165,72 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
+    private incomingWsMessageHandler(msgData: Buffer) {
+        const dataJSON = JSON.parse(msgData.toString()) as TResponse | TErrorResponse;
+
+        let errorResponse: TErrorResponse | undefined;
+        if ('error' in dataJSON) {
+            errorResponse = dataJSON as TErrorResponse;
+        }
+
+        if (dataJSON.call_id !== undefined && this.sendMessages[dataJSON.call_id] !== undefined) {
+            if (errorResponse !== undefined) {
+                this.sendMessages[dataJSON.call_id].reject(new Error(errorResponse.error));
+            } else {
+                this.sendMessages[dataJSON.call_id].resolve(dataJSON as TResponse);
+            }
+            delete this.sendMessages[dataJSON.call_id];
+        }
+
+        if (errorResponse !== undefined) {
+            this.reconnectWithError(new Error(errorResponse.error));
+        }
+    }
+
     private sendMessage(msgJson: TMessage) {
         return new Promise<TResponse>((resolve, reject) => {
             if (!this.wsConnected) {
                 throw new Error("Websocket hasn't been opened yet.");
             }
             try {
-                this.sendMessages[this.callId] = { resolve, reject };
-                msgJson.call_id = this.callId++;
+                msgJson.call_id = ++this.callId;
                 this.ws.send(JSON.stringify(msgJson));
+                this.sendMessages[this.callId] = { resolve, reject, sentTimestamp: Date.now() };
             } catch (err) {
-                this.reportErr(new Error(`Send message error: ${err}`));
+                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                const error = new Error(`Send message error: ${errorMessage}`);
+                reject(error);
+                this.reconnectWithError(error);
             }
         });
+    }
+
+    private startMsgsTimeoutCheck() {
+        clearInterval(this.timeoutCheckTimer);
+        this.timeoutCheckTimer = setInterval(() => {
+            let reconnect = false;
+            const now = Date.now();
+            for (const callId in this.sendMessages) {
+                const msg = this.sendMessages[callId];
+                if (now - msg.sentTimestamp > 10000) {
+                    reconnect = true;
+                    msg.reject(new Error('Message timeout'));
+                    delete this.sendMessages[callId];
+                }
+            }
+            if (reconnect) {
+                this.reconnectWithError(new Error('Message timeout'));
+            }
+        }, 5000);
+    }
+
+    private stopMsgsTimeoutCheck() {
+        clearInterval(this.timeoutCheckTimer);
+    }
+
+    private reconnectWithError(err: Error) {
+        this.reportErr(err);
+        this.ws.reconnect();
     }
 
     private reportErr(err: Error) {
