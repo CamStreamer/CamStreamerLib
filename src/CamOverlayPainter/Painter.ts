@@ -57,6 +57,12 @@ export class Painter extends Frame {
     connect() {
         this.cod.on('open', () => {
             this.rm.clear();
+            this.layers = [];
+            this.refreshLayers = true;
+            this.emit('open');
+        });
+        this.cod.on('close', () => {
+            this.emit('close');
         });
         this.cod.on('error', (err) => {
             console.error('Painter:', err);

@@ -31,6 +31,11 @@ export type TUploadImageResponse = {
     call_id: number;
 };
 
+export type TErrorResponse = {
+    error: string;
+    call_id?: number;
+};
+
 export type TService = {
     id: number;
     enabled: number;
@@ -52,6 +57,7 @@ type TResponse = TCairoResponse | TCairoCreateResponse | TUploadImageResponse;
 type AsyncMessage = {
     resolve: (value: TResponse) => void;
     reject: (reason: Error) => void;
+    sentTimestamp: number;
 };
 
 export interface CamOverlayDrawingAPI {
@@ -77,6 +83,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private zIndex: number;
     private callId: number;
     private sendMessages: Record<number, AsyncMessage>;
+    private timeoutCheckTimer: NodeJS.Timeout | undefined;
     private wsConnected: boolean;
     private ws!: WsClient;
 
@@ -108,10 +115,12 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
     connect() {
         this.ws.open();
+        this.startMsgsTimeoutCheck();
     }
 
     disconnect() {
         this.ws.close();
+        this.stopMsgsTimeoutCheck();
     }
 
     isConnected() {
@@ -184,48 +193,63 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         this.ws = new WsClient(options);
 
         this.ws.on('open', () => {
+            console.log('CamOverlay connection opened');
             this.wsConnected = true;
             this.emit('open');
         });
-        this.ws.on('message', (data: Buffer) => {
-            const dataJSON = JSON.parse(data.toString());
-            if (Object.hasOwn(dataJSON, 'call_id') && dataJSON['call_id'] in this.sendMessages) {
-                if (Object.hasOwn(dataJSON, 'error')) {
-                    this.sendMessages[dataJSON.call_id].reject(new Error(dataJSON.error));
-                } else {
-                    this.sendMessages[dataJSON.call_id].resolve(dataJSON);
-                }
-                delete this.sendMessages[dataJSON['call_id']];
-            }
-
-            if (Object.hasOwn(dataJSON, 'error')) {
-                this.reportError(new Error(dataJSON.error));
-            } else {
-                this.reportMessage(data.toString());
-            }
-        });
+        this.ws.on('message', (msgData: Buffer) => this.incomingWsMessageHandler(msgData));
         this.ws.on('error', (error: Error) => {
             this.reportError(error);
         });
         this.ws.on('close', () => {
+            console.log('CamOverlay connection closed');
             this.wsConnected = false;
             this.reportClose();
         });
     }
 
+    private incomingWsMessageHandler(msgData: Buffer) {
+        const dataJSON = JSON.parse(msgData.toString()) as TResponse | TErrorResponse;
+
+        let errorResponse: TErrorResponse | undefined;
+        if ('error' in dataJSON) {
+            errorResponse = dataJSON as TErrorResponse;
+        }
+
+        if (dataJSON.call_id !== undefined && this.sendMessages[dataJSON.call_id] !== undefined) {
+            if (errorResponse !== undefined) {
+                this.sendMessages[dataJSON.call_id].reject(new Error(errorResponse.error));
+            } else {
+                this.sendMessages[dataJSON.call_id].resolve(dataJSON as TResponse);
+            }
+            delete this.sendMessages[dataJSON.call_id];
+        }
+
+        if (errorResponse !== undefined) {
+            this.reconnectWithError(new Error(errorResponse.error));
+        } else {
+            this.reportMessage(msgData.toString());
+        }
+    }
+
     private sendMessage(msgJson: TMessage) {
         return new Promise<TResponse>((resolve, reject) => {
             try {
-                this.sendMessages[this.callId] = { resolve, reject };
-                msgJson['call_id'] = this.callId++;
-
                 if (!this.wsConnected) {
                     throw new Error('No CamOverlay connection');
                 }
+                msgJson.call_id = ++this.callId;
                 this.ws.send(JSON.stringify(msgJson));
+                this.sendMessages[this.callId] = { resolve, reject, sentTimestamp: Date.now() };
             } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : err;
-                this.reportError(new Error(`Send message error: ${errorMessage}`));
+                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                const error = new Error(`Send message error: ${errorMessage}`);
+                reject(error);
+                if (!this.wsConnected) {
+                    this.reportError(error);
+                } else {
+                    this.reconnectWithError(error);
+                }
             }
         });
     }
@@ -233,9 +257,11 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     private sendBinaryMessage(msgJson: TMessage, data: Buffer) {
         return new Promise<TResponse>((resolve, reject) => {
             try {
-                this.sendMessages[this.callId] = { resolve, reject };
-                msgJson['call_id'] = this.callId++;
+                if (!this.wsConnected) {
+                    throw new Error('No CamOverlay connection');
+                }
 
+                msgJson.call_id = ++this.callId;
                 const jsonBuffer = Buffer.from(JSON.stringify(msgJson));
 
                 const header = new ArrayBuffer(5);
@@ -245,15 +271,47 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
                 const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
 
-                if (!this.wsConnected) {
-                    throw new Error('No CamOverlay connection');
-                }
                 this.ws.send(msgBuffer);
+                this.sendMessages[this.callId] = { resolve, reject, sentTimestamp: Date.now() };
             } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : err;
-                this.reportError(new Error(`Send binary message error: ${errorMessage}`));
+                const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+                const error = new Error(`Send binary message error: ${errorMessage}`);
+                reject(error);
+                if (!this.wsConnected) {
+                    this.reportError(error);
+                } else {
+                    this.reconnectWithError(error);
+                }
             }
         });
+    }
+
+    private startMsgsTimeoutCheck() {
+        clearInterval(this.timeoutCheckTimer);
+        this.timeoutCheckTimer = setInterval(() => {
+            let reconnect = false;
+            const now = Date.now();
+            for (const callId in this.sendMessages) {
+                const msg = this.sendMessages[callId];
+                if (now - msg.sentTimestamp > 10000) {
+                    reconnect = true;
+                    msg.reject(new Error('Message timeout'));
+                    delete this.sendMessages[callId];
+                }
+            }
+            if (reconnect) {
+                this.reconnectWithError(new Error('Message timeout'));
+            }
+        }, 5000);
+    }
+
+    private stopMsgsTimeoutCheck() {
+        clearInterval(this.timeoutCheckTimer);
+    }
+
+    private reconnectWithError(err: Error) {
+        this.reportError(err);
+        this.ws.reconnect();
     }
 
     private reportMessage(msg: string) {

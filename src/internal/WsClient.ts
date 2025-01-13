@@ -1,6 +1,5 @@
 import * as EventEmitter from 'events';
 import * as WebSocket from 'ws';
-import * as timersPromises from 'timers/promises';
 
 import { Digest } from './Digest';
 import { WsOptions } from './common';
@@ -60,60 +59,68 @@ export class WsClient extends EventEmitter {
     }
 
     open(wwwAuthenticateHeader?: string): void {
-        if (this.ws !== undefined) {
-            return;
-        }
-        this.isClosed = false;
-
-        if (this.protocol === undefined) {
-            this.ws = new WebSocket(this.address, this.wsOptions);
-        } else {
-            this.ws = new WebSocket(this.address, this.protocol, this.wsOptions);
-        }
-        this.ws.binaryType = 'arraybuffer';
-
-        this.isAlive = true;
-        this.pingTimer = setInterval(async () => {
-            if ((this.ws && this.ws.readyState !== WebSocket.OPEN) || this.isAlive === false) {
-                this.emit('error', new Error('Connection timeout'));
-                await this.closeWsConnection();
-            } else {
-                this.isAlive = false;
-                this.ws?.ping();
+        try {
+            if (this.ws !== undefined) {
+                return;
             }
-        }, this.pingInterval);
-        this.ws.on('pong', () => {
+            this.isClosed = false;
+
+            if (this.protocol === undefined) {
+                this.ws = new WebSocket(this.address, this.wsOptions);
+            } else {
+                this.ws = new WebSocket(this.address, this.protocol, this.wsOptions);
+            }
+            this.ws.binaryType = 'arraybuffer';
+
             this.isAlive = true;
-        });
-
-        if (wwwAuthenticateHeader !== undefined) {
-            this.wsOptions.headers['Authorization'] = new Digest().getAuthHeader(
-                this.user,
-                this.pass,
-                'GET',
-                this.digestAddress,
-                wwwAuthenticateHeader
-            );
-        }
-
-        this.ws.on('unexpected-response', async (req, res) => {
-            if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined) {
-                if (this.pingTimer) {
-                    clearInterval(this.pingTimer);
+            this.pingTimer = setInterval(async () => {
+                if ((this.ws && this.ws.readyState !== WebSocket.OPEN) || this.isAlive === false) {
+                    this.emit('error', new Error('Connection timeout'));
+                    await this.closeWsConnection();
+                } else {
+                    this.isAlive = false;
+                    this.ws?.ping();
                 }
-                this.ws?.removeAllListeners();
-                this.ws = undefined;
-                this.open(res.headers['www-authenticate']);
-            } else {
-                this.emit('error', new Error('Status code: ' + res.statusCode));
-                await this.closeWsConnection();
-            }
-        });
+            }, this.pingInterval);
+            this.ws.on('pong', () => {
+                this.isAlive = true;
+            });
 
-        this.ws.on('open', () => this.emit('open'));
-        this.ws.on('message', (data: Buffer) => this.emit('message', data));
-        this.ws.on('error', (error: Error) => this.emit('error', error));
-        this.ws.on('close', () => this.closeWsConnection());
+            if (wwwAuthenticateHeader !== undefined) {
+                this.wsOptions.headers['Authorization'] = new Digest().getAuthHeader(
+                    this.user,
+                    this.pass,
+                    'GET',
+                    this.digestAddress,
+                    wwwAuthenticateHeader
+                );
+            }
+
+            this.ws.on('unexpected-response', async (req, res) => {
+                if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined) {
+                    if (this.pingTimer) {
+                        clearInterval(this.pingTimer);
+                    }
+                    this.ws?.removeAllListeners();
+                    this.ws = undefined;
+                    this.open(res.headers['www-authenticate']);
+                } else {
+                    this.emit('error', new Error('Status code: ' + res.statusCode));
+                    await this.closeWsConnection();
+                }
+            });
+
+            this.ws.on('open', () => this.emit('open'));
+            this.ws.on('message', (data: Buffer) => this.emit('message', data));
+            this.ws.on('error', (error: Error) => {
+                this.emit('error', error);
+                this.closeWsConnection();
+            });
+            this.ws.on('close', () => this.closeWsConnection());
+        } catch (error) {
+            this.emit('error', error instanceof Error ? error : new Error('Unknown error'));
+            this.closeWsConnection();
+        }
     }
 
     send(data: Buffer | string): void {
@@ -129,46 +136,51 @@ export class WsClient extends EventEmitter {
         if (this.isClosed) {
             return;
         }
-
         this.isClosed = true;
-        const currentWs = this.ws;
-        this.closeWsConnection().catch((err) => {
-            console.error(err);
-        });
-
-        setTimeout(() => {
-            if (currentWs && currentWs.readyState !== WebSocket.CLOSED) {
-                currentWs.terminate();
-            }
-        }, 5000);
+        this.closeWsConnection();
     }
 
-    private async closeWsConnection() {
-        try {
-            if (this.ws === undefined) {
-                return;
-            }
+    reconnect() {
+        this.closeWsConnection();
+    }
 
-            this.ws.removeAllListeners();
+    private closeWsConnection() {
+        if (this.ws === undefined) {
+            return;
+        }
+        const wsCopy = this.ws;
+        this.ws = undefined;
+
+        try {
             if (this.pingTimer) {
                 clearInterval(this.pingTimer);
             }
-            if (
-                this.ws.readyState !== WebSocket.CONNECTING &&
-                this.ws.readyState !== WebSocket.CLOSING &&
-                this.ws.readyState !== WebSocket.CLOSED
-            ) {
-                this.ws.close();
-            }
-            this.ws = undefined;
-            this.emit('close');
 
-            if (!this.isClosed) {
-                await timersPromises.setTimeout(10000);
-                await this.open();
-            }
-        } catch (err) {
             // Ignore errors like: WebSocket was closed before the connection was established
+            wsCopy.removeAllListeners();
+            wsCopy.on('error', () => {});
+
+            if (wsCopy.readyState !== WebSocket.CLOSING && wsCopy.readyState !== WebSocket.CLOSED) {
+                wsCopy.close();
+            }
+
+            setTimeout(() => {
+                if (wsCopy.readyState !== WebSocket.CLOSED) {
+                    wsCopy.terminate();
+                }
+            }, 5000);
+
+            this.emit('close');
+        } catch (err) {
+            console.error(err);
+        } finally {
+            const shouldRestart = !this.isClosed;
+            setTimeout(() => {
+                wsCopy.removeAllListeners();
+                if (shouldRestart && !this.isClosed) {
+                    this.open();
+                }
+            }, 10000);
         }
     }
 }
