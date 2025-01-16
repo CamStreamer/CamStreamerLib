@@ -6,12 +6,14 @@ import * as EventEmitter from 'events';
 import { Socket } from 'node:net';
 
 export type HttpServerOptions = {
+    host?: string;
     port?: number;
 };
 
 type TOnRequestCallback = (req: http.IncomingMessage, res: http.ServerResponse) => void;
 
 export class HttpServer extends EventEmitter {
+    private host: string;
     private port: number;
     private registeredPaths: Map<string, TOnRequestCallback>;
     private server: http.Server;
@@ -19,6 +21,7 @@ export class HttpServer extends EventEmitter {
 
     constructor(options?: HttpServerOptions) {
         super();
+        this.host = options?.host ?? process.env.HTTP_HOST ?? '0.0.0.0';
         this.port = options?.port ?? parseInt(process.env.HTTP_PORT ?? '80');
 
         this.registeredPaths = new Map();
@@ -89,7 +92,7 @@ export class HttpServer extends EventEmitter {
             this.emit('error', err);
         });
 
-        this.server.listen(this.port);
+        this.server.listen(this.port, this.host);
         this.sockets = {};
         let idTracker = 0;
         this.server.on('connection', (socket) => {
