@@ -34,11 +34,19 @@ Module for receiving and sending data to Genetec VMS.
 -   **getCameraDetails(guids, parameters)** - Get details specified in the parameters for one or more cameras.
 
     ```javascript
-    getCameraDetails([{ Guid: '00000001-0000-babe-0000-b8a44f092128' }], ['Guid', 'Name', 'EntityType']);
+    getCameraDetails([{ Guid: '00000001-0000-babe-0000-b8a44f0984531545' }], ['Guid', 'Name', 'EntityType']);
     ```
 
 -   **sendBookmark(guids, bookmarkText)** - Add Genetec bookmark to one or more cameras.
 
     ```javascript
-    sendBookmark([{ Guid: '00000001-0000-babe-0000-b8a44f092128' }], 'bookmark text');
+    sendBookmark([{ Guid: '00000001-0000-babe-0000-b8a44f0984531545' }], 'bookmark text');
+    ```
+
+## Setters
+
+-   **setGenetecSettings** - Set base url and credentials for API calls to Genetec from outside.
+
+    ```javascript
+    setGenetecSettings = { baseUri: 'WebSdk', credentials: '' };
     ```

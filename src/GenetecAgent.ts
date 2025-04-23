@@ -58,28 +58,29 @@ export type GenetecAgentOptions = {
     app_id?: string;
 };
 
-export class Genetec {
-    private protocol: 'http' | 'https' | 'https_insecure';
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
-    private appId: string;
-    private baseUri: string;
+export class GenetecAgent {
+    private settings: GenetecAgentOptions;
     private baseUrl: string;
     private credentials: string;
 
     constructor(options: GenetecAgentOptions = {}) {
-        this.protocol = options.protocol ?? 'http';
-        this.ip = options.ip ?? '127.0.0.1';
-        this.port = options.port ?? 80;
-        this.user = options.user ?? 'root';
-        this.pass = options.pass ?? '';
-        this.appId = options.app_id ?? '';
-        this.baseUri = options.base_uri ?? 'WebSdk';
+        this.settings = {
+            protocol: options.protocol ?? 'http',
+            ip: options.ip ?? '127.0.0.1',
+            port: options.port ?? 80,
+            base_uri: options.base_uri ?? 'WebSdk',
+            user: options.user ?? 'root',
+            pass: options.pass ?? '',
+            app_id: options.app_id ?? '',
+        };
 
-        this.baseUrl = `${this.protocol}://${this.ip}:${this.port}/${this.baseUri}`;
-        this.credentials = btoa(`${this.user};${this.appId}:${this.pass}`);
+        this.baseUrl = `${this.settings.protocol}://${this.settings.ip}:${this.settings.port}/${this.settings.base_uri}`;
+        this.credentials = btoa(`${this.settings.user};${this.settings.app_id}:${this.settings.pass}`);
+    }
+
+    set setGenetecSettings(newSettings: { baseUri: string; credentials: string }) {
+        this.settings.base_uri = newSettings.baseUri;
+        this.credentials = newSettings.credentials;
     }
 
     async checkConnection(): Promise<TConnectionResponse> {
@@ -123,13 +124,12 @@ export class Genetec {
         return (await res.json()) as TCameraDetailsResponse<T>;
     }
 
-    async sendBookmark(guids: { Guid: string }[], bookmarkText: string): Promise<Response> {
-        const camerasGuids = guids.map((item) => item.Guid);
+    async sendBookmark(guids: string[], bookmarkText: string): Promise<Response> {
         const cameraEntitiesUrl: string[] = [];
         const timeStamp = getTimeStamp();
         const requestOptions = this.getRequestOptions('POST');
 
-        for (const guid of camerasGuids) {
+        for (const guid of guids) {
             cameraEntitiesUrl.push(`${ACTION}(${guid},${timeStamp},${bookmarkText})`);
         }
 
