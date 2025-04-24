@@ -1,48 +1,24 @@
-import { responseStringify } from './internal/common';
+import { responseStringify, pad } from '../internal/common';
 
 const ACTION = 'AddCameraBookmark';
 const GET_CAMERAS_URL = 'report/EntityConfiguration?q=EntityTypes@Camera';
 const GET_CAMERAS_DETAILS_URL = '/entity?q=';
 
-function pad(num: number, size: number) {
-    const sign = Math.sign(num) === -1 ? '-' : '';
-    return (
-        sign +
-        new Array(size)
-            .concat([Math.abs(num)])
-            .join('0')
-            .slice(-size)
-    );
-}
-
-function getTimeStamp() {
-    const date = new Date();
-    const year = date.getUTCFullYear();
-    const month = pad(date.getUTCMonth() + 1, 2);
-    const day = pad(date.getUTCDate(), 2);
-    const hours = pad(date.getUTCHours(), 2);
-    const minutes = pad(date.getUTCMinutes(), 2);
-    const seconds = pad(date.getUTCSeconds(), 2);
-    const miliSeconds = pad(date.getUTCMilliseconds(), 2);
-
-    return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${miliSeconds}Z`;
-}
-
-type TCameraGuidsResponse = {
+export type TCameraGuidsResponse = {
     Rsp: {
         Status: string;
         Result: { Guid: string }[];
     };
 };
 
-type TCameraDetailsResponse<T extends string> = {
+export type TCameraDetailsResponse<T extends string> = {
     Rsp: {
         Status: string;
         Result: Array<Record<T, string>>;
     };
 };
 
-type TConnectionResponse = {
+export type TConnectionResponse = {
     Rsp: {
         Status: string;
     };
@@ -126,7 +102,7 @@ export class GenetecAgent {
 
     async sendBookmark(guids: string[], bookmarkText: string): Promise<Response> {
         const cameraEntitiesUrl: string[] = [];
-        const timeStamp = getTimeStamp();
+        const timeStamp = this.getTimeStamp();
         const requestOptions = this.getRequestOptions('POST');
 
         for (const guid of guids) {
@@ -143,12 +119,25 @@ export class GenetecAgent {
 
     private getRequestOptions(method: string): RequestInit {
         return {
-            method: method,
+            method,
             headers: new Headers({
                 Authorization: `Basic ${this.credentials}`,
                 Accept: 'text/json',
             }),
             redirect: 'follow',
         };
+    }
+
+    private getTimeStamp() {
+        const date = new Date();
+        const year = date.getUTCFullYear();
+        const month = pad(date.getUTCMonth() + 1, 2);
+        const day = pad(date.getUTCDate(), 2);
+        const hours = pad(date.getUTCHours(), 2);
+        const minutes = pad(date.getUTCMinutes(), 2);
+        const seconds = pad(date.getUTCSeconds(), 2);
+        const miliSeconds = pad(date.getUTCMilliseconds(), 2);
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${miliSeconds}Z`;
     }
 }
