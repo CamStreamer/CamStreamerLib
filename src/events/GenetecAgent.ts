@@ -1,26 +1,31 @@
+import { z } from 'zod';
 import { responseStringify, pad } from '../internal/common';
 
 const ACTION = 'AddCameraBookmark';
 const GET_CAMERAS_URL = 'report/EntityConfiguration?q=EntityTypes@Camera';
 const GET_CAMERAS_DETAILS_URL = '/entity?q=';
 
-export type TCameraGuidsResponse = {
-    Rsp: {
-        Status: string;
-        Result: { Guid: string }[];
-    };
-};
+const cameraGuidsResponseSchema = z.object({
+    Rsp: z.object({
+        Status: z.string(),
+        Result: z.array(z.object({ Guid: z.string() })),
+    }),
+});
+
+export type TCameraGuidsResponse = z.infer<typeof cameraGuidsResponseSchema>;
+
+const connectionResponseSchema = z.object({
+    Rsp: z.object({
+        Status: z.string(),
+    }),
+});
+
+export type TConnectionResponse = z.infer<typeof connectionResponseSchema>;
 
 export type TCameraDetailsResponse<T extends string> = {
     Rsp: {
         Status: string;
         Result: Array<Record<T, string>>;
-    };
-};
-
-export type TConnectionResponse = {
-    Rsp: {
-        Status: string;
     };
 };
 
@@ -54,11 +59,6 @@ export class GenetecAgent {
         this.credentials = btoa(`${this.settings.user};${this.settings.app_id}:${this.settings.pass}`);
     }
 
-    set setGenetecSettings(newSettings: { baseUri: string; credentials: string }) {
-        this.settings.base_uri = newSettings.baseUri;
-        this.credentials = newSettings.credentials;
-    }
-
     async checkConnection(): Promise<TConnectionResponse> {
         const requestOptions = this.getRequestOptions('GET');
         const res = await fetch(`${this.baseUrl}/`, requestOptions);
@@ -66,7 +66,7 @@ export class GenetecAgent {
         if (!res.ok) {
             throw new Error(await responseStringify(res));
         }
-        return (await res.json()) as TConnectionResponse;
+        return connectionResponseSchema.parse(await res.json());
     }
 
     async getAllCameraGuids(): Promise<TCameraGuidsResponse> {
@@ -76,7 +76,8 @@ export class GenetecAgent {
         if (!res.ok) {
             throw new Error(await responseStringify(res));
         }
-        return (await res.json()) as TCameraGuidsResponse;
+
+        return cameraGuidsResponseSchema.parse(await res.json());
     }
 
     async getCameraDetails<T extends string>(guids: { Guid: string }[], parameters: T[]) {
