@@ -42,11 +42,3 @@ Module for receiving and sending data to Genetec VMS.
     ```javascript
     sendBookmark([{ Guid: '00000001-0000-babe-0000-b8a44f0984531545' }], 'bookmark text');
     ```
-
-## Setters
-
--   **setGenetecSettings** - Set base url and credentials for API calls to Genetec from outside.
-
-    ```javascript
-    setGenetecSettings = { baseUri: 'WebSdk', credentials: '' };
-    ```
