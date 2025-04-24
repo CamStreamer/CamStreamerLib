@@ -22,12 +22,21 @@ const connectionResponseSchema = z.object({
 
 export type TConnectionResponse = z.infer<typeof connectionResponseSchema>;
 
-export type TCameraDetailsResponse<T extends string> = {
-    Rsp: {
-        Status: string;
-        Result: Array<Record<T, string>>;
-    };
-};
+export const cameraDetailsResponseSchema = z.object({
+    Rsp: z.object({
+        Status: z.string(),
+        Result: z.array(
+            z.object({
+                Guid: z.string().optional(),
+                Name: z.string().optional(),
+                EntityType: z.string().optional(),
+            })
+        ),
+    }),
+});
+
+export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
+type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
 
 export type GenetecAgentOptions = {
     protocol?: 'http' | 'https' | 'https_insecure';
@@ -80,7 +89,7 @@ export class GenetecAgent {
         return cameraGuidsResponseSchema.parse(await res.json());
     }
 
-    async getCameraDetails<T extends string>(guids: { Guid: string }[], parameters: T[]) {
+    async getCameraDetails(guids: { Guid: string }[], parameters: TParams): Promise<TCameraDetailsResponse> {
         const params = parameters.join(',');
         const camerasGuids = guids.map((item) => item.Guid);
         const camerasDetailsUrl = [];
@@ -98,7 +107,7 @@ export class GenetecAgent {
         if (!res.ok) {
             throw new Error(await responseStringify(res));
         }
-        return (await res.json()) as TCameraDetailsResponse<T>;
+        return cameraDetailsResponseSchema.parse(await res.json());
     }
 
     async sendBookmark(guids: string[], bookmarkText: string): Promise<Response> {
