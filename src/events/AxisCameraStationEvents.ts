@@ -1,26 +1,5 @@
 import { DefaultAgent } from '../DefaultAgent';
-import { isClient, IClient, HttpOptions } from '../internal/common';
-
-function pad(num: number, size: number) {
-    const sign = Math.sign(num) === -1 ? '-' : '';
-    return (
-        sign +
-        new Array(size)
-            .concat([Math.abs(num)])
-            .join('0')
-            .slice(-size)
-    );
-}
-function getDate() {
-    const date = new Date();
-    const year = date.getUTCFullYear();
-    const month = pad(date.getUTCMonth() + 1, 2);
-    const day = pad(date.getUTCDate(), 2);
-    const hours = pad(date.getUTCHours(), 2);
-    const minutes = pad(date.getUTCMinutes(), 2);
-    const seconds = pad(date.getUTCSeconds(), 2);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-}
+import { isClient, IClient, HttpOptions, pad } from '../internal/common';
 
 export type AcsEventsOptions = HttpOptions;
 
@@ -36,7 +15,7 @@ export class AxisCameraStationEvents {
     }
 
     async sendEvent(data: Record<string, string>, eventType: string) {
-        const dateString = getDate();
+        const dateString = this.getDate();
         const event = {
             addExternalDataRequest: {
                 occurrenceTime: dateString,
@@ -55,5 +34,17 @@ export class AxisCameraStationEvents {
         if (!res.ok) {
             throw new Error(`ACS status code: ${res.status}`);
         }
+    }
+
+    private getDate() {
+        const date = new Date();
+        const year = date.getUTCFullYear();
+        const month = pad(date.getUTCMonth() + 1, 2);
+        const day = pad(date.getUTCDate(), 2);
+        const hours = pad(date.getUTCHours(), 2);
+        const minutes = pad(date.getUTCMinutes(), 2);
+        const seconds = pad(date.getUTCSeconds(), 2);
+
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     }
 }

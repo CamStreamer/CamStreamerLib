@@ -31,6 +31,8 @@ npm install camstreamerlib
 
 -   [VapixEvents](doc/VapixEvents.md) is a module which allows receiving camera events from the VAPIX API.
 
+-   [GenetecAgent](doc/GenetecAgent.md) is a module which allows receiving and sending data to Genetec VMS.
+
 ## For Developers
 
 ### Publishing to npm repository
