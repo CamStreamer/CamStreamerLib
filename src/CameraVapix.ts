@@ -68,6 +68,41 @@ export type TCameraPTZItemData = {
     zoom?: number;
 };
 
+export type TAudioDeviceSignalingChannelType = {
+    id: string;
+    gain: number;
+    mute: boolean;
+};
+export type TAudioDeviceSignalingType = {
+    id: string;
+    powerType: string;
+    channels: TAudioDeviceSignalingChannelType[];
+};
+export type TAudioDeviceConnectionType = {
+    id: string;
+    signalingTypeSelected: string;
+    signalingTypes: TAudioDeviceSignalingType[];
+};
+export type TAudioDeviceInputOutput = {
+    id: string;
+    name: string;
+    enabled: boolean;
+    connectionTypes: TAudioDeviceConnectionType[];
+    connectionTypeSelected: string;
+};
+export type TAudioDevice = {
+    id: string;
+    name: string;
+    inputs: TAudioDeviceInputOutput[];
+    outputs: TAudioDeviceInputOutput[];
+};
+export type TAudioDeviceFromRequest = {
+    id: string;
+    name: string;
+    inputs?: TAudioDeviceInputOutput[];
+    outputs?: TAudioDeviceInputOutput[];
+};
+
 export class CameraVapix {
     private client: IClient;
 
@@ -130,6 +165,33 @@ export class CameraVapix {
         }
     }
 
+    async performAutofocus(): Promise<void> {
+        try {
+            const data = JSON.stringify({
+                apiVersion: '1',
+                method: 'performAutofocus',
+                params: {
+                    optics: [
+                        {
+                            opticsId: '0',
+                        },
+                    ],
+                },
+            });
+
+            await this.vapixPost('/axis-cgi/opticscontrol.cgi', data);
+        } catch (err) {
+            // lets try the old api
+            const data = JSON.stringify({
+                autofocus: 'perform',
+                source: '1',
+            });
+
+            await this.vapixPost('/axis-cgi/opticssetup.cgi', data);
+        }
+    }
+
+    //
     async checkSdCard(): Promise<TSDCardInfo> {
         const res = await this.vapixGet('/axis-cgi/disks/list.cgi', {
             diskid: 'SD_DISK',
@@ -149,8 +211,69 @@ export class CameraVapix {
         };
     }
 
+    async mountSdCard() {
+        return this._doSDCardMountAction('mount');
+    }
+
+    async unmountSDCard() {
+        return this._doSDCardMountAction('unmount');
+    }
+
+    private async _doSDCardMountAction(action: 'mount' | 'unmount') {
+        const res = await this.vapixGet('/axis-cgi/disks/mount.cgi', {
+            action: action,
+            diskid: 'SD_DISK',
+        });
+
+        const result = await parseStringPromise(await res.text(), {
+            ignoreAttrs: false,
+            mergeAttrs: true,
+            explicitArray: false,
+        });
+
+        const job = result.root.job;
+
+        if (job.result !== 'OK') {
+            throw new Error('Error while mounting SD card');
+        }
+
+        return Number(job.jobid);
+    }
+
+    // This is supposed to be called in interval in client code until progress is 100
+    async fetchSDCardJobProgress(jobId: number) {
+        const res = await this.vapixGet('/disks/job.cgi', {
+            jobid: String(jobId),
+            diskid: 'SD_DISK',
+        });
+
+        const result = await parseStringPromise(await res.text(), {
+            ignoreAttrs: false,
+            mergeAttrs: true,
+            explicitArray: false,
+        });
+
+        const job = result.root.job;
+
+        if (job.result !== 'OK') {
+            throw new Error('Error while fetching SD card job progress');
+        }
+
+        return Number(job.progress);
+    }
+
     async downloadCameraReport(): Promise<Response> {
         const res = await this.vapixGet('/axis-cgi/serverreport.cgi', { mode: 'text' });
+
+        if (res.ok) {
+            return res;
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    async getSystemLog(): Promise<Response> {
+        const res = await this.vapixGet('/axis-cgi/admin/systemlog.cgi');
 
         if (res.ok) {
             return res;
@@ -214,6 +337,42 @@ export class CameraVapix {
         }
     }
 
+    async getDateTimeInfo(): Promise<
+        Partial<{
+            dateTime: string;
+            dstEnabled: boolean;
+            localDateTime: string;
+            posixTimeZone: string;
+            timeZone: string;
+        }>
+    > {
+        const data = JSON.stringify({ apiVersion: '1.0', method: 'getDateTimeInfo' });
+        const res = await this.vapixPost('/axis-cgi/time.cgi', data);
+
+        if (res.ok) {
+            return ((await res.json()) as any)?.data;
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    async getDevicesSettings(): Promise<TAudioDevice[]> {
+        const data = JSON.stringify({ apiVersion: '1.0', method: 'getDevicesSettings' });
+        const res = await this.vapixPost('/axis-cgi/audiodevicecontrol.cgi', data);
+
+        if (res.ok) {
+            const result: TAudioDeviceFromRequest[] = ((await res.json()) as any).devices ?? [];
+
+            return result.map((device: TAudioDeviceFromRequest) => ({
+                ...device,
+                inputs: (device?.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+                outputs: (device?.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+            }));
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
     async getHeaders(): Promise<Record<string, string>> {
         try {
             const data = JSON.stringify({ apiVersion: '1.0', method: 'list' });
@@ -224,7 +383,7 @@ export class CameraVapix {
             } else {
                 return {};
             }
-        } catch (e) {
+        } catch (err) {
             return {};
         }
     }
