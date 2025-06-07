@@ -289,6 +289,32 @@ export class CameraVapix {
         }
     }
 
+    async fetchRemoteDeviceInfo<T>(payload: T) {
+        let res: Response;
+        try {
+            const data = JSON.stringify(payload);
+            res = await this.vapixPost('/axis-cgi/basicdeviceinfo.cgi', data);
+        } catch (err) {
+            throw new Error('Error fetching remote camera data');
+        }
+
+        if (!res.ok) {
+            throw new Error('Could not fetch remote camera data');
+        }
+
+        const result = await parseStringPromise(await res.text(), {
+            ignoreAttrs: false,
+            mergeAttrs: true,
+            explicitArray: false,
+        });
+
+        if (result.body.data === undefined || result.body.data === null) {
+            throw new Error('Did not get any data from remote camera');
+        }
+
+        return result.data;
+    }
+
     async getHeaders(): Promise<Record<string, string>> {
         try {
             const data = JSON.stringify({ apiVersion: '1.0', method: 'list' });

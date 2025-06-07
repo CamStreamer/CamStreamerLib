@@ -78,6 +78,27 @@ export class CamOverlayAPI {
         return response.camera_list;
     }
 
+    async getMjpegStreamImage(mjpegUrl: string): Promise<Blob> {
+        let res: Response;
+
+        try {
+            res = await this.get(
+                `/local/camoverlay/api/fetch_mjpeg_image.cgi?mjpeg_url=${encodeURIComponent(
+                    decodeURIComponent(mjpegUrl)
+                )}`
+            );
+        } catch (error) {
+            throw new Error('Failed to fetch MJPEG image: ' + error);
+        }
+
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+
+        const blob = await this.parseBlobResponse(res);
+        return blob;
+    }
+
     //   ----------------------------------------
     //             CamOverlay services
     //   ----------------------------------------
@@ -243,6 +264,14 @@ export class CamOverlayAPI {
             return await res.json();
         } else {
             throw new Error(await responseStringify(res));
+        }
+    }
+
+    private async parseBlobResponse(response: Response): Promise<Blob> | never {
+        try {
+            return await response.blob();
+        } catch (err) {
+            throw new Error('Error parsing response as Blob: ' + err);
         }
     }
 }
