@@ -10,6 +10,9 @@ type Options = {
 export type HttpOptions = Options & { keepAlive?: boolean };
 export type WsOptions = Options;
 
+export type TKeyboardShortcut = string | null;
+export type TKeyboardShortcuts = Record<string, TKeyboardShortcut>;
+
 export type TGetFunction = (
     url: string,
     parameters?: Record<string, string>,
