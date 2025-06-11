@@ -1,4 +1,3 @@
-import { TStreamList } from './CamStreamerAPI';
 import { DefaultAgent } from './DefaultAgent';
 import { IClient, isClient, responseStringify } from './internal/common';
 import {
@@ -14,6 +13,7 @@ import {
     TSilenceChannel,
     TStorageInfo,
     TTrackerList,
+    TStreamList,
 } from './types/CamSwitcherAPI';
 
 export class CamSwitcherAPI {
