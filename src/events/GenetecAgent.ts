@@ -35,8 +35,15 @@ export const cameraDetailsResponseSchema = z.object({
     }),
 });
 
-export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
-type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
+export const cameraDetailSchema = z.object({
+    Guid: z.string().optional(),
+    Name: z.string().optional(),
+    EntityType: z.string().optional(),
+});
+
+export type TCameraDetail = z.infer<typeof cameraDetailSchema>;
+
+export type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
 
 export type GenetecAgentOptions = {
     protocol?: 'http' | 'https' | 'https_insecure';
@@ -89,25 +96,44 @@ export class GenetecAgent {
         return cameraGuidsResponseSchema.parse(await res.json());
     }
 
-    async getCameraDetails(guids: { Guid: string }[], parameters: TParams): Promise<TCameraDetailsResponse> {
+    async getCameraDetails(guids: { Guid: string }[], parameters: TParams): Promise<TCameraDetail[]> {
         const params = parameters.join(',');
-        const camerasGuids = guids.map((item) => item.Guid);
-        const camerasDetailsUrl = [];
+        let camerasGuids: string[] = [];
         const requestOptions = this.getRequestOptions('GET');
+        const allCameras = [] as TCameraDetail[];
 
-        for (const guid of camerasGuids) {
-            camerasDetailsUrl.push(`entity=${guid},${params}`);
+        const chunkSize = 10;
+        while (guids.length > 0) {
+            let j = 0;
+            const chunk = [];
+            while (j < chunkSize && guids.length > 0) {
+                const item = guids.shift();
+                if (item !== undefined) {
+                    chunk.push(item);
+                }
+                j++;
+            }
+            camerasGuids = chunk.map((item) => item.Guid);
+            const camerasDetailsUrl = [];
+
+            for (const guid of camerasGuids) {
+                camerasDetailsUrl.push(`entity=${guid},${params}`);
+            }
+
+            const res = await fetch(
+                `${this.baseUrl}/${GET_CAMERAS_DETAILS_URL}${camerasDetailsUrl.join(',')}`,
+                requestOptions
+            );
+
+            if (!res.ok) {
+                throw new Error(await responseStringify(res));
+            }
+
+            const result = cameraDetailsResponseSchema.parse(await res.json());
+            allCameras.push(...result.Rsp.Result);
         }
 
-        const res = await fetch(
-            `${this.baseUrl}/${GET_CAMERAS_DETAILS_URL}${camerasDetailsUrl.join(',')}`,
-            requestOptions
-        );
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
-        return cameraDetailsResponseSchema.parse(await res.json());
+        return allCameras;
     }
 
     async sendBookmark(guids: string[], bookmarkText: string): Promise<Response> {
