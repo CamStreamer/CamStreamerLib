@@ -5,10 +5,13 @@ import {
     ImageType,
     TCoordinates,
     TField,
-    TImage,
+    TFile,
+    TFileType,
+    TImageStorage,
     TNetworkCameraList,
     TService,
     TServiceList,
+    TStorage,
 } from './types/CamOverlayAPI';
 import { ServiceNotFoundError } from './errors/errors';
 
@@ -28,20 +31,6 @@ export class CamOverlayAPI {
         return cameraTime.state;
     }
 
-    async listImages(): Promise<TImage[]> {
-        const images = await this.get('/local/camoverlay/api/upload_image.cgi?action=list');
-        return images.list;
-    }
-
-    async uploadImage(file: Buffer, fileName: string): Promise<void> {
-        const formData = new FormData();
-        formData.append('target', 'SD0');
-        formData.append('uploadedFile[]', file, fileName);
-
-        const path = '/local/camoverlay/api/upload_image.cgi?action=upload';
-        await this.post(path, formData);
-    }
-
     async getNetworkCameraList(): Promise<TNetworkCameraList> {
         const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
         return response.camera_list;
@@ -53,6 +42,33 @@ export class CamOverlayAPI {
         );
 
         return await this.parseBlobResponse(res);
+    }
+
+    //   ----------------------------------------
+    //            files - fonts, images
+    //   ----------------------------------------
+
+    async listFiles(fileType: TFileType): Promise<TFile[]> {
+        const files = await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=list`);
+        return files.list;
+    }
+
+    async uploadFile(fileType: TFileType, file: Buffer, fileName: string): Promise<void> {
+        const formData = new FormData();
+        formData.append('target', 'SD0');
+        formData.append('uploadedFile[]', file, fileName);
+
+        const path = `/local/camoverlay/api/upload_${fileType}.cgi?action=upload`;
+        await this.post(path, formData);
+    }
+
+    async removeFile(fileType: TFileType, file: TFile): Promise<void> {
+        const path = `/local/camoverlay/api/upload_${fileType}.cgi?action=remove`;
+        await this.post(path, JSON.stringify(file));
+    }
+
+    async getFileStorage(fileType: TFileType): Promise<TStorage | TImageStorage> {
+        return await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=get_storage`);
     }
 
     //   ----------------------------------------

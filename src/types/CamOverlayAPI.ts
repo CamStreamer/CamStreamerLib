@@ -19,7 +19,9 @@ export type TNetworkCameraList = {
     ip: string;
 }[];
 
-export type TImage = {
+export type TFileType = 'image' | 'font';
+
+export type TFile = {
     name: string;
     path: string;
     storage: string;
@@ -29,6 +31,33 @@ export enum ImageType {
     PNG,
     JPEG,
 }
+
+export type TStorage = [
+    {
+        type: 'SD0';
+        state: 'SD Card';
+    },
+    {
+        type: 'flash';
+        state: `Internal Memory (Available Space ${string})`;
+    }
+];
+
+export type TImageStorage = [
+    ...TStorage,
+    {
+        type: 'samba';
+        state: 'Microsoft Network Share';
+    },
+    {
+        type: 'url';
+        state: 'URL';
+    },
+    {
+        type: 'ftp';
+        state: 'FTP';
+    }
+];
 
 export type TCoordinates =
     | 'top_left'
