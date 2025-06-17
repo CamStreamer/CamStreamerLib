@@ -14,11 +14,6 @@ export type TServiceList = {
     services: TService[];
 };
 
-export type TNetworkCameraList = {
-    name: string;
-    ip: string;
-}[];
-
 export type TFileType = 'image' | 'font';
 
 export type TFile = {

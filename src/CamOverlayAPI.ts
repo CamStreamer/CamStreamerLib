@@ -1,4 +1,4 @@
-import { IClient, isClient, responseStringify } from './internal/common';
+import { IClient, isClient, responseStringify, TNetworkCameraList } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 import {
     CamOverlayOptions,
@@ -8,7 +8,6 @@ import {
     TFile,
     TFileType,
     TImageStorage,
-    TNetworkCameraList,
     TService,
     TServiceList,
     TStorage,
@@ -34,6 +33,11 @@ export class CamOverlayAPI {
     async getNetworkCameraList(): Promise<TNetworkCameraList> {
         const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
         return response.camera_list;
+    }
+
+    async wsAutoratization(): Promise<string> {
+        const response = await this.get(`/local/camoverlay/api/ws_authorization.cgi`);
+        return response.data;
     }
 
     async getMjpegStreamImage(mjpegUrl: string): Promise<Blob> {

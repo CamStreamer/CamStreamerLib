@@ -10,6 +10,11 @@ type Options = {
 export type HttpOptions = Options & { keepAlive?: boolean };
 export type WsOptions = Options;
 
+export type TNetworkCameraList = {
+    name: string;
+    ip: string;
+}[];
+
 export type TKeyboardShortcut = string | null;
 export type TKeyboardShortcuts = Record<string, TKeyboardShortcut>;
 
