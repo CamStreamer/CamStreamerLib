@@ -25,15 +25,24 @@ export type TConnectionResponse = z.infer<typeof connectionResponseSchema>;
 export const cameraDetailsResponseSchema = z.object({
     Rsp: z.object({
         Status: z.string(),
-        Result: z.array(
+        Result: z.union([
+            z.array(
+                z.object({
+                    Guid: z.string().optional(),
+                    Name: z.string().optional(),
+                    EntityType: z.string().optional(),
+                })
+            ),
             z.object({
                 Guid: z.string().optional(),
                 Name: z.string().optional(),
                 EntityType: z.string().optional(),
-            })
-        ),
+            }),
+        ]),
     }),
 });
+
+export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
 
 export const cameraDetailSchema = z.object({
     Guid: z.string().optional(),
@@ -129,8 +138,9 @@ export class GenetecAgent {
                 throw new Error(await responseStringify(res));
             }
 
-            const result = cameraDetailsResponseSchema.parse(await res.json());
-            allCameras.push(...result.Rsp.Result);
+            const data = cameraDetailsResponseSchema.parse(await res.json());
+            const resultArray = Array.isArray(data.Rsp.Result) ? data.Rsp.Result : [data.Rsp.Result];
+            allCameras.push(...resultArray);
         }
 
         return allCameras;
