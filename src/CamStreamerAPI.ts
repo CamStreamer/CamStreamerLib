@@ -1,32 +1,6 @@
-import { IClient, isClient, HttpOptions, responseStringify } from './internal/common';
+import { IClient, isClient, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
-
-export type CamStreamerAPIOptions = HttpOptions;
-
-export type TStreamAttributes = {
-    enabled: string;
-    active: string;
-    audioSource: string;
-    avSyncMsec: string;
-    internalVapixParameters: string;
-    userVapixParameters: string;
-    outputParameters: string;
-    outputType: string;
-    mediaServerUrl: string;
-    inputType: string;
-    inputUrl: string;
-    forceStereo: string;
-    streamDelay: string;
-    statusLed: string;
-    statusPort: string;
-    callApi: string;
-    trigger: string;
-    schedule: string;
-    prepareAhead: string;
-    startTime: string;
-    stopTime: string;
-};
-export type TStreamList = Record<string, TStreamAttributes>;
+import { CamStreamerAPIOptions, TStreamAttributes, TStreamList } from './types/CamStreamerAPI';
 
 export class CamStreamerAPI {
     private client: IClient;
@@ -72,6 +46,14 @@ export class CamStreamerAPI {
     }
     async deleteStream(streamID: string): Promise<void> {
         await this.get('/local/camstreamer/stream/remove.cgi', { stream_id: streamID });
+    }
+
+    wsAutoratization(): Promise<string> {
+        return this.get('/local/camstreamer/ws_authorization.cgi');
+    }
+
+    async getUtcTime(): Promise<number> {
+        return await this.get('/local/camstreamer/get_utc_time.cgi');
     }
 
     private async get(path: string, parameters?: Record<string, string>): Promise<any> {
