@@ -10,6 +10,7 @@ import {
     TService,
     TServiceList,
 } from './types/CamOverlayAPI';
+import { ServiceNotFoundError } from './errors/errors';
 
 export class CamOverlayAPI {
     private client: IClient;
@@ -47,24 +48,11 @@ export class CamOverlayAPI {
     }
 
     async getMjpegStreamImage(mjpegUrl: string): Promise<Blob> {
-        let res: Response;
+        const res = await this.get(
+            `/local/camoverlay/api/fetch_mjpeg_image.cgi?mjpeg_url=${encodeURIComponent(decodeURIComponent(mjpegUrl))}`
+        );
 
-        try {
-            res = await this.get(
-                `/local/camoverlay/api/fetch_mjpeg_image.cgi?mjpeg_url=${encodeURIComponent(
-                    decodeURIComponent(mjpegUrl)
-                )}`
-            );
-        } catch (error) {
-            throw new Error('Failed to fetch MJPEG image: ' + error);
-        }
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
-
-        const blob = await this.parseBlobResponse(res);
-        return blob;
+        return await this.parseBlobResponse(res);
     }
 
     //   ----------------------------------------
@@ -101,7 +89,7 @@ export class CamOverlayAPI {
                     return service.enabled === 1;
                 }
             }
-            throw new Error('Service not found.');
+            throw new ServiceNotFoundError();
         } else {
             throw new Error(await responseStringify(res));
         }
