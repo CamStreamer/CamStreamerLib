@@ -22,34 +22,20 @@ const connectionResponseSchema = z.object({
 
 export type TConnectionResponse = z.infer<typeof connectionResponseSchema>;
 
-export const cameraDetailsResponseSchema = z.object({
-    Rsp: z.object({
-        Status: z.string(),
-        Result: z.union([
-            z.array(
-                z.object({
-                    Guid: z.string().optional(),
-                    Name: z.string().optional(),
-                    EntityType: z.string().optional(),
-                })
-            ),
-            z.object({
-                Guid: z.string().optional(),
-                Name: z.string().optional(),
-                EntityType: z.string().optional(),
-            }),
-        ]),
-    }),
-});
-
-export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
-
 export const cameraDetailSchema = z.object({
     Guid: z.string().optional(),
     Name: z.string().optional(),
     EntityType: z.string().optional(),
 });
 
+export const cameraDetailsResponseSchema = z.object({
+    Rsp: z.object({
+        Status: z.string(),
+        Result: z.union([z.array(cameraDetailSchema), cameraDetailSchema]),
+    }),
+});
+
+export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
 export type TCameraDetail = z.infer<typeof cameraDetailSchema>;
 
 export type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
