@@ -12,7 +12,7 @@ import {
     TServiceList,
     TStorage,
 } from './types/CamOverlayAPI';
-import { ServiceNotFoundError } from './errors/errors';
+import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
 
 export class CamOverlayAPI {
     private client: IClient;
@@ -80,26 +80,15 @@ export class CamOverlayAPI {
     //   ----------------------------------------
 
     async updateInfoticker(serviceID: number, text: string) {
-        const path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
-        const res = await this.client.get(path);
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
+        await this.get(`/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`);
     }
 
     async setEnabled(serviceID: number, enabled: boolean) {
-        const path = `/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`;
-        const res = await this.client.post(path, '');
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
+        await this.post(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`, '');
     }
 
     async isEnabled(serviceID: number) {
-        const path = '/local/camoverlay/api/services.cgi?action=get';
-        const res = await this.client.get(path);
+        const res = await this.client.get('/local/camoverlay/api/services.cgi?action=get');
 
         if (res.ok) {
             const data: TServiceList = JSON.parse(await res.text());
@@ -134,11 +123,7 @@ export class CamOverlayAPI {
 
     async updateServices(servicesJson: TServiceList) {
         const path = '/local/camoverlay/api/services.cgi?action=set';
-        const res = await this.client.post(path, JSON.stringify(servicesJson));
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
+        await this.post(path, JSON.stringify(servicesJson));
     }
 
     //   ----------------------------------------
@@ -247,7 +232,7 @@ export class CamOverlayAPI {
         try {
             return await response.blob();
         } catch (err) {
-            throw new Error('Error parsing response as Blob: ' + err);
+            throw new ParsingBlobError(err);
         }
     }
 }

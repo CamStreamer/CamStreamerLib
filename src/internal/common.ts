@@ -61,3 +61,7 @@ export function pad(num: number, size: number) {
             .slice(-size)
     );
 }
+
+export function isNullish<T>(value: T | undefined | null): value is undefined | null {
+    return value === null || value === undefined;
+}

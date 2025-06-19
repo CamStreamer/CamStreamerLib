@@ -1,4 +1,5 @@
 import { DefaultAgent } from './DefaultAgent';
+import { AddNewClipError } from './errors/errors';
 import { IClient, isClient, responseStringify } from './internal/common';
 import {
     CamSwitcherAPIOptions,
@@ -110,7 +111,7 @@ export class CamSwitcherAPI {
         const output = (await res.json()) as { status: number; message: string };
 
         if (output.status !== 200) {
-            throw new Error('Error on camera: ' + output.message);
+            throw new AddNewClipError(output.message);
         }
     }
 

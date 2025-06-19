@@ -2,7 +2,7 @@ import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 
-import { IClient, isClient, responseStringify } from './internal/common';
+import { IClient, isClient, isNullish, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
 import {
@@ -18,6 +18,14 @@ import {
     TAudioDevice,
     TAudioDeviceFromRequest,
 } from './types/CameraVapix';
+import {
+    ApplicationAPIError,
+    FetchDeviceInfoError,
+    MaxFPSError,
+    NoDeviceInfoError,
+    SDCardActionError,
+    SDCardJobError,
+} from './errors/errors';
 
 export class CameraVapix {
     private client: IClient;
@@ -107,7 +115,6 @@ export class CameraVapix {
         }
     }
 
-    //
     async checkSdCard(): Promise<TSDCardInfo> {
         const res = await this.vapixGet('/axis-cgi/disks/list.cgi', {
             diskid: 'SD_DISK',
@@ -128,14 +135,14 @@ export class CameraVapix {
     }
 
     async mountSdCard() {
-        return this._doSDCardMountAction('mount');
+        return this._doSDCardMountAction('MOUNT');
     }
 
     async unmountSDCard() {
-        return this._doSDCardMountAction('unmount');
+        return this._doSDCardMountAction('UNMOUNT');
     }
 
-    private async _doSDCardMountAction(action: 'mount' | 'unmount') {
+    private async _doSDCardMountAction(action: 'MOUNT' | 'UNMOUNT') {
         const res = await this.vapixGet('/axis-cgi/disks/mount.cgi', {
             action: action,
             diskid: 'SD_DISK',
@@ -150,7 +157,7 @@ export class CameraVapix {
         const job = result.root.job;
 
         if (job.result !== 'OK') {
-            throw new Error('Error while mounting SD card');
+            throw new SDCardActionError(action, await responseStringify(res));
         }
 
         return Number(job.jobid);
@@ -172,7 +179,7 @@ export class CameraVapix {
         const job = result.root.job;
 
         if (job.result !== 'OK') {
-            throw new Error('Error while fetching SD card job progress');
+            throw new SDCardJobError();
         }
 
         return Number(job.progress);
@@ -220,23 +227,23 @@ export class CameraVapix {
 
         const channels = response.data;
         if (channels === undefined) {
-            throw new Error(`Malformed reply from camera`);
+            throw new MaxFPSError('MALFORMED_REPLY');
         }
         const channelData = channels.find((x) => x.channel === channel);
 
         if (channelData === undefined) {
-            throw new Error(`Video channel '${channel}' not found`);
+            throw new MaxFPSError('CHANNEL_NOT_FOUND');
         }
 
         const captureModes = channelData.captureMode;
         const captureMode = captureModes.find((x) => x.enabled === true);
         if (captureMode === undefined) {
-            throw new Error(`No enabled capture mode found.`);
+            throw new MaxFPSError('CAPTURE_MODE_NOT_FOUND');
         }
 
         const maxFps = parseInt(captureMode.maxFPS, 10);
         if (isNaN(maxFps)) {
-            throw new Error(`Max fps not specified for given capture mode.`);
+            throw new MaxFPSError('FPS_NOT_SPECIFIED');
         }
 
         return maxFps;
@@ -295,11 +302,11 @@ export class CameraVapix {
             const data = JSON.stringify(payload);
             res = await this.vapixPost('/axis-cgi/basicdeviceinfo.cgi', data);
         } catch (err) {
-            throw new Error('Error fetching remote camera data');
+            throw new FetchDeviceInfoError(err);
         }
 
         if (!res.ok) {
-            throw new Error('Could not fetch remote camera data');
+            throw new Error(await responseStringify(res));
         }
 
         const result = await parseStringPromise(await res.text(), {
@@ -308,8 +315,8 @@ export class CameraVapix {
             explicitArray: false,
         });
 
-        if (result.body.data === undefined || result.body.data === null) {
-            throw new Error('Did not get any data from remote camera');
+        if (isNullish(result.body.data)) {
+            throw new NoDeviceInfoError();
         }
 
         return result.data;
@@ -575,7 +582,7 @@ export class CameraVapix {
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new ApplicationAPIError('START', await responseStringify(res));
         }
     }
 
@@ -589,7 +596,7 @@ export class CameraVapix {
         if (res.ok && text === 'ok') {
             return;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new ApplicationAPIError('RESTART', await responseStringify(res));
         }
     }
 
@@ -605,7 +612,7 @@ export class CameraVapix {
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new ApplicationAPIError('STOP', await responseStringify(res));
         }
     }
 }
