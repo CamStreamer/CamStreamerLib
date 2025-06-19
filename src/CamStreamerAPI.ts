@@ -26,7 +26,7 @@ export class CamStreamerAPI {
         return stream.data[paramName];
     }
 
-    async setStream(streamID: string, params: TStreamAttributes): Promise<void> {
+    async setStream(streamID: string, params: Partial<TStreamAttributes>): Promise<void> {
         const { streamDelay, startTime, stopTime, ...rest } = params;
         await this.get('/local/camstreamer/stream/set.cgi', {
             stream_id: streamID,

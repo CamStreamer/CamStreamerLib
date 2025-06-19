@@ -223,7 +223,7 @@ export class CameraVapix {
             throw new Error(await responseStringify(res));
         }
 
-        const response = (await res.json()) as TCaptureModeResponse;
+        const response = (await res.json()) as Partial<TCaptureModeResponse>;
 
         const channels = response.data;
         if (channels === undefined) {
@@ -288,8 +288,8 @@ export class CameraVapix {
 
             return result.map((device: TAudioDeviceFromRequest) => ({
                 ...device,
-                inputs: (device?.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
-                outputs: (device?.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+                inputs: (device.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+                outputs: (device.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),
             }));
         } else {
             throw new Error(await responseStringify(res));
@@ -511,7 +511,7 @@ export class CameraVapix {
 
             const res: TPtzOverview = {};
             Object.keys(data).forEach((camera) => {
-                res[Number(camera) - 1] = data[Number(camera)].map(({ data, ...d }) => d);
+                res[Number(camera) - 1] = data[Number(camera)].map(({ data: itemData, ...d }) => d);
             });
             return res;
         } catch (err) {

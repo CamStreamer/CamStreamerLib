@@ -16,7 +16,7 @@
         "node": ">=18.0.0"
     },
     "devDependencies": {
-        "@camstreamer/eslint-config": "^1.0.0",
+        "@camstreamer/eslint-config": "^1.0.2",
         "@camstreamer/prettier-config": "^2.0.4",
         "@types/adm-zip": "^0.5.5",
         "@types/jest": "^28.0.0",
