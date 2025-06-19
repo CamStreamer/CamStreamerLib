@@ -22,21 +22,23 @@ const connectionResponseSchema = z.object({
 
 export type TConnectionResponse = z.infer<typeof connectionResponseSchema>;
 
+export const cameraDetailSchema = z.object({
+    Guid: z.string().optional(),
+    Name: z.string().optional(),
+    EntityType: z.string().optional(),
+});
+
 export const cameraDetailsResponseSchema = z.object({
     Rsp: z.object({
         Status: z.string(),
-        Result: z.array(
-            z.object({
-                Guid: z.string().optional(),
-                Name: z.string().optional(),
-                EntityType: z.string().optional(),
-            })
-        ),
+        Result: z.union([z.array(cameraDetailSchema), cameraDetailSchema]),
     }),
 });
 
 export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
-type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
+export type TCameraDetail = z.infer<typeof cameraDetailSchema>;
+
+export type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
 
 export type GenetecAgentOptions = {
     protocol?: 'http' | 'https' | 'https_insecure';
@@ -89,25 +91,39 @@ export class GenetecAgent {
         return cameraGuidsResponseSchema.parse(await res.json());
     }
 
-    async getCameraDetails(guids: { Guid: string }[], parameters: TParams): Promise<TCameraDetailsResponse> {
+    async getCameraDetails(guids: { Guid: string }[], parameters: TParams): Promise<TCameraDetail[]> {
         const params = parameters.join(',');
-        const camerasGuids = guids.map((item) => item.Guid);
-        const camerasDetailsUrl = [];
+        let camerasGuids: string[] = [];
         const requestOptions = this.getRequestOptions('GET');
+        const allCameras = [] as TCameraDetail[];
 
-        for (const guid of camerasGuids) {
-            camerasDetailsUrl.push(`entity=${guid},${params}`);
+        const chunkSize = 10;
+        while (guids.length > 0) {
+            const chunk = guids.slice(0, chunkSize);
+            guids.splice(0, chunkSize);
+
+            camerasGuids = chunk.map((item) => item.Guid);
+            const camerasDetailsUrl = [];
+
+            for (const guid of camerasGuids) {
+                camerasDetailsUrl.push(`entity=${guid},${params}`);
+            }
+
+            const res = await fetch(
+                `${this.baseUrl}/${GET_CAMERAS_DETAILS_URL}${camerasDetailsUrl.join(',')}`,
+                requestOptions
+            );
+
+            if (!res.ok) {
+                throw new Error(await responseStringify(res));
+            }
+
+            const data = cameraDetailsResponseSchema.parse(await res.json());
+            const resultArray = Array.isArray(data.Rsp.Result) ? data.Rsp.Result : [data.Rsp.Result];
+            allCameras.push(...resultArray);
         }
 
-        const res = await fetch(
-            `${this.baseUrl}/${GET_CAMERAS_DETAILS_URL}${camerasDetailsUrl.join(',')}`,
-            requestOptions
-        );
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
-        return cameraDetailsResponseSchema.parse(await res.json());
+        return allCameras;
     }
 
     async sendBookmark(guids: string[], bookmarkText: string): Promise<Response> {
