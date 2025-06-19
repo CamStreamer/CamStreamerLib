@@ -99,15 +99,9 @@ export class GenetecAgent {
 
         const chunkSize = 10;
         while (guids.length > 0) {
-            let j = 0;
-            const chunk = [];
-            while (j < chunkSize && guids.length > 0) {
-                const item = guids.shift();
-                if (item !== undefined) {
-                    chunk.push(item);
-                }
-                j++;
-            }
+            const chunk = guids.slice(0, chunkSize);
+            guids.splice(0, chunkSize);
+
             camerasGuids = chunk.map((item) => item.Guid);
             const camerasDetailsUrl = [];
 
