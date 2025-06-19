@@ -1,47 +1,18 @@
-import { HttpOptions, IClient, isClient, responseStringify } from './internal/common';
+import { IClient, isClient, responseStringify, TNetworkCameraList } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
-
-export type CamOverlayOptions = HttpOptions;
-
-export type TField = {
-    field_name: string;
-    text: string;
-    color?: string;
-};
-
-export type TService = Record<string, any>;
-
-export type TServiceList = {
-    services: TService[];
-};
-
-export type TNetworkCameraList = {
-    name: string;
-    ip: string;
-}[];
-
-export type TImage = {
-    name: string;
-    path: string;
-    storage: string;
-};
-
-export enum ImageType {
-    PNG,
-    JPEG,
-}
-
-export type TCoordinates =
-    | 'top_left'
-    | 'top_right'
-    | 'top'
-    | 'bottom_left'
-    | 'bottom_right'
-    | 'bottom'
-    | 'left'
-    | 'right'
-    | 'center'
-    | '';
+import {
+    CamOverlayOptions,
+    ImageType,
+    TCoordinates,
+    TField,
+    TFile,
+    TFileType,
+    TImageStorage,
+    TService,
+    TServiceList,
+    TStorage,
+} from './types/CamOverlayAPI';
+import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
 
 export class CamOverlayAPI {
     private client: IClient;
@@ -59,23 +30,49 @@ export class CamOverlayAPI {
         return cameraTime.state;
     }
 
-    async listImages(): Promise<TImage[]> {
-        const images = await this.get('/local/camoverlay/api/upload_image.cgi?action=list');
-        return images.list;
+    async getNetworkCameraList(): Promise<TNetworkCameraList> {
+        const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
+        return response.camera_list;
     }
 
-    async uploadImage(file: Buffer, fileName: string): Promise<void> {
+    async wsAutoratization(): Promise<string> {
+        const response = await this.get(`/local/camoverlay/api/ws_authorization.cgi`);
+        return response.data;
+    }
+
+    async getMjpegStreamImage(mjpegUrl: string): Promise<Blob> {
+        const res = await this.get(
+            `/local/camoverlay/api/fetch_mjpeg_image.cgi?mjpeg_url=${encodeURIComponent(decodeURIComponent(mjpegUrl))}`
+        );
+
+        return await this.parseBlobResponse(res);
+    }
+
+    //   ----------------------------------------
+    //            files - fonts, images
+    //   ----------------------------------------
+
+    async listFiles(fileType: TFileType): Promise<TFile[]> {
+        const files = await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=list`);
+        return files.list;
+    }
+
+    async uploadFile(fileType: TFileType, file: Buffer, fileName: string): Promise<void> {
         const formData = new FormData();
         formData.append('target', 'SD0');
         formData.append('uploadedFile[]', file, fileName);
 
-        const path = '/local/camoverlay/api/upload_image.cgi?action=upload';
+        const path = `/local/camoverlay/api/upload_${fileType}.cgi?action=upload`;
         await this.post(path, formData);
     }
 
-    async getNetworkCameraList(): Promise<TNetworkCameraList> {
-        const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
-        return response.camera_list;
+    async removeFile(fileType: TFileType, file: TFile): Promise<void> {
+        const path = `/local/camoverlay/api/upload_${fileType}.cgi?action=remove`;
+        await this.post(path, JSON.stringify(file));
+    }
+
+    async getFileStorage(fileType: TFileType): Promise<TStorage | TImageStorage> {
+        return await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=get_storage`);
     }
 
     //   ----------------------------------------
@@ -83,26 +80,15 @@ export class CamOverlayAPI {
     //   ----------------------------------------
 
     async updateInfoticker(serviceID: number, text: string) {
-        const path = `/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`;
-        const res = await this.client.get(path);
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
+        await this.get(`/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`);
     }
 
     async setEnabled(serviceID: number, enabled: boolean) {
-        const path = `/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`;
-        const res = await this.client.post(path, '');
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
+        await this.post(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`, '');
     }
 
     async isEnabled(serviceID: number) {
-        const path = '/local/camoverlay/api/services.cgi?action=get';
-        const res = await this.client.get(path);
+        const res = await this.client.get('/local/camoverlay/api/services.cgi?action=get');
 
         if (res.ok) {
             const data: TServiceList = JSON.parse(await res.text());
@@ -112,7 +98,7 @@ export class CamOverlayAPI {
                     return service.enabled === 1;
                 }
             }
-            throw new Error('Service not found.');
+            throw new ServiceNotFoundError();
         } else {
             throw new Error(await responseStringify(res));
         }
@@ -137,11 +123,7 @@ export class CamOverlayAPI {
 
     async updateServices(servicesJson: TServiceList) {
         const path = '/local/camoverlay/api/services.cgi?action=set';
-        const res = await this.client.post(path, JSON.stringify(servicesJson));
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
+        await this.post(path, JSON.stringify(servicesJson));
     }
 
     //   ----------------------------------------
@@ -243,6 +225,14 @@ export class CamOverlayAPI {
             return await res.json();
         } else {
             throw new Error(await responseStringify(res));
+        }
+    }
+
+    private async parseBlobResponse(response: Response): Promise<Blob> | never {
+        try {
+            return await response.blob();
+        } catch (err) {
+            throw new ParsingBlobError(err);
         }
     }
 }

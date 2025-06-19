@@ -73,11 +73,11 @@ export class HttpServer extends EventEmitter {
                 }
 
                 // Read file from file system
-                fs.readFile(pathname, (err, data) => {
-                    if (err) {
+                fs.readFile(pathname, (error, data) => {
+                    if (error) {
                         res.statusCode = 500;
-                        res.end(`Error getting the file: ${err}`);
-                        this.emit('error', `Error getting the file: ${err}`);
+                        res.end(`Error getting the file: ${error}`);
+                        this.emit('error', `Error getting the file: ${error}`);
                     } else {
                         // If the file is found, set Content-type and send data
                         res.setHeader('Content-type', map[ext] ?? 'text/plain');
@@ -108,8 +108,8 @@ export class HttpServer extends EventEmitter {
         return this.server;
     }
 
-    onRequest(path: string, callback: TOnRequestCallback) {
-        this.registeredPaths.set(path, callback);
+    onRequest(pathName: string, callback: TOnRequestCallback) {
+        this.registeredPaths.set(pathName, callback);
     }
 
     close() {

@@ -19,7 +19,7 @@ export class Digest {
         const ncValue = ('00000000' + this.nonceCount.toString(16)).slice(-8); // Format nonce count as 8-digit hex
 
         let response: string;
-        if (digestItems['qop'] !== undefined) {
+        if (digestItems['qop']) {
             response = crypto
                 .createHash('md5')
                 .update(`${HA1}:${digestItems['nonce']}:${ncValue}:162d50aa594e9648:auth:${HA2}`)
@@ -36,7 +36,7 @@ export class Digest {
             `uri="${uri}",` +
             `response="${response}"`;
 
-        if (digestItems['qop'] !== undefined) {
+        if (digestItems['qop']) {
             header += `,qop=auth,nc=${ncValue},cnonce="162d50aa594e9648"`;
         }
 
