@@ -12,9 +12,18 @@ import {
     TPlaylistList,
     TPlaylistQueue,
     TSilenceChannel,
-    TStorageInfo,
     TTrackerList,
     TStreamList,
+    TStorageInfoList,
+    availableCameraListSchema,
+    storageInfoListSchema,
+    outputInfoSchema,
+    audioPushInfoSchema,
+    trackerListSchema,
+    clipListSchema,
+    playlistQueueSchema,
+    playlistListSchema,
+    streamListSchema,
 } from './types/CamSwitcherAPI';
 
 export class CamSwitcherAPI {
@@ -40,7 +49,8 @@ export class CamSwitcherAPI {
     }
 
     async getIpListFromNetworkCheck(): Promise<TAvailableCameraList> {
-        return (await this.get('/local/camswitcher/api/network_camera_list.cgi')).data;
+        const data = (await this.get('/local/camswitcher/api/network_camera_list.cgi')).data;
+        return availableCameraListSchema.parse(data);
     }
 
     async getMaxFps(source: number): Promise<number> {
@@ -48,32 +58,36 @@ export class CamSwitcherAPI {
             .data;
     }
 
-    async getStorageInfo(): Promise<TStorageInfo[]> {
-        return (await this.get('/local/camswitcher/api/get_storage.cgi')).data;
+    async getStorageInfo(): Promise<TStorageInfoList> {
+        const data = (await this.get('/local/camswitcher/api/get_storage.cgi')).data;
+        return storageInfoListSchema.parse(data);
     }
 
     //   ----------------------------------------
     //                 Websockets
     //   ----------------------------------------
 
-    wsAutoratization(): Promise<string> {
-        return this.get(`/local/camswitcher/api/ws_authorization.cgi`);
+    async wsAutoratization(): Promise<string> {
+        return await this.get(`/local/camswitcher/api/ws_authorization.cgi`);
     }
 
     async getOutputInfo(): Promise<TOutputInfo> {
-        return (await this.get('/local/camswitcher/api/output_info.cgi')).data;
+        const data = await this.get('/local/camswitcher/api/output_info.cgi');
+        return outputInfoSchema.parse(data);
     }
 
     async getAudioPushInfo(): Promise<TAudioPushInfo> {
-        return (await this.get(`/local/camswitcher/api/audio_push_info.cgi`)).data;
+        const data = await this.get(`/local/camswitcher/api/audio_push_info.cgi`);
+        return audioPushInfoSchema.parse(data);
     }
 
     //   ----------------------------------------
     //                 Playlists
     //   ----------------------------------------
 
-    getPlaylistList(): Promise<TPlaylistList> {
-        return this.get('/local/camswitcher/api/playlists.cgi?action=get');
+    async getPlaylistList(): Promise<TPlaylistList> {
+        const data = await this.get('/local/camswitcher/api/playlists.cgi?action=get');
+        return playlistListSchema.parse(data);
     }
     async playlistSwitch(playlistName: string): Promise<void> {
         await this.get(`/local/camswitcher/api/playlist_switch.cgi?playlist_name=${playlistName}`);
@@ -84,8 +98,9 @@ export class CamSwitcherAPI {
     async playlistQueueClear(): Promise<void> {
         await this.get('/local/camswitcher/api/playlist_queue_clear.cgi');
     }
-    playlistQueueList(): Promise<TPlaylistQueue> {
-        return this.get('/local/camswitcher/api/playlist_queue_list.cgi');
+    async playlistQueueList(): Promise<TPlaylistQueue> {
+        const data = await this.get('/local/camswitcher/api/playlist_queue_list.cgi');
+        return playlistQueueSchema.parse(data);
     }
     async playlistQueuePlayNext(): Promise<void> {
         await this.get('/local/camswitcher/api/playlist_queue_play_next.cgi');
@@ -95,11 +110,18 @@ export class CamSwitcherAPI {
     //                   Clips
     //   ----------------------------------------
 
-    getClipList(): Promise<TClipList> {
-        return this.get('/local/camswitcher/api/clips.cgi?action=get');
+    async getClipList(): Promise<TClipList> {
+        const data = await this.get('/local/camswitcher/api/clips.cgi?action=get');
+        return clipListSchema.parse(data);
     }
 
-    async addNewClip(file: Buffer, clipType: TApiClipType, storage: TClipStorage, id: string, fileName: string) {
+    async addNewClip(
+        file: Buffer,
+        clipType: TApiClipType,
+        storage: TClipStorage,
+        id: string,
+        fileName: string
+    ): Promise<void> {
         const formData = new FormData();
         formData.append('clip_name', id);
         formData.append('clip_type', clipType);
@@ -127,12 +149,14 @@ export class CamSwitcherAPI {
     //                   Other sources
     //   ----------------------------------------
 
-    getStreamList(): Promise<TStreamList> {
-        return this.get('/local/camswitcher/api/streams.cgi?action=get');
+    async getStreamList(): Promise<TStreamList> {
+        const data = await this.get('/local/camswitcher/api/streams.cgi?action=get');
+        return streamListSchema.parse(data);
     }
 
-    getTrackerList(): Promise<TTrackerList> {
-        return this.get('/local/camswitcher/api/trackers.cgi?action=get');
+    async getTrackerList(): Promise<TTrackerList> {
+        const data = await this.get('/local/camswitcher/api/trackers.cgi?action=get');
+        return trackerListSchema.parse(data);
     }
 
     private async get(path: string, parameters: Record<string, string> = {}): Promise<any> {
