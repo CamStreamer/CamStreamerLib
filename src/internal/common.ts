@@ -10,6 +10,14 @@ type Options = {
 export type HttpOptions = Options & { keepAlive?: boolean };
 export type WsOptions = Options;
 
+export type TNetworkCameraList = {
+    name: string;
+    ip: string;
+}[];
+
+export type TKeyboardShortcut = string | null;
+export type TKeyboardShortcuts = Record<string, TKeyboardShortcut>;
+
 export type TGetFunction = (
     url: string,
     parameters?: Record<string, string>,
@@ -33,7 +41,7 @@ export function isClient(arg: Options | IClient = {}): arg is IClient {
 }
 
 export function isBrowserEnvironment() {
-    return typeof process === 'undefined' || process.versions === null || process.versions.node === null;
+    return typeof process === 'undefined' || !process.versions.node;
 }
 
 export async function responseStringify(res: Response): Promise<string> {
@@ -52,4 +60,8 @@ export function pad(num: number, size: number) {
             .join('0')
             .slice(-size)
     );
+}
+
+export function isNullish<T>(value: T | undefined | null): value is undefined | null {
+    return value === null || value === undefined;
 }

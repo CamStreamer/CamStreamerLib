@@ -39,12 +39,12 @@ export class WsClient extends EventEmitter {
     constructor(options: WsClientOptions) {
         super();
 
-        const tls = options?.tls ?? false;
-        const tlsInsecure = options?.tlsInsecure ?? false;
-        const ip = options?.ip ?? '127.0.0.1';
-        const port = options?.port ?? (tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+        const tls = options.tls ?? false;
+        const tlsInsecure = options.tlsInsecure ?? false;
+        const ip = options.ip ?? '127.0.0.1';
+        const port = options.port ?? (tls ? 443 : 80);
+        this.user = options.user ?? '';
+        this.pass = options.pass ?? '';
 
         const protocol = tls ? 'wss' : 'ws';
         this.address = `${protocol}://${ip}:${port}${options.address}`;

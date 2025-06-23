@@ -2,71 +2,30 @@ import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 
-import { HttpOptions, IClient, isClient, responseStringify } from './internal/common';
+import { IClient, isClient, isNullish, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 
-export type CameraVapixOptions = HttpOptions;
-
-export type TApplicationList = {
-    reply: {
-        $: { result: string };
-        application: {
-            $: TApplication;
-        }[];
-    };
-};
-
-export type TApplication = {
-    Name: string;
-    NiceName: string;
-    Vendor: string;
-    Version: string;
-    ApplicationID?: string;
-    License: string;
-    Status: string;
-    ConfigurationPage?: string;
-    VendorHomePage?: string;
-    LicenseName?: string;
-};
-
-export type TGuardTour = {
-    id: string;
-    camNbr: unknown;
-    name: string;
-    randomEnabled: unknown;
-    running: string;
-    timeBetweenSequences: unknown;
-    tour: {
-        moveSpeed: unknown;
-        position: unknown;
-        presetNbr: unknown;
-        waitTime: unknown;
-        waitTimeViewType: unknown;
-    }[];
-};
-
-export type TAudioSampleRates = {
-    sampleRate: number;
-    bitRates: number[];
-};
-
-export type TSDCardInfo = {
-    available: boolean;
-    totalSize: number;
-    freeSize: number;
-};
-
-export type TPtzOverview = Record<number, { id: number; name: string }[]>;
-export type TCameraPTZItem = {
-    name: string;
-    id: number;
-    data: TCameraPTZItemData;
-};
-export type TCameraPTZItemData = {
-    pan?: number;
-    tilt?: number;
-    zoom?: number;
-};
+import {
+    CameraVapixOptions,
+    TApplicationList,
+    TApplication,
+    TGuardTour,
+    TAudioSampleRates,
+    TSDCardInfo,
+    TPtzOverview,
+    TCameraPTZItem,
+    TCameraPTZItemData,
+    TAudioDevice,
+    TAudioDeviceFromRequest,
+} from './types/CameraVapix';
+import {
+    ApplicationAPIError,
+    FetchDeviceInfoError,
+    MaxFPSError,
+    NoDeviceInfoError,
+    SDCardActionError,
+    SDCardJobError,
+} from './errors/errors';
 
 export class CameraVapix {
     private client: IClient;
@@ -130,6 +89,32 @@ export class CameraVapix {
         }
     }
 
+    async performAutofocus(): Promise<void> {
+        try {
+            const data = JSON.stringify({
+                apiVersion: '1',
+                method: 'performAutofocus',
+                params: {
+                    optics: [
+                        {
+                            opticsId: '0',
+                        },
+                    ],
+                },
+            });
+
+            await this.vapixPost('/axis-cgi/opticscontrol.cgi', data);
+        } catch (err) {
+            // lets try the old api
+            const data = JSON.stringify({
+                autofocus: 'perform',
+                source: '1',
+            });
+
+            await this.vapixPost('/axis-cgi/opticssetup.cgi', data);
+        }
+    }
+
     async checkSdCard(): Promise<TSDCardInfo> {
         const res = await this.vapixGet('/axis-cgi/disks/list.cgi', {
             diskid: 'SD_DISK',
@@ -149,8 +134,69 @@ export class CameraVapix {
         };
     }
 
+    async mountSdCard() {
+        return this._doSDCardMountAction('MOUNT');
+    }
+
+    async unmountSDCard() {
+        return this._doSDCardMountAction('UNMOUNT');
+    }
+
+    private async _doSDCardMountAction(action: 'MOUNT' | 'UNMOUNT') {
+        const res = await this.vapixGet('/axis-cgi/disks/mount.cgi', {
+            action: action,
+            diskid: 'SD_DISK',
+        });
+
+        const result = await parseStringPromise(await res.text(), {
+            ignoreAttrs: false,
+            mergeAttrs: true,
+            explicitArray: false,
+        });
+
+        const job = result.root.job;
+
+        if (job.result !== 'OK') {
+            throw new SDCardActionError(action, await responseStringify(res));
+        }
+
+        return Number(job.jobid);
+    }
+
+    // This is supposed to be called in interval in client code until progress is 100
+    async fetchSDCardJobProgress(jobId: number) {
+        const res = await this.vapixGet('/disks/job.cgi', {
+            jobid: String(jobId),
+            diskid: 'SD_DISK',
+        });
+
+        const result = await parseStringPromise(await res.text(), {
+            ignoreAttrs: false,
+            mergeAttrs: true,
+            explicitArray: false,
+        });
+
+        const job = result.root.job;
+
+        if (job.result !== 'OK') {
+            throw new SDCardJobError();
+        }
+
+        return Number(job.progress);
+    }
+
     async downloadCameraReport(): Promise<Response> {
         const res = await this.vapixGet('/axis-cgi/serverreport.cgi', { mode: 'text' });
+
+        if (res.ok) {
+            return res;
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    async getSystemLog(): Promise<Response> {
+        const res = await this.vapixGet('/axis-cgi/admin/systemlog.cgi');
 
         if (res.ok) {
             return res;
@@ -177,27 +223,27 @@ export class CameraVapix {
             throw new Error(await responseStringify(res));
         }
 
-        const response = (await res.json()) as TCaptureModeResponse;
+        const response = (await res.json()) as Partial<TCaptureModeResponse>;
 
         const channels = response.data;
         if (channels === undefined) {
-            throw new Error(`Malformed reply from camera`);
+            throw new MaxFPSError('MALFORMED_REPLY');
         }
         const channelData = channels.find((x) => x.channel === channel);
 
         if (channelData === undefined) {
-            throw new Error(`Video channel '${channel}' not found`);
+            throw new MaxFPSError('CHANNEL_NOT_FOUND');
         }
 
         const captureModes = channelData.captureMode;
         const captureMode = captureModes.find((x) => x.enabled === true);
         if (captureMode === undefined) {
-            throw new Error(`No enabled capture mode found.`);
+            throw new MaxFPSError('CAPTURE_MODE_NOT_FOUND');
         }
 
         const maxFps = parseInt(captureMode.maxFPS, 10);
         if (isNaN(maxFps)) {
-            throw new Error(`Max fps not specified for given capture mode.`);
+            throw new MaxFPSError('FPS_NOT_SPECIFIED');
         }
 
         return maxFps;
@@ -214,6 +260,68 @@ export class CameraVapix {
         }
     }
 
+    async getDateTimeInfo(): Promise<
+        Partial<{
+            dateTime: string;
+            dstEnabled: boolean;
+            localDateTime: string;
+            posixTimeZone: string;
+            timeZone: string;
+        }>
+    > {
+        const data = JSON.stringify({ apiVersion: '1.0', method: 'getDateTimeInfo' });
+        const res = await this.vapixPost('/axis-cgi/time.cgi', data);
+
+        if (res.ok) {
+            return ((await res.json()) as any)?.data;
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    async getDevicesSettings(): Promise<TAudioDevice[]> {
+        const data = JSON.stringify({ apiVersion: '1.0', method: 'getDevicesSettings' });
+        const res = await this.vapixPost('/axis-cgi/audiodevicecontrol.cgi', data);
+
+        if (res.ok) {
+            const result: TAudioDeviceFromRequest[] = ((await res.json()) as any).devices ?? [];
+
+            return result.map((device: TAudioDeviceFromRequest) => ({
+                ...device,
+                inputs: (device.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+                outputs: (device.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+            }));
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    async fetchRemoteDeviceInfo<T>(payload: T) {
+        let res: Response;
+        try {
+            const data = JSON.stringify(payload);
+            res = await this.vapixPost('/axis-cgi/basicdeviceinfo.cgi', data);
+        } catch (err) {
+            throw new FetchDeviceInfoError(err);
+        }
+
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+
+        const result = await parseStringPromise(await res.text(), {
+            ignoreAttrs: false,
+            mergeAttrs: true,
+            explicitArray: false,
+        });
+
+        if (isNullish(result.body.data)) {
+            throw new NoDeviceInfoError();
+        }
+
+        return result.data;
+    }
+
     async getHeaders(): Promise<Record<string, string>> {
         try {
             const data = JSON.stringify({ apiVersion: '1.0', method: 'list' });
@@ -224,7 +332,7 @@ export class CameraVapix {
             } else {
                 return {};
             }
-        } catch (e) {
+        } catch (err) {
             return {};
         }
     }
@@ -403,7 +511,7 @@ export class CameraVapix {
 
             const res: TPtzOverview = {};
             Object.keys(data).forEach((camera) => {
-                res[Number(camera) - 1] = data[Number(camera)].map(({ data, ...d }) => d);
+                res[Number(camera) - 1] = data[Number(camera)].map(({ data: itemData, ...d }) => d);
             });
             return res;
         } catch (err) {
@@ -474,7 +582,7 @@ export class CameraVapix {
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new ApplicationAPIError('START', await responseStringify(res));
         }
     }
 
@@ -488,7 +596,7 @@ export class CameraVapix {
         if (res.ok && text === 'ok') {
             return;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new ApplicationAPIError('RESTART', await responseStringify(res));
         }
     }
 
@@ -504,7 +612,7 @@ export class CameraVapix {
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new ApplicationAPIError('STOP', await responseStringify(res));
         }
     }
 }

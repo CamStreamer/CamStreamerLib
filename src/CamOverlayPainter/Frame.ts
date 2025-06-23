@@ -235,20 +235,20 @@ export class Frame extends EventEmitter {
         layer: number
     ) {
         if (this.enabled) {
-            ppX += this.posX;
-            ppY += this.posY;
+            const posX = ppX + this.posX;
+            const posY = ppY + this.posY;
 
             // Resources have to be prepared before drawing to avoid async problems
             await this.prepareResources(resourceManager);
 
             await cod.cairo('cairo_save', cairo);
-            await this.clipDrawing(cod, cairo, scale, ppX, ppY);
+            await this.clipDrawing(cod, cairo, scale, posX, posY);
 
             if (this.layer === layer) {
-                await this.displayOwnImage(cod, cairo, ppX, ppY, scale);
+                await this.displayOwnImage(cod, cairo, posX, posY, scale);
             }
             for (const child of this.children) {
-                await child.displayImage(cod, resourceManager, cairo, ppX, ppY, scale, layer);
+                await child.displayImage(cod, resourceManager, cairo, posX, posY, scale, layer);
             }
 
             await cod.cairo('cairo_restore', cairo);
