@@ -1,4 +1,4 @@
-import { IClient, isClient, networkCameraListSchema, responseStringify, TNetworkCameraList } from './internal/common';
+import { IClient, isClient, networkCameraListSchema, responseStringify, TNetworkCamera } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 import {
     CamOverlayOptions,
@@ -33,7 +33,7 @@ export class CamOverlayAPI {
         return cameraTime.state;
     }
 
-    async getNetworkCameraList(): Promise<TNetworkCameraList> {
+    async getNetworkCameraList(): Promise<TNetworkCamera[]> {
         const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
         return networkCameraListSchema.parse(response.camera_list);
     }
