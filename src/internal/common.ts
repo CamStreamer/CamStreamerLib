@@ -1,5 +1,3 @@
-import { z } from 'zod';
-
 type Options = {
     ip?: string;
     port?: number;
@@ -11,19 +9,6 @@ type Options = {
 
 export type HttpOptions = Options & { keepAlive?: boolean };
 export type WsOptions = Options;
-
-export const networkCameraListSchema = z.array(
-    z.object({
-        name: z.string(),
-        ip: z.string(),
-    })
-);
-export type TNetworkCamera = z.infer<typeof networkCameraListSchema>[number];
-
-export const keyboardShortcutSchema = z.string().nullable();
-export const keyboardShortcutsSchema = z.record(keyboardShortcutSchema);
-export type TKeyboardShortcut = z.infer<typeof keyboardShortcutSchema>;
-export type TKeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
 
 export type TGetFunction = (
     url: string,

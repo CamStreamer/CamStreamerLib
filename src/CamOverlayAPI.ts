@@ -1,4 +1,4 @@
-import { IClient, isClient, networkCameraListSchema, responseStringify, TNetworkCamera } from './internal/common';
+import { IClient, isClient, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
 import {
     CamOverlayOptions,
@@ -16,6 +16,7 @@ import {
     TStorage,
 } from './types/CamOverlayAPI';
 import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
+import { networkCameraListSchema, TNetworkCamera } from './types/common';
 
 export class CamOverlayAPI {
     private client: IClient;
