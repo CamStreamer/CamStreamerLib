@@ -1,6 +1,12 @@
 import { IClient, isClient, responseStringify } from './internal/common';
 import { DefaultAgent } from './DefaultAgent';
-import { CamStreamerAPIOptions, TStreamAttributes, TStreamList } from './types/CamStreamerAPI';
+import {
+    CamStreamerAPIOptions,
+    TStreamAttributes,
+    TStreamList,
+    streamAttributesSchema,
+    streamListSchema,
+} from './types/CamStreamerAPI';
 
 export class CamStreamerAPI {
     private client: IClient;
@@ -15,11 +21,11 @@ export class CamStreamerAPI {
 
     async getStreamList(): Promise<TStreamList> {
         const streamListRes = await this.get('/local/camstreamer/stream/list.cgi');
-        return streamListRes.data;
+        return streamListSchema.parse(streamListRes.data);
     }
     async getStream(streamID: string): Promise<TStreamAttributes> {
         const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);
-        return stream.data;
+        return streamAttributesSchema.parse(stream.data);
     }
     async getStreamParameter(streamID: string, paramName: string): Promise<string> {
         const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);

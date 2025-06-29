@@ -1,106 +1,124 @@
 import { HttpOptions } from '../internal/common';
+import { z } from 'zod';
 
 export type CameraVapixOptions = HttpOptions;
 
-export type TApplicationList = {
-    reply: {
-        $: { result: string };
-        application: {
-            $: TApplication;
-        }[];
-    };
-};
+export const applicationSchema = z.object({
+    Name: z.string(),
+    NiceName: z.string(),
+    Vendor: z.string(),
+    Version: z.string(),
+    ApplicationID: z.string().optional(),
+    License: z.string(),
+    Status: z.string(),
+    ConfigurationPage: z.string().optional(),
+    VendorHomePage: z.string().optional(),
+    LicenseName: z.string().optional(),
+});
+export type TApplication = z.infer<typeof applicationSchema>;
 
-export type TApplication = {
-    Name: string;
-    NiceName: string;
-    Vendor: string;
-    Version: string;
-    ApplicationID?: string;
-    License: string;
-    Status: string;
-    ConfigurationPage?: string;
-    VendorHomePage?: string;
-    LicenseName?: string;
-};
+export const applicationListSchema = z.object({
+    reply: z.object({
+        $: z.object({ result: z.string() }),
+        application: z.array(
+            z.object({
+                $: applicationSchema,
+            })
+        ),
+    }),
+});
+export type TApplicationList = z.infer<typeof applicationListSchema>;
 
-export type TGuardTour = {
-    id: string;
-    camNbr: unknown;
-    name: string;
-    randomEnabled: unknown;
-    running: string;
-    timeBetweenSequences: unknown;
-    tour: {
-        moveSpeed: unknown;
-        position: unknown;
-        presetNbr: unknown;
-        waitTime: unknown;
-        waitTimeViewType: unknown;
-    }[];
-};
+export const guardTourSchema = z.object({
+    id: z.string(),
+    camNbr: z.unknown(),
+    name: z.string(),
+    randomEnabled: z.unknown(),
+    running: z.string(),
+    timeBetweenSequences: z.unknown(),
+    tour: z.array(
+        z.object({
+            moveSpeed: z.unknown(),
+            position: z.unknown(),
+            presetNbr: z.unknown(),
+            waitTime: z.unknown(),
+            waitTimeViewType: z.unknown(),
+        })
+    ),
+});
+export type TGuardTour = z.infer<typeof guardTourSchema>;
 
-export type TAudioSampleRates = {
-    sampleRate: number;
-    bitRates: number[];
-};
+export const audioSampleRatesSchema = z.object({
+    sampleRate: z.number(),
+    bitRates: z.array(z.number()),
+});
+export type TAudioSampleRates = z.infer<typeof audioSampleRatesSchema>;
 
-export type TSDCardInfo = {
-    available: boolean;
-    totalSize: number;
-    freeSize: number;
-};
+export const SDCardInfoSchema = z.object({
+    available: z.boolean(),
+    totalSize: z.number(),
+    freeSize: z.number(),
+});
+export type TSDCardInfo = z.infer<typeof SDCardInfoSchema>;
 
-export type TPtzOverview = Record<number, { id: number; name: string }[]>;
+export const PtzOverviewSchema = z.record(z.number(), z.array(z.object({ id: z.number(), name: z.string() })));
+export type TPtzOverview = z.infer<typeof PtzOverviewSchema>;
 
-export type TCameraPTZItem = {
-    name: string;
-    id: number;
-    data: TCameraPTZItemData;
-};
+export const cameraPTZItemDataSchema = z.object({
+    pan: z.number().optional(),
+    tilt: z.number().optional(),
+    zoom: z.number().optional(),
+});
+export const cameraPTZItemSchema = z.object({
+    name: z.string(),
+    id: z.number(),
+    data: cameraPTZItemDataSchema,
+});
+export type TCameraPTZItem = z.infer<typeof cameraPTZItemSchema>;
+export type TCameraPTZItemData = z.infer<typeof cameraPTZItemDataSchema>;
 
-export type TCameraPTZItemData = {
-    pan?: number;
-    tilt?: number;
-    zoom?: number;
-};
+export const audioDeviceSignalingChannelTypeSchema = z.object({
+    id: z.string(),
+    gain: z.number(),
+    mute: z.boolean(),
+});
+export type TAudioDeviceSignalingChannelType = z.infer<typeof audioDeviceSignalingChannelTypeSchema>;
 
-export type TAudioDeviceSignalingChannelType = {
-    id: string;
-    gain: number;
-    mute: boolean;
-};
+export const audioDeviceSignalingTypeSchema = z.object({
+    id: z.string(),
+    powerType: z.string(),
+    channels: z.array(audioDeviceSignalingChannelTypeSchema),
+});
+export type TAudioDeviceSignalingType = z.infer<typeof audioDeviceSignalingTypeSchema>;
 
-export type TAudioDeviceSignalingType = {
-    id: string;
-    powerType: string;
-    channels: TAudioDeviceSignalingChannelType[];
-};
+export const audioDeviceConnectionTypeSchema = z.object({
+    id: z.string(),
+    signalingTypeSelected: z.string(),
+    signalingTypes: z.array(audioDeviceSignalingTypeSchema),
+});
+export type TAudioDeviceConnectionType = z.infer<typeof audioDeviceConnectionTypeSchema>;
 
-export type TAudioDeviceConnectionType = {
-    id: string;
-    signalingTypeSelected: string;
-    signalingTypes: TAudioDeviceSignalingType[];
-};
+export const audioDeviceInputOutputSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    enabled: z.boolean(),
+    connectionTypes: z.array(audioDeviceConnectionTypeSchema),
+    connectionTypeSelected: z.string(),
+});
+export type TAudioDeviceInputOutput = z.infer<typeof audioDeviceInputOutputSchema>;
 
-export type TAudioDeviceInputOutput = {
-    id: string;
-    name: string;
-    enabled: boolean;
-    connectionTypes: TAudioDeviceConnectionType[];
-    connectionTypeSelected: string;
-};
+export const audioDeviceSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    inputs: z.array(audioDeviceInputOutputSchema),
+    outputs: z.array(audioDeviceInputOutputSchema),
+});
+export type TAudioDevice = z.infer<typeof audioDeviceSchema>;
 
-export type TAudioDevice = {
-    id: string;
-    name: string;
-    inputs: TAudioDeviceInputOutput[];
-    outputs: TAudioDeviceInputOutput[];
-};
-
-export type TAudioDeviceFromRequest = {
-    id: string;
-    name: string;
-    inputs?: TAudioDeviceInputOutput[];
-    outputs?: TAudioDeviceInputOutput[];
-};
+export const audioDeviceFromRequestSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    inputs: z.array(audioDeviceInputOutputSchema).optional(),
+    outputs: z.array(audioDeviceInputOutputSchema).optional(),
+});
+export type TAudioDeviceFromRequest = z.infer<typeof audioDeviceFromRequestSchema>;
