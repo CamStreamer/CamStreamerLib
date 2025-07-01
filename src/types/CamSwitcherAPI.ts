@@ -1,13 +1,7 @@
 import { HttpOptions } from '../internal/common';
 import { z } from 'zod';
 import { toCamelCase, toCamelCaseDeep } from '../internal/transformers';
-import {
-    storageTypeSchema,
-    keyboardShortcutsSchema,
-    networkCameraListSchema,
-    h264ProfileSchema,
-    audioChannelCountSchema,
-} from './common';
+import { storageTypeSchema, keyboardShortcutsSchema, h264ProfileSchema, audioChannelCountSchema } from './common';
 
 export type CamSwitcherAPIOptions = HttpOptions;
 
@@ -21,10 +15,6 @@ const playlistPlayTypeSchema = z.union([
     z.literal('PLAY_ONE_RANDOM'),
 ]);
 export type TPlaylistPlayType = z.infer<typeof playlistPlayTypeSchema>;
-
-export const availableCameraListSchema = z.object({
-    camera_list: networkCameraListSchema,
-});
 
 export const storageInfoListSchema = z.array(
     z.object({

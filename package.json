@@ -3,6 +3,7 @@
     "version": "3.5.1",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
+    "type": "module",
     "dependencies": {
         "adm-zip": "^0.5.9",
         "eventemitter2": "^5.0.1",

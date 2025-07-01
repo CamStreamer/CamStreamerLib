@@ -1,12 +1,9 @@
 import { z } from 'zod';
-import { DefaultAgent } from './DefaultAgent';
 import { AddNewClipError } from './errors/errors';
-import { IClient, isClient, responseStringify } from './internal/common';
+import { IClient, responseStringify } from './internal/common';
 import {
-    CamSwitcherAPIOptions,
     TAudioPushInfo,
     TOutputInfo,
-    availableCameraListSchema,
     storageInfoListSchema,
     outputInfoSchema,
     audioPushInfoSchema,
@@ -27,20 +24,17 @@ import {
     TClipSaveList,
     TPlaylistSaveList,
 } from './types/CamSwitcherAPI';
-import { TAudioChannel, TNetworkCamera, TStorageType } from './types/common';
+import { networkCameraListSchema, TAudioChannel, TNetworkCamera, TStorageType } from './types/common';
 
 export class CamSwitcherAPI {
     private client: IClient;
 
-    constructor(options: CamSwitcherAPIOptions | IClient = {}) {
-        if (isClient(options)) {
-            this.client = options;
-        } else {
-            this.client = new DefaultAgent(options);
-        }
+    constructor(options: IClient) {
+        this.client = options;
     }
 
     getProxyUrl = () => '/local/camswitcher/api/proxy.cgi';
+    getWsEventsUrl = () => '/local/camswitcher/events';
 
     async generateSilence(sampleRate: number, channels: TAudioChannel) {
         await this.client.get('/local/camswitcher/api/generate_silence.cgi', {
@@ -55,8 +49,8 @@ export class CamSwitcherAPI {
     }
 
     async getIpListFromNetworkCheck(): Promise<TNetworkCamera[]> {
-        const data = (await this.get('/local/camswitcher/api/network_camera_list.cgi')).data;
-        return availableCameraListSchema.parse(data).camera_list;
+        const data = await this.get('/local/camswitcher/api/network_camera_list.cgi');
+        return networkCameraListSchema.parse(data);
     }
 
     async getMaxFps(source: number): Promise<number> {
@@ -67,7 +61,7 @@ export class CamSwitcherAPI {
     }
 
     async getStorageInfo(): Promise<TStorageInfo[]> {
-        const data = (await this.get('/local/camswitcher/api/get_storage.cgi')).data;
+        const data = await this.get('/local/camswitcher/api/get_storage.cgi');
         return storageInfoListSchema.parse(data);
     }
 
@@ -101,7 +95,7 @@ export class CamSwitcherAPI {
 
     async getClipSaveList(): Promise<TClipSaveLoadList> {
         const data = await this.get('/local/camswitcher/api/clips.cgi', { action: 'get' });
-        return clipSaveLoadSchema.parse(data.clip_list);
+        return clipSaveLoadSchema.parse(data);
     }
 
     async getPlaylistSaveList(): Promise<TPlaylistSaveLoadList> {
@@ -182,11 +176,11 @@ export class CamSwitcherAPI {
     }
 
     getClipPreview(id: string, storage: TStorageType): Promise<string> {
-        return Promise.resolve(this.get(`/local/camswitcher/api/clip_preview.cgi`, { clip_name: id, storage }));
+        return Promise.resolve(`/local/camswitcher/api/clip_preview.cgi?clip_name${id}&storage=${storage}`);
     }
 
     async getClipList(): Promise<TClipList> {
-        const data = await this.get('/clip_list.cgi');
+        const data = await this.get('/local/camswitcher/api/clip_list.cgi');
         return clipListSchema.parse(data).clip_list;
     }
 
