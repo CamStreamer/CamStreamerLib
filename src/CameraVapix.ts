@@ -3,7 +3,7 @@ import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 
 import { IClient, isClient, isNullish, responseStringify } from './internal/common';
-import { DefaultAgent } from './DefaultAgent';
+import { DefaultAgent } from './node/DefaultAgent';
 
 import {
     CameraVapixOptions,

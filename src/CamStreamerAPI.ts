@@ -1,5 +1,6 @@
 import { IClient, isClient, responseStringify } from './internal/common';
-import { DefaultAgent } from './DefaultAgent';
+import { DefaultAgent } from './node/DefaultAgent';
+
 import {
     CamStreamerAPIOptions,
     TStreamAttributes,

@@ -1,5 +1,5 @@
-import { IClient, HttpOptions } from './internal/common';
-import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './internal/HttpRequestSender';
+import { IClient, HttpOptions } from '../internal/common';
+import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
 
 export class DefaultAgent implements IClient {
     private tls: boolean;

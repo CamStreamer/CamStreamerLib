@@ -1,4 +1,4 @@
-import { DefaultAgent } from '../DefaultAgent';
+import { DefaultAgent } from '../node/DefaultAgent';
 import { isClient, IClient, HttpOptions, pad } from '../internal/common';
 
 export type AcsEventsOptions = HttpOptions;

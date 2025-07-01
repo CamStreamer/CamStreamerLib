@@ -27,11 +27,7 @@ import {
 import { networkCameraListSchema, TAudioChannel, TNetworkCamera, TStorageType } from './types/common';
 
 export class CamSwitcherAPI {
-    private client: IClient;
-
-    constructor(options: IClient) {
-        this.client = options;
-    }
+    constructor(public client: IClient) {}
 
     getProxyUrl = () => '/local/camswitcher/api/proxy.cgi';
     getWsEventsUrl = () => '/local/camswitcher/events';
