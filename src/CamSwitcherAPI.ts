@@ -171,8 +171,8 @@ export class CamSwitcherAPI {
         return this.get(`/local/camswitcher/api/clip_remove.cgi`, { clip_name: id, storage });
     }
 
-    getClipPreview(id: string, storage: TStorageType): Promise<string> {
-        return Promise.resolve(`/local/camswitcher/api/clip_preview.cgi?clip_name${id}&storage=${storage}`);
+    getClipPreview(id: string, storage: TStorageType) {
+        return `/local/camswitcher/api/clip_preview.cgi?clip_name=${id}&storage=${storage}`;
     }
 
     async getClipList(): Promise<TClipList> {
