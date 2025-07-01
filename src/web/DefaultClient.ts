@@ -19,4 +19,6 @@ export class DefaultClient implements IClient {
             headers: headers,
         });
     }
+
+    url = '';
 }

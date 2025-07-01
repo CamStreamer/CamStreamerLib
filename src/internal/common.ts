@@ -26,6 +26,7 @@ export type TPostFunction = (
 export interface IClient {
     get: TGetFunction;
     post: TPostFunction;
+    url: string;
 }
 
 export function isClient(arg: Options | IClient = {}): arg is IClient {

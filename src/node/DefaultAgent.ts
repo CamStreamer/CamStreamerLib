@@ -26,6 +26,10 @@ export class DefaultAgent implements IClient {
         this.httpRequestSender = new HttpRequestSender(agentOptions);
     }
 
+    get url() {
+        return `${this.tls ? 'https' : 'http'}://${this.user}:${this.pass}@${this.ip}:${this.port}`;
+    }
+
     async get(path: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
         const options = this.getBaseConnectionParams('GET', path, parameters);
         options.headers = headers;
