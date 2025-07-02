@@ -61,7 +61,7 @@ const streamSaveSchema = z.object({
     query: z.string(),
     channel: channelTypeSchema,
     keyboard: keyboardShortcutsSchema,
-    sortIndexOverview: z.number(),
+    sortIndexOverview: z.number().optional(),
     viewNumber: z.number(),
 });
 export type TStreamSave = z.infer<typeof streamSaveSchema>;
@@ -93,8 +93,8 @@ const playlistSaveSchema = z.object({
     isFavourite: z.boolean(),
     keyboard: keyboardShortcutsSchema,
     niceName: z.string(),
-    sortIndexFavourite: z.number(),
-    sortIndexOverview: z.number(),
+    sortIndexFavourite: z.number().optional(),
+    sortIndexOverview: z.number().optional(),
     play_type: playlistPlayTypeSchema,
     default: z.boolean().optional(),
     stream_list: z.array(

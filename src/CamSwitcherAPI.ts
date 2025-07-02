@@ -69,7 +69,7 @@ export class CamSwitcherAPI {
     //                 Websockets
     //   ----------------------------------------
 
-    async wsAutoratization(): Promise<string> {
+    async wsAuthorization(): Promise<string> {
         const data = await this.get(`${baseUrl}/ws_authorization.cgi`);
         return z.string().parse(data);
     }
