@@ -26,6 +26,7 @@ export type TPostFunction = (
 export interface IClient {
     get: TGetFunction;
     post: TPostFunction;
+    url: string;
 }
 
 export function isClient(arg: Options | IClient = {}): arg is IClient {
@@ -33,7 +34,7 @@ export function isClient(arg: Options | IClient = {}): arg is IClient {
 }
 
 export function isBrowserEnvironment() {
-    return typeof process === 'undefined' || process.versions === null || process.versions.node === null;
+    return typeof process === 'undefined' || !process.versions.node;
 }
 
 export async function responseStringify(res: Response): Promise<string> {
@@ -52,4 +53,8 @@ export function pad(num: number, size: number) {
             .join('0')
             .slice(-size)
     );
+}
+
+export function isNullish<T>(value: T | undefined | null): value is undefined | null {
+    return value === null || value === undefined;
 }

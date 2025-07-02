@@ -1,8 +1,8 @@
 import * as EventEmitter from 'events';
 import * as WebSocket from 'ws';
 
-import { Digest } from './Digest';
-import { WsOptions } from './common';
+import { Digest } from '../internal/Digest';
+import { WsOptions } from '../internal/common';
 
 export type WsClientOptions = WsOptions & {
     address: string;
@@ -39,12 +39,12 @@ export class WsClient extends EventEmitter {
     constructor(options: WsClientOptions) {
         super();
 
-        const tls = options?.tls ?? false;
-        const tlsInsecure = options?.tlsInsecure ?? false;
-        const ip = options?.ip ?? '127.0.0.1';
-        const port = options?.port ?? (tls ? 443 : 80);
-        this.user = options?.user ?? '';
-        this.pass = options?.pass ?? '';
+        const tls = options.tls ?? false;
+        const tlsInsecure = options.tlsInsecure ?? false;
+        const ip = options.ip ?? '127.0.0.1';
+        const port = options.port ?? (tls ? 443 : 80);
+        this.user = options.user ?? '';
+        this.pass = options.pass ?? '';
 
         const protocol = tls ? 'wss' : 'ws';
         this.address = `${protocol}://${ip}:${port}${options.address}`;
@@ -96,7 +96,7 @@ export class WsClient extends EventEmitter {
                 );
             }
 
-            this.ws.on('unexpected-response', async (req, res) => {
+            this.ws.on('unexpected-response', (req, res) => {
                 if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined) {
                     if (this.pingTimer) {
                         clearInterval(this.pingTimer);
@@ -106,7 +106,7 @@ export class WsClient extends EventEmitter {
                     this.open(res.headers['www-authenticate']);
                 } else {
                     this.emit('error', new Error('Status code: ' + res.statusCode));
-                    await this.closeWsConnection();
+                    this.closeWsConnection();
                 }
             });
 

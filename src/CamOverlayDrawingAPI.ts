@@ -1,7 +1,7 @@
 import * as EventEmitter from 'events';
 
 import { WsOptions } from './internal/common';
-import { WsClient, WsClientOptions } from './internal/WsClient';
+import { WsClient, WsClientOptions } from './node/WsClient';
 
 export type CamOverlayDrawingOptions = WsOptions & {
     camera?: number | number[];
@@ -216,7 +216,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             errorResponse = dataJSON as TErrorResponse;
         }
 
-        if (dataJSON.call_id !== undefined && this.sendMessages[dataJSON.call_id] !== undefined) {
+        if (dataJSON.call_id !== undefined) {
             if (errorResponse !== undefined) {
                 this.sendMessages[dataJSON.call_id].reject(new Error(errorResponse.error));
             } else {

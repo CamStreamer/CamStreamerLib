@@ -1,32 +1,13 @@
-import { IClient, isClient, HttpOptions, responseStringify } from './internal/common';
-import { DefaultAgent } from './DefaultAgent';
+import { IClient, isClient, responseStringify } from './internal/common';
+import { DefaultAgent } from './node/DefaultAgent';
 
-export type CamStreamerAPIOptions = HttpOptions;
-
-export type TStreamAttributes = {
-    enabled: string;
-    active: string;
-    audioSource: string;
-    avSyncMsec: string;
-    internalVapixParameters: string;
-    userVapixParameters: string;
-    outputParameters: string;
-    outputType: string;
-    mediaServerUrl: string;
-    inputType: string;
-    inputUrl: string;
-    forceStereo: string;
-    streamDelay: string;
-    statusLed: string;
-    statusPort: string;
-    callApi: string;
-    trigger: string;
-    schedule: string;
-    prepareAhead: string;
-    startTime: string;
-    stopTime: string;
-};
-export type TStreamList = Record<string, TStreamAttributes>;
+import {
+    CamStreamerAPIOptions,
+    TStreamAttributes,
+    TStreamList,
+    streamAttributesSchema,
+    streamListSchema,
+} from './types/CamStreamerAPI';
 
 export class CamStreamerAPI {
     private client: IClient;
@@ -41,18 +22,18 @@ export class CamStreamerAPI {
 
     async getStreamList(): Promise<TStreamList> {
         const streamListRes = await this.get('/local/camstreamer/stream/list.cgi');
-        return streamListRes.data;
+        return streamListSchema.parse(streamListRes.data);
     }
     async getStream(streamID: string): Promise<TStreamAttributes> {
         const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);
-        return stream.data;
+        return streamAttributesSchema.parse(stream.data);
     }
     async getStreamParameter(streamID: string, paramName: string): Promise<string> {
         const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);
         return stream.data[paramName];
     }
 
-    async setStream(streamID: string, params: TStreamAttributes): Promise<void> {
+    async setStream(streamID: string, params: Partial<TStreamAttributes>): Promise<void> {
         const { streamDelay, startTime, stopTime, ...rest } = params;
         await this.get('/local/camstreamer/stream/set.cgi', {
             stream_id: streamID,
@@ -72,6 +53,14 @@ export class CamStreamerAPI {
     }
     async deleteStream(streamID: string): Promise<void> {
         await this.get('/local/camstreamer/stream/remove.cgi', { stream_id: streamID });
+    }
+
+    wsAutoratization(): Promise<string> {
+        return this.get('/local/camstreamer/ws_authorization.cgi');
+    }
+
+    async getUtcTime(): Promise<number> {
+        return await this.get('/local/camstreamer/get_utc_time.cgi');
     }
 
     private async get(path: string, parameters?: Record<string, string>): Promise<any> {

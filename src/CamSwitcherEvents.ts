@@ -1,125 +1,89 @@
-import * as EventEmitter from 'events';
+import {
+    cswEventsSchema,
+    TCamSwitcherEvent,
+    TCamSwitcherEventOfType,
+    TCamSwitcherEventType,
+} from './types/CamswitcherEvents';
 
-import { HttpOptions } from './internal/common';
-import { WsClient, WsClientOptions } from './internal/WsClient';
-import { DefaultAgent } from './DefaultAgent';
-
-export type CamSwitcherEventsOptions = HttpOptions;
-export type TEvent = {
-    type: string;
-    date: Record<string, string | number | boolean> & { type: string };
-};
-
-export interface CamSwitcherEvents {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'event', listener: (data: TEvent) => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'event', data: TEvent): boolean;
-    emit(event: 'error', err: Error): boolean;
+export interface IWebsocket<Event extends { readonly data: string }> {
+    destroy: () => void;
+    onmessage: null | ((event: Event) => void);
+    send: (data: string) => void;
 }
-export class CamSwitcherEvents extends EventEmitter {
-    private tls: boolean;
-    private tlsInsecure: boolean;
-    private ip: string;
-    private port: number;
-    private user: string;
-    private pass: string;
 
-    private client: DefaultAgent;
-    private ws!: WsClient;
+// Note: we cant use EventTarget (only in browser) or EventEmitter (only in nodejs)
+type TListenerFunction<T extends TCamSwitcherEventType> = (data: TCamSwitcherEventOfType<T>, isInit: boolean) => void;
+type TListener<T extends TCamSwitcherEventType> = { [id: string]: TListenerFunction<T> };
+type TListenerList = Partial<{
+    [K in TCamSwitcherEventType]: TListener<K>;
+}>;
 
-    constructor(options: CamSwitcherEventsOptions = {}) {
-        super();
+export class CamSwitcherEvents<Event extends { data: string }> {
+    isDestroyed = false;
+    private ws: IWebsocket<Event> | null = null;
+    private listeners: TListenerList = {};
 
-        this.tls = options.tls ?? false;
-        this.tlsInsecure = options.tlsInsecure ?? false;
-        this.ip = options.ip ?? '127.0.0.1';
-        this.port = options.port ?? (this.tls ? 443 : 80);
-        this.user = options.user ?? 'root';
-        this.pass = options.pass ?? '';
-
-        this.client = new DefaultAgent(options);
-        this.createWsClient();
-
-        EventEmitter.call(this);
-    }
-
-    connect() {
-        this.ws.open();
-    }
-
-    disconnect() {
-        this.ws.close();
+    setWebsocket(ws: IWebsocket<Event>) {
+        if (this.ws) {
+            this.ws.destroy();
+        }
+        this.ws = ws;
+        this.ws.onmessage = (e) => this.onMessage(e);
     }
 
     resendInitData() {
         const request = {
             command: 'sendInitData',
         };
-        this.ws.send(JSON.stringify(request));
+        this.ws?.send(JSON.stringify(request));
     }
 
-    private createWsClient() {
-        const options: WsClientOptions = {
-            ip: this.ip,
-            port: this.port,
-            user: this.user,
-            pass: this.pass,
-            tls: this.tls,
-            tlsInsecure: this.tlsInsecure,
-            address: '/local/camswitcher/events',
-            protocol: 'events',
-        };
-        this.ws = new WsClient(options);
-
-        this.ws.on('open', async () => {
-            try {
-                const token = await this.get('/local/camswitcher/ws_authorization.cgi');
-                this.ws.send(JSON.stringify({ authorization: token }));
-            } catch (err) {
-                this.emit('error', err as Error);
-            }
-        });
-        this.ws.on('message', (data: Buffer) => {
-            try {
-                const parsedData = JSON.parse(data.toString());
-
-                if (parsedData.type === 'authorization') {
-                    if (parsedData.state === 'OK') {
-                        this.emit('open');
-                    } else {
-                        this.emit('error', new Error(data.toString()));
-                    }
-                } else {
-                    this.emit('event', parsedData);
-                }
-            } catch (err) {
-                this.emit('error', err as Error);
-            }
-        });
-        this.ws.on('error', (err: Error) => {
-            this.emit('error', err);
-        });
-        this.ws.on('close', () => {
-            this.emit('close');
-        });
-    }
-
-    private async get(path: string) {
-        const res = await this.client.get(path);
-        if (res.ok) {
-            const responseText = JSON.parse(await res.text());
-            if (responseText.status === 200) {
-                return responseText.data as object;
-            } else {
-                throw new Error(`Request (${path}) error, response: ${JSON.stringify(responseText)}`);
-            }
-        } else {
-            throw new Error(JSON.stringify(res));
+    addListener<T extends TCamSwitcherEventType>(type: T, listener: TListenerFunction<T>, id: string) {
+        const typeList = this.listeners[type];
+        if (typeList === undefined) {
+            this.listeners[type] = { [id]: listener } as any;
+            return;
         }
+        typeList[id] = listener;
+    }
+
+    removeListener<T extends TCamSwitcherEventType>(type: T, id: string): void {
+        const typeList = this.listeners[type];
+        if (typeList) {
+            delete typeList[id];
+        }
+    }
+
+    private onMessage(evt: { data: string }) {
+        if (this.isDestroyed) {
+            return;
+        }
+
+        try {
+            const eventData = JSON.parse(evt.data);
+            const data = cswEventsSchema.parse(eventData);
+            if (data.type === 'init') {
+                this.processMessage(data.data, true);
+                return;
+            }
+            this.processMessage(data, false);
+        } catch (error) {
+            console.error('Error parsing event data:', evt.data, error);
+        }
+    }
+
+    private processMessage(event: TCamSwitcherEvent, isInit: boolean) {
+        const listeners = this.listeners[event.type];
+        const list = Object.values(listeners ?? {});
+        list.forEach((listener) => listener(event, isInit));
+    }
+
+    destroy() {
+        this.isDestroyed = true;
+        if (this.ws) {
+            this.ws.destroy();
+            this.ws = null;
+        }
+        this.listeners = {};
     }
 }

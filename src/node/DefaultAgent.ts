@@ -1,5 +1,5 @@
-import { IClient, HttpOptions } from './internal/common';
-import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './internal/HttpRequestSender';
+import { IClient, HttpOptions } from '../internal/common';
+import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
 
 export class DefaultAgent implements IClient {
     private tls: boolean;
@@ -26,6 +26,10 @@ export class DefaultAgent implements IClient {
         this.httpRequestSender = new HttpRequestSender(agentOptions);
     }
 
+    get url() {
+        return `${this.tls ? 'https' : 'http'}://${this.user}:${this.pass}@${this.ip}:${this.port}`;
+    }
+
     async get(path: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
         const options = this.getBaseConnectionParams('GET', path, parameters);
         options.headers = headers;
@@ -43,23 +47,25 @@ export class DefaultAgent implements IClient {
     }
 
     private getBaseConnectionParams(method: string, path: string, params: Record<string, string>): HttpRequestOptions {
-        if (path.indexOf('?') === -1) {
-            path += '?';
+        let pathName = path;
+
+        if (pathName.indexOf('?') === -1) {
+            pathName += '?';
         } else {
-            path += '&';
+            pathName += '&';
         }
 
         for (const key in params) {
-            path += `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}&`;
+            pathName += `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}&`;
         }
-        path = path.slice(0, path.length - 1);
+        pathName = pathName.slice(0, pathName.length - 1);
 
         return {
             method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
-            path: path,
+            path: pathName,
             user: this.user,
             pass: this.pass,
         };

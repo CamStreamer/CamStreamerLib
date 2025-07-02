@@ -1,6 +1,6 @@
-import { Digest } from './Digest';
+import { Digest } from '../internal/Digest';
 import { Agent, fetch as undiciFetch, Request as UndiciRequest } from 'undici';
-import { isBrowserEnvironment } from './common';
+import { isBrowserEnvironment } from '../internal/common';
 
 export type HttpRequestOptions = {
     method?: string;

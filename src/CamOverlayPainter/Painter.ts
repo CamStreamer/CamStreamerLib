@@ -165,11 +165,11 @@ export class Painter extends Frame {
 
         // Invalidate all layers above the specified layer
         for (let i = layerIdx; i < this.layers.length; i++) {
-            const layer = this.layers[i];
-            if (layer.surfaceCache !== undefined && layer.cairoCache !== undefined) {
-                await this.cleanupSurface(layer.surfaceCache, layer.cairoCache);
-                layer.surfaceCache = undefined;
-                layer.cairoCache = undefined;
+            const currentLayer = this.layers[i];
+            if (currentLayer.surfaceCache !== undefined && currentLayer.cairoCache !== undefined) {
+                await this.cleanupSurface(currentLayer.surfaceCache, currentLayer.cairoCache);
+                currentLayer.surfaceCache = undefined;
+                currentLayer.cairoCache = undefined;
             }
         }
     }
