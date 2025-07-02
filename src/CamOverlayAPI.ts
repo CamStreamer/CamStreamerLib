@@ -62,7 +62,7 @@ export class CamOverlayAPI {
         return fileListSchema.parse(files.list);
     }
 
-    async uploadFile(fileType: TFileType, file: Buffer, fileName: string): Promise<void> {
+    async uploadFile(fileType: TFileType, file: Blob, fileName: string): Promise<void> {
         const formData = new FormData();
         formData.append('target', 'SD0');
         formData.append('uploadedFile[]', file, fileName);

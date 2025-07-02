@@ -1,6 +1,11 @@
 import { Digest } from '../internal/Digest';
-import { Agent, fetch as undiciFetch, Request as UndiciRequest } from 'undici';
-import { isBrowserEnvironment } from '../internal/common';
+import {
+    Agent,
+    fetch as undiciFetch,
+    Request as UndiciRequest,
+    FormData as UndiciFormData,
+    Response as UndiciResponse,
+} from 'undici';
 
 export type HttpRequestOptions = {
     method?: string;
@@ -33,26 +38,20 @@ export class HttpRequestSender {
     private authData?: AuthData;
 
     constructor(agentOptions?: AgentOptions) {
-        if (isBrowserEnvironment()) {
-            if (agentOptions !== undefined) {
-                throw new Error('Agent options can be specified only in Node.js environment.');
-            }
-        } else {
-            this.agent = new Agent({
-                connect: { rejectUnauthorized: agentOptions?.rejectUnaurhorized, keepAlive: agentOptions?.keepAlive },
-            });
-        }
+        this.agent = new Agent({
+            connect: { rejectUnauthorized: agentOptions?.rejectUnaurhorized, keepAlive: agentOptions?.keepAlive },
+        });
     }
 
-    sendRequest(options: HttpRequestOptions, postData?: Buffer | string | FormData) {
+    sendRequest(options: HttpRequestOptions, postData?: Buffer | string | UndiciFormData) {
         return this.sendRequestWithAuth(options, postData);
     }
 
     private async sendRequestWithAuth(
         options: HttpRequestOptions,
-        postData?: Buffer | string | FormData,
+        postData?: Buffer | string | UndiciFormData,
         wwwAuthenticateHeader?: string
-    ): Promise<Response> {
+    ): Promise<UndiciResponse> {
         options.timeout ??= 10000;
 
         const url = HttpRequestSender.getURL(options);
@@ -66,14 +65,8 @@ export class HttpRequestSender {
             options.headers['Authorization'] = authorization;
         }
 
-        let res: Response;
-        if (this.agent) {
-            const req = new UndiciRequest(url, { body: postData, method: options.method, headers: options.headers });
-            res = await undiciFetch(req, { signal: controller.signal, dispatcher: this.agent });
-        } else {
-            const req = new Request(url, { body: postData, method: options.method, headers: options.headers });
-            res = await fetch(req, { signal: controller.signal });
-        }
+        const req = new UndiciRequest(url, { body: postData, method: options.method, headers: options.headers });
+        const res = await undiciFetch(req, { signal: controller.signal, dispatcher: this.agent });
 
         if (!res.ok) {
             this.invalidateAuthorization();

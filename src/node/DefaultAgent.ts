@@ -1,5 +1,6 @@
 import { IClient, HttpOptions } from '../internal/common';
 import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
+import { FormData as UndiciFormData } from 'undici';
 
 export class DefaultAgent implements IClient {
     private tls: boolean;
@@ -35,15 +36,16 @@ export class DefaultAgent implements IClient {
         options.headers = headers;
         return this.httpRequestSender.sendRequest(options);
     }
+
     async post(
         path: string,
-        data: string | Buffer | FormData,
+        data: string | FormData | Buffer,
         parameters: Record<string, string> = {},
         headers?: Record<string, string>
     ) {
         const options = this.getBaseConnectionParams('POST', path, parameters);
         options.headers = headers;
-        return this.httpRequestSender.sendRequest(options, data);
+        return this.httpRequestSender.sendRequest(options, data as UndiciFormData);
     }
 
     private getBaseConnectionParams(method: string, path: string, params: Record<string, string>): HttpRequestOptions {

@@ -2,7 +2,7 @@ import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
 import { WritableStream } from 'node:stream/web';
 
-import { IClient, isClient, isNullish, responseStringify } from './internal/common';
+import { IClient, isClient, isNullish, responseStringify, TResponse } from './internal/common';
 import { DefaultAgent } from './node/DefaultAgent';
 
 import {
@@ -185,7 +185,7 @@ export class CameraVapix {
         return Number(job.progress);
     }
 
-    async downloadCameraReport(): Promise<Response> {
+    async downloadCameraReport() {
         const res = await this.vapixGet('/axis-cgi/serverreport.cgi', { mode: 'text' });
 
         if (res.ok) {
@@ -195,7 +195,7 @@ export class CameraVapix {
         }
     }
 
-    async getSystemLog(): Promise<Response> {
+    async getSystemLog() {
         const res = await this.vapixGet('/axis-cgi/admin/systemlog.cgi');
 
         if (res.ok) {
@@ -297,7 +297,7 @@ export class CameraVapix {
     }
 
     async fetchRemoteDeviceInfo<T>(payload: T) {
-        let res: Response;
+        let res: TResponse;
         try {
             const data = JSON.stringify(payload);
             res = await this.vapixPost('/axis-cgi/basicdeviceinfo.cgi', data);
@@ -337,7 +337,7 @@ export class CameraVapix {
         }
     }
 
-    async setHeaders(headers: Record<string, string>): Promise<Response> {
+    async setHeaders(headers: Record<string, string>) {
         const data = JSON.stringify({ apiVersion: '1.0', method: 'set', params: headers });
         return this.vapixPost('/axis-cgi/customhttpheader.cgi', data);
     }

@@ -10,18 +10,25 @@ type Options = {
 export type HttpOptions = Options & { keepAlive?: boolean };
 export type WsOptions = Options;
 
+export type TResponse = {
+    ok: boolean;
+    json: () => Promise<any>;
+    text: () => Promise<string>;
+    status: number;
+    body: any | null;
+};
 export type TGetFunction = (
     url: string,
     parameters?: Record<string, string>,
     headers?: Record<string, string>
-) => Promise<Response>;
+) => Promise<TResponse>;
 
 export type TPostFunction = (
     url: string,
     data: string | Buffer | FormData,
     parameters?: Record<string, string>,
     headers?: Record<string, string>
-) => Promise<Response>;
+) => Promise<TResponse>;
 
 export interface IClient {
     get: TGetFunction;
@@ -37,7 +44,7 @@ export function isBrowserEnvironment() {
     return typeof process === 'undefined' || !process.versions.node;
 }
 
-export async function responseStringify(res: Response): Promise<string> {
+export async function responseStringify(res: TResponse): Promise<string> {
     return JSON.stringify({
         status: res.status,
         body: await res.text(),

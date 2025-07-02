@@ -199,7 +199,7 @@ export class CamSwitcherAPI {
         const res = await this.client.post(path, JSON.stringify(data), parameters);
 
         if (res.ok) {
-            const parsed = (await res.json()) as any;
+            const parsed = await res.json();
             return parsed.message === 'OK';
         } else {
             throw new Error(await responseStringify(res));
