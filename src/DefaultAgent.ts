@@ -26,8 +26,13 @@ export class DefaultAgent implements IClient {
         this.httpRequestSender = new HttpRequestSender(agentOptions);
     }
 
-    async get(path: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
-        const options = this.getBaseConnectionParams('GET', path, parameters);
+    async get(
+        path: string,
+        parameters: Record<string, string> = {},
+        headers?: Record<string, string>,
+        timeout?: number
+    ) {
+        const options = this.getBaseConnectionParams('GET', path, parameters, timeout);
         options.headers = headers;
         return this.httpRequestSender.sendRequest(options);
     }
@@ -35,14 +40,20 @@ export class DefaultAgent implements IClient {
         path: string,
         data: string | Buffer | FormData,
         parameters: Record<string, string> = {},
-        headers?: Record<string, string>
+        headers?: Record<string, string>,
+        timeout?: number
     ) {
-        const options = this.getBaseConnectionParams('POST', path, parameters);
+        const options = this.getBaseConnectionParams('POST', path, parameters, timeout);
         options.headers = headers;
         return this.httpRequestSender.sendRequest(options, data);
     }
 
-    private getBaseConnectionParams(method: string, path: string, params: Record<string, string>): HttpRequestOptions {
+    private getBaseConnectionParams(
+        method: string,
+        path: string,
+        params: Record<string, string>,
+        timeout?: number
+    ): HttpRequestOptions {
         if (path.indexOf('?') === -1) {
             path += '?';
         } else {
@@ -62,6 +73,7 @@ export class DefaultAgent implements IClient {
             path: path,
             user: this.user,
             pass: this.pass,
+            timeout,
         };
     }
 }
