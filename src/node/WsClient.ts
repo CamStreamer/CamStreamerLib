@@ -22,6 +22,7 @@ export interface WsClient {
     emit(event: 'message', data: Buffer): boolean;
     emit(event: 'error', err: Error): boolean;
 }
+
 export class WsClient extends EventEmitter {
     private user: string;
     private pass: string;

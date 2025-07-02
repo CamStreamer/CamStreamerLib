@@ -1,15 +1,10 @@
+import { IWebsocket } from './internal/common';
 import {
     cswEventsSchema,
     TCamSwitcherEvent,
     TCamSwitcherEventOfType,
     TCamSwitcherEventType,
 } from './types/CamswitcherEvents';
-
-export interface IWebsocket<Event extends { readonly data: string }> {
-    destroy: () => void;
-    onmessage: null | ((event: Event) => void);
-    send: (data: string) => void;
-}
 
 // Note: we cant use EventTarget (only in browser) or EventEmitter (only in nodejs)
 type TListenerFunction<T extends TCamSwitcherEventType> = (data: TCamSwitcherEventOfType<T>, isInit: boolean) => void;

@@ -33,7 +33,12 @@ export type TPostFunction = (
 export interface IClient {
     get: TGetFunction;
     post: TPostFunction;
-    url: string;
+}
+
+export interface IWebsocket<Event extends { readonly data: string }> {
+    destroy: () => void;
+    onmessage: null | ((event: Event) => void);
+    send: (data: string) => void;
 }
 
 export function isClient(arg: Options | IClient = {}): arg is IClient {

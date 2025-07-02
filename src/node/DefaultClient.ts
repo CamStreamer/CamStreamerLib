@@ -2,7 +2,7 @@ import { IClient, HttpOptions } from '../internal/common';
 import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
 import { FormData as UndiciFormData } from 'undici';
 
-export class DefaultAgent implements IClient {
+export class DefaultClient implements IClient {
     private tls: boolean;
     private ip: string;
     private port: number;

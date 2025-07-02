@@ -1,5 +1,5 @@
 import { IClient, isClient, responseStringify } from './internal/common';
-import { DefaultAgent } from './node/DefaultAgent';
+import { DefaultClient } from './node/DefaultClient';
 
 import {
     CamOverlayOptions,
@@ -26,7 +26,7 @@ export class CamOverlayAPI {
         if (isClient(options)) {
             this.client = options;
         } else {
-            this.client = new DefaultAgent(options);
+            this.client = new DefaultClient(options);
         }
     }
 

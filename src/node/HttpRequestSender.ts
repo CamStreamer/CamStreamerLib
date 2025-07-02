@@ -55,10 +55,6 @@ export class HttpRequestSender {
         options.timeout ??= 10000;
 
         const url = HttpRequestSender.getURL(options);
-        const controller = new AbortController();
-
-        setTimeout(() => controller.abort(new Error('Request timeout')), options.timeout);
-
         const authorization = this.getAuthorization(options, wwwAuthenticateHeader);
         if (authorization !== undefined) {
             options.headers ??= {};
@@ -66,7 +62,7 @@ export class HttpRequestSender {
         }
 
         const req = new UndiciRequest(url, { body: postData, method: options.method, headers: options.headers });
-        const res = await undiciFetch(req, { signal: controller.signal, dispatcher: this.agent });
+        const res = await undiciFetch(req, { signal: AbortSignal.timeout(options.timeout), dispatcher: this.agent });
 
         if (!res.ok) {
             this.invalidateAuthorization();
