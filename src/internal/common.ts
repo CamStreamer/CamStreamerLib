@@ -17,16 +17,17 @@ export type TResponse = {
     status: number;
     body: any | null;
 };
+export type TParameters = Record<string, string | number | boolean>;
 export type TGetFunction = (
     url: string,
-    parameters?: Record<string, string>,
+    parameters?: TParameters,
     headers?: Record<string, string>
 ) => Promise<TResponse>;
 
 export type TPostFunction = (
     url: string,
     data: string | Buffer | FormData,
-    parameters?: Record<string, string>,
+    parameters?: TParameters,
     headers?: Record<string, string>
 ) => Promise<TResponse>;
 
