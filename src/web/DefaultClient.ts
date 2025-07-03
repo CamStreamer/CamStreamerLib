@@ -7,6 +7,7 @@ export class DefaultClient implements IClient {
             headers: headers,
         });
     }
+
     post(
         url: string,
         data: string | Buffer | FormData,

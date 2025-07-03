@@ -1,12 +1,9 @@
 import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
-import { WritableStream } from 'node:stream/web';
 
-import { IClient, isClient, isNullish, responseStringify, TResponse } from './internal/common';
-import { DefaultClient } from './node/DefaultClient';
+import { IClient, isNullish, responseStringify, TParameters, TResponse } from './internal/common';
 
 import {
-    CameraVapixOptions,
     TApplicationList,
     TApplication,
     TGuardTour,
@@ -26,39 +23,51 @@ import {
     SDCardActionError,
     SDCardJobError,
 } from './errors/errors';
+import { ProxyClient } from './internal/ProxyClient';
+import { TProxyParam } from './types/common';
+import { arrayToUrl, paramToUrl } from './internal/utils';
 
-export class CameraVapix {
-    private client: IClient;
+export class VapixAPI {
+    private client: ProxyClient;
 
-    constructor(options: CameraVapixOptions | IClient = {}) {
-        if (isClient(options)) {
-            this.client = options;
-        } else {
-            this.client = new DefaultClient(options);
-        }
+    constructor(client: IClient, getProxyUrl: () => string) {
+        this.client = new ProxyClient(client, getProxyUrl);
     }
 
-    vapixGet(path: string, parameters?: Record<string, string>) {
-        return this.client.get(path, parameters);
+    /**
+     * url encoded post request
+     * there is a problem on some routers with the url size limit
+     */
+    getUrlEncoded(
+        proxy: TProxyParam = null,
+        path: string,
+        parameters?: TParameters,
+        headers: Record<string, string> = {}
+    ) {
+        const data = paramToUrl(parameters);
+        const head = { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' };
+        return this.client.post(proxy, path, data, {}, head);
     }
 
-    vapixPost(path: string, data: string | Buffer | FormData, contentType?: string) {
-        let headers = {};
-        if (contentType !== undefined) {
-            headers = { 'Content-Type': contentType };
-        }
-        return this.client.post(path, data, {}, headers);
+    /**
+     * sends data as JSON
+     */
+    postJson(
+        proxy: TProxyParam = null,
+        path: string,
+        jsonData: Record<string, any>,
+        headers: Record<string, string> = {}
+    ) {
+        const data = JSON.stringify(jsonData);
+        const head = { ...headers, 'Content-Type': 'application/json' };
+        return this.client.post(proxy, path, data, {}, head);
     }
 
-    async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
-        const res = await this.vapixGet('/axis-cgi/jpg/image.cgi', { resolution, compression, camera });
-        if (res.body) {
-            void res.body.pipeTo(outputStream);
-        }
-        return outputStream;
+    async getCameraImage(camera: string, compression: string, resolution: string, proxy: TProxyParam = null) {
+        return await this.client.get(proxy, '/axis-cgi/jpg/image.cgi', { resolution, compression, camera });
     }
 
-    async getEventDeclarations() {
+    async getEventDeclarations(proxy: TProxyParam = null): Promise<string> {
         const data =
             '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
             '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' +
@@ -66,14 +75,15 @@ export class CameraVapix {
             '<GetEventInstances xmlns="http://www.axis.com/vapix/ws/event1"/>' +
             '</s:Body>' +
             '</s:Envelope>';
-        const declarations = await (await this.vapixPost('/vapix/services', data, 'application/soap+xml')).text();
-        return prettifyXml(declarations) as string;
+        const res = await this.client.post(proxy, '/vapix/services', data, { 'Content-Type': 'application/soap+xml' });
+        const declarations = await res.text();
+        return prettifyXml(declarations);
     }
 
-    async getSupportedAudioSampleRate(): Promise<TAudioSampleRates[]> {
+    async getSupportedAudioSampleRate(proxy: TProxyParam = null): Promise<TAudioSampleRates[]> {
         const url = '/axis-cgi/audio/streamingcapabilities.cgi';
         const formData = { apiVersion: '1.0', method: 'list' };
-        const res = await this.vapixPost(url, JSON.stringify(formData));
+        const res = await this.postJson(proxy, url, formData);
 
         try {
             const encoders = ((await res.json()) as any).data.encoders;
@@ -89,9 +99,9 @@ export class CameraVapix {
         }
     }
 
-    async performAutofocus(): Promise<void> {
+    async performAutofocus(proxy: TProxyParam = null): Promise<void> {
         try {
-            const data = JSON.stringify({
+            const data = {
                 apiVersion: '1',
                 method: 'performAutofocus',
                 params: {
@@ -101,22 +111,20 @@ export class CameraVapix {
                         },
                     ],
                 },
-            });
+            };
 
-            await this.vapixPost('/axis-cgi/opticscontrol.cgi', data);
+            await this.postJson(proxy, '/axis-cgi/opticscontrol.cgi', data);
         } catch (err) {
             // lets try the old api
-            const data = JSON.stringify({
+            await this.postJson(proxy, '/axis-cgi/opticssetup.cgi', {
                 autofocus: 'perform',
                 source: '1',
             });
-
-            await this.vapixPost('/axis-cgi/opticssetup.cgi', data);
         }
     }
 
-    async checkSdCard(): Promise<TSDCardInfo> {
-        const res = await this.vapixGet('/axis-cgi/disks/list.cgi', {
+    async checkSdCard(proxy: TProxyParam = null): Promise<TSDCardInfo> {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/disks/list.cgi', {
             diskid: 'SD_DISK',
         });
         const result = await parseStringPromise(await res.text(), {
@@ -134,16 +142,16 @@ export class CameraVapix {
         };
     }
 
-    async mountSdCard() {
-        return this._doSDCardMountAction('MOUNT');
+    async mountSDCard(proxy: TProxyParam = null) {
+        return this._doSDCardMountAction('MOUNT', proxy);
     }
 
-    async unmountSDCard() {
-        return this._doSDCardMountAction('UNMOUNT');
+    async unmountSDCard(proxy: TProxyParam = null) {
+        return this._doSDCardMountAction('UNMOUNT', proxy);
     }
 
-    private async _doSDCardMountAction(action: 'MOUNT' | 'UNMOUNT') {
-        const res = await this.vapixGet('/axis-cgi/disks/mount.cgi', {
+    private async _doSDCardMountAction(action: 'MOUNT' | 'UNMOUNT', proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/disks/mount.cgi', {
             action: action,
             diskid: 'SD_DISK',
         });
@@ -164,8 +172,8 @@ export class CameraVapix {
     }
 
     // This is supposed to be called in interval in client code until progress is 100
-    async fetchSDCardJobProgress(jobId: number) {
-        const res = await this.vapixGet('/disks/job.cgi', {
+    async fetchSDCardJobProgress(jobId: number, proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/disks/job.cgi', {
             jobid: String(jobId),
             diskid: 'SD_DISK',
         });
@@ -185,8 +193,8 @@ export class CameraVapix {
         return Number(job.progress);
     }
 
-    async downloadCameraReport() {
-        const res = await this.vapixGet('/axis-cgi/serverreport.cgi', { mode: 'text' });
+    async downloadCameraReport(proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/serverreport.cgi', { mode: 'text' });
 
         if (res.ok) {
             return res;
@@ -195,8 +203,8 @@ export class CameraVapix {
         }
     }
 
-    async getSystemLog() {
-        const res = await this.vapixGet('/axis-cgi/admin/systemlog.cgi');
+    async getSystemLog(proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/admin/systemlog.cgi');
 
         if (res.ok) {
             return res;
@@ -205,10 +213,15 @@ export class CameraVapix {
         }
     }
 
-    async getMaxFps(channel: number): Promise<number> {
-        const data = JSON.stringify({ apiVersion: '1.0', method: 'getCaptureModes' });
+    async getMaxFps(channel: number, proxy: TProxyParam = null): Promise<number> {
+        const data = { apiVersion: '1.0', method: 'getCaptureModes' };
+        const res = await this.postJson(proxy, '/axis-cgi/capturemode.cgi', data);
 
-        type TCaptureModeResponse = {
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+
+        const response = (await res.json()) as Partial<{
             data: {
                 channel: number;
                 captureMode: {
@@ -216,14 +229,7 @@ export class CameraVapix {
                     maxFPS: string;
                 }[];
             }[];
-        };
-        const res = await this.vapixPost('/axis-cgi/capturemode.cgi', data);
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
-
-        const response = (await res.json()) as Partial<TCaptureModeResponse>;
+        }>;
 
         const channels = response.data;
         if (channels === undefined) {
@@ -249,9 +255,9 @@ export class CameraVapix {
         return maxFps;
     }
 
-    async getTimezone(): Promise<string> {
-        const data = JSON.stringify({ apiVersion: '1.0', method: 'getDateTimeInfo' });
-        const res = await this.vapixPost('/axis-cgi/time.cgi', data);
+    async getTimezone(proxy: TProxyParam = null): Promise<string> {
+        const data = { apiVersion: '1.0', method: 'getDateTimeInfo' };
+        const res = await this.postJson(proxy, '/axis-cgi/time.cgi', data);
 
         if (res.ok) {
             return ((await res.json()) as any)?.timeZone ?? 'Europe/Prague';
@@ -260,7 +266,7 @@ export class CameraVapix {
         }
     }
 
-    async getDateTimeInfo(): Promise<
+    async getDateTimeInfo(proxy: TProxyParam = null): Promise<
         Partial<{
             dateTime: string;
             dstEnabled: boolean;
@@ -269,8 +275,8 @@ export class CameraVapix {
             timeZone: string;
         }>
     > {
-        const data = JSON.stringify({ apiVersion: '1.0', method: 'getDateTimeInfo' });
-        const res = await this.vapixPost('/axis-cgi/time.cgi', data);
+        const data = { apiVersion: '1.0', method: 'getDateTimeInfo' };
+        const res = await this.postJson(proxy, '/axis-cgi/time.cgi', data);
 
         if (res.ok) {
             return ((await res.json()) as any)?.data;
@@ -279,9 +285,9 @@ export class CameraVapix {
         }
     }
 
-    async getDevicesSettings(): Promise<TAudioDevice[]> {
+    async getDevicesSettings(proxy: TProxyParam = null): Promise<TAudioDevice[]> {
         const data = JSON.stringify({ apiVersion: '1.0', method: 'getDevicesSettings' });
-        const res = await this.vapixPost('/axis-cgi/audiodevicecontrol.cgi', data);
+        const res = await this.client.post(proxy, '/axis-cgi/audiodevicecontrol.cgi', data);
 
         if (res.ok) {
             const result: TAudioDeviceFromRequest[] = ((await res.json()) as any).devices ?? [];
@@ -296,11 +302,10 @@ export class CameraVapix {
         }
     }
 
-    async fetchRemoteDeviceInfo<T>(payload: T) {
+    async fetchRemoteDeviceInfo<T extends Record<string, any>>(payload: T, proxy: TProxyParam = null) {
         let res: TResponse;
         try {
-            const data = JSON.stringify(payload);
-            res = await this.vapixPost('/axis-cgi/basicdeviceinfo.cgi', data);
+            res = await this.postJson(proxy, '/axis-cgi/basicdeviceinfo.cgi', payload);
         } catch (err) {
             throw new FetchDeviceInfoError(err);
         }
@@ -322,10 +327,10 @@ export class CameraVapix {
         return result.data;
     }
 
-    async getHeaders(): Promise<Record<string, string>> {
+    async getHeaders(proxy: TProxyParam = null): Promise<Record<string, string>> {
         try {
-            const data = JSON.stringify({ apiVersion: '1.0', method: 'list' });
-            const res = await this.vapixPost('/axis-cgi/customhttpheader.cgi', data);
+            const data = { apiVersion: '1.0', method: 'list' };
+            const res = await this.postJson(proxy, '/axis-cgi/customhttpheader.cgi', data);
 
             if (res.ok) {
                 return ((await res.json()) as any).data ?? {};
@@ -337,51 +342,42 @@ export class CameraVapix {
         }
     }
 
-    async setHeaders(headers: Record<string, string>) {
-        const data = JSON.stringify({ apiVersion: '1.0', method: 'set', params: headers });
-        return this.vapixPost('/axis-cgi/customhttpheader.cgi', data);
-    }
-
-    private parseParameters(response: string): Record<string, string> {
-        const params: Record<string, string> = {};
-        const lines = response.split(/[\r\n]/);
-
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].length === 0 || lines[i].substring(0, 7) === '# Error') {
-                continue;
-            }
-
-            const delimiterPos = lines[i].indexOf('=');
-            if (delimiterPos !== -1) {
-                const paramName = lines[i].substring(0, delimiterPos);
-                const paramValue = lines[i].substring(delimiterPos + 1);
-                params[paramName] = paramValue;
-            }
-        }
-        return params;
+    async setHeaders(headers: Record<string, string>, proxy: TProxyParam = null) {
+        const data = { apiVersion: '1.0', method: 'set', params: headers };
+        return this.postJson(proxy, '/axis-cgi/customhttpheader.cgi', data);
     }
 
     //  -------------------------------
     //            param.cgi
     //  -------------------------------
 
-    async getParameterGroup(groupNames: string) {
-        const response = await this.vapixGet('/axis-cgi/param.cgi', { action: 'list', group: groupNames });
-        return this.parseParameters(await response.text());
+    async getParameter(paramNames: string | string[], proxy: TProxyParam = null) {
+        const response = await this.getUrlEncoded(proxy, '/axis-cgi/param.cgi', {
+            action: 'list',
+            group: arrayToUrl(paramNames),
+        });
+        return parseParameters(await response.text());
     }
 
-    setParameter(params: Record<string, string>) {
-        let postData = 'action=update&';
-        for (const key in params) {
-            postData += key + '=' + params[key] + '&';
+    async setParameter(params: Record<string, string>, proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/param.cgi', {
+            ...params,
+            action: 'update',
+        });
+        if (res.ok) {
+            const responseText = await res.text();
+            if (responseText.startsWith('# Error')) {
+                throw new Error(responseText);
+            }
+            return true;
+        } else {
+            throw new Error(await responseStringify(res));
         }
-        postData = postData.slice(0, postData.length - 1);
-        return this.vapixPost('/axis-cgi/param.cgi', postData);
     }
 
-    async getGuardTourList() {
+    async getGuardTourList(proxy: TProxyParam = null) {
         const gTourList = new Array<TGuardTour>();
-        const response = await this.getParameterGroup('GuardTour');
+        const response = await this.getParameter('GuardTour', proxy);
         for (let i = 0; i < 20; i++) {
             const gTourBaseName = 'root.GuardTour.G' + i;
             if (gTourBaseName + '.CamNbr' in response) {
@@ -415,10 +411,10 @@ export class CameraVapix {
         return gTourList;
     }
 
-    setGuardTourEnabled(guardTourID: string, enable: boolean) {
+    setGuardTourEnabled(guardTourID: string, enable: boolean, proxy: TProxyParam = null) {
         const options: Record<string, string> = {};
         options[guardTourID + '.Running'] = enable ? 'yes' : 'no';
-        return this.setParameter(options);
+        return this.setParameter(options, proxy);
     }
 
     //  -------------------------------
@@ -464,6 +460,7 @@ export class CameraVapix {
         });
         return res;
     }
+
     private parseCameraPtzResponse(response: string) {
         const json = JSON.parse(response);
         const parsed: Record<number, TCameraPTZItem[]> = {};
@@ -482,12 +479,14 @@ export class CameraVapix {
         return parsed;
     }
 
-    async getPTZPresetList(channel: number) {
-        const response = await (
-            await this.vapixGet('/axis-cgi/com/ptz.cgi', { query: 'presetposcam', camera: channel.toString() })
-        ).text();
+    async getPTZPresetList(channel: number, proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
+            query: 'presetposcam',
+            camera: channel.toString(),
+        });
+        const text = await res.text();
+        const lines = text.split(/[\r\n]/);
         const positions: string[] = [];
-        const lines = response.split(/[\r\n]/);
         for (const line of lines) {
             if (line.indexOf('presetposno') !== -1) {
                 const delimiterPos = line.indexOf('=');
@@ -500,9 +499,9 @@ export class CameraVapix {
         return positions;
     }
 
-    async listPtzVideoSourceOverview(): Promise<TPtzOverview> {
+    async listPtzVideoSourceOverview(proxy: TProxyParam = null): Promise<TPtzOverview> {
         try {
-            const response = await this.vapixGet('/axis-cgi/com/ptz.cgi', {
+            const response = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
                 query: 'presetposall',
                 format: 'json',
             });
@@ -519,18 +518,21 @@ export class CameraVapix {
         }
     }
 
-    goToPreset(channel: number, presetName: string) {
-        return this.vapixGet('/axis-cgi/com/ptz.cgi', { camera: channel.toString(), gotoserverpresetname: presetName });
+    goToPreset(channel: number, presetName: string, proxy: TProxyParam = null) {
+        return this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
+            camera: channel.toString(),
+            gotoserverpresetname: presetName,
+        });
     }
 
-    async getPtzPosition(camera: number): Promise<TCameraPTZItemData> {
+    async getPtzPosition(camera: number, proxy: TProxyParam = null): Promise<TCameraPTZItemData> {
         try {
-            const res = await this.vapixGet('/axis-cgi/com/ptz.cgi', {
+            const res = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
                 query: 'position',
                 camera: camera.toString(),
             });
 
-            const params = this.parseParameters(await res.text());
+            const params = parseParameters(await res.text());
 
             return {
                 pan: Number(params.pan),
@@ -546,21 +548,24 @@ export class CameraVapix {
     //            port.cgi
     //  -------------------------------
 
-    async getInputState(port: number) {
-        const response = await (await this.vapixGet('/axis-cgi/io/port.cgi', { checkactive: port.toString() })).text();
+    async getInputState(port: number, proxy: TProxyParam = null) {
+        const response = await (
+            await this.getUrlEncoded(proxy, '/axis-cgi/io/port.cgi', { checkactive: port.toString() })
+        ).text();
         return response.split('=')[1].indexOf('active') === 0;
     }
 
-    async setOutputState(port: number, active: boolean) {
-        return this.vapixGet('/axis-cgi/io/port.cgi', { action: active ? `${port}:/` : `${port}:\\` });
+    async setOutputState(port: number, active: boolean, proxy: TProxyParam = null) {
+        return this.getUrlEncoded(proxy, '/axis-cgi/io/port.cgi', { action: active ? `${port}:/` : `${port}:\\` });
     }
 
     //  -------------------------------
     //          application API
     //  -------------------------------
 
-    async getApplicationList(): Promise<TApplication[]> {
-        const xml = await (await this.vapixGet('/axis-cgi/applications/list.cgi')).text();
+    async getApplicationList(proxy: TProxyParam = null): Promise<TApplication[]> {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/list.cgi');
+        const xml = await res.text();
         const result = (await parseStringPromise(xml)) as TApplicationList;
 
         const apps = [];
@@ -570,8 +575,8 @@ export class CameraVapix {
         return apps;
     }
 
-    async startApplication(applicationID: string) {
-        const res = await this.vapixGet('/axis-cgi/applications/control.cgi', {
+    async startApplication(applicationID: string, proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'start',
         });
@@ -586,8 +591,8 @@ export class CameraVapix {
         }
     }
 
-    async restartApplication(applicationID: string) {
-        const res = await this.vapixGet('/axis-cgi/applications/control.cgi', {
+    async restartApplication(applicationID: string, proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'restart',
         });
@@ -600,8 +605,8 @@ export class CameraVapix {
         }
     }
 
-    async stopApplication(applicationID: string) {
-        const res = await this.vapixGet('/axis-cgi/applications/control.cgi', {
+    async stopApplication(applicationID: string, proxy: TProxyParam = null) {
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'stop',
         });
@@ -616,3 +621,22 @@ export class CameraVapix {
         }
     }
 }
+
+const parseParameters = (response: string): Record<string, string> => {
+    const params: Record<string, string> = {};
+    const lines = response.split(/[\r\n]/);
+
+    for (let i = 0; i < lines.length; i++) {
+        if (lines[i].length === 0 || lines[i].substring(0, 7) === '# Error') {
+            continue;
+        }
+
+        const delimiterPos = lines[i].indexOf('=');
+        if (delimiterPos !== -1) {
+            const paramName = lines[i].substring(0, delimiterPos);
+            const paramValue = lines[i].substring(delimiterPos + 1);
+            params[paramName] = paramValue;
+        }
+    }
+    return params;
+};

@@ -18,6 +18,7 @@ export type TResponse = {
     body: any | null;
 };
 export type TParameters = Record<string, string | number | boolean>;
+
 export type TGetFunction = (
     url: string,
     parameters?: TParameters,

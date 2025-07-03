@@ -24,3 +24,11 @@ export const keyboardShortcutSchema = z.string().nullable();
 export const keyboardShortcutsSchema = z.record(keyboardShortcutSchema);
 export type TKeyboardShortcut = z.infer<typeof keyboardShortcutSchema>;
 export type TKeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
+
+export type TProxyParam = {
+    ip: string;
+    mdnsName: string;
+    port: number;
+    user: string;
+    pass: string;
+} | null;
