@@ -1,7 +1,15 @@
 import { HttpOptions } from '../internal/common';
 import { z } from 'zod';
 import { toCamelCase, toCamelCaseDeep } from '../internal/transformers';
-import { storageTypeSchema, keyboardShortcutsSchema, h264ProfileSchema, audioChannelCountSchema } from './common';
+import {
+    storageTypeSchema,
+    keyboardShortcutsSchema,
+    h264ProfileSchema,
+    audioChannelCountSchema,
+    TH264Profile,
+    TAudioChannelCount,
+    TKeyboardShortcut,
+} from './common';
 
 export type CamSwitcherAPIOptions = HttpOptions;
 
@@ -192,3 +200,43 @@ export type TClipList = z.infer<typeof clipListSchema>['clip_list'];
 //   ----------------------------------------
 //                   Config
 //   ----------------------------------------
+
+export type TBitrateMode = 'VBR' | 'MBR' | 'ABR';
+export type TBitrateVapixParams = {
+    bitrateMode: TBitrateMode;
+    maximumBitRate: number;
+    retentionTime: number;
+    bitRateLimit: number;
+};
+
+export type TCameraOptions = {
+    resolution: string;
+    h264Profile: TH264Profile;
+    fps: number;
+    compression: number; // 0 .. 100
+    govLength: number;
+    bitrateVapixParams: string | null;
+    audioSampleRate: number;
+    audioChannelCount: TAudioChannelCount;
+    keyboard: {
+        fromSource?: TKeyboardShortcut;
+        none?: TKeyboardShortcut;
+    };
+} & TBitrateVapixParams;
+
+export type TGlobalAudioSettingsType = 'fromSource' | 'source';
+export type TGlobalAudioSettings = {
+    type: TGlobalAudioSettingsType;
+    source: string;
+    storage?: string;
+};
+
+export type TAudioMixerSource = 'microphone' | 'secondary';
+export type TSecondaryAudioSettings = {
+    type: 'CLIP' | 'STREAM' | 'NONE';
+    streamName?: string;
+    clipName?: string;
+    storage: 'FLASH' | 'SD_DISK';
+    secondaryAudioLevel: number;
+    masterAudioLevel: number;
+};

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AddNewClipError } from './errors/errors';
-import { IClient, responseStringify } from './internal/common';
+import { IClient, isNullish, responseStringify } from './internal/common';
 import {
     TAudioPushInfo,
     TOutputInfo,
@@ -23,13 +23,25 @@ import {
     TrackerSaveLoadList,
     TClipSaveList,
     TPlaylistSaveList,
+    TCameraOptions,
+    TBitrateMode,
+    TBitrateVapixParams,
+    TGlobalAudioSettings,
+    TSecondaryAudioSettings,
 } from './types/CamSwitcherAPI';
 import { networkCameraListSchema, TAudioChannel, TNetworkCamera, TStorageType } from './types/common';
+import { VapixAPI } from './VapixAPI';
+import { isFirmwareVersionAtLeast } from './internal/versionCompare';
+import { isClip } from './internal/utils';
 
 const baseUrl = '/local/camswitcher/api';
 
 export class CamSwitcherAPI {
-    constructor(public client: IClient) {}
+    private vapixAgent: VapixAPI;
+
+    constructor(public client: IClient) {
+        this.vapixAgent = new VapixAPI(client, () => '');
+    }
 
     static getProxyUrl = () => `${baseUrl}/proxy.cgi`;
     static getWsEventsUrl = () => `/local/camswitcher/events`;
@@ -181,6 +193,154 @@ export class CamSwitcherAPI {
     }
 
     //   ----------------------------------------
+    //               Configuration
+    //   ----------------------------------------
+
+    //* ******************   Set
+
+    setCamSwitchOptions(data: TCameraOptions, cameraFWVersion: string): Promise<boolean> {
+        const bitrateVapixParams = parseBitrateOptionsToBitrateVapixParams(cameraFWVersion, data.bitrateMode, data);
+        const saveData = {
+            video: {
+                resolution: data.resolution,
+                h264Profile: data.h264Profile,
+                fps: data.fps,
+                compression: data.compression,
+                govLength: data.govLength,
+                videoClipQuality: data.maximumBitRate,
+                bitrateVapixParams: bitrateVapixParams,
+            },
+            audio: {
+                sampleRate: data.audioSampleRate,
+                channelCount: data.audioChannelCount,
+            },
+            keyboard: data.keyboard,
+        };
+
+        return this.setParamFromCameraJSON(CSW_PARAM_NAMES.SETTINGS, saveData);
+    }
+
+    setGlobalAudioSettings(settings: TGlobalAudioSettings) {
+        let acceptedType = 'NONE';
+        if (settings.type === 'source' && settings.source) {
+            if (isClip(settings.source)) {
+                acceptedType = 'CLIP';
+            } else {
+                acceptedType = 'STREAM';
+            }
+        }
+        const data = {
+            type: acceptedType,
+            stream_name: settings.source,
+            clip_name: settings.source,
+            storage: settings.storage,
+        };
+
+        return this.setParamFromCameraJSON(CSW_PARAM_NAMES.MASTER_AUDIO, data);
+    }
+
+    setSecondaryAudioSettings(settings: TSecondaryAudioSettings) {
+        const data = {
+            type: settings.type,
+            stream_name: settings.streamName ?? '',
+            clip_name: settings.clipName ?? '',
+            storage: settings.storage,
+            secondary_audio_level: settings.secondaryAudioLevel,
+            master_audio_level: settings.masterAudioLevel,
+        };
+
+        return this.setParamFromCameraJSON(CSW_PARAM_NAMES.SECONDARY_AUDIO, data);
+    }
+
+    setDefaultPlaylist(id: string) {
+        const value = JSON.stringify({ default_playlist_id: id });
+        return this.vapixAgent.setParameter(
+            {
+                [CSW_PARAM_NAMES.DEFAULT_PLAYLIST]: value,
+            },
+            null
+        );
+    }
+
+    setPermanentRtspUrlToken(token: string) {
+        return this.vapixAgent.setParameter({ [CSW_PARAM_NAMES.RTSP_TOKEN]: token }, null);
+    }
+
+    //* ******************   Get
+
+    async getCamSwitchOptions(): Promise<Partial<TCameraOptions>> {
+        const saveData = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.SETTINGS);
+
+        if (isNullish(saveData.video)) {
+            // No info setted
+            return saveData;
+        }
+
+        if (!isNullish(saveData.video?.bitrateVapixParams)) {
+            const bitrateOptions = parseVapixParamsToBitrateOptions(saveData.video.bitrateVapixParams);
+            saveData.video.bitrateMode = bitrateOptions.bitrateMode;
+            saveData.video.maximumBitRate = bitrateOptions.maximumBitRate;
+            saveData.video.retentionTime = bitrateOptions.retentionTime;
+            saveData.video.bitRateLimit = bitrateOptions.bitRateLimit;
+        }
+
+        if (!isNullish(saveData.video?.bitrateLimit)) {
+            saveData.video.maximumBitRate = saveData.video.bitrateLimit;
+            saveData.video.bitrateMode = 'MBR';
+        }
+        if (!isNullish(saveData.video?.videoClipQuality)) {
+            saveData.video.maximumBitRate = saveData.video.videoClipQuality;
+        }
+
+        return {
+            ...saveData.video,
+            audioSampleRate: saveData.audio.sampleRate,
+            audioChannelCount: saveData.audio.channelCount,
+            keyboard: saveData.keyboard,
+        };
+    }
+
+    async getGlobalAudioSettings(): Promise<TGlobalAudioSettings> {
+        const settings: TGlobalAudioSettings = {
+            type: 'fromSource',
+            source: 'fromSource',
+        };
+
+        const res = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.MASTER_AUDIO);
+        if (res.type === 'STREAM') {
+            settings.type = 'source';
+            settings.source = res.stream_name;
+        } else if (res.type === 'CLIP') {
+            settings.type = 'source';
+            settings.source = res.clip_name;
+            settings.storage = res.storage;
+        }
+
+        return settings;
+    }
+
+    async getSecondaryAudioSettings(): Promise<TSecondaryAudioSettings> {
+        const res = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.SECONDARY_AUDIO);
+
+        const settings = {
+            type: res.type ?? 'NONE',
+            streamName: res.stream_name,
+            clipName: res.clip_name,
+            storage: res.storage,
+            secondaryAudioLevel: res.secondary_audio_level ?? 1,
+            masterAudioLevel: res.master_audio_level ?? 1,
+        };
+
+        return settings;
+    }
+
+    async getPermanentRtspUrlToken() {
+        const paramName = CSW_PARAM_NAMES.RTSP_TOKEN;
+        const res = await this.vapixAgent.getParameter([paramName], null);
+        return res[paramName] ?? '';
+    }
+
+    //   ----------------------------------------
     //                   Private
     //   ----------------------------------------
 
@@ -205,4 +365,118 @@ export class CamSwitcherAPI {
             throw new Error(await responseStringify(res));
         }
     }
+
+    private setParamFromCameraJSON(paramName: string, data: any): Promise<boolean> {
+        const params: Record<string, string> = {};
+        params[paramName] = JSON.stringify(data);
+        return this.vapixAgent.setParameter(params, null);
+    }
+
+    private async getParamFromCameraAndJSONParse(paramName: string): Promise<any> {
+        const data = await this.vapixAgent.getParameter([paramName], null);
+        if (data[paramName] !== undefined) {
+            // Check if requested parametr exists
+            try {
+                if (data[paramName] === '') {
+                    return {};
+                } else {
+                    return JSON.parse(data[paramName] + '');
+                }
+            } catch {
+                throw new Error('Error: in JSON parsing of ' + paramName + '. Cannot parse: ' + data[paramName]);
+            }
+        }
+
+        throw new Error("Error: no parametr '" + paramName + "' was found");
+    }
 }
+
+const CSW_PARAM_NAMES = {
+    SETTINGS: 'Camswitcher.Settings',
+    MASTER_AUDIO: 'Camswitcher.MasterAudio',
+    SECONDARY_AUDIO: 'Camswitcher.SecondaryAudio',
+    RTSP_TOKEN: 'Camswitcher.RTSPAccessToken',
+    DEFAULT_PLAYLIST: 'Camswitcher.DefaultPlaylist',
+};
+const FIRMWARE_WITH_BITRATE_MODES_SUPPORT = '11.11.73';
+
+const parseBitrateOptionsToBitrateVapixParams = (
+    firmWareVersion: string,
+    bitrateMode: TBitrateMode | null,
+    cameraOptions: TCameraOptions
+): string => {
+    if (!isFirmwareVersionAtLeast(firmWareVersion, FIRMWARE_WITH_BITRATE_MODES_SUPPORT)) {
+        return `videomaxbitrate=${cameraOptions.maximumBitRate}`;
+    }
+
+    if (bitrateMode === null) {
+        return '';
+    }
+
+    if (bitrateMode === 'VBR') {
+        return 'videobitratemode=vbr';
+    }
+
+    if (bitrateMode === 'MBR') {
+        return `videobitratemode=mbr&videomaxbitrate=${cameraOptions.maximumBitRate}`;
+    }
+
+    if (bitrateMode === 'ABR') {
+        return `videobitratemode=abr&videoabrtargetbitrate=${cameraOptions.maximumBitRate}&videoabrretentiontime=${cameraOptions.retentionTime}&videoabrmaxbitrate=${cameraOptions.bitRateLimit}`;
+    }
+
+    throw new Error('Unknown bitrateMode param in getVapixParams method.');
+};
+
+const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TBitrateVapixParams => {
+    const params: Record<string, string> = {};
+
+    const searchParams = new URLSearchParams(bitrateVapixParams);
+    searchParams.forEach((value, key) => {
+        params[key] = value;
+    });
+
+    const bitrateMode = params['videobitratemode'] !== undefined ? params['videobitratemode'].toUpperCase() : undefined;
+
+    // Lower firmware version does not support bitrate modes and has only videomaxbitrate param
+    const hasLowerFw = bitrateMode === undefined && params['videomaxbitrate'] !== undefined;
+    if (hasLowerFw) {
+        const maximumBitRate = parseInt(params['videomaxbitrate'], 10);
+        return {
+            bitrateMode: 'MBR',
+            maximumBitRate: maximumBitRate,
+            retentionTime: 1,
+            bitRateLimit: Math.floor(maximumBitRate * 1.1),
+        };
+    }
+
+    if (bitrateMode === 'ABR') {
+        const maximumBitRate = parseInt(params['videoabrtargetbitrate'], 10);
+        const retentionTime = parseInt(params['videoabrretentiontime'], 10);
+        const bitrateLimit = parseInt(params['videoabrmaxbitrate'], 10);
+
+        return {
+            bitrateMode: bitrateMode,
+            maximumBitRate: maximumBitRate,
+            retentionTime: retentionTime,
+            bitRateLimit: bitrateLimit,
+        };
+    } else if (bitrateMode === 'MBR') {
+        const maximumBitRate = parseInt(params['videomaxbitrate'], 10);
+        const oldMaximumBitrateParamValue = parseInt(params['videombrmaxbitrate'], 10);
+
+        return {
+            bitrateMode: bitrateMode,
+            maximumBitRate: maximumBitRate ?? oldMaximumBitrateParamValue,
+            retentionTime: 1,
+            bitRateLimit: Math.floor(maximumBitRate ?? oldMaximumBitrateParamValue * 1.1),
+        };
+    }
+
+    return {
+        bitrateMode: bitrateMode as TBitrateMode,
+        retentionTime: 1,
+        maximumBitRate: 0,
+        bitRateLimit: 0,
+    };
+};

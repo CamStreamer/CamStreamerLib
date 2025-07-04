@@ -1,3 +1,4 @@
+import { TPlaylistPlayType } from '../types/CamSwitcherAPI';
 import { TParameters } from './common';
 
 /**
@@ -39,3 +40,12 @@ export const arrayToUrl = (arr: string | string[]) => {
     }
     return arr;
 };
+
+export const isCamera = (id?: string) => id?.charAt(0) === 'c';
+export const isStream = (id?: string) => id?.charAt(0) === 'c' || id?.charAt(0) === 'a';
+
+export const isClip = (id?: string) => id?.charAt(0) === 's';
+export const isTracker = (id?: string) => id?.charAt(0) === 't';
+export const isPlaylist = (id?: string) => id?.charAt(0) === 'p';
+
+export const isLoopPlayType = (playType: TPlaylistPlayType) => playType.includes('LOOP');
