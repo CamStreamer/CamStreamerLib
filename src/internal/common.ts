@@ -17,7 +17,7 @@ export type TResponse = {
     status: number;
     body: any | null;
 };
-export type TParameters = Record<string, string | number | boolean>;
+export type TParameters = Record<string, string | number | boolean | null | undefined>;
 
 export type TGetFunction = (
     url: string,
