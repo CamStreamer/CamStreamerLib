@@ -54,12 +54,12 @@ export const audioSampleRatesSchema = z.object({
 });
 export type TAudioSampleRates = z.infer<typeof audioSampleRatesSchema>;
 
-export const SDCardInfoSchema = z.object({
-    available: z.boolean(),
-    totalSize: z.number(),
-    freeSize: z.number(),
-});
-export type TSDCardInfo = z.infer<typeof SDCardInfoSchema>;
+export const sdCardWatchedStatuses = ['OK', 'connected', 'disconnected'] as const;
+export type TSDCardInfo = {
+    status: (typeof sdCardWatchedStatuses)[number];
+    totalSize: number;
+    freeSize: number;
+};
 
 export const PtzOverviewSchema = z.record(z.number(), z.array(z.object({ id: z.number(), name: z.string() })));
 export type TPtzOverview = z.infer<typeof PtzOverviewSchema>;

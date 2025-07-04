@@ -33,6 +33,7 @@ import { networkCameraListSchema, TAudioChannel, TNetworkCamera, TStorageType } 
 import { VapixAPI } from './VapixAPI';
 import { isFirmwareVersionAtLeast } from './internal/versionCompare';
 import { isClip } from './internal/utils';
+import { FIRMWARE_WITH_BITRATE_MODES_SUPPORT } from './internal/constants';
 
 const baseUrl = '/local/camswitcher/api';
 
@@ -398,7 +399,6 @@ const CSW_PARAM_NAMES = {
     RTSP_TOKEN: 'Camswitcher.RTSPAccessToken',
     DEFAULT_PLAYLIST: 'Camswitcher.DefaultPlaylist',
 };
-const FIRMWARE_WITH_BITRATE_MODES_SUPPORT = '11.11.73';
 
 const parseBitrateOptionsToBitrateVapixParams = (
     firmWareVersion: string,

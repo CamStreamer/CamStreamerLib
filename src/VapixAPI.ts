@@ -14,6 +14,7 @@ import {
     TCameraPTZItemData,
     TAudioDevice,
     TAudioDeviceFromRequest,
+    sdCardWatchedStatuses,
 } from './types/CameraVapix';
 import {
     ApplicationAPIError,
@@ -136,9 +137,9 @@ export class VapixAPI {
         const data = result.root.disks.disk;
 
         return {
-            available: data.status === 'OK',
             totalSize: parseInt(data.totalsize),
             freeSize: parseInt(data.freesize),
+            status: sdCardWatchedStatuses.includes(data.status) ? data.status : 'disconnected',
         };
     }
 
@@ -618,6 +619,26 @@ export class VapixAPI {
             return;
         } else {
             throw new ApplicationAPIError('STOP', await responseStringify(res));
+        }
+    }
+
+    async installApplication(data: Blob, fileName: string) {
+        const formData = new FormData();
+        formData.append('packfil', data, fileName);
+
+        const res = await this.client.post(
+            null,
+            '/axis-cgi/applications/upload.cgi',
+            formData,
+            {},
+            {
+                contentType: 'application/octet-stream',
+            }
+        );
+
+        const text = await res.text();
+        if (text.length > 5) {
+            throw new Error('installing error: ' + text);
         }
     }
 }
