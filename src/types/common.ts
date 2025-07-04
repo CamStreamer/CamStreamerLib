@@ -32,3 +32,10 @@ export type TProxyParam = {
     user: string;
     pass: string;
 } | null;
+
+export type TCameraImageConfig = {
+    camera?: string;
+    resolution?: string;
+    compression?: number;
+    overlays?: 'off';
+};

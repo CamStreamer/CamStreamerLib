@@ -24,7 +24,7 @@ import {
     SDCardJobError,
 } from './errors/errors';
 import { ProxyClient } from './internal/ProxyClient';
-import { TProxyParam } from './types/common';
+import { TCameraImageConfig, TProxyParam } from './types/common';
 import { arrayToUrl, paramToUrl } from './internal/utils';
 
 export class VapixAPI {
@@ -63,8 +63,8 @@ export class VapixAPI {
         return this.client.post(proxy, path, data, {}, head);
     }
 
-    async getCameraImage(camera: string, compression: string, resolution: string, proxy: TProxyParam = null) {
-        return await this.client.get(proxy, '/axis-cgi/jpg/image.cgi', { resolution, compression, camera });
+    async getCameraImage(params: TCameraImageConfig, proxy: TProxyParam = null) {
+        return await this.client.get(proxy, '/axis-cgi/jpg/image.cgi', params);
     }
 
     async getEventDeclarations(proxy: TProxyParam = null): Promise<string> {
@@ -123,7 +123,7 @@ export class VapixAPI {
         }
     }
 
-    async checkSdCard(proxy: TProxyParam = null): Promise<TSDCardInfo> {
+    async checkSDCard(proxy: TProxyParam = null): Promise<TSDCardInfo> {
         const res = await this.getUrlEncoded(proxy, '/axis-cgi/disks/list.cgi', {
             diskid: 'SD_DISK',
         });
@@ -359,7 +359,7 @@ export class VapixAPI {
         return parseParameters(await response.text());
     }
 
-    async setParameter(params: Record<string, string>, proxy: TProxyParam = null) {
+    async setParameter(params: Record<string, string | number | boolean>, proxy: TProxyParam = null) {
         const res = await this.getUrlEncoded(proxy, '/axis-cgi/param.cgi', {
             ...params,
             action: 'update',
