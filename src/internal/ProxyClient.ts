@@ -1,11 +1,12 @@
 import { IClient, TParameters } from './common';
 import { TProxyParam } from '../types/common';
+import { addParametersToPath } from './utils';
 
 export class ProxyClient {
     constructor(public client: IClient, public getProxyUrl: () => string) {}
 
     get = (proxy: TProxyParam, path: string, parameters?: TParameters, headers: Record<string, string> = {}) => {
-        const url = this.getPathWithParams(path, parameters);
+        const url = addParametersToPath(path, parameters);
         const { realUrl, realHeaders } = this.getReal(proxy, url, headers);
         return this.client.get(realUrl, {}, realHeaders);
     };
@@ -17,7 +18,7 @@ export class ProxyClient {
         parameters?: TParameters,
         headers?: Record<string, string>
     ) => {
-        const url = this.getPathWithParams(path, parameters);
+        const url = addParametersToPath(path, parameters);
         const { realUrl, realHeaders } = this.getReal(proxy, url, headers);
         return this.client.post(realUrl, data, {}, realHeaders);
     };
@@ -44,21 +45,6 @@ export class ProxyClient {
             realHeaders: headers,
         };
     };
-
-    private getPathWithParams(path: string, params: TParameters = {}): string {
-        let pathName = path;
-
-        if (pathName.indexOf('?') === -1) {
-            pathName += '?';
-        } else {
-            pathName += '&';
-        }
-
-        for (const key in params) {
-            pathName += `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}&`;
-        }
-        return pathName.slice(0, pathName.length - 1);
-    }
 }
 
 type TReal = {

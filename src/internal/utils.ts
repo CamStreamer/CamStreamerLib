@@ -1,5 +1,14 @@
 import { TPlaylistPlayType } from '../types/CamSwitcherAPI';
-import { TParameters } from './common';
+import { isNullish, TParameters } from './common';
+
+export const addParametersToPath = (path: string, params?: TParameters) => {
+    if (params === undefined) {
+        return path;
+    }
+
+    const joinChar = path.indexOf('?') === -1 ? '?' : '&';
+    return `${path}${joinChar}${paramToUrl(params)}`;
+};
 
 /**
  * A method that converts object parametrs into url string as &name=value.
@@ -11,18 +20,20 @@ import { TParameters } from './common';
  * return "name1=value1&name2=value2&name3=value3"
  */
 export const paramToUrl = (params?: TParameters) => {
-    let output = '';
-    if (params) {
-        const reducer = (res: string, key: string) => {
-            if (params[key] !== undefined) {
-                return `${res}${key}=${encodeURIComponent(String(params[key]))}&`;
-            }
-            return res;
-        };
-        output = Object.keys(params).reduce(reducer, '');
-        output = output.slice(0, output.length - 1);
+    if (params === undefined) {
+        return '';
     }
-    return output;
+
+    let output = '';
+    for (const key in params) {
+        const value = params[key];
+        if (isNullish(value)) {
+            continue;
+        }
+        output += `${encodeURIComponent(key)}=${encodeURIComponent(value)}&`;
+    }
+
+    return output.slice(0, output.length - 1);
 };
 
 /**

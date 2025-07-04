@@ -1,4 +1,5 @@
-import { IClient, HttpOptions, TParameters } from '../internal/common';
+import { IClient, HttpOptions, TParameters, isNullish } from '../internal/common';
+import { addParametersToPath } from '../internal/utils';
 import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
 import { FormData as UndiciFormData } from 'undici';
 
@@ -49,18 +50,7 @@ export class DefaultClient implements IClient {
     }
 
     private getBaseConnectionParams(method: string, path: string, params: TParameters): HttpRequestOptions {
-        let pathName = path;
-
-        if (pathName.indexOf('?') === -1) {
-            pathName += '?';
-        } else {
-            pathName += '&';
-        }
-
-        for (const key in params) {
-            pathName += `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}&`;
-        }
-        pathName = pathName.slice(0, pathName.length - 1);
+        let pathName = addParametersToPath(path, params);
 
         return {
             method: method,
