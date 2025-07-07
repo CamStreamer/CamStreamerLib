@@ -87,18 +87,14 @@ export class VapixAPI<Client extends IClient = IClient> {
         const formData = { apiVersion: '1.0', method: 'list' };
         const res = await this.postJson(proxy, url, formData);
 
-        try {
-            const encoders = ((await res.json()) as any).data.encoders;
-            const data = encoders.aac ?? encoders.AAC ?? [];
-            return data.map((item: { sample_rate: number; bit_rates: number[] }) => {
-                return {
-                    sampleRate: item.sample_rate,
-                    bitRates: item.bit_rates,
-                };
-            });
-        } catch (err) {
-            return [];
-        }
+        const encoders = ((await res.json()) as any).data.encoders;
+        const data = encoders.aac ?? encoders.AAC ?? [];
+        return data.map((item: { sample_rate: number; bit_rates: number[] }) => {
+            return {
+                sampleRate: item.sample_rate,
+                bitRates: item.bit_rates,
+            };
+        });
     }
 
     async performAutofocus(proxy: TProxyParam = null): Promise<void> {
@@ -305,12 +301,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async fetchRemoteDeviceInfo<T extends Record<string, any>>(payload: T, proxy: TProxyParam = null) {
-        let res: TResponse;
-        try {
-            res = await this.postJson(proxy, '/axis-cgi/basicdeviceinfo.cgi', payload);
-        } catch (err) {
-            throw new FetchDeviceInfoError(err);
-        }
+        const res = await this.postJson(proxy, '/axis-cgi/basicdeviceinfo.cgi', payload);
 
         if (!res.ok) {
             throw new Error(await responseStringify(res));
@@ -330,17 +321,13 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async getHeaders(proxy: TProxyParam = null): Promise<Record<string, string>> {
-        try {
-            const data = { apiVersion: '1.0', method: 'list' };
-            const res = await this.postJson(proxy, '/axis-cgi/customhttpheader.cgi', data);
+        const data = { apiVersion: '1.0', method: 'list' };
+        const res = await this.postJson(proxy, '/axis-cgi/customhttpheader.cgi', data);
 
-            if (res.ok) {
-                return ((await res.json()) as any).data ?? {};
-            } else {
-                return {};
-            }
-        } catch (err) {
-            return {};
+        if (res.ok) {
+            return ((await res.json()) as any).data ?? {};
+        } else {
+            throw new Error(await responseStringify(res));
         }
     }
 
@@ -455,22 +442,18 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async listPtzVideoSourceOverview(proxy: TProxyParam = null): Promise<TPtzOverview> {
-        try {
-            const response = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
-                query: 'presetposall',
-                format: 'json',
-            });
+        const response = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
+            query: 'presetposall',
+            format: 'json',
+        });
 
-            const data = parseCameraPtzResponse(await response.text());
+        const data = parseCameraPtzResponse(await response.text());
 
-            const res: TPtzOverview = {};
-            Object.keys(data).forEach((camera) => {
-                res[Number(camera) - 1] = data[Number(camera)].map(({ data: itemData, ...d }) => d);
-            });
-            return res;
-        } catch (err) {
-            return [];
-        }
+        const res: TPtzOverview = {};
+        Object.keys(data).forEach((camera) => {
+            res[Number(camera) - 1] = data[Number(camera)].map(({ data: itemData, ...d }) => d);
+        });
+        return res;
     }
 
     goToPreset(channel: number, presetName: string, proxy: TProxyParam = null) {
@@ -481,22 +464,18 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async getPtzPosition(camera: number, proxy: TProxyParam = null): Promise<TCameraPTZItemData> {
-        try {
-            const res = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
-                query: 'position',
-                camera: camera.toString(),
-            });
+        const res = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
+            query: 'position',
+            camera: camera.toString(),
+        });
 
-            const params = parseParameters(await res.text());
+        const params = parseParameters(await res.text());
 
-            return {
-                pan: Number(params.pan),
-                tilt: Number(params.tilt),
-                zoom: Number(params.zoom),
-            };
-        } catch (err) {
-            return { pan: 0, tilt: 0, zoom: 0 };
-        }
+        return {
+            pan: Number(params.pan),
+            tilt: Number(params.tilt),
+            zoom: Number(params.zoom),
+        };
     }
 
     //  -------------------------------
