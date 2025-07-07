@@ -29,10 +29,10 @@ import { ProxyClient } from './internal/ProxyClient';
 import { TCameraImageConfig, TProxyParam } from './types/common';
 import { arrayToUrl, paramToUrl } from './internal/utils';
 
-export class VapixAPI {
-    private client: ProxyClient;
+export class VapixAPI<Client extends IClient = IClient> {
+    public client: ProxyClient<Client>;
 
-    constructor(client: IClient, getProxyUrl: () => string) {
+    constructor(client: Client, getProxyUrl: () => string) {
         this.client = new ProxyClient(client, getProxyUrl);
     }
 

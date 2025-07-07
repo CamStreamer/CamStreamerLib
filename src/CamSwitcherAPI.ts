@@ -37,10 +37,10 @@ import { FIRMWARE_WITH_BITRATE_MODES_SUPPORT } from './internal/constants';
 
 const baseUrl = '/local/camswitcher/api';
 
-export class CamSwitcherAPI {
+export class CamSwitcherAPI<Client extends IClient = IClient> {
     private vapixAgent: VapixAPI;
 
-    constructor(public client: IClient) {
+    constructor(public client: Client) {
         this.vapixAgent = new VapixAPI(client, () => '');
     }
 

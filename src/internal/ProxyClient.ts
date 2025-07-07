@@ -2,8 +2,8 @@ import { IClient, TParameters } from './common';
 import { TProxyParam } from '../types/common';
 import { addParametersToPath } from './utils';
 
-export class ProxyClient {
-    constructor(public client: IClient, public getProxyUrl: () => string) {}
+export class ProxyClient<Client extends IClient = IClient> {
+    constructor(public client: Client, public getProxyUrl: () => string) {}
 
     get = (proxy: TProxyParam, path: string, parameters?: TParameters, headers: Record<string, string> = {}) => {
         const url = addParametersToPath(path, parameters);
