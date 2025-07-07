@@ -1,4 +1,4 @@
-import { DefaultAgent } from '../DefaultAgent';
+import { DefaultClient } from '../node/DefaultClient';
 import { isClient, IClient, HttpOptions, pad } from '../internal/common';
 
 export type AcsEventsOptions = HttpOptions;
@@ -10,7 +10,7 @@ export class AxisCameraStationEvents {
         if (isClient(opt)) {
             this.client = opt;
         } else {
-            this.client = new DefaultAgent(opt);
+            this.client = new DefaultClient(opt);
         }
     }
 

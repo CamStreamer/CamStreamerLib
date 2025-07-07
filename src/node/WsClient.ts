@@ -1,8 +1,8 @@
 import * as EventEmitter from 'events';
 import * as WebSocket from 'ws';
 
-import { Digest } from './Digest';
-import { WsOptions } from './common';
+import { Digest } from '../internal/Digest';
+import { WsOptions } from '../internal/common';
 
 export type WsClientOptions = WsOptions & {
     address: string;
@@ -22,6 +22,7 @@ export interface WsClient {
     emit(event: 'message', data: Buffer): boolean;
     emit(event: 'error', err: Error): boolean;
 }
+
 export class WsClient extends EventEmitter {
     private user: string;
     private pass: string;
@@ -96,7 +97,7 @@ export class WsClient extends EventEmitter {
                 );
             }
 
-            this.ws.on('unexpected-response', async (req, res) => {
+            this.ws.on('unexpected-response', (req, res) => {
                 if (res.statusCode === 401 && res.headers['www-authenticate'] !== undefined) {
                     if (this.pingTimer) {
                         clearInterval(this.pingTimer);
@@ -106,7 +107,7 @@ export class WsClient extends EventEmitter {
                     this.open(res.headers['www-authenticate']);
                 } else {
                     this.emit('error', new Error('Status code: ' + res.statusCode));
-                    await this.closeWsConnection();
+                    this.closeWsConnection();
                 }
             });
 

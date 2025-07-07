@@ -1,6 +1,16 @@
-import { IClient, isClient, responseStringify, TNetworkCameraList } from './internal/common';
-import { DefaultAgent } from './DefaultAgent';
-import { CamScripterOptions, TNodeState, TPackageInfoList, TStorage, TStorageType } from './types/CamScripterAPI';
+import { IClient, isClient, responseStringify } from './internal/common';
+import { DefaultClient } from './node/DefaultClient';
+
+import {
+    CamScripterOptions,
+    packageInfoListSchema,
+    storageSchema,
+    TNodeState,
+    TPackageInfoList,
+    TStorage,
+    TStorageType,
+} from './types/CamScripterAPI';
+import { networkCameraListSchema, TNetworkCamera } from './types/common';
 
 export class CamOverlayAPI {
     private client: IClient;
@@ -9,7 +19,7 @@ export class CamOverlayAPI {
         if (isClient(options)) {
             this.client = options;
         } else {
-            this.client = new DefaultAgent(options);
+            this.client = new DefaultClient(options);
         }
     }
 
@@ -18,11 +28,13 @@ export class CamOverlayAPI {
     }
 
     async getStorageInfo(): Promise<TStorage> {
-        return await this.get(`/local/camscripter/package/get_storage.cgi`);
+        const data = await this.get(`/local/camscripter/package/get_storage.cgi`);
+        return storageSchema.parse(data);
     }
 
-    async getNetworkCameraList(): Promise<TNetworkCameraList> {
-        return (await this.get('/local/camscripter/network_camera_list.cgi')).camera_list;
+    async getNetworkCameraList(): Promise<TNetworkCamera[]> {
+        const response = await this.get('/local/camscripter/network_camera_list.cgi');
+        return networkCameraListSchema.parse(response.camera_list);
     }
 
     //   ----------------------------------------
@@ -30,7 +42,8 @@ export class CamOverlayAPI {
     //   ----------------------------------------
 
     async getPackageList(): Promise<TPackageInfoList> {
-        return await this.get('/local/camscripter/package/list.cgi');
+        const data = await this.get('/local/camscripter/package/list.cgi');
+        return packageInfoListSchema.parse(data);
     }
 
     async installPackages(formData: FormData, storage: TStorageType): Promise<void> {

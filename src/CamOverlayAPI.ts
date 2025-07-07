@@ -1,18 +1,23 @@
-import { IClient, isClient, responseStringify, TNetworkCameraList } from './internal/common';
-import { DefaultAgent } from './DefaultAgent';
+import { IClient, isClient, responseStringify } from './internal/common';
+import { DefaultClient } from './node/DefaultClient';
+
 import {
     CamOverlayOptions,
+    fileListSchema,
     ImageType,
+    serviceSchema,
+    storageSchema,
     TCoordinates,
     TField,
     TFile,
+    TFileList,
     TFileType,
-    TImageStorage,
     TService,
     TServiceList,
     TStorage,
 } from './types/CamOverlayAPI';
 import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
+import { networkCameraListSchema, TNetworkCamera } from './types/common';
 
 export class CamOverlayAPI {
     private client: IClient;
@@ -21,7 +26,7 @@ export class CamOverlayAPI {
         if (isClient(options)) {
             this.client = options;
         } else {
-            this.client = new DefaultAgent(options);
+            this.client = new DefaultClient(options);
         }
     }
 
@@ -30,9 +35,9 @@ export class CamOverlayAPI {
         return cameraTime.state;
     }
 
-    async getNetworkCameraList(): Promise<TNetworkCameraList> {
+    async getNetworkCameraList(): Promise<TNetworkCamera[]> {
         const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
-        return response.camera_list;
+        return networkCameraListSchema.parse(response.camera_list);
     }
 
     async wsAutoratization(): Promise<string> {
@@ -52,12 +57,12 @@ export class CamOverlayAPI {
     //            files - fonts, images
     //   ----------------------------------------
 
-    async listFiles(fileType: TFileType): Promise<TFile[]> {
+    async listFiles(fileType: TFileType): Promise<TFileList> {
         const files = await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=list`);
-        return files.list;
+        return fileListSchema.parse(files.list);
     }
 
-    async uploadFile(fileType: TFileType, file: Buffer, fileName: string): Promise<void> {
+    async uploadFile(fileType: TFileType, file: Blob, fileName: string): Promise<void> {
         const formData = new FormData();
         formData.append('target', 'SD0');
         formData.append('uploadedFile[]', file, fileName);
@@ -71,23 +76,24 @@ export class CamOverlayAPI {
         await this.post(path, JSON.stringify(file));
     }
 
-    async getFileStorage(fileType: TFileType): Promise<TStorage | TImageStorage> {
-        return await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=get_storage`);
+    async getFileStorage(fileType: TFileType): Promise<TStorage> {
+        const data = await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=get_storage`);
+        return storageSchema.parse(data);
     }
 
     //   ----------------------------------------
     //             CamOverlay services
     //   ----------------------------------------
 
-    async updateInfoticker(serviceID: number, text: string) {
+    async updateInfoticker(serviceID: number, text: string): Promise<void> {
         await this.get(`/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`);
     }
 
-    async setEnabled(serviceID: number, enabled: boolean) {
+    async setEnabled(serviceID: number, enabled: boolean): Promise<void> {
         await this.post(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`, '');
     }
 
-    async isEnabled(serviceID: number) {
+    async isEnabled(serviceID: number): Promise<boolean> {
         const res = await this.client.get('/local/camoverlay/api/services.cgi?action=get');
 
         if (res.ok) {
@@ -105,12 +111,16 @@ export class CamOverlayAPI {
     }
 
     async getSingleService(serviceId: number): Promise<TService> {
-        return this.get('/local/camoverlay/api/services.cgi', { action: 'get', service_id: serviceId.toString() });
+        const data = await this.get('/local/camoverlay/api/services.cgi', {
+            action: 'get',
+            service_id: serviceId.toString(),
+        });
+        return serviceSchema.parse(data);
     }
 
     async getServices(): Promise<TService[]> {
         const serviceList = await this.get('/local/camoverlay/api/services.cgi?action=get');
-        return serviceList.services;
+        return serviceSchema.parse(serviceList).services;
     }
 
     async updateSingleService(serviceId: number, serviceJson: TService): Promise<void> {
@@ -121,7 +131,7 @@ export class CamOverlayAPI {
         });
     }
 
-    async updateServices(servicesJson: TServiceList) {
+    async updateServices(servicesJson: TServiceList): Promise<void> {
         const path = '/local/camoverlay/api/services.cgi?action=set';
         await this.post(path, JSON.stringify(servicesJson));
     }

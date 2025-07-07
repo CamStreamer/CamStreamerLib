@@ -1,7 +1,9 @@
-import { IClient, HttpOptions } from './internal/common';
-import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './internal/HttpRequestSender';
+import { IClient, HttpOptions, TParameters, isNullish } from '../internal/common';
+import { addParametersToPath } from '../internal/utils';
+import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
+import { FormData as UndiciFormData } from 'undici';
 
-export class DefaultAgent implements IClient {
+export class DefaultClient implements IClient {
     private tls: boolean;
     private ip: string;
     private port: number;
@@ -26,35 +28,29 @@ export class DefaultAgent implements IClient {
         this.httpRequestSender = new HttpRequestSender(agentOptions);
     }
 
-    async get(path: string, parameters: Record<string, string> = {}, headers?: Record<string, string>) {
+    get url() {
+        return `${this.tls ? 'https' : 'http'}://${this.user}:${this.pass}@${this.ip}:${this.port}`;
+    }
+
+    async get(path: string, parameters: TParameters = {}, headers?: Record<string, string>) {
         const options = this.getBaseConnectionParams('GET', path, parameters);
         options.headers = headers;
         return this.httpRequestSender.sendRequest(options);
     }
+
     async post(
         path: string,
-        data: string | Buffer | FormData,
-        parameters: Record<string, string> = {},
+        data: string | FormData | Buffer,
+        parameters: TParameters = {},
         headers?: Record<string, string>
     ) {
         const options = this.getBaseConnectionParams('POST', path, parameters);
         options.headers = headers;
-        return this.httpRequestSender.sendRequest(options, data);
+        return this.httpRequestSender.sendRequest(options, data as UndiciFormData);
     }
 
-    private getBaseConnectionParams(method: string, path: string, params: Record<string, string>): HttpRequestOptions {
-        let pathName = path;
-
-        if (pathName.indexOf('?') === -1) {
-            pathName += '?';
-        } else {
-            pathName += '&';
-        }
-
-        for (const key in params) {
-            pathName += `${encodeURIComponent(key)}=${encodeURIComponent(params[key])}&`;
-        }
-        pathName = pathName.slice(0, pathName.length - 1);
+    private getBaseConnectionParams(method: string, path: string, params: TParameters): HttpRequestOptions {
+        let pathName = addParametersToPath(path, params);
 
         return {
             method: method,
