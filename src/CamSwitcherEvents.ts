@@ -4,7 +4,7 @@ import {
     TCamSwitcherEvent,
     TCamSwitcherEventOfType,
     TCamSwitcherEventType,
-} from './types/CamswitcherEvents';
+} from './types/CamSwitcherEvents';
 
 // Note: we cant use EventTarget (only in browser) or EventEmitter (only in nodejs)
 type TListenerFunction<T extends TCamSwitcherEventType> = (data: TCamSwitcherEventOfType<T>, isInit: boolean) => void;

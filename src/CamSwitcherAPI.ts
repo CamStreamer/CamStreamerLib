@@ -44,9 +44,9 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
         this.vapixAgent = new VapixAPI(client, () => '');
     }
 
-    static getProxyUrl = () => `${baseUrl}/proxy.cgi`;
-    static getWsEventsUrl = () => `/local/camswitcher/events`;
-    static getClipPreview = (id: string, storage: TStorageType) =>
+    static getProxyUrlPath = () => `${baseUrl}/proxy.cgi`;
+    static getWsEventsUrlPath = () => `/local/camswitcher/events`;
+    static getClipPreviewUrlPath = (id: string, storage: TStorageType) =>
         `${baseUrl}/clip_preview.cgi?clip_name=${id}&storage=${storage}`;
 
     async generateSilence(sampleRate: number, channels: TAudioChannel) {

@@ -47,10 +47,6 @@ export function isClient(arg: Options | IClient = {}): arg is IClient {
     return 'get' in arg && 'post' in arg;
 }
 
-export function isBrowserEnvironment() {
-    return typeof process === 'undefined' || !process.versions.node;
-}
-
 export async function responseStringify(res: TResponse): Promise<string> {
     return JSON.stringify({
         status: res.status,
