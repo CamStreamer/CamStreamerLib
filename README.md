@@ -1,4 +1,6 @@
-# CamStreamerLib
+# CamStreamerLib - BETA
+
+**This is beta version of CamStreamerLib v4, dont use it on production. Is going to be changed significantly.**
 
 Node.js helper library for CamStreamer ACAP applications.
 
