@@ -49,6 +49,10 @@ const cswEventsDataSchema = z.discriminatedUnion('type', [
     z.object({
         type: z.literal('MediaServerStarted'),
     }),
+    z.object({
+        type: z.literal('ClipRemove'),
+        clip_name: z.string(),
+    }),
 ]);
 
 export const cswEventsSchema = z.discriminatedUnion('type', [

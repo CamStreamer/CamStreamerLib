@@ -235,12 +235,11 @@ export class VapixAPI<Client extends IClient = IClient> {
             throw new MaxFPSError('CAPTURE_MODE_NOT_FOUND');
         }
 
-        const maxFps = parseInt(captureMode.maxFPS, 10);
-        if (isNaN(maxFps)) {
+        if (isNullish(captureMode.maxFPS)) {
             throw new MaxFPSError('FPS_NOT_SPECIFIED');
         }
 
-        return maxFps;
+        return captureMode.maxFPS;
     }
 
     async getTimezone(proxy: TProxyParam = null): Promise<string> {

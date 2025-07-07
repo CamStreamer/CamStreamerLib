@@ -2,7 +2,7 @@ import { TPlaylistPlayType } from '../types/CamSwitcherAPI';
 import { isNullish, TParameters } from './common';
 
 export const addParametersToPath = (path: string, params?: TParameters) => {
-    if (params === undefined) {
+    if (params === undefined || Object.keys(params).length === 0) {
         return path;
     }
 

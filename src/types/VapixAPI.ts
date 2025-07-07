@@ -145,7 +145,7 @@ export const maxFpsResponseSchema = z.object({
             captureMode: z.array(
                 z.object({
                     enabled: z.boolean(),
-                    maxFPS: z.string(),
+                    maxFPS: z.number().optional(),
                 })
             ),
         })
