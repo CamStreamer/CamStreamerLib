@@ -15,7 +15,19 @@ export const applicationSchema = z.object({
     VendorHomePage: z.string().optional(),
     LicenseName: z.string().optional(),
 });
-export type TApplication = z.infer<typeof applicationSchema>;
+
+export const APP_IDS = [
+    'CamStreamer',
+    'CamSwitcher',
+    'CamOverlay',
+    'CamScripter',
+    'PlaneTracker',
+    'Ndihxplugin',
+] as const;
+export type TApplicationId = (typeof APP_IDS)[number];
+export type TApplication = z.infer<typeof applicationSchema> & {
+    appId: null | TApplicationId;
+};
 
 export const applicationListSchema = z.object({
     reply: z.object({

@@ -15,7 +15,8 @@ import {
     TAudioDevice,
     TAudioDeviceFromRequest,
     sdCardWatchedStatuses,
-} from './types/CameraVapix';
+    APP_IDS,
+} from './types/VapixAPI';
 import {
     ApplicationAPIError,
     FetchDeviceInfoError,
@@ -422,64 +423,6 @@ export class VapixAPI {
     //             ptz.cgi
     //  -------------------------------
 
-    private parsePtz(parsed: string[]): TCameraPTZItem[] {
-        const res: TCameraPTZItem[] = [];
-        parsed.forEach((value: string) => {
-            const delimiterPos = value.indexOf('=');
-            if (delimiterPos === -1) {
-                return;
-            }
-            if (!value.startsWith('presetposno')) {
-                return;
-            }
-
-            const id = Number(value.substring(11, delimiterPos));
-            if (Number.isNaN(id)) {
-                return;
-            }
-
-            const data = value.substring(delimiterPos + 1).split(':');
-            const getValue = (valueName: string) => {
-                for (const d of data) {
-                    const p = d.split('=');
-                    if (p[0] === valueName) {
-                        return Number(p[1]);
-                    }
-                }
-                return 0;
-            };
-
-            res.push({
-                id,
-                name: data[0],
-                data: {
-                    pan: getValue('pan'),
-                    tilt: getValue('tilt'),
-                    zoom: getValue('zoom'),
-                },
-            });
-        });
-        return res;
-    }
-
-    private parseCameraPtzResponse(response: string) {
-        const json = JSON.parse(response);
-        const parsed: Record<number, TCameraPTZItem[]> = {};
-
-        Object.keys(json).forEach((key) => {
-            if (!key.startsWith('Camera ')) {
-                return;
-            }
-
-            const camera = Number(key.replace('Camera ', ''));
-            if (json[key].presets !== undefined) {
-                parsed[camera] = this.parsePtz(json[key].presets);
-            }
-        });
-
-        return parsed;
-    }
-
     async getPTZPresetList(channel: number, proxy: TProxyParam = null) {
         const res = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
             query: 'presetposcam',
@@ -500,6 +443,17 @@ export class VapixAPI {
         return positions;
     }
 
+    async listPTZ(camera: number, proxy: TProxyParam = null): Promise<TCameraPTZItem[]> {
+        const url = `/axis-cgi/com/ptz.cgi`;
+        const response = await this.getUrlEncoded(proxy, url, {
+            camera,
+            query: 'presetposcamdata',
+            format: 'json',
+        });
+
+        return parseCameraPtzResponse(await response.text())[camera] ?? [];
+    }
+
     async listPtzVideoSourceOverview(proxy: TProxyParam = null): Promise<TPtzOverview> {
         try {
             const response = await this.getUrlEncoded(proxy, '/axis-cgi/com/ptz.cgi', {
@@ -507,7 +461,7 @@ export class VapixAPI {
                 format: 'json',
             });
 
-            const data = this.parseCameraPtzResponse(await response.text());
+            const data = parseCameraPtzResponse(await response.text());
 
             const res: TPtzOverview = {};
             Object.keys(data).forEach((camera) => {
@@ -571,7 +525,11 @@ export class VapixAPI {
 
         const apps = [];
         for (let i = 0; i < result.reply.application.length; i++) {
-            apps.push(result.reply.application[i].$);
+            apps.push({
+                ...result.reply.application[i].$,
+                appId:
+                    APP_IDS.find((id) => id.toLowerCase() === result.reply.application[i].$.Name.toLowerCase()) ?? null,
+            });
         }
         return apps;
     }
@@ -660,4 +618,62 @@ const parseParameters = (response: string): Record<string, string> => {
         }
     }
     return params;
+};
+
+const parseCameraPtzResponse = (response: string) => {
+    const json = JSON.parse(response);
+    const parsed: Record<number, TCameraPTZItem[]> = {};
+
+    Object.keys(json).forEach((key) => {
+        if (!key.startsWith('Camera ')) {
+            return;
+        }
+
+        const camera = Number(key.replace('Camera ', ''));
+        if (json[key].presets !== undefined) {
+            parsed[camera] = parsePtz(json[key].presets);
+        }
+    });
+
+    return parsed;
+};
+
+const parsePtz = (parsed: string[]): TCameraPTZItem[] => {
+    const res: TCameraPTZItem[] = [];
+    parsed.forEach((value: string) => {
+        const delimiterPos = value.indexOf('=');
+        if (delimiterPos === -1) {
+            return;
+        }
+        if (!value.startsWith('presetposno')) {
+            return;
+        }
+
+        const id = Number(value.substring(11, delimiterPos));
+        if (Number.isNaN(id)) {
+            return;
+        }
+
+        const data = value.substring(delimiterPos + 1).split(':');
+        const getValue = (valueName: string) => {
+            for (const d of data) {
+                const p = d.split('=');
+                if (p[0] === valueName) {
+                    return Number(p[1]);
+                }
+            }
+            return 0;
+        };
+
+        res.push({
+            id,
+            name: data[0],
+            data: {
+                pan: getValue('pan'),
+                tilt: getValue('tilt'),
+                zoom: getValue('zoom'),
+            },
+        });
+    });
+    return res;
 };
