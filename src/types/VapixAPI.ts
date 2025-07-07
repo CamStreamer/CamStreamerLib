@@ -1,5 +1,6 @@
 import { HttpOptions } from '../internal/common';
 import { z } from 'zod';
+import { toCamelCaseDeep } from '../internal/transformers';
 
 export type CameraVapixOptions = HttpOptions;
 
@@ -60,11 +61,12 @@ export const guardTourSchema = z.object({
 });
 export type TGuardTour = z.infer<typeof guardTourSchema>;
 
-export const audioSampleRatesSchema = z.object({
-    sampleRate: z.number(),
-    bitRates: z.array(z.number()),
+const audioSampleRatesSchema = z.object({
+    sample_rate: z.number(),
+    bit_rates: z.array(z.number()),
 });
-export type TAudioSampleRates = z.infer<typeof audioSampleRatesSchema>;
+const audioSampleRatesOutSchema = audioSampleRatesSchema.transform(toCamelCaseDeep);
+export type TAudioSampleRates = z.infer<typeof audioSampleRatesOutSchema>;
 
 export const sdCardWatchedStatuses = ['OK', 'connected', 'disconnected'] as const;
 export type TSDCardInfo = {
@@ -150,12 +152,27 @@ export const maxFpsResponseSchema = z.object({
     ),
 });
 
-export const dateTimeinfoSchema = z
-    .object({
+export const dateTimeinfoSchema = z.object({
+    data: z.object({
         dateTime: z.string(),
         dstEnabled: z.boolean(),
         localDateTime: z.string(),
         posixTimeZone: z.string(),
         timeZone: z.string(),
-    })
-    .partial();
+    }),
+});
+
+export const audioSampleRatesResponseSchema = z.object({
+    data: z.object({
+        encoders: z.union([
+            z.object({
+                aac: z.array(audioSampleRatesSchema),
+                AAC: z.undefined(),
+            }),
+            z.object({
+                AAC: z.array(audioSampleRatesSchema),
+                aac: z.undefined(),
+            }),
+        ]),
+    }),
+});

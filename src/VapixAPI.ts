@@ -19,6 +19,7 @@ import {
     maxFpsResponseSchema,
     dateTimeinfoSchema,
     audioDeviceRequestSchema,
+    audioSampleRatesResponseSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -101,7 +102,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         const formData = { apiVersion: '1.0', method: 'list' };
         const res = await this.postJson(proxy, url, formData);
 
-        const encoders = ((await res.json()) as any).data.encoders;
+        const encoders = audioSampleRatesResponseSchema.parse(await res.json()).data.encoders;
         const data = encoders.aac ?? encoders.AAC ?? [];
         return data.map((item: { sample_rate: number; bit_rates: number[] }) => {
             return {
@@ -111,7 +112,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         });
     }
 
-    async performAutofocus(proxy: TProxyParam = null): Promise<void> {
+    async performAutofocus(proxy: TProxyParam = null) {
         try {
             const data = {
                 apiVersion: '1',
@@ -213,7 +214,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         return this.getUrlEncoded(proxy, '/axis-cgi/admin/systemlog.cgi');
     }
 
-    async getMaxFps(channel: number, proxy: TProxyParam = null): Promise<number> {
+    async getMaxFps(channel: number, proxy: TProxyParam = null) {
         const data = { apiVersion: '1.0', method: 'getCaptureModes' };
         const res = await this.postJson(proxy, '/axis-cgi/capturemode.cgi', data);
         const response = maxFpsResponseSchema.parse(await res.json());
@@ -475,11 +476,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (text === 'ok') {
-            return;
-        } else if (text.startsWith('error:') && text.substring(7) === '6') {
-            return;
-        } else {
+        if (text !== 'ok' && !(text.startsWith('error:') && text.substring(7) === '6')) {
             throw new ApplicationAPIError('START', await responseStringify(res));
         }
     }
@@ -503,11 +500,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (text === 'ok') {
-            return;
-        } else if (text.startsWith('error:') && text.substring(7) === '6') {
-            return;
-        } else {
+        if (text !== 'ok' && !(text.startsWith('error:') && text.substring(7) === '6')) {
             throw new ApplicationAPIError('STOP', await responseStringify(res));
         }
     }
@@ -536,7 +529,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 }
 
-const parseParameters = (response: string): Record<string, string> => {
+const parseParameters = (response: string) => {
     const params: Record<string, string> = {};
     const lines = response.split(/[\r\n]/);
 

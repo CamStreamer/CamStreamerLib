@@ -56,7 +56,7 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
         });
     }
 
-    async checkCameraTime(): Promise<boolean> {
+    async checkCameraTime() {
         const data = await this.get(`${baseUrl}/camera_time.cgi`);
         return z.boolean().parse(data);
     }
@@ -141,20 +141,20 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
     //                 Playlists
     //   ----------------------------------------
 
-    async playlistSwitch(playlistName: string): Promise<void> {
+    async playlistSwitch(playlistName: string) {
         await this.get(`${baseUrl}/playlist_switch.cgi?playlist_name=${playlistName}`);
     }
-    async playlistQueuePush(playlistName: string): Promise<void> {
+    async playlistQueuePush(playlistName: string) {
         await this.get(`${baseUrl}/playlist_queue_push.cgi?playlist_name=${playlistName}`);
     }
-    async playlistQueueClear(): Promise<void> {
+    async playlistQueueClear() {
         await this.get(`${baseUrl}/playlist_queue_clear.cgi`);
     }
     async playlistQueueList() {
         const data = await this.get(`${baseUrl}/playlist_queue_list.cgi`);
         return playlistQueueSchema.parse(data).playlistQueueList;
     }
-    async playlistQueuePlayNext(): Promise<void> {
+    async playlistQueuePlayNext() {
         await this.get(`${baseUrl}/playlist_queue_play_next.cgi`);
     }
 
@@ -168,7 +168,7 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
         storage: TStorageType,
         id: string,
         fileName?: string
-    ): Promise<void> {
+    ) {
         const formData = new FormData();
         formData.append('clip_name', id);
         formData.append('clip_type', clipType);
@@ -184,7 +184,7 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
         }
     }
 
-    removeClip(id: string, storage: TStorageType): Promise<{}> {
+    removeClip(id: string, storage: TStorageType) {
         return this.get(`${baseUrl}/clip_remove.cgi`, { clip_name: id, storage });
     }
 
@@ -199,7 +199,7 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
 
     //* ******************   Set
 
-    setCamSwitchOptions(data: TCameraOptions, cameraFWVersion: string): Promise<boolean> {
+    setCamSwitchOptions(data: TCameraOptions, cameraFWVersion: string) {
         const bitrateVapixParams = parseBitrateOptionsToBitrateVapixParams(cameraFWVersion, data.bitrateMode, data);
         const saveData = {
             video: {
@@ -367,7 +367,7 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
         }
     }
 
-    private setParamFromCameraJSON(paramName: string, data: any): Promise<boolean> {
+    private setParamFromCameraJSON(paramName: string, data: any) {
         const params: Record<string, string> = {};
         params[paramName] = JSON.stringify(data);
         return this.vapixAgent.setParameter(params, null);
