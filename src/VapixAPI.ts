@@ -16,10 +16,12 @@ import {
     TAudioDeviceFromRequest,
     sdCardWatchedStatuses,
     APP_IDS,
+    maxFpsResponseSchema,
+    dateTimeinfoSchema,
+    audioDeviceRequestSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
-    FetchDeviceInfoError,
     MaxFPSError,
     NoDeviceInfoError,
     SDCardActionError,
@@ -28,6 +30,7 @@ import {
 import { ProxyClient } from './internal/ProxyClient';
 import { TCameraImageConfig, TProxyParam } from './types/common';
 import { arrayToUrl, paramToUrl } from './internal/utils';
+import { z } from 'zod';
 
 export class VapixAPI<Client extends IClient = IClient> {
     public client: ProxyClient<Client>;
@@ -40,7 +43,7 @@ export class VapixAPI<Client extends IClient = IClient> {
      * url encoded post request
      * there is a problem on some routers with the url size limit
      */
-    getUrlEncoded(
+    async getUrlEncoded(
         proxy: TProxyParam = null,
         path: string,
         parameters?: TParameters,
@@ -48,13 +51,17 @@ export class VapixAPI<Client extends IClient = IClient> {
     ) {
         const data = paramToUrl(parameters);
         const head = { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' };
-        return this.client.post(proxy, path, data, {}, head);
+        const res = await this.client.post(proxy, path, data, {}, head);
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+        return res;
     }
 
     /**
      * sends data as JSON
      */
-    postJson(
+    async postJson(
         proxy: TProxyParam = null,
         path: string,
         jsonData: Record<string, any>,
@@ -62,7 +69,11 @@ export class VapixAPI<Client extends IClient = IClient> {
     ) {
         const data = JSON.stringify(jsonData);
         const head = { ...headers, 'Content-Type': 'application/json' };
-        return this.client.post(proxy, path, data, {}, head);
+        const res = await this.client.post(proxy, path, data, {}, head);
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+        return res;
     }
 
     async getCameraImage(params: TCameraImageConfig, proxy: TProxyParam = null) {
@@ -78,6 +89,9 @@ export class VapixAPI<Client extends IClient = IClient> {
             '</s:Body>' +
             '</s:Envelope>';
         const res = await this.client.post(proxy, '/vapix/services', data, { 'Content-Type': 'application/soap+xml' });
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
         const declarations = await res.text();
         return prettifyXml(declarations);
     }
@@ -140,11 +154,11 @@ export class VapixAPI<Client extends IClient = IClient> {
         };
     }
 
-    async mountSDCard(proxy: TProxyParam = null) {
+    mountSDCard(proxy: TProxyParam = null) {
         return this._doSDCardMountAction('MOUNT', proxy);
     }
 
-    async unmountSDCard(proxy: TProxyParam = null) {
+    unmountSDCard(proxy: TProxyParam = null) {
         return this._doSDCardMountAction('UNMOUNT', proxy);
     }
 
@@ -191,43 +205,18 @@ export class VapixAPI<Client extends IClient = IClient> {
         return Number(job.progress);
     }
 
-    async downloadCameraReport(proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/serverreport.cgi', { mode: 'text' });
-
-        if (res.ok) {
-            return res;
-        } else {
-            throw new Error(await responseStringify(res));
-        }
+    downloadCameraReport(proxy: TProxyParam = null) {
+        return this.getUrlEncoded(proxy, '/axis-cgi/serverreport.cgi', { mode: 'text' });
     }
 
-    async getSystemLog(proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/admin/systemlog.cgi');
-
-        if (res.ok) {
-            return res;
-        } else {
-            throw new Error(await responseStringify(res));
-        }
+    getSystemLog(proxy: TProxyParam = null) {
+        return this.getUrlEncoded(proxy, '/axis-cgi/admin/systemlog.cgi');
     }
 
     async getMaxFps(channel: number, proxy: TProxyParam = null): Promise<number> {
         const data = { apiVersion: '1.0', method: 'getCaptureModes' };
         const res = await this.postJson(proxy, '/axis-cgi/capturemode.cgi', data);
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
-
-        const response = (await res.json()) as Partial<{
-            data: {
-                channel: number;
-                captureMode: {
-                    enabled: boolean;
-                    maxFPS: string;
-                }[];
-            }[];
-        }>;
+        const response = maxFpsResponseSchema.parse(await res.json());
 
         const channels = response.data;
         if (channels === undefined) {
@@ -256,56 +245,30 @@ export class VapixAPI<Client extends IClient = IClient> {
     async getTimezone(proxy: TProxyParam = null): Promise<string> {
         const data = { apiVersion: '1.0', method: 'getDateTimeInfo' };
         const res = await this.postJson(proxy, '/axis-cgi/time.cgi', data);
-
-        if (res.ok) {
-            return ((await res.json()) as any)?.timeZone ?? 'Europe/Prague';
-        } else {
-            throw new Error(await responseStringify(res));
-        }
+        return ((await res.json()) as any)?.timeZone ?? 'Europe/Prague';
     }
 
-    async getDateTimeInfo(proxy: TProxyParam = null): Promise<
-        Partial<{
-            dateTime: string;
-            dstEnabled: boolean;
-            localDateTime: string;
-            posixTimeZone: string;
-            timeZone: string;
-        }>
-    > {
+    async getDateTimeInfo(proxy: TProxyParam = null) {
         const data = { apiVersion: '1.0', method: 'getDateTimeInfo' };
         const res = await this.postJson(proxy, '/axis-cgi/time.cgi', data);
-
-        if (res.ok) {
-            return ((await res.json()) as any)?.data;
-        } else {
-            throw new Error(await responseStringify(res));
-        }
+        return dateTimeinfoSchema.parse(await res.json());
     }
 
     async getDevicesSettings(proxy: TProxyParam = null): Promise<TAudioDevice[]> {
-        const data = JSON.stringify({ apiVersion: '1.0', method: 'getDevicesSettings' });
-        const res = await this.client.post(proxy, '/axis-cgi/audiodevicecontrol.cgi', data);
+        const data = { apiVersion: '1.0', method: 'getDevicesSettings' };
+        const res = await this.postJson(proxy, '/axis-cgi/audiodevicecontrol.cgi', data);
 
-        if (res.ok) {
-            const result: TAudioDeviceFromRequest[] = ((await res.json()) as any).devices ?? [];
+        const result = audioDeviceRequestSchema.parse(await res.json());
 
-            return result.map((device: TAudioDeviceFromRequest) => ({
-                ...device,
-                inputs: (device.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
-                outputs: (device.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),
-            }));
-        } else {
-            throw new Error(await responseStringify(res));
-        }
+        return result.devices.map((device: TAudioDeviceFromRequest) => ({
+            ...device,
+            inputs: (device.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+            outputs: (device.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),
+        }));
     }
 
     async fetchRemoteDeviceInfo<T extends Record<string, any>>(payload: T, proxy: TProxyParam = null) {
         const res = await this.postJson(proxy, '/axis-cgi/basicdeviceinfo.cgi', payload);
-
-        if (!res.ok) {
-            throw new Error(await responseStringify(res));
-        }
 
         const result = await parseStringPromise(await res.text(), {
             ignoreAttrs: false,
@@ -320,15 +283,11 @@ export class VapixAPI<Client extends IClient = IClient> {
         return result.data;
     }
 
-    async getHeaders(proxy: TProxyParam = null): Promise<Record<string, string>> {
+    async getHeaders(proxy: TProxyParam = null) {
         const data = { apiVersion: '1.0', method: 'list' };
         const res = await this.postJson(proxy, '/axis-cgi/customhttpheader.cgi', data);
 
-        if (res.ok) {
-            return ((await res.json()) as any).data ?? {};
-        } else {
-            throw new Error(await responseStringify(res));
-        }
+        return z.object({ data: z.record(z.string()) }).parse(await res.json()).data;
     }
 
     async setHeaders(headers: Record<string, string>, proxy: TProxyParam = null) {
@@ -353,15 +312,11 @@ export class VapixAPI<Client extends IClient = IClient> {
             ...params,
             action: 'update',
         });
-        if (res.ok) {
-            const responseText = await res.text();
-            if (responseText.startsWith('# Error')) {
-                throw new Error(responseText);
-            }
-            return true;
-        } else {
-            throw new Error(await responseStringify(res));
+        const responseText = await res.text();
+        if (responseText.startsWith('# Error')) {
+            throw new Error(responseText);
         }
+        return true;
     }
 
     async getGuardTourList(proxy: TProxyParam = null) {
@@ -520,7 +475,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (res.ok && text === 'ok') {
+        if (text === 'ok') {
             return;
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
@@ -536,9 +491,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (res.ok && text === 'ok') {
-            return;
-        } else {
+        if (text !== 'ok') {
             throw new ApplicationAPIError('RESTART', await responseStringify(res));
         }
     }
@@ -550,7 +503,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         });
         const text = (await res.text()).trim().toLowerCase();
 
-        if (res.ok && text === 'ok') {
+        if (text === 'ok') {
             return;
         } else if (text.startsWith('error:') && text.substring(7) === '6') {
             return;
@@ -572,6 +525,9 @@ export class VapixAPI<Client extends IClient = IClient> {
                 contentType: 'application/octet-stream',
             }
         );
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
 
         const text = await res.text();
         if (text.length > 5) {

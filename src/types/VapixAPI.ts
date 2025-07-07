@@ -127,10 +127,35 @@ export const audioDeviceSchema = z.object({
 });
 export type TAudioDevice = z.infer<typeof audioDeviceSchema>;
 
-export const audioDeviceFromRequestSchema = z.object({
+const audioDeviceFromRequestSchema = z.object({
     id: z.string(),
     name: z.string(),
     inputs: z.array(audioDeviceInputOutputSchema).optional(),
     outputs: z.array(audioDeviceInputOutputSchema).optional(),
 });
+export const audioDeviceRequestSchema = z.object({ devices: z.array(audioDeviceFromRequestSchema) });
 export type TAudioDeviceFromRequest = z.infer<typeof audioDeviceFromRequestSchema>;
+
+export const maxFpsResponseSchema = z.object({
+    data: z.array(
+        z.object({
+            channel: z.number(),
+            captureMode: z.array(
+                z.object({
+                    enabled: z.boolean(),
+                    maxFPS: z.string(),
+                })
+            ),
+        })
+    ),
+});
+
+export const dateTimeinfoSchema = z
+    .object({
+        dateTime: z.string(),
+        dstEnabled: z.boolean(),
+        localDateTime: z.string(),
+        posixTimeZone: z.string(),
+        timeZone: z.string(),
+    })
+    .partial();
