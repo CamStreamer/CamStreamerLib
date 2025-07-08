@@ -3,7 +3,6 @@
     "version": "4.0.0-beta.2",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
-    "type": "module",
     "dependencies": {
         "adm-zip": "^0.5.9",
         "eventemitter2": "^5.0.1",
@@ -41,8 +40,9 @@
     },
     "scripts": {
         "clean": "rimraf dist/*",
-        "build": "npm-run-all clean tsc copyPackage",
-        "tsc": "tsc",
+        "build": "npm-run-all clean build:cjs build:esm copyPackage",
+        "build:cjs": "tsc --project tsconfig.cjs.json",
+        "build:esm": "tsc --project tsconfig.esm.json",
         "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
         "lint": "eslint \"src/**/*.ts\"",
         "lint:fix": "eslint \"src/**/*.ts\" --fix",
