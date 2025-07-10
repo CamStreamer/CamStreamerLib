@@ -31,6 +31,8 @@ npm install camstreamerlib
 
 -   [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) is a module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.
 
+-   [CamSwitcherAPI](doc/CamSwitcherAPI.md) is a module to access CamSwitcher API.
+
 -   [CamSwitcherEvents](doc/CamSwitcherEvents.md) is a module which allows receiving events from CamSwitcher ACAP application.
 
 -   [VapixEvents](doc/VapixEvents.md) is a module which allows receiving camera events from the VAPIX API.
