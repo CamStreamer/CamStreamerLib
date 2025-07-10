@@ -1,4 +1,4 @@
-import { IClient, isNullish, TParameters } from '../internal/common';
+import { IClient, TParameters } from '../internal/common';
 import { addParametersToPath } from '../internal/utils';
 
 export class DefaultClient implements IClient {

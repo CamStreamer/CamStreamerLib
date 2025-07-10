@@ -413,19 +413,13 @@ const parseBitrateOptionsToBitrateVapixParams = (
         return '';
     }
 
-    if (bitrateMode === 'VBR') {
-        return 'videobitratemode=vbr';
-    }
+    const data: Record<TBitrateMode, string> = {
+        VBR: 'videobitratemode=vbr',
+        MBR: `videobitratemode=mbr&videomaxbitrate=${cameraOptions.maximumBitRate}`,
+        ABR: `videobitratemode=abr&videoabrtargetbitrate=${cameraOptions.maximumBitRate}&videoabrretentiontime=${cameraOptions.retentionTime}&videoabrmaxbitrate=${cameraOptions.bitRateLimit}`,
+    };
 
-    if (bitrateMode === 'MBR') {
-        return `videobitratemode=mbr&videomaxbitrate=${cameraOptions.maximumBitRate}`;
-    }
-
-    if (bitrateMode === 'ABR') {
-        return `videobitratemode=abr&videoabrtargetbitrate=${cameraOptions.maximumBitRate}&videoabrretentiontime=${cameraOptions.retentionTime}&videoabrmaxbitrate=${cameraOptions.bitRateLimit}`;
-    }
-
-    throw new Error('Unknown bitrateMode param in getVapixParams method.');
+    return data[bitrateMode];
 };
 
 const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TBitrateVapixParams => {
@@ -441,7 +435,7 @@ const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TBitrateV
     // Lower firmware version does not support bitrate modes and has only videomaxbitrate param
     const hasLowerFw = bitrateMode === undefined && params['videomaxbitrate'] !== undefined;
     if (hasLowerFw) {
-        const maximumBitRate = parseInt(params['videomaxbitrate'], 10);
+        const maximumBitRate = parseInt(params['videomaxbitrate'] ?? '0', 10);
         return {
             bitrateMode: 'MBR',
             maximumBitRate: maximumBitRate,
@@ -451,19 +445,19 @@ const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TBitrateV
     }
 
     if (bitrateMode === 'ABR') {
-        const maximumBitRate = parseInt(params['videoabrtargetbitrate'], 10);
-        const retentionTime = parseInt(params['videoabrretentiontime'], 10);
-        const bitrateLimit = parseInt(params['videoabrmaxbitrate'], 10);
+        const maximumBitRate = parseInt(params['videoabrtargetbitrate'] ?? '0', 10);
+        const retentionTime = parseInt(params['videoabrretentiontime'] ?? '0', 10);
+        const bitRateLimit = parseInt(params['videoabrmaxbitrate'] ?? '0', 10);
 
         return {
-            bitrateMode: bitrateMode,
-            maximumBitRate: maximumBitRate,
-            retentionTime: retentionTime,
-            bitRateLimit: bitrateLimit,
+            bitrateMode,
+            maximumBitRate,
+            retentionTime,
+            bitRateLimit,
         };
     } else if (bitrateMode === 'MBR') {
-        const maximumBitRate = parseInt(params['videomaxbitrate'], 10);
-        const oldMaximumBitrateParamValue = parseInt(params['videombrmaxbitrate'], 10);
+        const maximumBitRate = params['videomaxbitrate'] !== undefined ? parseInt(params['videomaxbitrate'], 10) : null;
+        const oldMaximumBitrateParamValue = parseInt(params['videombrmaxbitrate'] ?? '0', 10);
 
         return {
             bitrateMode: bitrateMode,

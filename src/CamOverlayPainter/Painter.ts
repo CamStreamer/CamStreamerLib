@@ -2,7 +2,7 @@ import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, TCairoCreateResponse } 
 import ResourceManager from './ResourceManager';
 import { Frame, TFrameOptions } from './Frame';
 
-export const COORD: Record<string, [number, number]> = {
+export const COORD = {
     top_left: [-1, -1],
     center_left: [-1, 0],
     bottom_left: [-1, 1],
@@ -12,12 +12,13 @@ export const COORD: Record<string, [number, number]> = {
     top_right: [1, -1],
     center_right: [1, 0],
     bottom_right: [1, 1],
-};
+} as const;
+type TCoAlignment = keyof typeof COORD;
 
 export type TPainterOptions = TFrameOptions & {
     screenWidth: number;
     screenHeight: number;
-    coAlignment: string;
+    coAlignment: TCoAlignment;
 };
 
 type TLayer = {
@@ -29,7 +30,7 @@ type TLayer = {
 export class Painter extends Frame {
     private screenWidth: number;
     private screenHeight: number;
-    private coAlignment: [number, number];
+    private coAlignment: readonly [number, number];
 
     private cod: CamOverlayDrawingAPI;
     private rm: ResourceManager;
@@ -91,7 +92,7 @@ export class Painter extends Frame {
         this.screenHeight = sh;
     }
 
-    setCoAlignment(coAlignment: string) {
+    setCoAlignment(coAlignment: TCoAlignment) {
         this.coAlignment = COORD[coAlignment];
     }
 
@@ -112,6 +113,9 @@ export class Painter extends Frame {
             let lastCachedLayer: TLayer | undefined;
             for (let i = 0; i < this.layers.length; i++) {
                 const layer = this.layers[i];
+                if (layer === undefined) {
+                    continue;
+                }
 
                 // Skip layer if it is already rendered
                 if (
@@ -166,7 +170,7 @@ export class Painter extends Frame {
         // Invalidate all layers above the specified layer
         for (let i = layerIdx; i < this.layers.length; i++) {
             const currentLayer = this.layers[i];
-            if (currentLayer.surfaceCache !== undefined && currentLayer.cairoCache !== undefined) {
+            if (currentLayer?.surfaceCache !== undefined && currentLayer.cairoCache !== undefined) {
                 await this.cleanupSurface(currentLayer.surfaceCache, currentLayer.cairoCache);
                 currentLayer.surfaceCache = undefined;
                 currentLayer.cairoCache = undefined;
@@ -190,7 +194,11 @@ export class Painter extends Frame {
         });
     }
 
-    private async prepareSurface(scale: number, cachedSurface?: string, cachedCairo?: string) {
+    private async prepareSurface(
+        scale: number,
+        cachedSurface?: string,
+        cachedCairo?: string
+    ): Promise<[string, string]> {
         const surface = (await this.cod.cairo(
             'cairo_image_surface_create',
             'CAIRO_FORMAT_ARGB32',

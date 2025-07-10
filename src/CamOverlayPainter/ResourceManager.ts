@@ -18,27 +18,29 @@ export default class ResourceManager {
     }
 
     async image(moniker: string) {
-        if (moniker in this.images) {
+        if (this.images[moniker] !== undefined) {
             return this.images[moniker];
-        } else if (moniker in this.imgFileNames) {
+        }
+        if (this.imgFileNames[moniker] !== undefined) {
             const imgData = await fs.readFile(this.imgFileNames[moniker]);
             this.images[moniker] = await this.co.uploadImageData(imgData);
             return this.images[moniker];
-        } else {
-            throw new Error('Error! Unknown image requested!');
         }
+
+        throw new Error('Error! Unknown image requested!');
     }
 
     async font(moniker: string) {
-        if (moniker in this.fonts) {
+        if (this.fonts[moniker] !== undefined) {
             return this.fonts[moniker];
-        } else if (moniker in this.fontFileNames) {
+        }
+        if (this.fontFileNames[moniker] !== undefined) {
             const fontData = await fs.readFile(this.fontFileNames[moniker]);
             this.fonts[moniker] = await this.co.uploadFontData(fontData);
             return this.fonts[moniker];
-        } else {
-            throw new Error('Error! Unknown font requested!');
         }
+
+        throw new Error('Error! Unknown font requested!');
     }
 
     clear() {

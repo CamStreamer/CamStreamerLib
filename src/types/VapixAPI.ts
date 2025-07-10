@@ -139,17 +139,19 @@ export const audioDeviceRequestSchema = z.object({ devices: z.array(audioDeviceF
 export type TAudioDeviceFromRequest = z.infer<typeof audioDeviceFromRequestSchema>;
 
 export const maxFpsResponseSchema = z.object({
-    data: z.array(
-        z.object({
-            channel: z.number(),
-            captureMode: z.array(
-                z.object({
-                    enabled: z.boolean(),
-                    maxFPS: z.number().optional(),
-                })
-            ),
-        })
-    ),
+    data: z
+        .array(
+            z.object({
+                channel: z.number(),
+                captureMode: z.array(
+                    z.object({
+                        enabled: z.boolean(),
+                        maxFPS: z.number().optional(),
+                    })
+                ),
+            })
+        )
+        .optional(),
 });
 
 export const dateTimeinfoSchema = z.object({
@@ -164,15 +166,11 @@ export const dateTimeinfoSchema = z.object({
 
 export const audioSampleRatesResponseSchema = z.object({
     data: z.object({
-        encoders: z.union([
-            z.object({
+        encoders: z
+            .object({
                 aac: z.array(audioSampleRatesSchema),
-                AAC: z.undefined(),
-            }),
-            z.object({
                 AAC: z.array(audioSampleRatesSchema),
-                aac: z.undefined(),
-            }),
-        ]),
+            })
+            .partial(),
     }),
 });

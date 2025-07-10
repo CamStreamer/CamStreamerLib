@@ -1,7 +1,7 @@
 import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
 
-import { IClient, isNullish, responseStringify, TParameters, TResponse } from './internal/common';
+import { IClient, isNullish, responseStringify, TParameters } from './internal/common';
 
 import {
     TApplicationList,
@@ -34,7 +34,7 @@ import { arrayToUrl, paramToUrl } from './internal/utils';
 import { z } from 'zod';
 
 export class VapixAPI<Client extends IClient = IClient> {
-    public client: ProxyClient<Client>;
+    client: ProxyClient<Client>;
 
     constructor(client: Client, getProxyUrl: () => string) {
         this.client = new ProxyClient(client, getProxyUrl);
@@ -45,7 +45,7 @@ export class VapixAPI<Client extends IClient = IClient> {
      * there is a problem on some routers with the url size limit
      */
     async getUrlEncoded(
-        proxy: TProxyParam = null,
+        proxy: TProxyParam,
         path: string,
         parameters?: TParameters,
         headers: Record<string, string> = {}
@@ -63,7 +63,7 @@ export class VapixAPI<Client extends IClient = IClient> {
      * sends data as JSON
      */
     async postJson(
-        proxy: TProxyParam = null,
+        proxy: TProxyParam,
         path: string,
         jsonData: Record<string, any>,
         headers: Record<string, string> = {}
@@ -328,9 +328,9 @@ export class VapixAPI<Client extends IClient = IClient> {
                 const gTour: TGuardTour = {
                     id: gTourBaseName,
                     camNbr: response[gTourBaseName + '.CamNbr'],
-                    name: response[gTourBaseName + '.Name'],
+                    name: response[gTourBaseName + '.Name'] ?? 'Guard Tour ' + (i + 1),
                     randomEnabled: response[gTourBaseName + '.RandomEnabled'],
-                    running: response[gTourBaseName + '.Running'],
+                    running: response[gTourBaseName + '.Running'] ?? 'no',
                     timeBetweenSequences: response[gTourBaseName + '.TimeBetweenSequences'],
                     tour: [],
                 };
@@ -405,9 +405,14 @@ export class VapixAPI<Client extends IClient = IClient> {
         const data = parseCameraPtzResponse(await response.text());
 
         const res: TPtzOverview = {};
-        Object.keys(data).forEach((camera) => {
-            res[Number(camera) - 1] = data[Number(camera)].map(({ data: itemData, ...d }) => d);
-        });
+        Object.keys(data)
+            .map(Number)
+            .forEach((camera) => {
+                if (data[camera] !== undefined) {
+                    // convert source (sometimes called camera) to viewNumber
+                    res[camera - 1] = data[camera]?.map(({ data: itemData, ...d }) => d);
+                }
+            });
         return res;
     }
 
@@ -441,7 +446,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         const response = await (
             await this.getUrlEncoded(proxy, '/axis-cgi/io/port.cgi', { checkactive: port.toString() })
         ).text();
-        return response.split('=')[1].indexOf('active') === 0;
+        return response.split('=')[1]?.indexOf('active') === 0;
     }
 
     async setOutputState(port: number, active: boolean, proxy: TProxyParam = null) {
@@ -458,11 +463,10 @@ export class VapixAPI<Client extends IClient = IClient> {
         const result = (await parseStringPromise(xml)) as TApplicationList;
 
         const apps = [];
-        for (let i = 0; i < result.reply.application.length; i++) {
+        for (const app of result.reply.application) {
             apps.push({
-                ...result.reply.application[i].$,
-                appId:
-                    APP_IDS.find((id) => id.toLowerCase() === result.reply.application[i].$.Name.toLowerCase()) ?? null,
+                ...app.$,
+                appId: APP_IDS.find((id) => id.toLowerCase() === app.$.Name.toLowerCase()) ?? null,
             });
         }
         return apps;
@@ -532,15 +536,15 @@ const parseParameters = (response: string) => {
     const params: Record<string, string> = {};
     const lines = response.split(/[\r\n]/);
 
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].length === 0 || lines[i].substring(0, 7) === '# Error') {
+    for (const line of lines) {
+        if (line.length === 0 || line.substring(0, 7) === '# Error') {
             continue;
         }
 
-        const delimiterPos = lines[i].indexOf('=');
+        const delimiterPos = line.indexOf('=');
         if (delimiterPos !== -1) {
-            const paramName = lines[i].substring(0, delimiterPos);
-            const paramValue = lines[i].substring(delimiterPos + 1);
+            const paramName = line.substring(0, delimiterPos);
+            const paramValue = line.substring(delimiterPos + 1);
             params[paramName] = paramValue;
         }
     }
@@ -594,7 +598,7 @@ const parsePtz = (parsed: string[]): TCameraPTZItem[] => {
 
         res.push({
             id,
-            name: data[0],
+            name: data[0] ?? 'Preset ' + id,
             data: {
                 pan: getValue('pan'),
                 tilt: getValue('tilt'),

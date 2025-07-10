@@ -79,10 +79,10 @@ export class VapixEvents extends EventEmitter {
         this.ws.on('open', () => {
             const topics = [];
             const eventNames = this.eventNames();
-            for (let i = 0; i < eventNames.length; i++) {
-                if (!this.isReservedEventName(eventNames[i])) {
+            for (const eventName of eventNames) {
+                if (!this.isReservedEventName(eventName)) {
                     const topic = {
-                        topicFilter: eventNames[i],
+                        topicFilter: eventName,
                     };
                     topics.push(topic);
                 }
