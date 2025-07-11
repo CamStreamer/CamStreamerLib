@@ -1,6 +1,6 @@
 {
     "name": "camstreamerlib",
-    "version": "4.0.0-beta.4",
+    "version": "4.0.0-beta.5",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
     "dependencies": {
@@ -43,7 +43,7 @@
         "build": "npm-run-all clean build:cjs build:esm copyPackage",
         "build:cjs": "tsc --project tsconfig.cjs.json",
         "build:esm": "tsc --project tsconfig.esm.json",
-        "copyPackage": "cp -f LICENSE dist/ && cp -f package.json dist/",
+        "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
         "prepublish": "npm run build",
         "lint": "eslint \"src/**/*.ts\"",
         "lint:fix": "eslint \"src/**/*.ts\" --fix",
