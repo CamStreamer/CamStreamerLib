@@ -18,6 +18,14 @@ const cswEventsDataSchema = z.discriminatedUnion('type', [
         master_audio: z.boolean(),
     }),
     z.object({
+        type: z.literal('StreamSwitchVideoError'),
+        playlist_name: z.string(),
+        playlist_active_stream: z.number(),
+        stream_name: z.string().optional(),
+        clip_name: z.string().optional(),
+        info: z.string(),
+    }),
+    z.object({
         type: z.literal('StreamSwitchAudioError'),
         stream_name: z.string().optional(),
         clip_name: z.string().optional(),
