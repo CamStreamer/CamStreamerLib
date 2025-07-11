@@ -543,7 +543,7 @@ const parseParameters = (response: string) => {
 
         const delimiterPos = line.indexOf('=');
         if (delimiterPos !== -1) {
-            const paramName = line.substring(0, delimiterPos);
+            const paramName = line.substring(0, delimiterPos).replace('root.', '');
             const paramValue = line.substring(delimiterPos + 1);
             params[paramName] = paramValue;
         }
