@@ -458,7 +458,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     //  -------------------------------
 
     async getApplicationList(proxy: TProxyParam = null): Promise<TApplication[]> {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/list.cgi');
+        const res = await this.client.get(proxy, '/axis-cgi/applications/list.cgi');
         const xml = await res.text();
         const result = (await parseStringPromise(xml)) as TApplicationList;
 
@@ -473,7 +473,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async startApplication(applicationID: string, proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
+        const res = await this.client.get(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'start',
         });
@@ -485,7 +485,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async restartApplication(applicationID: string, proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
+        const res = await this.client.get(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'restart',
         });
@@ -497,7 +497,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async stopApplication(applicationID: string, proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
+        const res = await this.client.get(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'stop',
         });
