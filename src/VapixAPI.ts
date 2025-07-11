@@ -257,10 +257,8 @@ export class VapixAPI<Client extends IClient = IClient> {
     async getDevicesSettings(proxy: TProxyParam = null): Promise<TAudioDevice[]> {
         const data = { apiVersion: '1.0', method: 'getDevicesSettings' };
         const res = await this.postJson(proxy, '/axis-cgi/audiodevicecontrol.cgi', data);
-
         const result = audioDeviceRequestSchema.parse(await res.json());
-
-        return result.devices.map((device: TAudioDeviceFromRequest) => ({
+        return result.data.devices.map((device: TAudioDeviceFromRequest) => ({
             ...device,
             inputs: (device.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
             outputs: (device.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),

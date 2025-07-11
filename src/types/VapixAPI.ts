@@ -100,7 +100,7 @@ export type TAudioDeviceSignalingChannelType = z.infer<typeof audioDeviceSignali
 
 export const audioDeviceSignalingTypeSchema = z.object({
     id: z.string(),
-    powerType: z.string(),
+    powerType: z.string().optional(),
     channels: z.array(audioDeviceSignalingChannelTypeSchema),
 });
 export type TAudioDeviceSignalingType = z.infer<typeof audioDeviceSignalingTypeSchema>;
@@ -135,7 +135,9 @@ const audioDeviceFromRequestSchema = z.object({
     inputs: z.array(audioDeviceInputOutputSchema).optional(),
     outputs: z.array(audioDeviceInputOutputSchema).optional(),
 });
-export const audioDeviceRequestSchema = z.object({ devices: z.array(audioDeviceFromRequestSchema) });
+export const audioDeviceRequestSchema = z.object({
+    data: z.object({ devices: z.array(audioDeviceFromRequestSchema) }),
+});
 export type TAudioDeviceFromRequest = z.infer<typeof audioDeviceFromRequestSchema>;
 
 export const maxFpsResponseSchema = z.object({
