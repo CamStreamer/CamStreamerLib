@@ -40,7 +40,7 @@ const baseUrl = '/local/camswitcher/api';
 export class CamSwitcherAPI<Client extends IClient = IClient> {
     private vapixAgent: VapixAPI;
 
-    constructor(public client: Client) {
+    constructor(public client: Client, private CustomFormData = FormData) {
         this.vapixAgent = new VapixAPI(client, () => '');
     }
 
@@ -169,7 +169,7 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
         id: string,
         fileName?: string
     ) {
-        const formData = new FormData();
+        const formData = new this.CustomFormData();
         formData.append('clip_name', id);
         formData.append('clip_type', clipType);
         formData.append('file', file, fileName);
