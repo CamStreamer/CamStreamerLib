@@ -24,6 +24,7 @@ export const APP_IDS = [
     'CamScripter',
     'PlaneTracker',
     'Ndihxplugin',
+    'SportTracker',
 ] as const;
 export type TApplicationId = (typeof APP_IDS)[number];
 export type TApplication = z.infer<typeof applicationSchema> & {
