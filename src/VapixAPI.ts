@@ -100,8 +100,8 @@ export class VapixAPI<Client extends IClient = IClient> {
 
     async getSupportedAudioSampleRate(proxy: TProxyParam = null): Promise<TAudioSampleRates[]> {
         const url = '/axis-cgi/audio/streamingcapabilities.cgi';
-        const formData = { apiVersion: '1.0', method: 'list' };
-        const res = await this.postJson(proxy, url, formData);
+        const jsonData = { apiVersion: '1.0', method: 'list' };
+        const res = await this.postJson(proxy, url, jsonData);
 
         const encoders = audioSampleRatesResponseSchema.parse(await res.json()).data.encoders;
         const data = encoders.aac ?? encoders.AAC ?? [];
@@ -130,7 +130,7 @@ export class VapixAPI<Client extends IClient = IClient> {
             await this.postJson(proxy, '/axis-cgi/opticscontrol.cgi', data);
         } catch (err) {
             // lets try the old api
-            await this.postJson(proxy, '/axis-cgi/opticssetup.cgi', {
+            await this.getUrlEncoded(proxy, '/axis-cgi/opticssetup.cgi', {
                 autofocus: 'perform',
                 source: '1',
             });
