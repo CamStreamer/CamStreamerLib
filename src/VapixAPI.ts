@@ -25,6 +25,7 @@ import {
     ApplicationAPIError,
     MaxFPSError,
     NoDeviceInfoError,
+    PtzNotSupportedError,
     SDCardActionError,
     SDCardJobError,
 } from './errors/errors';
@@ -391,7 +392,11 @@ export class VapixAPI<Client extends IClient = IClient> {
             format: 'json',
         });
 
-        return parseCameraPtzResponse(await response.text())[camera] ?? [];
+        const text = await response.text();
+        if (text === '') {
+            throw new PtzNotSupportedError();
+        }
+        return parseCameraPtzResponse(text)[camera] ?? [];
     }
 
     async listPtzVideoSourceOverview(proxy: TProxyParam = null): Promise<TPtzOverview> {
@@ -400,7 +405,11 @@ export class VapixAPI<Client extends IClient = IClient> {
             format: 'json',
         });
 
-        const data = parseCameraPtzResponse(await response.text());
+        const text = await response.text();
+        if (text === '') {
+            throw new PtzNotSupportedError();
+        }
+        const data = parseCameraPtzResponse(text);
 
         const res: TPtzOverview = {};
         Object.keys(data)

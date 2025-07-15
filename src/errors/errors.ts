@@ -80,3 +80,10 @@ export class AddNewClipError extends Error {
         this.name = 'AddNewClipError';
     }
 }
+
+export class PtzNotSupportedError extends Error {
+    constructor() {
+        super('Ptz not supported.');
+        this.name = 'PtzNotSupportedError';
+    }
+}
