@@ -1,4 +1,4 @@
-import { customGraphicsDeprecatedSchema, customGraphicsSchema } from './customGraphicsSchema';
+import { customGraphicsSchema } from './customGraphicsSchema';
 import { imagesSchema, imagesSchemaDeprecated } from './imagesSchema';
 
 import { accuweatherSchema } from './accuweatherSchema';
@@ -19,7 +19,6 @@ export const widgetsSchema = z.discriminatedUnion('name', [
     ptzSchema,
     pipSchema,
     customGraphicsSchema,
-    customGraphicsDeprecatedSchema,
     screenSharingSchema,
     webCameraSharingSchema,
 ]);

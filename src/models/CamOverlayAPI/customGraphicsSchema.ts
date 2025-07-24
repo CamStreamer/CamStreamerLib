@@ -55,7 +55,9 @@ const mappingZoneCountdownSchema = mappingZonesCommonSchema.extend({
 });
 
 export const mappingZoneSchema = z.discriminatedUnion('type', [mappingZonePlainSchema, mappingZoneCountdownSchema]);
-const customGraphicsSchemaUnnamed = z.object({
+
+export const customGraphicsSchema = widgetCommonSchema.extend({
+    name: z.literal(allowedWidgetNames.customGraphics),
     pos_x: z.number(),
     pos_y: z.number(),
     coordSystem: coordinateSystemSchema,
@@ -67,13 +69,6 @@ const customGraphicsSchemaUnnamed = z.object({
     customAreaHeight: z.number().nonnegative(),
     customAreaCorners: z.union([z.literal('sharp'), z.literal('rounded')]),
     mappingZones: z.array(mappingZoneSchema),
-});
-export const customGraphicsDeprecatedSchema = widgetCommonSchema.merge(customGraphicsSchemaUnnamed).extend({
-    name: z.literal('textAndBackground'),
-});
-
-export const customGraphicsSchema = widgetCommonSchema.merge(customGraphicsSchemaUnnamed).extend({
-    name: z.literal(allowedWidgetNames.customGraphics),
 });
 
 export const fieldSchema = z.object({
