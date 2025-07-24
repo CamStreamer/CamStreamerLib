@@ -1,23 +1,25 @@
-import { IClient, isClient, responseStringify } from './internal/common';
+import { IClient, isClient, responseStringify, TGetFunction, TParameters, TPostFunction } from './internal/common';
 import { DefaultClient } from './node/DefaultClient';
 
 import {
     CamOverlayOptions,
-    fileListSchema,
     ImageType,
-    serviceSchema,
-    storageSchema,
     TCoordinates,
     TField,
     TFile,
-    TFileList,
     TFileType,
-    TService,
-    TServiceList,
     TStorage,
+    TWidget,
+    TWidgetList,
 } from './types/CamOverlayAPI';
 import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
-import { networkCameraListSchema, TNetworkCamera } from './types/common';
+import { networkCameraListSchema } from './types/common';
+import { z } from 'zod';
+import { widgetsSchema } from './models/CamOverlayAPI/widgetsSchema';
+import { fileListSchema, storageSchema } from './models/CamOverlayAPI/fileSchema';
+import { paramToUrl } from './internal/utils';
+
+const BASE_URL = '/local/camoverlay/api';
 
 export class CamOverlayAPI {
     private client: IClient;
@@ -30,24 +32,58 @@ export class CamOverlayAPI {
         }
     }
 
-    async checkCameraTime(): Promise<boolean> {
-        const cameraTime = await this.get('/local/camoverlay/api/camera_time.cgi');
+    static getProxyUrlPath = () => `${BASE_URL}/proxy.cgi`;
+
+    async checkCameraTime() {
+        const responseSchema = z.discriminatedUnion('state', [
+            z.object({
+                state: z.literal(true),
+                code: z.number(),
+            }),
+            // Error response
+            z.object({
+                state: z.literal(false),
+                code: z.number(),
+                reason: z.union([
+                    z.literal('INVALID_TIME'),
+                    z.literal('COULDNT_RESOLVE_HOST'), // NOTE: typo on server already
+                    z.literal('CONNECTION_ERROR'),
+                ]),
+                message: z.string(),
+            }),
+        ]);
+
+        const response = await this._get<z.infer<typeof responseSchema>>(`${BASE_URL}/camera_time.cgi`);
+        const cameraTime = responseSchema.parse(response);
+
+        if (!cameraTime.state) {
+            // create logger
+            console.error(`Camera time check failed: ${cameraTime.reason} - ${cameraTime.message}`);
+            // throw new Error(`Camera time check failed: ${cameraTime.reason} - ${cameraTime.message}`);
+        }
+
         return cameraTime.state;
     }
 
-    async getNetworkCameraList(): Promise<TNetworkCamera[]> {
-        const response = await this.get('/local/camoverlay/api/network_camera_list.cgi');
+    async getNetworkCameraList() {
+        const response = await this._get(`${BASE_URL}/network_camera_list.cgi`);
         return networkCameraListSchema.parse(response.camera_list);
     }
 
-    async wsAutoratization(): Promise<string> {
-        const response = await this.get(`/local/camoverlay/api/ws_authorization.cgi`);
-        return response.data;
+    async wsAuthorization() {
+        const responseSchema = z.object({
+            status: z.number(),
+            message: z.string(),
+            data: z.string(),
+        });
+
+        const response = await this._get<z.infer<typeof responseSchema>>(`${BASE_URL}/ws_authorization.cgi`);
+        return responseSchema.parse(response).data;
     }
 
     async getMjpegStreamImage(mjpegUrl: string): Promise<Blob> {
-        const res = await this.get(
-            `/local/camoverlay/api/fetch_mjpeg_image.cgi?mjpeg_url=${encodeURIComponent(decodeURIComponent(mjpegUrl))}`
+        const res = await this._get(
+            `${BASE_URL}/fetch_mjpeg_image.cgi?mjpeg_url=${encodeURIComponent(decodeURIComponent(mjpegUrl))}`
         );
 
         return await this.parseBlobResponse(res);
@@ -57,28 +93,51 @@ export class CamOverlayAPI {
     //            files - fonts, images
     //   ----------------------------------------
 
-    async listFiles(fileType: TFileType): Promise<TFileList> {
-        const files = await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=list`);
+    async listFiles(fileType: TFileType) {
+        const fileDataSchema = z.object({
+            code: z.number(),
+            list: fileListSchema,
+        });
+        const files = await this._get<z.infer<typeof fileDataSchema>>(`${BASE_URL}/upload_${fileType}.cgi`, {
+            action: 'list',
+        });
         return fileListSchema.parse(files.list);
     }
 
-    async uploadFile(fileType: TFileType, file: Blob, fileName: string): Promise<void> {
-        const formData = new FormData();
-        formData.append('target', 'SD0');
-        formData.append('uploadedFile[]', file, fileName);
-
-        const path = `/local/camoverlay/api/upload_${fileType}.cgi?action=upload`;
-        await this.post(path, formData);
+    async uploadFile(fileType: TFileType, formData: FormData, storage: TStorage): Promise<void> {
+        const path = `${BASE_URL}/upload_${fileType}.cgi`;
+        await this._post(path, formData, {
+            action: 'upload',
+            storage: storage,
+        });
     }
 
-    async removeFile(fileType: TFileType, file: TFile): Promise<void> {
-        const path = `/local/camoverlay/api/upload_${fileType}.cgi?action=remove`;
-        await this.post(path, JSON.stringify(file));
+    async removeFile(fileType: TFileType, fileParams: TFile): Promise<void> {
+        const path = `${BASE_URL}/upload_${fileType}.cgi`;
+        await this._postUrlEncoded(path, {
+            action: 'remove',
+            ...fileParams,
+        });
     }
 
-    async getFileStorage(fileType: TFileType): Promise<TStorage> {
-        const data = await this.get(`/local/camoverlay/api/upload_${fileType}.cgi?action=get_storage`);
-        return storageSchema.parse(data);
+    async getFileStorage(fileType: TFileType) {
+        const storageDataListSchema = z.array(
+            z.object({
+                type: storageSchema,
+                state: z.string(),
+            })
+        );
+        const responseSchema = z.object({
+            code: z.number(),
+            list: storageDataListSchema,
+        });
+        const data = await this._get<z.infer<typeof responseSchema>>(`${BASE_URL}/upload_${fileType}.cgi`, {
+            action: 'get_storage',
+        });
+        if (data.code !== 200) {
+            throw new Error('Error occured while fetching file storage data');
+        }
+        return storageDataListSchema.parse(data.list);
     }
 
     //   ----------------------------------------
@@ -86,18 +145,18 @@ export class CamOverlayAPI {
     //   ----------------------------------------
 
     async updateInfoticker(serviceID: number, text: string): Promise<void> {
-        await this.get(`/local/camoverlay/api/infoticker.cgi?service_id=${serviceID}&text=${text}`);
+        await this._get(`${BASE_URL}/infoticker.cgi?service_id=${serviceID}&text=${text}`);
     }
 
     async setEnabled(serviceID: number, enabled: boolean): Promise<void> {
-        await this.post(`/local/camoverlay/api/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`, '');
+        await this._post(`${BASE_URL}/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`, '');
     }
 
     async isEnabled(serviceID: number): Promise<boolean> {
-        const res = await this.client.get('/local/camoverlay/api/services.cgi?action=get');
+        const res = await this.client.get(`${BASE_URL}/services.cgi?action=get`);
 
         if (res.ok) {
-            const data: TServiceList = JSON.parse(await res.text());
+            const data: TWidgetList = JSON.parse(await res.text());
 
             for (const service of data.services) {
                 if (service.id === serviceID) {
@@ -110,30 +169,45 @@ export class CamOverlayAPI {
         }
     }
 
-    async getSingleService(serviceId: number): Promise<TService> {
-        const data = await this.get('/local/camoverlay/api/services.cgi', {
+    async getSingleWidget(serviceId: number) {
+        const data = await this._get<TWidget>(`${BASE_URL}/services.cgi`, {
             action: 'get',
             service_id: serviceId.toString(),
         });
-        return serviceSchema.parse(data);
+        return widgetsSchema.parse(data);
     }
 
-    async getServices(): Promise<TService[]> {
-        const serviceList = await this.get('/local/camoverlay/api/services.cgi?action=get');
-        return serviceSchema.parse(serviceList).services;
+    async getWidgets() {
+        const widgetList = await this._get<TWidgetList>(`${BASE_URL}/services.cgi`, {
+            action: 'get',
+        });
+        const widgets = widgetList.services;
+
+        widgets.forEach((widget) => {
+            const parsedWidget = widgetsSchema.safeParse(widget);
+            if (!parsedWidget.success) {
+                console.warn(
+                    `[SERVICE SCHEMA MISMATCH]: Service ${widget.name} (${widget.id}) does not match the current schema, or is a hidden service.`
+                );
+            }
+        });
+
+        return widgets;
     }
 
-    async updateSingleService(serviceId: number, serviceJson: TService): Promise<void> {
-        const path = '/local/camoverlay/api/services.cgi';
-        await this.post(path, JSON.stringify(serviceJson), {
+    async updateSingleWidget(widget: TWidget): Promise<void> {
+        const path = `${BASE_URL}/services.cgi`;
+        await this._postJsonEncoded(path, JSON.stringify(widget), {
             action: 'set',
-            service_id: serviceId.toString(),
+            service_id: widget.id.toString(),
         });
     }
 
-    async updateServices(servicesJson: TServiceList): Promise<void> {
-        const path = '/local/camoverlay/api/services.cgi?action=set';
-        await this.post(path, JSON.stringify(servicesJson));
+    async updateWidgets(widgets: TWidget[]): Promise<void> {
+        const path = `${BASE_URL}/services.cgi`;
+        await this._postJsonEncoded(path, JSON.stringify({ services: widgets }), {
+            action: 'set',
+        });
     }
 
     //   ----------------------------------------
@@ -198,7 +272,7 @@ export class CamOverlayAPI {
         contentType?: string,
         data?: Buffer
     ) {
-        const path = `/local/camoverlay/api/customGraphics.cgi`;
+        const path = `${BASE_URL}/customGraphics.cgi`;
         let headers = {};
         if (contentType !== undefined && data) {
             headers = { 'Content-Type': contentType };
@@ -219,23 +293,41 @@ export class CamOverlayAPI {
         }
     }
 
-    private async get(path: string, params?: Record<string, string>): Promise<any> {
-        const res = await this.client.get(path, params);
+    private async _get<TResponseData = any>(...args: Parameters<TGetFunction>): Promise<TResponseData> | never {
+        const res = await this.client.get(...args);
 
         if (res.ok) {
-            return await res.json();
+            return (await res.json()) as TResponseData;
         } else {
             throw new Error(await responseStringify(res));
         }
     }
-    private async post(path: string, data: string | Buffer | FormData, params?: Record<string, string>): Promise<any> {
-        const res = await this.client.post(path, data, params);
+    private async _post<TResponseData = any>(...args: Parameters<TPostFunction>): Promise<TResponseData> | never {
+        const res = await this.client.post(...args);
 
         if (res.ok) {
-            return await res.json();
+            return (await res.json()) as TResponseData;
         } else {
             throw new Error(await responseStringify(res));
         }
+    }
+
+    private async _postUrlEncoded<TResponseData = any>(
+        path: string,
+        params: TParameters,
+        headers?: Record<string, string>
+    ): Promise<TResponseData> | never {
+        const data = paramToUrl(params);
+        const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        return this._post(path, data, {}, { ...baseHeaders, ...headers });
+    }
+
+    private async _postJsonEncoded<TResponseData = any>(
+        ...args: Parameters<TPostFunction>
+    ): Promise<TResponseData> | never {
+        const [path, data, params, headers] = args;
+        const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        return this._post(path, data, params, { ...baseHeaders, ...headers });
     }
 
     private async parseBlobResponse(response: Response): Promise<Blob> | never {
