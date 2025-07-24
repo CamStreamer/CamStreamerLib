@@ -1,5 +1,5 @@
-import { allowedWidgetNames } from '../constants';
-import { fontSchema, languageSchema, weatherUnitSchema, widgetCommonSchema } from '../shared/schema';
+import { allowedWidgetNames } from './constants';
+import { fontSchema, languageSchema, weatherUnitSchema, widgetCommonSchema } from './widgetCommonSchema';
 
 import { z } from 'zod';
 

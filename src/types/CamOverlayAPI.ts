@@ -2,7 +2,7 @@ import { HttpOptions } from '../internal/common';
 import { z } from 'zod';
 import { widgetListSchema, widgetsSchema } from '../models/CamOverlayAPI/widgetsSchema';
 import { fileListSchema, fileSchema, storageSchema } from '../models/CamOverlayAPI/fileSchema';
-import { fieldSchema } from '../models/CamOverlayAPI/customGraphics/schema';
+import { fieldSchema } from '../models/CamOverlayAPI/customGraphicsSchema';
 
 export type CamOverlayOptions = HttpOptions;
 

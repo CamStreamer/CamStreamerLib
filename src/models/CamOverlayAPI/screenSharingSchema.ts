@@ -1,5 +1,5 @@
-import { allowedWidgetNames } from '../constants';
-import { sharingSchema } from '../shared/schema';
+import { allowedWidgetNames } from './constants';
+import { sharingSchema } from './widgetCommonSchema';
 import { z } from 'zod';
 
 export const screenSharingSchema = sharingSchema.extend({

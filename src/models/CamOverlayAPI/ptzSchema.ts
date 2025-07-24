@@ -1,5 +1,5 @@
-import { allowedWidgetNames } from '../constants';
-import { overlaySchema, widgetCommonSchema } from '../shared/schema';
+import { allowedWidgetNames } from './constants';
+import { overlaySchema, widgetCommonSchema } from './widgetCommonSchema';
 
 import { z } from 'zod';
 

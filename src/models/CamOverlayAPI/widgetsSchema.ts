@@ -1,13 +1,13 @@
-import { customGraphicsDeprecatedSchema, customGraphicsSchema } from './customGraphics/schema';
-import { imagesSchema, imagesSchemaDeprecated } from './images/schema';
+import { customGraphicsDeprecatedSchema, customGraphicsSchema } from './customGraphicsSchema';
+import { imagesSchema, imagesSchemaDeprecated } from './imagesSchema';
 
-import { accuweatherSchema } from './accuweather/schema';
-import { infoTickerSchema } from './infoticker/schema';
-import { pipSchema } from './pip/schema';
-import { ptzCompassSchema } from './ptzCompass/schema';
-import { ptzSchema } from './ptz/schema';
-import { screenSharingSchema } from './screenSharing/schema';
-import { webCameraSharingSchema } from './webCameraSharing/schema';
+import { accuweatherSchema } from './accuweatherSchema';
+import { infoTickerSchema } from './infotickerSchema';
+import { pipSchema } from './pipSchema';
+import { ptzCompassSchema } from './ptzCompassSchema';
+import { ptzSchema } from './ptzSchema';
+import { screenSharingSchema } from './screenSharingSchema';
+import { webCameraSharingSchema } from './webCameraSharingSchema';
 import { z } from 'zod';
 
 export const widgetsSchema = z.discriminatedUnion('name', [

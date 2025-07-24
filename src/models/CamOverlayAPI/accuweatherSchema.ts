@@ -1,11 +1,11 @@
-import { allowedWidgetNames } from '../constants';
+import { allowedWidgetNames } from './constants';
 import {
     coordinateSystemSchema,
     fontSchema,
     languageSchema,
     weatherUnitSchema,
     widgetCommonSchema,
-} from '../shared/schema';
+} from './widgetCommonSchema';
 
 import { z } from 'zod';
 

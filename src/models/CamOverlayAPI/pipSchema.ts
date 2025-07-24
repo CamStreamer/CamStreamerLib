@@ -1,5 +1,5 @@
-import { allowedWidgetNames } from '../constants';
-import { coordinateSystemSchema, requiredNumberSchema, widgetCommonSchema } from '../shared/schema';
+import { allowedWidgetNames } from './constants';
+import { coordinateSystemSchema, requiredNumberSchema, widgetCommonSchema } from './widgetCommonSchema';
 
 import { z } from 'zod';
 
