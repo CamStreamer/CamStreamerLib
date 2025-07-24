@@ -19,7 +19,7 @@ import { widgetsSchema } from './models/CamOverlayAPI/widgetsSchema';
 import { fileListSchema, storageSchema } from './models/CamOverlayAPI/fileSchema';
 import { paramToUrl } from './internal/utils';
 
-const BASE_URL = '/local/camoverlay/api';
+export const BASE_URL = '/local/camoverlay/api';
 
 export class CamOverlayAPI {
     private client: IClient;
