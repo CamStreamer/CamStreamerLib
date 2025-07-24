@@ -140,6 +140,11 @@ export class CamOverlayAPI {
         return storageDataListSchema.parse(data.list);
     }
 
+    async getFilePreviewFromCamera(path: string) {
+        const response = await this._get(`${BASE_URL}/image.cgi?path=${encodeURIComponent(path)}`);
+        return await this.parseBlobResponse(response);
+    }
+
     //   ----------------------------------------
     //             CamOverlay services
     //   ----------------------------------------
