@@ -23,6 +23,7 @@ export class CamOverlayAPI<Client extends IClient = IClient> {
     constructor(public client: Client) {}
 
     static getProxyUrlPath = () => `${BASE_URL}/proxy.cgi`;
+    static getFilePreviewPath = (path: string) => `${BASE_URL}/file_preview.cgi?path=${encodeURIComponent(path)}`;
 
     async checkCameraTime() {
         const responseSchema = z.discriminatedUnion('state', [
@@ -131,7 +132,7 @@ export class CamOverlayAPI<Client extends IClient = IClient> {
     }
 
     async getFilePreviewFromCamera(path: string) {
-        const response = await this._get(`${BASE_URL}/image.cgi?path=${encodeURIComponent(path)}`);
+        const response = await this._get(CamOverlayAPI.getFilePreviewPath(path));
         return await this.parseBlobResponse(response);
     }
 
