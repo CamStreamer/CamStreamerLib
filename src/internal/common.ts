@@ -19,18 +19,18 @@ export type TResponse = {
 };
 export type TParameters = Record<string, string | number | boolean | null | undefined>;
 
-export type TGetFunction = (
+export type TGetFunction<TRes = TResponse> = (
     url: string,
     parameters?: TParameters,
     headers?: Record<string, string>
-) => Promise<TResponse>;
+) => Promise<TRes>;
 
-export type TPostFunction = (
+export type TPostFunction<TRes = TResponse> = (
     url: string,
     data: string | Buffer | FormData,
     parameters?: TParameters,
     headers?: Record<string, string>
-) => Promise<TResponse>;
+) => Promise<TRes>;
 
 export interface IClient {
     get: TGetFunction;

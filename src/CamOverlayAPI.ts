@@ -1,8 +1,6 @@
-import { IClient, isClient, responseStringify, TGetFunction, TParameters, TPostFunction } from './internal/common';
-import { DefaultClient } from './node/DefaultClient';
+import { IClient, responseStringify, TGetFunction, TParameters, TPostFunction } from './internal/common';
 
 import {
-    CamOverlayOptions,
     ImageType,
     TCoordinates,
     TField,
@@ -21,16 +19,8 @@ import { paramToUrl } from './internal/utils';
 
 export const BASE_URL = '/local/camoverlay/api';
 
-export class CamOverlayAPI {
-    private client: IClient;
-
-    constructor(options: CamOverlayOptions | IClient = {}) {
-        if (isClient(options)) {
-            this.client = options;
-        } else {
-            this.client = new DefaultClient(options);
-        }
-    }
+export class CamOverlayAPI<Client extends IClient = IClient> {
+    constructor(public client: Client) {}
 
     static getProxyUrlPath = () => `${BASE_URL}/proxy.cgi`;
 
