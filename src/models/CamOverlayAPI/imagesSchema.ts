@@ -3,13 +3,7 @@ import { overlaySchema, widgetCommonSchema } from './widgetCommonSchema';
 
 import { z } from 'zod';
 
-const imagesSchemaUnnamed = z.object({
-    overlayList: z.array(overlaySchema),
-});
-export const imagesSchemaDeprecated = widgetCommonSchema.merge(imagesSchemaUnnamed).extend({
-    name: z.literal('custom'),
-});
-
-export const imagesSchema = widgetCommonSchema.merge(imagesSchemaUnnamed).extend({
+export const imagesSchema = widgetCommonSchema.extend({
     name: z.literal(allowedWidgetNames.images),
+    overlayList: z.array(overlaySchema),
 });

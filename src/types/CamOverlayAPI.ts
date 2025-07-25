@@ -59,7 +59,7 @@ export const isAccuweather = (widget: TWidget): widget is TAccuweather => widget
 
 export const isPtzCompass = (widget: TWidget): widget is TPtzCompass => widget.name === 'ptzCompass';
 
-export const isImages = (widget: TWidget): widget is TImages => widget.name === 'images' || widget.name === 'custom';
+export const isImages = (widget: TWidget): widget is TImages => widget.name === 'images';
 
 export const isPtz = (widget: TWidget): widget is TPtz => widget.name === 'ptz';
 
