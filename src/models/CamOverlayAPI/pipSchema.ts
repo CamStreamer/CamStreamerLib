@@ -1,5 +1,5 @@
 import { allowedWidgetNames } from './constants';
-import { coordinateSystemSchema, requiredNumberSchema, widgetCommonSchema } from './widgetCommonSchema';
+import { coordinateSystemSchema, widgetCommonSchema } from './widgetCommonSchema';
 
 import { z } from 'zod';
 
@@ -8,12 +8,12 @@ export const pipSchema = widgetCommonSchema.extend({
     coordSystem: coordinateSystemSchema,
     pos_x: z.number(),
     pos_y: z.number(),
-    fps: requiredNumberSchema,
+    fps: z.number(),
     compression: z.number().nonnegative(),
     screenSize: z.number().nonnegative(),
     source_type: z.union([z.literal('axis_camera'), z.literal('mjpeg_url')]),
     mjpeg_url: z.union([z.string().url(), z.literal('')]),
-    camera_ip: z.union([z.string().ip({ message: 'Invalid IP address' }), z.literal('')]),
+    camera_ip: z.union([z.string().ip(), z.literal('')]),
     camera_port: z.number().nonnegative(),
     camera_user: z.string(),
     camera_pass: z.string(),
@@ -31,9 +31,9 @@ export const pipSchema = widgetCommonSchema.extend({
     dewarping: z.object({
         enabled: z.boolean(),
         rectangle: z.array(z.tuple([z.number(), z.number()])),
-        aspectRatioCorrection: requiredNumberSchema,
+        aspectRatioCorrection: z.number(),
     }),
     borderColor: z.string(),
     borderWidth: z.number(),
-    scale: requiredNumberSchema,
+    scale: z.number(),
 });

@@ -8,6 +8,4 @@ export const allowedWidgetNames = {
     pip: 'pip',
     screenSharing: 'screenSharing',
     web_camera: 'web_camera',
-    custom: 'custom',
-    textAndBackground: 'textAndBackground',
 } as const;

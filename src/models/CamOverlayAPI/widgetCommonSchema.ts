@@ -1,7 +1,5 @@
 import { z } from 'zod';
 
-export const requiredNumberSchema = z.number({ invalid_type_error: 'Value must be a number and non-empty.' });
-
 export const coordinateSystemSchema = z.union([
     z.literal('top_left'),
     z.literal('top'),
@@ -75,6 +73,6 @@ export const sharingSchema = widgetCommonSchema.extend({
     pos_x: z.number().nonnegative(),
     pos_y: z.number().nonnegative(),
     coordSystem: coordinateSystemSchema,
-    screenSize: requiredNumberSchema.positive(),
-    fps: requiredNumberSchema,
+    screenSize: z.number().positive(),
+    fps: z.number(),
 });
