@@ -1,11 +1,8 @@
 import * as prettifyXml from 'prettify-xml';
-import { parseStringPromise } from 'xml2js';
 
 import { IClient, isNullish, responseStringify, TParameters } from './internal/common';
 
 import {
-    TApplicationList,
-    TApplication,
     TGuardTour,
     TAudioSampleRates,
     TSDCardInfo,
@@ -20,6 +17,7 @@ import {
     dateTimeinfoSchema,
     audioDeviceRequestSchema,
     audioSampleRatesResponseSchema,
+    applicationSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -33,6 +31,7 @@ import { ProxyClient } from './internal/ProxyClient';
 import { TCameraImageConfig, TProxyParam } from './types/common';
 import { arrayToUrl, paramToUrl } from './internal/utils';
 import { z } from 'zod';
+import { XMLParser } from 'fast-xml-parser';
 
 export class VapixAPI<Client extends IClient = IClient> {
     client: ProxyClient<Client>;
@@ -141,11 +140,15 @@ export class VapixAPI<Client extends IClient = IClient> {
         const res = await this.getUrlEncoded(proxy, '/axis-cgi/disks/list.cgi', {
             diskid: 'SD_DISK',
         });
-        const result = await parseStringPromise(await res.text(), {
-            ignoreAttrs: false,
-            mergeAttrs: true,
-            explicitArray: false,
+
+        const xmlText = await res.text();
+
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
         });
+        const result = parser.parse(xmlText);
 
         const data = result.root.disks.disk;
 
@@ -170,11 +173,13 @@ export class VapixAPI<Client extends IClient = IClient> {
             diskid: 'SD_DISK',
         });
 
-        const result = await parseStringPromise(await res.text(), {
-            ignoreAttrs: false,
-            mergeAttrs: true,
-            explicitArray: false,
+        const textXml = await res.text();
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
         });
+        const result = parser.parse(textXml);
 
         const job = result.root.job;
 
@@ -192,13 +197,13 @@ export class VapixAPI<Client extends IClient = IClient> {
             diskid: 'SD_DISK',
         });
 
-        const result = await parseStringPromise(await res.text(), {
-            ignoreAttrs: false,
-            mergeAttrs: true,
-            explicitArray: false,
+        const textXml = await res.text();
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
         });
-
-        const job = result.root.job;
+        const job = parser.parse(textXml).root.job;
 
         if (job.result !== 'OK') {
             throw new SDCardJobError();
@@ -269,11 +274,13 @@ export class VapixAPI<Client extends IClient = IClient> {
     async fetchRemoteDeviceInfo<T extends Record<string, any>>(payload: T, proxy: TProxyParam = null) {
         const res = await this.postJson(proxy, '/axis-cgi/basicdeviceinfo.cgi', payload);
 
-        const result = await parseStringPromise(await res.text(), {
-            ignoreAttrs: false,
-            mergeAttrs: true,
-            explicitArray: false,
+        const textXml = await res.text();
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
         });
+        const result = parser.parse(textXml);
 
         if (isNullish(result.body.data)) {
             throw new NoDeviceInfoError();
@@ -464,19 +471,22 @@ export class VapixAPI<Client extends IClient = IClient> {
     //          application API
     //  -------------------------------
 
-    async getApplicationList(proxy: TProxyParam = null): Promise<TApplication[]> {
+    async getApplicationList(proxy: TProxyParam = null) {
         const res = await this.client.get(proxy, '/axis-cgi/applications/list.cgi');
         const xml = await res.text();
-        const result = (await parseStringPromise(xml)) as TApplicationList;
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
+        });
+        const result = parser.parse(xml);
 
-        const apps = [];
-        for (const app of result.reply.application) {
-            apps.push({
-                ...app.$,
-                appId: APP_IDS.find((id) => id.toLowerCase() === app.$.Name.toLowerCase()) ?? null,
-            });
-        }
-        return apps;
+        return (result.reply.application as z.infer<typeof applicationSchema>[]).map((app) => {
+            return {
+                ...app,
+                appId: APP_IDS.find((id) => id.toLowerCase() === app.Name.toLowerCase()) ?? null,
+            };
+        });
     }
 
     async startApplication(applicationID: string, proxy: TProxyParam = null) {
