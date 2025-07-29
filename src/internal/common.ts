@@ -1,3 +1,5 @@
+import { Response as UndiciResponse } from 'undici';
+
 type Options = {
     ip?: string;
     port?: number;
@@ -10,22 +12,16 @@ type Options = {
 export type HttpOptions = Options & { keepAlive?: boolean };
 export type WsOptions = Options;
 
-export type TResponse = {
-    ok: boolean;
-    json: () => Promise<any>;
-    text: () => Promise<string>;
-    status: number;
-    body: any | null;
-};
 export type TParameters = Record<string, string | number | boolean | null | undefined>;
 
-export type TGetFunction<TRes = TResponse> = (
+export type TResponse = Response | UndiciResponse;
+export type TGetFunction<TRes extends TResponse> = (
     url: string,
     parameters?: TParameters,
     headers?: Record<string, string>
 ) => Promise<TRes>;
 
-export type TPostFunction<TRes = TResponse> = (
+export type TPostFunction<TRes extends TResponse> = (
     url: string,
     data: string | Buffer | FormData,
     parameters?: TParameters,
@@ -33,8 +29,8 @@ export type TPostFunction<TRes = TResponse> = (
 ) => Promise<TRes>;
 
 export interface IClient {
-    get: TGetFunction;
-    post: TPostFunction;
+    get: TGetFunction<Response | UndiciResponse>;
+    post: TPostFunction<Response | UndiciResponse>;
 }
 
 export interface IWebsocket<Event extends { readonly data: string }> {

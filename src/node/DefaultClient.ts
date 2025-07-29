@@ -1,7 +1,7 @@
-import { IClient, HttpOptions, TParameters } from '../internal/common';
+import { IClient, HttpOptions, TParameters, TGetFunction, TPostFunction } from '../internal/common';
 import { addParametersToPath } from '../internal/utils';
 import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
-import { FormData as UndiciFormData } from 'undici';
+import { FormData as UndiciFormData, Response as UndiciResponse } from 'undici';
 
 export class DefaultClient implements IClient {
     private tls: boolean;
@@ -32,22 +32,17 @@ export class DefaultClient implements IClient {
         return `${this.tls ? 'https' : 'http'}://${this.user}:${this.pass}@${this.ip}:${this.port}`;
     }
 
-    async get(path: string, parameters: TParameters = {}, headers?: Record<string, string>) {
-        const options = this.getBaseConnectionParams('GET', path, parameters);
+    get: TGetFunction<UndiciResponse> = (path, parameters, headers) => {
+        const options = this.getBaseConnectionParams('GET', path, parameters ?? {});
         options.headers = headers;
         return this.httpRequestSender.sendRequest(options);
-    }
+    };
 
-    async post(
-        path: string,
-        data: string | FormData | Buffer,
-        parameters: TParameters = {},
-        headers?: Record<string, string>
-    ) {
-        const options = this.getBaseConnectionParams('POST', path, parameters);
+    post: TPostFunction<UndiciResponse> = (path, data, parameters, headers) => {
+        const options = this.getBaseConnectionParams('POST', path, parameters ?? {});
         options.headers = headers;
         return this.httpRequestSender.sendRequest(options, data as UndiciFormData);
-    }
+    };
 
     private getBaseConnectionParams(method: string, path: string, params: TParameters): HttpRequestOptions {
         const pathName = addParametersToPath(path, params);

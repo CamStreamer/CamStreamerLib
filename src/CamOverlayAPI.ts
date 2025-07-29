@@ -1,4 +1,4 @@
-import { IClient, responseStringify, TGetFunction, TParameters, TPostFunction } from './internal/common';
+import { IClient, responseStringify, TParameters, TResponse } from './internal/common';
 
 import {
     ImageType,
@@ -72,12 +72,10 @@ export class CamOverlayAPI<Client extends IClient = IClient> {
         return responseSchema.parse(response).data;
     }
 
-    async getMjpegStreamImage(mjpegUrl: string): Promise<Blob> {
-        const res = await this._get(
+    async getMjpegStreamImage(mjpegUrl: string) {
+        return await this._getBlob(
             `${BASE_URL}/fetch_mjpeg_image.cgi?mjpeg_url=${encodeURIComponent(decodeURIComponent(mjpegUrl))}`
         );
-
-        return await this.parseBlobResponse(res);
     }
 
     //   ----------------------------------------
@@ -132,8 +130,7 @@ export class CamOverlayAPI<Client extends IClient = IClient> {
     }
 
     async getFilePreviewFromCamera(path: string) {
-        const response = await this._get(CamOverlayAPI.getFilePreviewPath(path));
-        return await this.parseBlobResponse(response);
+        return await this._getBlob(CamOverlayAPI.getFilePreviewPath(path));
     }
 
     //   ----------------------------------------
@@ -289,7 +286,7 @@ export class CamOverlayAPI<Client extends IClient = IClient> {
         }
     }
 
-    private async _get<TResponseData = any>(...args: Parameters<TGetFunction>): Promise<TResponseData> | never {
+    private async _get<TResponseData = any>(...args: Parameters<IClient['get']>): Promise<TResponseData> | never {
         const res = await this.client.get(...args);
 
         if (res.ok) {
@@ -298,13 +295,31 @@ export class CamOverlayAPI<Client extends IClient = IClient> {
             throw new Error(await responseStringify(res));
         }
     }
-    private async _post<TResponseData = any>(...args: Parameters<TPostFunction>): Promise<TResponseData> | never {
+    private async _post<TResponseData = any>(...args: Parameters<IClient['post']>): Promise<TResponseData> | never {
         const res = await this.client.post(...args);
 
         if (res.ok) {
             return (await res.json()) as TResponseData;
         } else {
             throw new Error(await responseStringify(res));
+        }
+    }
+
+    private async _getBlob(...args: Parameters<IClient['get']>) {
+        const res = await this.client.get(...args);
+
+        if (res.ok) {
+            return await this.parseBlobResponse(res);
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    private async parseBlobResponse(response: TResponse) {
+        try {
+            return await response.blob();
+        } catch (err) {
+            throw new ParsingBlobError(err);
         }
     }
 
@@ -319,18 +334,10 @@ export class CamOverlayAPI<Client extends IClient = IClient> {
     }
 
     private async _postJsonEncoded<TResponseData = any>(
-        ...args: Parameters<TPostFunction>
+        ...args: Parameters<IClient['post']>
     ): Promise<TResponseData> | never {
         const [path, data, params, headers] = args;
         const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
         return this._post(path, data, params, { ...baseHeaders, ...headers });
-    }
-
-    private async parseBlobResponse(response: Response): Promise<Blob> | never {
-        try {
-            return await response.blob();
-        } catch (err) {
-            throw new ParsingBlobError(err);
-        }
     }
 }
