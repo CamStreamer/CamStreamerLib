@@ -1,4 +1,4 @@
-import { HttpOptions } from '../internal/common';
+import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
 import { widgetListSchema, widgetsSchema } from '../models/CamOverlayAPI/widgetsSchema';
 import { fileListSchema, fileSchema, storageSchema } from '../models/CamOverlayAPI/fileSchema';

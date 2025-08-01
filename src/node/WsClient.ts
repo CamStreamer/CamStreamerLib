@@ -2,7 +2,7 @@ import * as EventEmitter from 'events';
 import * as WebSocket from 'ws';
 
 import { Digest } from '../internal/Digest';
-import { WsOptions } from '../internal/common';
+import { WsOptions } from '../internal/types';
 
 export type WsClientOptions = WsOptions & {
     address: string;

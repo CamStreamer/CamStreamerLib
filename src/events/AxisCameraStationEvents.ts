@@ -1,12 +1,14 @@
 import { DefaultClient } from '../node/DefaultClient';
-import { isClient, IClient, HttpOptions, pad } from '../internal/common';
+import { IClient, HttpOptions } from '../internal/types';
+import { isClient, pad } from '../internal/utils';
+import { Response } from 'undici';
 
 export type AcsEventsOptions = HttpOptions;
 
 export class AxisCameraStationEvents {
-    private client: IClient;
+    private client: IClient<Response>;
 
-    constructor(private sourceKey: string, opt: AcsEventsOptions | IClient = {}) {
+    constructor(private sourceKey: string, opt: AcsEventsOptions | IClient<Response> = {}) {
         if (isClient(opt)) {
             this.client = opt;
         } else {

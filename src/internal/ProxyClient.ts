@@ -1,18 +1,18 @@
-import { IClient } from './common';
+import { IClient, TGetParams, TPostParams, TResponse } from './types';
 import { TProxyParam } from '../types/common';
 import { addParametersToPath } from './utils';
 
-export class ProxyClient<Client extends IClient = IClient> {
+export class ProxyClient<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client, public getProxyUrl: () => string) {}
 
-    get = (proxy: TProxyParam, ...args: Parameters<IClient['get']>) => {
+    get = (proxy: TProxyParam, ...args: TGetParams) => {
         const [path, parameters, headers] = args;
         const url = addParametersToPath(path, parameters);
         const { realUrl, realHeaders } = this.getReal(proxy, url, headers);
         return this.client.get(realUrl, {}, realHeaders);
     };
 
-    post = (proxy: TProxyParam, ...args: Parameters<IClient['post']>) => {
+    post = (proxy: TProxyParam, ...args: TPostParams) => {
         const [path, data, parameters, headers] = args;
         const url = addParametersToPath(path, parameters);
         const { realUrl, realHeaders } = this.getReal(proxy, url, headers);

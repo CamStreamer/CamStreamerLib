@@ -1,6 +1,7 @@
 import * as prettifyXml from 'prettify-xml';
 
-import { IClient, isNullish, responseStringify, TParameters } from './internal/common';
+import { IClient, TParameters, TResponse } from './internal/types';
+import { arrayToUrl, isNullish, paramToUrl, responseStringify } from './internal/utils';
 
 import {
     TGuardTour,
@@ -29,11 +30,10 @@ import {
 } from './errors/errors';
 import { ProxyClient } from './internal/ProxyClient';
 import { TCameraImageConfig, TProxyParam } from './types/common';
-import { arrayToUrl, paramToUrl } from './internal/utils';
 import { z } from 'zod';
 import { XMLParser } from 'fast-xml-parser';
 
-export class VapixAPI<Client extends IClient = IClient> {
+export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     client: ProxyClient<Client>;
 
     constructor(client: Client, getProxyUrl: () => string) {

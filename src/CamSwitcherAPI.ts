@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { AddNewClipError } from './errors/errors';
-import { IClient, isNullish, responseStringify } from './internal/common';
+import { IClient, TResponse } from './internal/types';
+import { isClip, isNullish, responseStringify } from './internal/utils';
 import {
     TAudioPushInfo,
     TOutputInfo,
@@ -32,12 +33,11 @@ import {
 import { networkCameraListSchema, TAudioChannel, TNetworkCamera, TStorageType } from './types/common';
 import { VapixAPI } from './VapixAPI';
 import { isFirmwareVersionAtLeast } from './internal/versionCompare';
-import { isClip } from './internal/utils';
 import { FIRMWARE_WITH_BITRATE_MODES_SUPPORT } from './internal/constants';
 
 const baseUrl = '/local/camswitcher/api';
 
-export class CamSwitcherAPI<Client extends IClient = IClient> {
+export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     private vapixAgent: VapixAPI;
 
     constructor(public client: Client, private CustomFormData = FormData) {

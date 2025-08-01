@@ -1,4 +1,4 @@
-export * from './internal/common';
+export * from './internal/types';
 export * from './internal/constants';
 export * from './internal/utils';
 export * from './internal/versionCompare';

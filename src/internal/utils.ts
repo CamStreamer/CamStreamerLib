@@ -1,5 +1,5 @@
 import { TPlaylistPlayType } from '../types/CamSwitcherAPI';
-import { isNullish, TParameters } from './common';
+import { IClient, Options, TParameters, TResponse } from './types';
 
 export const addParametersToPath = (path: string, params?: TParameters) => {
     if (params === undefined || Object.keys(params).length === 0) {
@@ -60,3 +60,28 @@ export const isTracker = (id?: string) => id?.charAt(0) === 't';
 export const isPlaylist = (id?: string) => id?.charAt(0) === 'p';
 
 export const isLoopPlayType = (playType: TPlaylistPlayType) => playType.includes('LOOP');
+export function isClient(arg: Options | IClient<TResponse> = {}): arg is IClient<TResponse> {
+    return 'get' in arg && 'post' in arg;
+}
+
+export async function responseStringify(res: TResponse): Promise<string> {
+    return JSON.stringify({
+        status: res.status,
+        body: await res.text(),
+    });
+}
+
+export function pad(num: number, size: number) {
+    const sign = Math.sign(num) === -1 ? '-' : '';
+    return (
+        sign +
+        new Array(size)
+            .concat([Math.abs(num)])
+            .join('0')
+            .slice(-size)
+    );
+}
+
+export function isNullish<T>(value: T | undefined | null): value is undefined | null {
+    return value === null || value === undefined;
+}

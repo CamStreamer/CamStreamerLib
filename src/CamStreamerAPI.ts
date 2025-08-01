@@ -1,24 +1,10 @@
-import { IClient, isClient, responseStringify } from './internal/common';
-import { DefaultClient } from './node/DefaultClient';
+import { IClient, TResponse } from './internal/types';
+import { responseStringify } from './internal/utils';
 
-import {
-    CamStreamerAPIOptions,
-    TStreamAttributes,
-    TStreamList,
-    streamAttributesSchema,
-    streamListSchema,
-} from './types/CamStreamerAPI';
+import { TStreamAttributes, TStreamList, streamAttributesSchema, streamListSchema } from './types/CamStreamerAPI';
 
-export class CamStreamerAPI {
-    private client: IClient;
-
-    constructor(options: CamStreamerAPIOptions | IClient = {}) {
-        if (isClient(options)) {
-            this.client = options;
-        } else {
-            this.client = new DefaultClient(options);
-        }
-    }
+export class CamStreamerAPI<Client extends IClient<TResponse>> {
+    constructor(public client: Client) {}
 
     async getStreamList(): Promise<TStreamList> {
         const streamListRes = await this.get('/local/camstreamer/stream/list.cgi');
