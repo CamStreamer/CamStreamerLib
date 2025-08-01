@@ -3,7 +3,7 @@ import { responseStringify } from './internal/utils';
 
 import { TStreamAttributes, TStreamList, streamAttributesSchema, streamListSchema } from './types/CamStreamerAPI';
 
-export class CamStreamerAPI<Client extends IClient<TResponse>> {
+export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client) {}
 
     async getStreamList(): Promise<TStreamList> {

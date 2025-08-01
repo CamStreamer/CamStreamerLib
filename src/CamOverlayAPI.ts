@@ -18,7 +18,7 @@ import { widgetsSchema } from './models/CamOverlayAPI/widgetsSchema';
 import { fileListSchema, storageSchema } from './models/CamOverlayAPI/fileSchema';
 
 export const BASE_URL = '/local/camoverlay/api';
-export class CamOverlayAPI<Client extends IClient<TResponse>> {
+export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(private client: Client) {}
 
     static getProxyUrlPath = () => `${BASE_URL}/proxy.cgi`;

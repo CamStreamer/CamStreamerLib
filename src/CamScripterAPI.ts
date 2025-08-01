@@ -11,7 +11,7 @@ import {
 } from './types/CamScripterAPI';
 import { networkCameraListSchema, TNetworkCamera } from './types/common';
 
-export class CamOverlayAPI<Client extends IClient<TResponse>> {
+export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client) {}
 
     async checkCameraTime(): Promise<boolean> {
