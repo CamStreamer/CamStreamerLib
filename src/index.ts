@@ -8,6 +8,8 @@ export { CamSwitcherAPI } from './CamSwitcherAPI';
 export { CamSwitcherEvents } from './CamSwitcherEvents';
 export { VapixAPI } from './VapixAPI';
 export { CamOverlayAPI } from './CamOverlayAPI';
+export { CamScripterAPI } from './CamScripterAPI';
+export { CamStreamerAPI } from './CamStreamerAPI';
 export * from './types/CamSwitcherEvents';
 export * from './types/CamSwitcherAPI';
 export * from './types/VapixAPI';
