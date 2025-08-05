@@ -273,20 +273,11 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
 
     async fetchRemoteDeviceInfo<T extends Record<string, any>>(payload: T, proxy: TProxyParam = null) {
         const res = await this.postJson(proxy, '/axis-cgi/basicdeviceinfo.cgi', payload);
-
-        const textXml = await res.text();
-        const parser = new XMLParser({
-            ignoreAttributes: false,
-            attributeNamePrefix: '',
-            allowBooleanAttributes: true,
-        });
-        const result = parser.parse(textXml);
-
-        if (isNullish(result.body.data)) {
+        const json = await res.json();
+        if (isNullish(json.data)) {
             throw new NoDeviceInfoError();
         }
-
-        return result.data;
+        return json.data;
     }
 
     async getHeaders(proxy: TProxyParam = null) {
