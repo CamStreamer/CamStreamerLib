@@ -30,8 +30,8 @@ export class ProxyClient<Client extends IClient<TResponse> = IClient<TResponse>>
                     'x-target-camera-ip': proxy.ip,
                     'x-target-camera-mdns': proxy.mdnsName,
                     'x-target-camera-port': String(proxy.port),
-                    'x-target-camera-pass': encodeURIComponent(proxy.pass),
-                    'x-target-camera-user': encodeURIComponent(proxy.user),
+                    'x-target-camera-pass': proxy.pass,
+                    'x-target-camera-user': proxy.user,
                 },
             };
         }
