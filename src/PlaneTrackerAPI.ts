@@ -1,6 +1,8 @@
 import { z } from 'zod';
-import { IClient, TResponse } from './internal/types';
-import { responseStringify } from './internal/utils';
+import { IClient, TBlobResponse, TGetParams, TParameters, TResponse } from './internal/types';
+import { paramToUrl, responseStringify } from './internal/utils';
+import { TExportDataType, TImportDataType } from './types/PlaneTrackerAPI';
+import { ParsingBlobError } from './errors/errors';
 
 type ICAO = string;
 export const BASE_URL = '/local/planetracker';
@@ -28,7 +30,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
             }),
         ]);
 
-        const response = await this._get<z.infer<typeof responseSchema>>(`${BASE_URL}/camera_time.cgi`);
+        const response = await this._getJson<z.infer<typeof responseSchema>>(`${BASE_URL}/camera_time.cgi`);
         const cameraTime = responseSchema.parse(response);
 
         if (!cameraTime.state) {
@@ -40,23 +42,28 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     }
 
     fetchCameraSettings = async () => {
-        return await this._get(`${BASE_URL}/package_camera_settings.cgi?action=get`);
+        return await this._getJson(`${BASE_URL}/package_camera_settings.cgi`, { action: 'get' });
+    };
+    setCameraSettings = async (settingsJsonString: string) => {
+        return await this._postJsonEncoded(`${BASE_URL}/package_camera_settings.cgi`, settingsJsonString, {
+            action: 'set',
+        });
     };
 
     fetchServerSettings = async () => {
-        return await this._get(`${BASE_URL}/package_server_settings.cgi?action=get`);
+        return await this._getJson(`${BASE_URL}/package_server_settings.cgi`, { action: 'get' });
     };
 
     fetchMapInfo = async () => {
-        return await this._get(`${BASE_URL}/package/getMapInfo.cgi`);
+        return await this._getJson(`${BASE_URL}/package/getMapInfo.cgi`);
     };
 
     fetchFlightInfo = async (icao: ICAO) => {
-        return await this._get(`${BASE_URL}/package/flightInfo.cgi?icao=${icao}`);
+        return await this._getJson(`${BASE_URL}/package/flightInfo.cgi`, { icao });
     };
 
     getZones = async () => {
-        return await this._get(`${BASE_URL}/package/getZones.cgi`);
+        return await this._getJson(`${BASE_URL}/package/getZones.cgi`);
     };
 
     setZones = async (zonesJsonString: string) => {
@@ -64,35 +71,35 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     getPriorityList = async () => {
-        return await this._get(`${BASE_URL}/package/getPriorityList.cgi`);
+        return await this._getJson(`${BASE_URL}/package/getPriorityList.cgi`);
     };
     setPriorityList = async (priorityListJsonString: string) => {
         return await this._postJsonEncoded(`${BASE_URL}/package/setPriorityList.cgi`, priorityListJsonString);
     };
 
     getWhiteList = async () => {
-        return await this._get(`${BASE_URL}/package/getWhiteList.cgi`);
+        return await this._getJson(`${BASE_URL}/package/getWhiteList.cgi`);
     };
     setWhiteList = async (whiteListJsonString: string) => {
         return await this._postJsonEncoded(`${BASE_URL}/package/setWhiteList.cgi`, whiteListJsonString);
     };
 
     getBlackList = async () => {
-        return await this._get(`${BASE_URL}/package/getBlackList.cgi`);
+        return await this._getJson(`${BASE_URL}/package/getBlackList.cgi`);
     };
     setBlackList = async (blackListJsonString: string) => {
         return await this._postJsonEncoded(`${BASE_URL}/package/setBlackList.cgi`, blackListJsonString);
     };
 
     getTrackingMode = async () => {
-        return await this._get(`${BASE_URL}/package/getTrackingMode.cgi`);
+        return await this._getJson(`${BASE_URL}/package/getTrackingMode.cgi`);
     };
     setTrackingMode = async (modeJsonString: string) => {
         return await this._postJsonEncoded(`${BASE_URL}/package/setTrackingMode.cgi`, modeJsonString);
     };
 
     startTrackingPlane = async (icao: ICAO) => {
-        return await this.client.get(`${BASE_URL}/package/trackIcao.cgi?icao=${icao}`);
+        return await this.client.get(`${BASE_URL}/package/trackIcao.cgi`, { icao });
     };
 
     stopTrackingPlane = async () => {
@@ -104,7 +111,23 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await this.client.get(`${url}${alt !== undefined ? `&alt=${alt}` : ''}`);
     };
 
-    private async _get<TResponseData = any>(
+    exportAppSettings = async (dataType: TExportDataType) => {
+        return await this._getBlob(`${BASE_URL}/package_data.cgi`, { action: 'EXPORT', dataType });
+    };
+
+    importAppSettings = async (dataType: TImportDataType, formData: FormData) => {
+        return await this._post(`${BASE_URL}/package_data.cgi`, formData, { action: 'IMPORT', dataType });
+    };
+
+    resetPtzCalibration = async () => {
+        return await this.client.get(`${BASE_URL}/package/resetPtzCalibration.cgi`);
+    };
+
+    checkGenetecConnection = async (params: TParameters) => {
+        return await this._postUrlEncoded(`${BASE_URL}/package/checkGenetecConnection.cgi`, params);
+    };
+
+    private async _getJson<TResponseData = any>(
         ...args: Parameters<IClient<TResponse>['get']>
     ): Promise<TResponseData> | never {
         const res = await this.client.get(...args);
@@ -115,6 +138,25 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
             throw new Error(await responseStringify(res));
         }
     }
+
+    private async _getBlob(...args: TGetParams) {
+        const res = await this.client.get(...args);
+
+        if (res.ok) {
+            return await this.parseBlobResponse(res);
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    private async parseBlobResponse(response: TResponse) {
+        try {
+            return (await response.blob()) as unknown as TBlobResponse<Client>;
+        } catch (err) {
+            throw new ParsingBlobError(err);
+        }
+    }
+
     private async _post<TResponseData = any>(
         ...args: Parameters<IClient<TResponse>['post']>
     ): Promise<TResponseData> | never {
@@ -133,5 +175,15 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         const [path, data, params, headers] = args;
         const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
         return this._post(path, data, params, { ...baseHeaders, ...headers });
+    }
+
+    private async _postUrlEncoded<TResponseData = any>(
+        path: string,
+        params: TParameters,
+        headers?: Record<string, string>
+    ): Promise<TResponseData> | never {
+        const data = paramToUrl(params);
+        const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        return this._post(path, data, {}, { ...baseHeaders, ...headers });
     }
 }

@@ -3,7 +3,7 @@ const REFRESH_TIMEOUT = 5_000;
 export class WsClient {
     isDestroyed = false;
     private ws: WebSocket | null = null;
-    private restartTimeout: NodeJS.Timeout | null = null;
+    private restartTimeout: number | null = null;
 
     constructor(private getUrl: () => string, private getAuthToken: () => Promise<string>) {}
 
@@ -25,7 +25,7 @@ export class WsClient {
         };
         ws.onmessage = (e) => this.onmessage(e);
         ws.onclose = () => {
-            this.restartTimeout = setTimeout(() => this.init(), REFRESH_TIMEOUT);
+            this.restartTimeout = window.setTimeout(() => this.init(), REFRESH_TIMEOUT);
         };
         this.ws = ws;
     }
@@ -42,7 +42,7 @@ export class WsClient {
     };
 
     private destroyWebsocket() {
-        if (this.restartTimeout) {
+        if (this.restartTimeout !== null) {
             clearTimeout(this.restartTimeout);
             this.restartTimeout = null;
         }
