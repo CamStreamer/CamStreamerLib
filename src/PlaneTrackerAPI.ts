@@ -127,6 +127,15 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await this._postUrlEncoded(`${BASE_URL}/package/checkGenetecConnection.cgi`, params);
     };
 
+    getGenetecCameraList = async (params: TParameters) => {
+        const res = await this._postUrlEncoded(`${BASE_URL}/package/getGenetecCameraList.cgi`, params);
+        return await res.json();
+    };
+
+    serverRunCheck = async () => {
+        return await this.client.get(`${BASE_URL}/package/serverRunCheck.cgi`);
+    };
+
     private async _getJson(...args: Parameters<IClient<TResponse>['get']>) {
         const res = await this.client.get(...args);
 
