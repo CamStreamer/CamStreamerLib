@@ -30,7 +30,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
             }),
         ]);
 
-        const response = await this._getJson<z.infer<typeof responseSchema>>(`${BASE_URL}/camera_time.cgi`);
+        const response = await this._getJson(`${BASE_URL}/camera_time.cgi`);
         const cameraTime = responseSchema.parse(response);
 
         if (!cameraTime.state) {
@@ -116,7 +116,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     importAppSettings = async (dataType: TImportDataType, formData: FormData) => {
-        return await this._post(`${BASE_URL}/package_data.cgi`, formData, { action: 'IMPORT', dataType });
+        return await this.client.post(`${BASE_URL}/package_data.cgi`, formData, { action: 'IMPORT', dataType });
     };
 
     resetPtzCalibration = async () => {
@@ -127,13 +127,11 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await this._postUrlEncoded(`${BASE_URL}/package/checkGenetecConnection.cgi`, params);
     };
 
-    private async _getJson<TResponseData = any>(
-        ...args: Parameters<IClient<TResponse>['get']>
-    ): Promise<TResponseData> | never {
+    private async _getJson(...args: Parameters<IClient<TResponse>['get']>) {
         const res = await this.client.get(...args);
 
         if (res.ok) {
-            return (await res.json()) as TResponseData;
+            return await res.json();
         } else {
             throw new Error(await responseStringify(res));
         }
@@ -157,33 +155,27 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         }
     }
 
-    private async _post<TResponseData = any>(
-        ...args: Parameters<IClient<TResponse>['post']>
-    ): Promise<TResponseData> | never {
-        const res = await this.client.post(...args);
+    private async _postJsonEncoded(...args: Parameters<IClient<TResponse>['post']>) {
+        const [path, data, params, headers] = args;
+        const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        const res = await this.client.post(path, data, params, { ...baseHeaders, ...headers });
 
         if (res.ok) {
-            return (await res.json()) as TResponseData;
+            return res;
         } else {
             throw new Error(await responseStringify(res));
         }
     }
 
-    private async _postJsonEncoded<TResponseData = any>(
-        ...args: Parameters<IClient<TResponse>['post']>
-    ): Promise<TResponseData> | never {
-        const [path, data, params, headers] = args;
-        const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-        return this._post(path, data, params, { ...baseHeaders, ...headers });
-    }
-
-    private async _postUrlEncoded<TResponseData = any>(
-        path: string,
-        params: TParameters,
-        headers?: Record<string, string>
-    ): Promise<TResponseData> | never {
+    private async _postUrlEncoded(path: string, params: TParameters, headers?: Record<string, string>) {
         const data = paramToUrl(params);
         const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
-        return this._post(path, data, {}, { ...baseHeaders, ...headers });
+        const res = await this.client.post(path, data, {}, { ...baseHeaders, ...headers });
+
+        if (res.ok) {
+            return res;
+        } else {
+            throw new Error(await responseStringify(res));
+        }
     }
 }
