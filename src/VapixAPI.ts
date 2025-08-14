@@ -19,6 +19,7 @@ import {
     audioDeviceRequestSchema,
     audioSampleRatesResponseSchema,
     applicationSchema,
+    timeZoneSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -248,10 +249,35 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
         return captureMode.maxFPS;
     }
 
-    async getTimezone(proxy: TProxyParam = null): Promise<string> {
-        const data = { apiVersion: '1.0', method: 'getDateTimeInfo' };
-        const res = await this.postJson(proxy, '/axis-cgi/time.cgi', data);
-        return ((await res.json()) as any)?.timeZone ?? 'Europe/Prague';
+    async getTimezone(proxy: TProxyParam = null) {
+        // try v2 api first
+        try {
+            const resV2 = await this.client.get(proxy, '/config/rest/time/v2/timeZone');
+
+            if (!resV2.ok) {
+                throw new Error(await responseStringify(resV2));
+            }
+
+            const json = await resV2.json();
+            const data = timeZoneSchema.parse(json);
+            if (data.status === 'error') {
+                throw new Error(data.error.message);
+            }
+            return data.data.activeTimeZone;
+        } catch (error) {
+            console.warn(
+                'Failed to fetch time zone data from time API v2:',
+                error instanceof Error ? error.message : JSON.stringify(error)
+            );
+            console.warn('Falling back to deprecated time API v1');
+        }
+
+        // fallback to deprecated api
+        const data = await this.getDateTimeInfo(proxy);
+        if (data.data.timeZone === undefined) {
+            throw new Error('Time zone not setup on the device');
+        }
+        return data.data.timeZone;
     }
 
     async getDateTimeInfo(proxy: TProxyParam = null) {

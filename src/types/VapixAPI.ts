@@ -151,9 +151,23 @@ export const dateTimeinfoSchema = z.object({
         dstEnabled: z.boolean(),
         localDateTime: z.string(),
         posixTimeZone: z.string(),
-        timeZone: z.string(),
+        timeZone: z.string().optional(), // may not be defined in some cases
     }),
 });
+export const timeZoneSchema = z.discriminatedUnion('status', [
+    z.object({
+        status: z.literal('success'),
+        data: z.object({
+            activeTimeZone: z.string(),
+        }),
+    }),
+    z.object({
+        status: z.literal('error'),
+        error: z.object({
+            message: z.string(),
+        }),
+    }),
+]);
 
 export const audioSampleRatesResponseSchema = z.object({
     data: z.object({
