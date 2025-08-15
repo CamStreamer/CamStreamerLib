@@ -24,6 +24,7 @@ export const APP_IDS = [
     'CamScripter',
     'PlaneTracker',
     'Ndihxplugin',
+    'SportTracker',
 ] as const;
 export type TApplicationId = (typeof APP_IDS)[number];
 export type TApplication = z.infer<typeof applicationSchema> & {
@@ -100,7 +101,7 @@ export type TAudioDeviceSignalingChannelType = z.infer<typeof audioDeviceSignali
 
 export const audioDeviceSignalingTypeSchema = z.object({
     id: z.string(),
-    powerType: z.string(),
+    powerType: z.string().optional(),
     channels: z.array(audioDeviceSignalingChannelTypeSchema),
 });
 export type TAudioDeviceSignalingType = z.infer<typeof audioDeviceSignalingTypeSchema>;
@@ -135,21 +136,25 @@ const audioDeviceFromRequestSchema = z.object({
     inputs: z.array(audioDeviceInputOutputSchema).optional(),
     outputs: z.array(audioDeviceInputOutputSchema).optional(),
 });
-export const audioDeviceRequestSchema = z.object({ devices: z.array(audioDeviceFromRequestSchema) });
+export const audioDeviceRequestSchema = z.object({
+    data: z.object({ devices: z.array(audioDeviceFromRequestSchema) }),
+});
 export type TAudioDeviceFromRequest = z.infer<typeof audioDeviceFromRequestSchema>;
 
 export const maxFpsResponseSchema = z.object({
-    data: z.array(
-        z.object({
-            channel: z.number(),
-            captureMode: z.array(
-                z.object({
-                    enabled: z.boolean(),
-                    maxFPS: z.string(),
-                })
-            ),
-        })
-    ),
+    data: z
+        .array(
+            z.object({
+                channel: z.number(),
+                captureMode: z.array(
+                    z.object({
+                        enabled: z.boolean(),
+                        maxFPS: z.number().optional(),
+                    })
+                ),
+            })
+        )
+        .optional(),
 });
 
 export const dateTimeinfoSchema = z.object({
@@ -164,15 +169,11 @@ export const dateTimeinfoSchema = z.object({
 
 export const audioSampleRatesResponseSchema = z.object({
     data: z.object({
-        encoders: z.union([
-            z.object({
+        encoders: z
+            .object({
                 aac: z.array(audioSampleRatesSchema),
-                AAC: z.undefined(),
-            }),
-            z.object({
                 AAC: z.array(audioSampleRatesSchema),
-                aac: z.undefined(),
-            }),
-        ]),
+            })
+            .partial(),
     }),
 });

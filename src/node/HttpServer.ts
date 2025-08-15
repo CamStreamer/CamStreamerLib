@@ -115,7 +115,7 @@ export class HttpServer extends EventEmitter {
     close() {
         this.server.close();
         for (const key in this.sockets) {
-            this.sockets[key].destroy();
+            this.sockets[key]?.destroy();
         }
     }
 }

@@ -40,13 +40,13 @@ const baseUrl = '/local/camswitcher/api';
 export class CamSwitcherAPI<Client extends IClient = IClient> {
     private vapixAgent: VapixAPI;
 
-    constructor(public client: Client) {
+    constructor(public client: Client, private CustomFormData = FormData) {
         this.vapixAgent = new VapixAPI(client, () => '');
     }
 
-    static getProxyUrl = () => `${baseUrl}/proxy.cgi`;
-    static getWsEventsUrl = () => `/local/camswitcher/events`;
-    static getClipPreview = (id: string, storage: TStorageType) =>
+    static getProxyUrlPath = () => `${baseUrl}/proxy.cgi`;
+    static getWsEventsUrlPath = () => `/local/camswitcher/events`;
+    static getClipPreviewUrlPath = (id: string, storage: TStorageType) =>
         `${baseUrl}/clip_preview.cgi?clip_name=${id}&storage=${storage}`;
 
     async generateSilence(sampleRate: number, channels: TAudioChannel) {
@@ -169,7 +169,7 @@ export class CamSwitcherAPI<Client extends IClient = IClient> {
         id: string,
         fileName?: string
     ) {
-        const formData = new FormData();
+        const formData = new this.CustomFormData();
         formData.append('clip_name', id);
         formData.append('clip_type', clipType);
         formData.append('file', file, fileName);
@@ -413,19 +413,13 @@ const parseBitrateOptionsToBitrateVapixParams = (
         return '';
     }
 
-    if (bitrateMode === 'VBR') {
-        return 'videobitratemode=vbr';
-    }
+    const data: Record<TBitrateMode, string> = {
+        VBR: 'videobitratemode=vbr',
+        MBR: `videobitratemode=mbr&videomaxbitrate=${cameraOptions.maximumBitRate}`,
+        ABR: `videobitratemode=abr&videoabrtargetbitrate=${cameraOptions.maximumBitRate}&videoabrretentiontime=${cameraOptions.retentionTime}&videoabrmaxbitrate=${cameraOptions.bitRateLimit}`,
+    };
 
-    if (bitrateMode === 'MBR') {
-        return `videobitratemode=mbr&videomaxbitrate=${cameraOptions.maximumBitRate}`;
-    }
-
-    if (bitrateMode === 'ABR') {
-        return `videobitratemode=abr&videoabrtargetbitrate=${cameraOptions.maximumBitRate}&videoabrretentiontime=${cameraOptions.retentionTime}&videoabrmaxbitrate=${cameraOptions.bitRateLimit}`;
-    }
-
-    throw new Error('Unknown bitrateMode param in getVapixParams method.');
+    return data[bitrateMode];
 };
 
 const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TBitrateVapixParams => {
@@ -441,7 +435,7 @@ const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TBitrateV
     // Lower firmware version does not support bitrate modes and has only videomaxbitrate param
     const hasLowerFw = bitrateMode === undefined && params['videomaxbitrate'] !== undefined;
     if (hasLowerFw) {
-        const maximumBitRate = parseInt(params['videomaxbitrate'], 10);
+        const maximumBitRate = parseInt(params['videomaxbitrate'] ?? '0', 10);
         return {
             bitrateMode: 'MBR',
             maximumBitRate: maximumBitRate,
@@ -451,19 +445,19 @@ const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TBitrateV
     }
 
     if (bitrateMode === 'ABR') {
-        const maximumBitRate = parseInt(params['videoabrtargetbitrate'], 10);
-        const retentionTime = parseInt(params['videoabrretentiontime'], 10);
-        const bitrateLimit = parseInt(params['videoabrmaxbitrate'], 10);
+        const maximumBitRate = parseInt(params['videoabrtargetbitrate'] ?? '0', 10);
+        const retentionTime = parseInt(params['videoabrretentiontime'] ?? '0', 10);
+        const bitRateLimit = parseInt(params['videoabrmaxbitrate'] ?? '0', 10);
 
         return {
-            bitrateMode: bitrateMode,
-            maximumBitRate: maximumBitRate,
-            retentionTime: retentionTime,
-            bitRateLimit: bitrateLimit,
+            bitrateMode,
+            maximumBitRate,
+            retentionTime,
+            bitRateLimit,
         };
     } else if (bitrateMode === 'MBR') {
-        const maximumBitRate = parseInt(params['videomaxbitrate'], 10);
-        const oldMaximumBitrateParamValue = parseInt(params['videombrmaxbitrate'], 10);
+        const maximumBitRate = params['videomaxbitrate'] !== undefined ? parseInt(params['videomaxbitrate'], 10) : null;
+        const oldMaximumBitrateParamValue = parseInt(params['videombrmaxbitrate'] ?? '0', 10);
 
         return {
             bitrateMode: bitrateMode,

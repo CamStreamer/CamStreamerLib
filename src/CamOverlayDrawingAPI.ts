@@ -218,9 +218,9 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
         if (dataJSON.call_id !== undefined) {
             if (errorResponse !== undefined) {
-                this.sendMessages[dataJSON.call_id].reject(new Error(errorResponse.error));
+                this.sendMessages[dataJSON.call_id]?.reject(new Error(errorResponse.error));
             } else {
-                this.sendMessages[dataJSON.call_id].resolve(dataJSON as TResponse);
+                this.sendMessages[dataJSON.call_id]?.resolve(dataJSON as TResponse);
             }
             delete this.sendMessages[dataJSON.call_id];
         }
@@ -293,6 +293,9 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             const now = Date.now();
             for (const callId in this.sendMessages) {
                 const msg = this.sendMessages[callId];
+                if (!msg) {
+                    continue;
+                }
                 if (now - msg.sentTimestamp > 10000) {
                     reconnect = true;
                     msg.reject(new Error('Message timeout'));
@@ -324,7 +327,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
     private reportClose() {
         for (const callId in this.sendMessages) {
-            this.sendMessages[callId].reject(new Error('Connection lost'));
+            this.sendMessages[callId]?.reject(new Error('Connection lost'));
         }
         this.sendMessages = {};
         this.emit('close');

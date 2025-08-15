@@ -7,10 +7,10 @@ export class Digest {
         const digestItems: Record<string, string> = {};
         const digestArr = wwwAuthenticateHeader.substring(wwwAuthenticateHeader.indexOf('Digest') + 6).split(',');
 
-        for (let i = 0; i < digestArr.length; i++) {
-            const pos = digestArr[i].indexOf('=');
-            const key = digestArr[i].substring(0, pos).trim();
-            const value = digestArr[i].substring(pos + 1).trim();
+        for (const arg of digestArr) {
+            const pos = arg.indexOf('=');
+            const key = arg.substring(0, pos).trim();
+            const value = arg.substring(pos + 1).trim();
             digestItems[key] = value.replace(/"/g, '');
         }
 
@@ -19,7 +19,7 @@ export class Digest {
         const ncValue = ('00000000' + this.nonceCount.toString(16)).slice(-8); // Format nonce count as 8-digit hex
 
         let response: string;
-        if (digestItems['qop']) {
+        if (digestItems['qop'] !== undefined) {
             response = crypto
                 .createHash('md5')
                 .update(`${HA1}:${digestItems['nonce']}:${ncValue}:162d50aa594e9648:auth:${HA2}`)
@@ -36,7 +36,7 @@ export class Digest {
             `uri="${uri}",` +
             `response="${response}"`;
 
-        if (digestItems['qop']) {
+        if (digestItems['qop'] !== undefined) {
             header += `,qop=auth,nc=${ncValue},cnonce="162d50aa594e9648"`;
         }
 

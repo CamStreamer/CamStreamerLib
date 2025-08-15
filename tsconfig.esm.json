@@ -6,12 +6,11 @@
         "module": "esnext",
         "declaration": true,
         "removeComments": true,
-        "outDir": "dist",
+        "outDir": "dist/esm",
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
-        "typeRoots": ["typings", "node_modules/@types"],
-        "noUncheckedIndexedAccess": true
+        "typeRoots": ["typings", "node_modules/@types"]
     },
     "include": ["src"],
     "exclude": ["node_modules"]

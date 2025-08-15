@@ -1,7 +1,7 @@
 import * as prettifyXml from 'prettify-xml';
 import { parseStringPromise } from 'xml2js';
 
-import { IClient, isNullish, responseStringify, TParameters, TResponse } from './internal/common';
+import { IClient, isNullish, responseStringify, TParameters } from './internal/common';
 
 import {
     TApplicationList,
@@ -25,6 +25,7 @@ import {
     ApplicationAPIError,
     MaxFPSError,
     NoDeviceInfoError,
+    PtzNotSupportedError,
     SDCardActionError,
     SDCardJobError,
 } from './errors/errors';
@@ -34,7 +35,7 @@ import { arrayToUrl, paramToUrl } from './internal/utils';
 import { z } from 'zod';
 
 export class VapixAPI<Client extends IClient = IClient> {
-    public client: ProxyClient<Client>;
+    client: ProxyClient<Client>;
 
     constructor(client: Client, getProxyUrl: () => string) {
         this.client = new ProxyClient(client, getProxyUrl);
@@ -45,7 +46,7 @@ export class VapixAPI<Client extends IClient = IClient> {
      * there is a problem on some routers with the url size limit
      */
     async getUrlEncoded(
-        proxy: TProxyParam = null,
+        proxy: TProxyParam,
         path: string,
         parameters?: TParameters,
         headers: Record<string, string> = {}
@@ -63,7 +64,7 @@ export class VapixAPI<Client extends IClient = IClient> {
      * sends data as JSON
      */
     async postJson(
-        proxy: TProxyParam = null,
+        proxy: TProxyParam,
         path: string,
         jsonData: Record<string, any>,
         headers: Record<string, string> = {}
@@ -99,8 +100,8 @@ export class VapixAPI<Client extends IClient = IClient> {
 
     async getSupportedAudioSampleRate(proxy: TProxyParam = null): Promise<TAudioSampleRates[]> {
         const url = '/axis-cgi/audio/streamingcapabilities.cgi';
-        const formData = { apiVersion: '1.0', method: 'list' };
-        const res = await this.postJson(proxy, url, formData);
+        const jsonData = { apiVersion: '1.0', method: 'list' };
+        const res = await this.postJson(proxy, url, jsonData);
 
         const encoders = audioSampleRatesResponseSchema.parse(await res.json()).data.encoders;
         const data = encoders.aac ?? encoders.AAC ?? [];
@@ -129,7 +130,7 @@ export class VapixAPI<Client extends IClient = IClient> {
             await this.postJson(proxy, '/axis-cgi/opticscontrol.cgi', data);
         } catch (err) {
             // lets try the old api
-            await this.postJson(proxy, '/axis-cgi/opticssetup.cgi', {
+            await this.getUrlEncoded(proxy, '/axis-cgi/opticssetup.cgi', {
                 autofocus: 'perform',
                 source: '1',
             });
@@ -235,12 +236,11 @@ export class VapixAPI<Client extends IClient = IClient> {
             throw new MaxFPSError('CAPTURE_MODE_NOT_FOUND');
         }
 
-        const maxFps = parseInt(captureMode.maxFPS, 10);
-        if (isNaN(maxFps)) {
+        if (isNullish(captureMode.maxFPS)) {
             throw new MaxFPSError('FPS_NOT_SPECIFIED');
         }
 
-        return maxFps;
+        return captureMode.maxFPS;
     }
 
     async getTimezone(proxy: TProxyParam = null): Promise<string> {
@@ -258,10 +258,8 @@ export class VapixAPI<Client extends IClient = IClient> {
     async getDevicesSettings(proxy: TProxyParam = null): Promise<TAudioDevice[]> {
         const data = { apiVersion: '1.0', method: 'getDevicesSettings' };
         const res = await this.postJson(proxy, '/axis-cgi/audiodevicecontrol.cgi', data);
-
         const result = audioDeviceRequestSchema.parse(await res.json());
-
-        return result.devices.map((device: TAudioDeviceFromRequest) => ({
+        return result.data.devices.map((device: TAudioDeviceFromRequest) => ({
             ...device,
             inputs: (device.inputs || []).sort((a, b) => a.id.localeCompare(b.id)),
             outputs: (device.outputs || []).sort((a, b) => a.id.localeCompare(b.id)),
@@ -329,9 +327,9 @@ export class VapixAPI<Client extends IClient = IClient> {
                 const gTour: TGuardTour = {
                     id: gTourBaseName,
                     camNbr: response[gTourBaseName + '.CamNbr'],
-                    name: response[gTourBaseName + '.Name'],
+                    name: response[gTourBaseName + '.Name'] ?? 'Guard Tour ' + (i + 1),
                     randomEnabled: response[gTourBaseName + '.RandomEnabled'],
-                    running: response[gTourBaseName + '.Running'],
+                    running: response[gTourBaseName + '.Running'] ?? 'no',
                     timeBetweenSequences: response[gTourBaseName + '.TimeBetweenSequences'],
                     tour: [],
                 };
@@ -394,7 +392,11 @@ export class VapixAPI<Client extends IClient = IClient> {
             format: 'json',
         });
 
-        return parseCameraPtzResponse(await response.text())[camera] ?? [];
+        const text = await response.text();
+        if (text === '') {
+            throw new PtzNotSupportedError();
+        }
+        return parseCameraPtzResponse(text)[camera] ?? [];
     }
 
     async listPtzVideoSourceOverview(proxy: TProxyParam = null): Promise<TPtzOverview> {
@@ -403,12 +405,21 @@ export class VapixAPI<Client extends IClient = IClient> {
             format: 'json',
         });
 
-        const data = parseCameraPtzResponse(await response.text());
+        const text = await response.text();
+        if (text === '') {
+            throw new PtzNotSupportedError();
+        }
+        const data = parseCameraPtzResponse(text);
 
         const res: TPtzOverview = {};
-        Object.keys(data).forEach((camera) => {
-            res[Number(camera) - 1] = data[Number(camera)].map(({ data: itemData, ...d }) => d);
-        });
+        Object.keys(data)
+            .map(Number)
+            .forEach((camera) => {
+                if (data[camera] !== undefined) {
+                    // convert source (sometimes called camera) to viewNumber
+                    res[camera - 1] = data[camera]?.map(({ data: itemData, ...d }) => d);
+                }
+            });
         return res;
     }
 
@@ -442,7 +453,7 @@ export class VapixAPI<Client extends IClient = IClient> {
         const response = await (
             await this.getUrlEncoded(proxy, '/axis-cgi/io/port.cgi', { checkactive: port.toString() })
         ).text();
-        return response.split('=')[1].indexOf('active') === 0;
+        return response.split('=')[1]?.indexOf('active') === 0;
     }
 
     async setOutputState(port: number, active: boolean, proxy: TProxyParam = null) {
@@ -454,23 +465,22 @@ export class VapixAPI<Client extends IClient = IClient> {
     //  -------------------------------
 
     async getApplicationList(proxy: TProxyParam = null): Promise<TApplication[]> {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/list.cgi');
+        const res = await this.client.get(proxy, '/axis-cgi/applications/list.cgi');
         const xml = await res.text();
         const result = (await parseStringPromise(xml)) as TApplicationList;
 
         const apps = [];
-        for (let i = 0; i < result.reply.application.length; i++) {
+        for (const app of result.reply.application) {
             apps.push({
-                ...result.reply.application[i].$,
-                appId:
-                    APP_IDS.find((id) => id.toLowerCase() === result.reply.application[i].$.Name.toLowerCase()) ?? null,
+                ...app.$,
+                appId: APP_IDS.find((id) => id.toLowerCase() === app.$.Name.toLowerCase()) ?? null,
             });
         }
         return apps;
     }
 
     async startApplication(applicationID: string, proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
+        const res = await this.client.get(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'start',
         });
@@ -482,7 +492,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async restartApplication(applicationID: string, proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
+        const res = await this.client.get(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'restart',
         });
@@ -494,7 +504,7 @@ export class VapixAPI<Client extends IClient = IClient> {
     }
 
     async stopApplication(applicationID: string, proxy: TProxyParam = null) {
-        const res = await this.getUrlEncoded(proxy, '/axis-cgi/applications/control.cgi', {
+        const res = await this.client.get(proxy, '/axis-cgi/applications/control.cgi', {
             package: applicationID.toLowerCase(),
             action: 'stop',
         });
@@ -533,15 +543,15 @@ const parseParameters = (response: string) => {
     const params: Record<string, string> = {};
     const lines = response.split(/[\r\n]/);
 
-    for (let i = 0; i < lines.length; i++) {
-        if (lines[i].length === 0 || lines[i].substring(0, 7) === '# Error') {
+    for (const line of lines) {
+        if (line.length === 0 || line.substring(0, 7) === '# Error') {
             continue;
         }
 
-        const delimiterPos = lines[i].indexOf('=');
+        const delimiterPos = line.indexOf('=');
         if (delimiterPos !== -1) {
-            const paramName = lines[i].substring(0, delimiterPos);
-            const paramValue = lines[i].substring(delimiterPos + 1);
+            const paramName = line.substring(0, delimiterPos).replace('root.', '');
+            const paramValue = line.substring(delimiterPos + 1);
             params[paramName] = paramValue;
         }
     }
@@ -595,7 +605,7 @@ const parsePtz = (parsed: string[]): TCameraPTZItem[] => {
 
         res.push({
             id,
-            name: data[0],
+            name: data[0] ?? 'Preset ' + id,
             data: {
                 pan: getValue('pan'),
                 tilt: getValue('tilt'),
