@@ -93,6 +93,12 @@ export class CameraVapix {
 
     async getCameraImage(camera: string, compression: string, resolution: string, outputStream: WritableStream) {
         const res = await this.vapixGet('/axis-cgi/jpg/image.cgi', { resolution, compression, camera });
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+        if (res.headers.get('content-type') !== 'image/jpeg') {
+            throw new Error(`Unexpected content-type: ${res.headers.get('content-type')}`);
+        }
         if (res.body) {
             void res.body.pipeTo(outputStream);
         }
