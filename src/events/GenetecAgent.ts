@@ -39,15 +39,16 @@ export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>
 export type TCameraDetail = z.infer<typeof cameraDetailSchema>;
 
 export type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
+export type TProtocol = 'http' | 'https' | 'https_insecure';
 
 export type GenetecAgentOptions = {
-    protocol?: 'http' | 'https' | 'https_insecure';
+    protocol?: TProtocol;
     ip?: string;
     port?: number;
-    base_uri?: string;
+    baseUri?: string;
     user?: string;
     pass?: string;
-    app_id?: string;
+    appId?: string;
 };
 
 export class GenetecAgent {
@@ -60,14 +61,14 @@ export class GenetecAgent {
             protocol: options.protocol ?? 'http',
             ip: options.ip ?? '127.0.0.1',
             port: options.port ?? 80,
-            base_uri: options.base_uri ?? 'WebSdk',
+            baseUri: options.baseUri ?? 'WebSdk',
             user: options.user ?? 'root',
             pass: options.pass ?? '',
-            app_id: options.app_id ?? '',
+            appId: options.appId ?? '',
         };
 
-        this.baseUrl = `${this.settings.protocol}://${this.settings.ip}:${this.settings.port}/${this.settings.base_uri}`;
-        this.credentials = btoa(`${this.settings.user};${this.settings.app_id}:${this.settings.pass}`);
+        this.baseUrl = `${this.settings.protocol}://${this.settings.ip}:${this.settings.port}/${this.settings.baseUri}`;
+        this.credentials = btoa(`${this.settings.user};${this.settings.appId}:${this.settings.pass}`);
     }
 
     async checkConnection(): Promise<TConnectionResponse> {
