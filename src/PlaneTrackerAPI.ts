@@ -4,10 +4,20 @@ import { paramToUrl, responseStringify } from './internal/utils';
 import { TExportDataType, TImportDataType } from './types/PlaneTrackerAPI';
 import { ParsingBlobError } from './errors/errors';
 
+export type TApiUser = {
+    userId: string;
+    userName: string;
+    userPriority: number;
+};
+
 type ICAO = string;
 export const BASE_URL = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
-    constructor(private client: Client) {}
+    private _apiUserQuery: string;
+
+    constructor(private client: Client, private apiUser: TApiUser) {
+        this._apiUserQuery = `userId=${this.apiUser.userId}&userName=${this.apiUser.userName}&userPriority=${this.apiUser.userPriority}`;
+    }
 
     static getProxyUrlPath = () => `${BASE_URL}/proxy.cgi`;
 
@@ -59,7 +69,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     fetchFlightInfo = async (icao: ICAO) => {
-        return await this._getJson(`${BASE_URL}/package/flightInfo.cgi`, { icao });
+        return await this._getJson(`${BASE_URL}/package/flightInfo.cgi`, { icao: encodeURIComponent(icao) });
     };
 
     getZones = async () => {
@@ -67,47 +77,62 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     setZones = async (zonesJsonString: string) => {
-        return await this._postJsonEncoded(`${BASE_URL}/package/setZones.cgi`, zonesJsonString);
+        return await this._postJsonEncoded(`${BASE_URL}/package/setZones.cgi?${this._apiUserQuery}`, zonesJsonString);
     };
 
     getPriorityList = async () => {
         return await this._getJson(`${BASE_URL}/package/getPriorityList.cgi`);
     };
     setPriorityList = async (priorityListJsonString: string) => {
-        return await this._postJsonEncoded(`${BASE_URL}/package/setPriorityList.cgi`, priorityListJsonString);
+        return await this._postJsonEncoded(
+            `${BASE_URL}/package/setPriorityList.cgi?${this._apiUserQuery}`,
+            priorityListJsonString
+        );
     };
 
     getWhiteList = async () => {
         return await this._getJson(`${BASE_URL}/package/getWhiteList.cgi`);
     };
     setWhiteList = async (whiteListJsonString: string) => {
-        return await this._postJsonEncoded(`${BASE_URL}/package/setWhiteList.cgi`, whiteListJsonString);
+        return await this._postJsonEncoded(
+            `${BASE_URL}/package/setWhiteList.cgi?${this._apiUserQuery}`,
+            whiteListJsonString
+        );
     };
 
     getBlackList = async () => {
         return await this._getJson(`${BASE_URL}/package/getBlackList.cgi`);
     };
     setBlackList = async (blackListJsonString: string) => {
-        return await this._postJsonEncoded(`${BASE_URL}/package/setBlackList.cgi`, blackListJsonString);
+        return await this._postJsonEncoded(
+            `${BASE_URL}/package/setBlackList.cgi?${this._apiUserQuery}`,
+            blackListJsonString
+        );
     };
 
     getTrackingMode = async () => {
         return await this._getJson(`${BASE_URL}/package/getTrackingMode.cgi`);
     };
     setTrackingMode = async (modeJsonString: string) => {
-        return await this._postJsonEncoded(`${BASE_URL}/package/setTrackingMode.cgi`, modeJsonString);
+        return await this._postJsonEncoded(
+            `${BASE_URL}/package/setTrackingMode.cgi?${this._apiUserQuery}`,
+            modeJsonString
+        );
     };
 
     startTrackingPlane = async (icao: ICAO) => {
-        return await this.client.get(`${BASE_URL}/package/trackIcao.cgi`, { icao });
+        return await this.client.get(`${BASE_URL}/package/trackIcao.cgi`, {
+            icao: encodeURIComponent(icao),
+            ...this.apiUser,
+        });
     };
 
     stopTrackingPlane = async () => {
-        return await this.client.get(`${BASE_URL}/package/resetIcao.cgi`);
+        return await this.client.get(`${BASE_URL}/package/resetIcao.cgi?${this._apiUserQuery}`);
     };
 
     goToCoordinates = async (lat: number, lon: number, alt?: number) => {
-        const url = `${BASE_URL}/package/goToCoordinates.cgi?lat=${lat}&lon=${lon}`;
+        const url = `${BASE_URL}/package/goToCoordinates.cgi?lat=${lat}&lon=${lon}&${this._apiUserQuery}`;
         return await this.client.get(`${url}${alt !== undefined ? `&alt=${alt}` : ''}`);
     };
 
