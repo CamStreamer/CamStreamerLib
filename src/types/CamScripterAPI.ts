@@ -4,7 +4,11 @@ import { z } from 'zod';
 export type CamScripterOptions = HttpOptions;
 
 export type TStorageType = 'INTERNAL' | 'SD_CARD';
-export type TNodeState = 'OK' | 'NOT_INSTALLED' | 'NOT_FOUND';
+
+export const nodeStateSchema = z.object({
+    node_state: z.union([z.literal('OK'), z.literal('NOT_INSTALLED'), z.literal('NOT_FOUND')]),
+});
+export type TNodeState = z.infer<typeof nodeStateSchema>;
 
 export const packageInfoListSchema = z.array(
     z.object({
@@ -22,10 +26,24 @@ export const packageInfoListSchema = z.array(
 );
 export type TPackageInfoList = z.infer<typeof packageInfoListSchema>;
 
-export const storageSchema = z.array(
-    z.object({
-        type: z.union([z.literal('INTERNAL'), z.literal('SD_CARD')]),
-        capacity_mb: z.number(),
-    })
-);
+export const packageConfigSchema = z.record(z.string(), z.object({ enabled: z.boolean() }));
+export type TPackageConfig = z.infer<typeof packageConfigSchema>;
+
+export const storageSchema = z.union([
+    z.tuple([
+        z.object({ type: z.literal('INTERNAL'), capacity_mb: z.number() }),
+        z.object({ type: z.literal('SD_CARD'), capacity_mb: z.number() }),
+    ]),
+    z.tuple([z.object({ type: z.literal('INTERNAL'), capacity_mb: z.number() })]),
+]);
 export type TStorage = z.infer<typeof storageSchema>;
+export type TStorageParsedData = {
+    size: number;
+    storageType: TStorageType;
+}[];
+
+export const camscripterApiResponseSchema = z.object({
+    status: z.number(),
+    message: z.string(),
+});
+export type TCamscripterApiResponse = z.infer<typeof camscripterApiResponseSchema>;
