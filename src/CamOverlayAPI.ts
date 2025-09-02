@@ -25,34 +25,8 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     static getFilePreviewPath = (path: string) => `${BASE_URL}/image.cgi?path=${encodeURIComponent(path)}`;
 
     async checkCameraTime() {
-        const responseSchema = z.discriminatedUnion('state', [
-            z.object({
-                state: z.literal(true),
-                code: z.number(),
-            }),
-            // Error response
-            z.object({
-                state: z.literal(false),
-                code: z.number(),
-                reason: z.union([
-                    z.literal('INVALID_TIME'),
-                    z.literal('COULDNT_RESOLVE_HOST'), // NOTE: typo on server already
-                    z.literal('CONNECTION_ERROR'),
-                ]),
-                message: z.string(),
-            }),
-        ]);
-
-        const response = await this._get<z.infer<typeof responseSchema>>(`${BASE_URL}/camera_time.cgi`);
-        const cameraTime = responseSchema.parse(response);
-
-        if (!cameraTime.state) {
-            // create logger
-            console.error(`Camera time check failed: ${cameraTime.reason} - ${cameraTime.message}`);
-            // throw new Error(`Camera time check failed: ${cameraTime.reason} - ${cameraTime.message}`);
-        }
-
-        return cameraTime.state;
+        const response = await this._get(`${BASE_URL}/camera_time.cgi`);
+        return z.boolean().parse(response.state);
     }
 
     async getNetworkCameraList() {

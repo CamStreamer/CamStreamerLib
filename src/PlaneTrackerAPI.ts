@@ -22,28 +22,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     static getProxyUrlPath = () => `${BASE_URL}/proxy.cgi`;
 
     async checkCameraTime() {
-        const responseSchema = z.discriminatedUnion('state', [
-            z.object({
-                state: z.literal(true),
-                code: z.number(),
-            }),
-            // Error response
-            z.object({
-                state: z.literal(false),
-                code: z.number(),
-                reason: z.union([
-                    z.literal('INVALID_TIME'),
-                    z.literal('COULDNT_RESOLVE_HOST'), // NOTE: typo on server already
-                    z.literal('CONNECTION_ERROR'),
-                ]),
-                message: z.string(),
-            }),
-        ]);
-
         const response = await this._getJson(`${BASE_URL}/camera_time.cgi`);
-        const cameraTime = responseSchema.safeParse(response);
-        console.log('cameraTime', cameraTime);
-
         return z.boolean().parse(response.state);
     }
 
