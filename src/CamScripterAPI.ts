@@ -14,7 +14,7 @@ import {
 } from './types/CamScripterAPI';
 import { networkCameraListSchema, TNetworkCamera } from './types/common';
 
-export const BASE_URL = '/local/camscripter/package';
+export const BASE_URL = '/local/camscripter';
 export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client) {}
 
@@ -23,11 +23,6 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
     async checkCameraTime(): Promise<boolean> {
         const data = await this.get(`${BASE_URL}/camera_time.cgi`);
         return cameraTimeResponseSchema.parse(data).state;
-    }
-
-    async getStorageInfo(): Promise<TStorage> {
-        const data = await this.get(`${BASE_URL}/get_storage.cgi`);
-        return storageSchema.parse(data);
     }
 
     async getNetworkCameraList(): Promise<TNetworkCamera[]> {
@@ -39,28 +34,33 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
     //                   Packages
     //   ----------------------------------------
 
+    async getStorageInfo(): Promise<TStorage> {
+        const data = await this.get(`${BASE_URL}/package/get_storage.cgi`);
+        return storageSchema.parse(data);
+    }
+
     async getPackageList(): Promise<TPackageInfoList> {
-        const data = await this.get(`${BASE_URL}/list.cgi`);
+        const data = await this.get(`${BASE_URL}/package/list.cgi`);
         return packageInfoListSchema.parse(data);
     }
 
     async installPackages(formData: FormData, storage: TStorageType) {
-        const data = await this.post(`${BASE_URL}/install.cgi?storage=${storage}`, formData);
+        const data = await this.post(`${BASE_URL}/package/install.cgi?storage=${storage}`, formData);
         return camscripterApiResponseSchema.parse(data);
     }
 
     async uninstallPackage(packageId: string) {
-        const data = await this.get(`${BASE_URL}/remove.cgi?package_name=${packageId}`);
+        const data = await this.get(`${BASE_URL}/package/remove.cgi?package_name=${packageId}`);
         return camscripterApiResponseSchema.parse(data);
     }
 
     async importSettings(packageId: string, formData: FormData) {
-        const data = await this.post(`${BASE_URL}/data.cgi?action=IMPORT&package_name=${packageId}`, formData);
+        const data = await this.post(`${BASE_URL}/package/data.cgi?action=IMPORT&package_name=${packageId}`, formData);
         return camscripterApiResponseSchema.parse(data);
     }
 
     async exportSettings(packageId: string, formData: FormData) {
-        const data = await this.post(`${BASE_URL}/data.cgi?action=EXPORT&package_name=${packageId}`, formData);
+        const data = await this.post(`${BASE_URL}/package/data.cgi?action=EXPORT&package_name=${packageId}`, formData);
         return camscripterApiResponseSchema.parse(data);
     }
 
