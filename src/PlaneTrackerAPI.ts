@@ -41,14 +41,10 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         ]);
 
         const response = await this._getJson(`${BASE_URL}/camera_time.cgi`);
-        const cameraTime = responseSchema.parse(response);
+        const cameraTime = responseSchema.safeParse(response);
+        console.log('cameraTime', cameraTime);
 
-        if (!cameraTime.state) {
-            // create logger
-            console.error(`Camera time check failed: ${cameraTime.reason} - ${cameraTime.message}`);
-        }
-
-        return cameraTime.state;
+        return z.boolean().parse(response.state);
     }
 
     fetchCameraSettings = async () => {
