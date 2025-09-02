@@ -29,6 +29,13 @@ export type TPackageInfoList = z.infer<typeof packageInfoListSchema>;
 export const packageConfigSchema = z.record(z.string(), z.object({ enabled: z.boolean() }));
 export type TPackageConfig = z.infer<typeof packageConfigSchema>;
 
+export type TServerPackageData = {
+    name: string;
+    package_menu_name: string;
+    version: string;
+    vendor: string;
+};
+
 export const storageSchema = z.union([
     z.tuple([
         z.object({ type: z.literal('INTERNAL'), capacity_mb: z.number() }),
