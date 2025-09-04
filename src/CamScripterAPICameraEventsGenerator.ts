@@ -1,6 +1,6 @@
 import * as EventEmitter from 'events';
 
-import { WsOptions } from './internal/common';
+import { WsOptions } from './internal/types';
 import { WsClient, WsClientOptions } from './node/WsClient';
 
 export type CamScripterOptions = WsOptions;

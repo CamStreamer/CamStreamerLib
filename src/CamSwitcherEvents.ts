@@ -1,4 +1,4 @@
-import { IWebsocket } from './internal/common';
+import { IWebsocket } from './internal/types';
 import {
     cswEventsSchema,
     TCamSwitcherEvent,

@@ -1,24 +1,21 @@
-import { IClient, TParameters } from '../internal/common';
+import { IClient, TGetParams, TPostParams } from '../internal/types';
 import { addParametersToPath } from '../internal/utils';
 
-export class DefaultClient implements IClient {
-    get(url: string, parameters?: TParameters, headers?: Record<string, string>): Promise<Response> {
+export class DefaultClient implements IClient<Response> {
+    get = (...params: TGetParams) => {
+        const [url, parameters, headers] = params;
         return fetch(addParametersToPath(url, parameters), {
             method: 'GET',
             headers: headers,
         });
-    }
+    };
 
-    post(
-        url: string,
-        data: string | Buffer | FormData,
-        parameters?: TParameters,
-        headers?: Record<string, string>
-    ): Promise<Response> {
+    post = (...params: TPostParams) => {
+        const [url, data, parameters, headers] = params;
         return fetch(addParametersToPath(url, parameters), {
             method: 'POST',
             body: data,
             headers: headers,
         });
-    }
+    };
 }

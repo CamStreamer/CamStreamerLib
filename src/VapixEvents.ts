@@ -1,6 +1,6 @@
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { WsOptions } from './internal/common';
+import { WsOptions } from './internal/types';
 import { WsClient, WsClientOptions } from './node/WsClient';
 
 export type VapixEventsOptions = WsOptions;

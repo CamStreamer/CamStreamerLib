@@ -1,4 +1,4 @@
-import { HttpOptions } from '../internal/common';
+import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
 
 export type CamStreamerAPIOptions = HttpOptions;

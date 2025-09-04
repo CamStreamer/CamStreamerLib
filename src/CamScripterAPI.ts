@@ -1,8 +1,7 @@
-import { IClient, isClient, responseStringify } from './internal/common';
-import { DefaultClient } from './node/DefaultClient';
+import { IClient, TResponse } from './internal/types';
+import { responseStringify } from './internal/utils';
 
 import {
-    CamScripterOptions,
     packageInfoListSchema,
     storageSchema,
     TNodeState,
@@ -12,16 +11,8 @@ import {
 } from './types/CamScripterAPI';
 import { networkCameraListSchema, TNetworkCamera } from './types/common';
 
-export class CamOverlayAPI {
-    private client: IClient;
-
-    constructor(options: CamScripterOptions | IClient = {}) {
-        if (isClient(options)) {
-            this.client = options;
-        } else {
-            this.client = new DefaultClient(options);
-        }
-    }
+export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
+    constructor(public client: Client) {}
 
     async checkCameraTime(): Promise<boolean> {
         return (await this.get('/local/camscripter/camera_time.cgi')).state;

@@ -1,5 +1,18 @@
-import { HttpOptions } from '../internal/common';
+import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
+import { widgetListSchema, widgetsSchema } from '../models/CamOverlayAPI/widgetsSchema';
+import { fileListSchema, fileSchema, storageSchema } from '../models/CamOverlayAPI/fileSchema';
+import { customGraphicsSchema, fieldSchema } from '../models/CamOverlayAPI/customGraphicsSchema';
+import {
+    infoTickerSchema,
+    accuweatherSchema,
+    ptzCompassSchema,
+    imagesSchema,
+    ptzSchema,
+    pipSchema,
+    screenSharingSchema,
+    webCameraSharingSchema,
+} from '../models/CamOverlayAPI';
 
 export type CamOverlayOptions = HttpOptions;
 
@@ -16,61 +29,44 @@ export type TCoordinates =
     | 'center'
     | '';
 
-export const serviceSchema = z.record(z.string(), z.any());
-export type TService = z.infer<typeof serviceSchema>;
-export type TServiceList = {
-    services: TService[];
-};
+export type TWidget = z.infer<typeof widgetsSchema>;
+export type TWidgetList = z.infer<typeof widgetListSchema>;
 
-export const fieldSchema = z.object({
-    field_name: z.string(),
-    text: z.string(),
-    color: z.string().optional(),
-});
 export type TField = z.infer<typeof fieldSchema>;
 
-export const fileSchema = z.object({
-    name: z.string(),
-    path: z.string(),
-    storage: z.string(),
-});
 export type TFile = z.infer<typeof fileSchema>;
-export const fileListSchema = z.array(fileSchema);
 export type TFileList = z.infer<typeof fileListSchema>;
-
 export enum ImageType {
     PNG,
     JPEG,
 }
 
-export const fontStorageSchema = z.tuple([
-    z.object({
-        type: z.literal('SD0'),
-        state: z.literal('SD Card'),
-    }),
-    z.object({
-        type: z.literal('flash'),
-        state: z.string(),
-    }),
-]);
-export type TFontStorage = z.infer<typeof fontStorageSchema>;
-
-export const imageStorageSchema = z.tuple([
-    ...fontStorageSchema.items,
-    z.object({
-        type: z.literal('samba'),
-        state: z.literal('Microsoft Network Share'),
-    }),
-    z.object({
-        type: z.literal('url'),
-        state: z.literal('URL'),
-    }),
-    z.object({
-        type: z.literal('ftp'),
-        state: z.literal('FTP'),
-    }),
-]);
-export type TImageStorage = z.infer<typeof imageStorageSchema>;
-
-export const storageSchema = z.union([fontStorageSchema, imageStorageSchema]);
 export type TStorage = z.infer<typeof storageSchema>;
+
+export type TInfoticker = z.infer<typeof infoTickerSchema>;
+export type TAccuweather = z.infer<typeof accuweatherSchema>;
+export type TPtzCompass = z.infer<typeof ptzCompassSchema>;
+export type TImages = z.infer<typeof imagesSchema>;
+export type TPtz = z.infer<typeof ptzSchema>;
+export type TPip = z.infer<typeof pipSchema>;
+export type TCustomGraphics = z.infer<typeof customGraphicsSchema>;
+export type TScreenSharing = z.infer<typeof screenSharingSchema>;
+export type TWebCameraSharing = z.infer<typeof webCameraSharingSchema>;
+
+export const isInfoticker = (widget: TWidget): widget is TInfoticker => widget.name === 'infoticker';
+
+export const isAccuweather = (widget: TWidget): widget is TAccuweather => widget.name === 'accuweather';
+
+export const isPtzCompass = (widget: TWidget): widget is TPtzCompass => widget.name === 'ptzCompass';
+
+export const isImages = (widget: TWidget): widget is TImages => widget.name === 'images';
+
+export const isPtz = (widget: TWidget): widget is TPtz => widget.name === 'ptz';
+
+export const isPip = (widget: TWidget): widget is TPip => widget.name === 'pip';
+
+export const isCustomGraphics = (widget: TWidget): widget is TCustomGraphics => widget.name === 'customGraphics';
+
+export const isScreenSharing = (widget: TWidget): widget is TScreenSharing => widget.name === 'screenSharing';
+
+export const isWebCameraSharing = (widget: TWidget): widget is TWebCameraSharing => widget.name === 'web_camera';

@@ -1,23 +1,19 @@
-import { IClient, TParameters } from './common';
+import { IClient, TGetParams, TPostParams, TResponse } from './types';
 import { TProxyParam } from '../types/common';
 import { addParametersToPath } from './utils';
 
-export class ProxyClient<Client extends IClient = IClient> {
+export class ProxyClient<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client, public getProxyUrl: () => string) {}
 
-    get = (proxy: TProxyParam, path: string, parameters?: TParameters, headers: Record<string, string> = {}) => {
+    get = (proxy: TProxyParam, ...args: TGetParams) => {
+        const [path, parameters, headers] = args;
         const url = addParametersToPath(path, parameters);
         const { realUrl, realHeaders } = this.getReal(proxy, url, headers);
         return this.client.get(realUrl, {}, realHeaders);
     };
 
-    post = (
-        proxy: TProxyParam,
-        path: string,
-        data: string | Buffer | FormData,
-        parameters?: TParameters,
-        headers?: Record<string, string>
-    ) => {
+    post = (proxy: TProxyParam, ...args: TPostParams) => {
+        const [path, data, parameters, headers] = args;
         const url = addParametersToPath(path, parameters);
         const { realUrl, realHeaders } = this.getReal(proxy, url, headers);
         return this.client.post(realUrl, data, {}, realHeaders);
@@ -34,8 +30,8 @@ export class ProxyClient<Client extends IClient = IClient> {
                     'x-target-camera-ip': proxy.ip,
                     'x-target-camera-mdns': proxy.mdnsName,
                     'x-target-camera-port': String(proxy.port),
-                    'x-target-camera-pass': encodeURIComponent(proxy.pass),
-                    'x-target-camera-user': encodeURIComponent(proxy.user),
+                    'x-target-camera-pass': proxy.pass,
+                    'x-target-camera-user': proxy.user,
                 },
             };
         }

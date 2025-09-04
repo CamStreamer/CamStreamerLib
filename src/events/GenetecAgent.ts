@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { responseStringify, pad } from '../internal/common';
+import { responseStringify, pad } from '../internal/utils';
 
 const ACTION = 'AddCameraBookmark';
 const GET_CAMERAS_URL = 'report/EntityConfiguration?q=EntityTypes@Camera';

@@ -1,4 +1,4 @@
-import { HttpOptions } from '../internal/common';
+import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
 import { toCamelCaseDeep } from '../internal/transformers';
 
@@ -30,18 +30,6 @@ export type TApplicationId = (typeof APP_IDS)[number];
 export type TApplication = z.infer<typeof applicationSchema> & {
     appId: null | TApplicationId;
 };
-
-export const applicationListSchema = z.object({
-    reply: z.object({
-        $: z.object({ result: z.string() }),
-        application: z.array(
-            z.object({
-                $: applicationSchema,
-            })
-        ),
-    }),
-});
-export type TApplicationList = z.infer<typeof applicationListSchema>;
 
 export const guardTourSchema = z.object({
     id: z.string(),
