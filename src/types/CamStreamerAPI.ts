@@ -29,3 +29,9 @@ export const streamAttributesSchema = z.object({
 export type TStreamAttributes = z.infer<typeof streamAttributesSchema>;
 export const streamListSchema = z.record(z.string(), streamAttributesSchema);
 export type TStreamList = z.infer<typeof streamListSchema>;
+
+export const camstreamerServerResponseSchema = z.object({
+    code: z.number(),
+    message: z.string(),
+});
+export type TCamstreamerServerResponse = z.infer<typeof camstreamerServerResponseSchema>;
