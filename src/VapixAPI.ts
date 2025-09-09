@@ -497,8 +497,12 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
             allowBooleanAttributes: true,
         });
         const result = parser.parse(xml);
+        const apps = [];
+        for (let i = 0; i < result.reply.application.length; i++) {
+            apps.push(result.reply.application[i].$);
+        }
 
-        return (result.reply.application as z.infer<typeof applicationSchema>[]).map((app) => {
+        return apps.map((app) => {
             return {
                 ...app,
                 appId: APP_IDS.find((id) => id.toLowerCase() === app.Name.toLowerCase()) ?? null,
