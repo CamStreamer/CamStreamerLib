@@ -48,7 +48,8 @@
         "lint:fix": "eslint \"src/**/*.ts\" --fix",
         "pretty": "prettier --write \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
         "pretty:check": "prettier --check \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "audit": "npm audit --audit-level=high"
     },
     "files": [
         "/**/*.js",
