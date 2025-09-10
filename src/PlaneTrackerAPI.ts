@@ -96,12 +96,9 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     startTrackingPlane = async (icao: ICAO) => {
-        return await this.client.get(`${BASE_URL}/package/trackIcao.cgi`, {
-            icao: encodeURIComponent(icao),
-            userId: encodeURIComponent(this.apiUser.userId),
-            userName: encodeURIComponent(this.apiUser.userName),
-            userPriority: this.apiUser.userPriority,
-        });
+        return await this.client.get(
+            `${BASE_URL}/package/trackIcao.cgi?icao=${encodeURIComponent(icao)}&${this._apiUserQuery}`
+        );
     };
 
     stopTrackingPlane = async () => {
@@ -122,11 +119,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     resetPtzCalibration = async () => {
-        return await this.client.get(`${BASE_URL}/package/resetPtzCalibration.cgi`, {
-            userId: encodeURIComponent(this.apiUser.userId),
-            userName: encodeURIComponent(this.apiUser.userName),
-            userPriority: this.apiUser.userPriority,
-        });
+        return await this.client.get(`${BASE_URL}/package/resetPtzCalibration.cgi?${this._apiUserQuery}`);
     };
 
     checkGenetecConnection = async (params: TParameters) => {
