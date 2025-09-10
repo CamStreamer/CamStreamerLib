@@ -18,8 +18,8 @@ export const packageInfoListSchema = z.array(
             package_menu_name: z.string(),
             package_version: z.string(),
             vendor: z.string(),
-            required_camscripter_version: z.string(),
-            required_camscripter_rbi_version: z.string(),
+            required_camscripter_version: z.string().optional(),
+            required_camscripter_rbi_version: z.string().optional(),
             ui_link: z.string(),
         }),
     })
