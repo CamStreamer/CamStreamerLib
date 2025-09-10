@@ -3,6 +3,9 @@
     "version": "4.0.0-beta.27",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
+    "engine": {
+        "node": ">=18.0.0"
+    },
     "dependencies": {
         "adm-zip": "^0.5.9",
         "eventemitter2": "^5.0.1",
@@ -13,9 +16,6 @@
         "undici": "^6.21.3",
         "ws": "^8.18.0",
         "zod": "^3.24.3"
-    },
-    "engine": {
-        "node": ">=18.0.0"
     },
     "devDependencies": {
         "@camstreamer/eslint-config": "^1.0.2",
@@ -48,7 +48,8 @@
         "lint:fix": "eslint \"src/**/*.ts\" --fix",
         "pretty": "prettier --write \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
         "pretty:check": "prettier --check \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "audit": "npm audit --audit-level=high"
     },
     "files": [
         "/**/*.js",

@@ -179,3 +179,41 @@ export const audioSampleRatesResponseSchema = z.object({
             .partial(),
     }),
 });
+
+export const portStatusSchema = z.object({
+    port: z.string(),
+    state: z.enum(['open', 'closed']),
+    configurable: z.boolean(),
+    readonly: z.boolean().optional(),
+    usage: z.string(),
+    direction: z.enum(['input', 'output']),
+    name: z.string(),
+    normalState: z.enum(['open', 'closed']),
+});
+export type TPortStatusSchema = z.infer<typeof portStatusSchema>;
+
+export const getPortsResponseSchema = z.object({
+    apiVersion: z.string(),
+    context: z.string(),
+    method: z.literal('getPorts'),
+    data: z.object({
+        numberOfPorts: z.number(),
+        items: z.array(portStatusSchema),
+    }),
+});
+
+export const portSetSchema = z.object({
+    port: z.string(),
+    state: z.enum(['open', 'closed']),
+    usage: z.string().optional(),
+    direction: z.enum(['input', 'output']).optional(),
+    name: z.string().optional(),
+    normalState: z.enum(['open', 'closed']).optional(),
+});
+export type TPortSetSchema = z.infer<typeof portSetSchema>;
+
+export const portSequenceStateSchema = z.object({
+    state: z.enum(['open', 'closed']),
+    time: z.number().min(0).max(65535),
+});
+export type TPortSequenceStateSchema = z.infer<typeof portSequenceStateSchema>;

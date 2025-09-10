@@ -20,6 +20,9 @@ import {
     audioSampleRatesResponseSchema,
     applicationSchema,
     timeZoneSchema,
+    getPortsResponseSchema,
+    TPortSetSchema,
+    TPortSequenceStateSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -470,18 +473,66 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     }
 
     //  -------------------------------
-    //            port.cgi
+    //        portmanagement.cgi
     //  -------------------------------
 
-    async getInputState(port: number, proxy: TProxyParam = null) {
-        const response = await (
-            await this.getUrlEncoded(proxy, '/axis-cgi/io/port.cgi', { checkactive: port.toString() })
-        ).text();
-        return response.split('=')[1]?.indexOf('active') === 0;
+    async getPorts(proxy: TProxyParam = null) {
+        const body = JSON.stringify({
+            apiVersion: '1.0',
+            context: '',
+            method: 'getPorts',
+        });
+        const res = await this.client.post(
+            proxy,
+            '/axis-cgi/io/portmanagement.cgi',
+            body,
+            {},
+            { 'Content-Type': 'application/json' }
+        );
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+
+        const portResponseParsed = await getPortsResponseSchema.parse(res.json());
+        return portResponseParsed.data.items;
     }
 
-    async setOutputState(port: number, active: boolean, proxy: TProxyParam = null) {
-        return this.getUrlEncoded(proxy, '/axis-cgi/io/port.cgi', { action: active ? `${port}:/` : `${port}:\\` });
+    async setPorts(ports: TPortSetSchema[], proxy: TProxyParam = null) {
+        const body = JSON.stringify({
+            apiVersion: '1.0',
+            context: '',
+            method: 'setPorts',
+            params: { ports },
+        });
+        const res = await this.client.post(
+            proxy,
+            '/axis-cgi/io/portmanagement.cgi',
+            body,
+            {},
+            { 'Content-Type': 'application/json' }
+        );
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    async setPortStateSequence(port: number, sequence: TPortSequenceStateSchema[], proxy: TProxyParam = null) {
+        const body = JSON.stringify({
+            apiVersion: '1.0',
+            context: '',
+            method: 'setStateSequence',
+            params: { port, sequence },
+        });
+        const res = await this.client.post(
+            proxy,
+            '/axis-cgi/io/portmanagement.cgi',
+            body,
+            {},
+            { 'Content-Type': 'application/json' }
+        );
+        if (!res.ok) {
+            throw new Error(await responseStringify(res));
+        }
     }
 
     //  -------------------------------

@@ -91,18 +91,30 @@ Access the Axis camera VAPIX interface. For more details, see the documentation 
 
 -   **getPtzPosition(camera)** - Return values of pan, tilt, and zoom for the current position.
 
-### port.cgi
+### portmanagement.cgi
 
--   **getInputState(port)** - Get the camera input state for the specified port number.
+-   **getPorts()** - Get the list of ports and their configurations.
 
     ```javascript
-    getInputState(2);
+    getPorts();
     ```
 
--   **setOutputState(port, active)** - Set the state of the camera output port.
+-   **setPorts(ports)** - Set the configuration for multiple ports.
 
     ```javascript
-    setOutputState(2, true);
+    setPorts([
+        { port: '1', state: 'closed' },
+        { port: '2', state: 'open' },
+    ]);
+    ```
+
+-   **setPortStateSequence(port, sequence)** - Set a sequence of states for a specific port.
+
+    ```javascript
+    setPortStateSequence(1, [
+        { state: 'open', duration: 1000 },
+        { state: 'closed', duration: 2000 },
+    ]);
     ```
 
 ### application API
