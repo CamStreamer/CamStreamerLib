@@ -94,6 +94,10 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
         return camscripterApiResponseSchema.parse(data);
     }
 
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
+
     private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions): Promise<any> {
         const agent = this.getAgent(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });

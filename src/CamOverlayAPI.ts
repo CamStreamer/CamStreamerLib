@@ -301,6 +301,10 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         return this.promiseCGUpdate(serviceID, 'update_image', params, contentType, imageData, options);
     }
 
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
+
     private async promiseCGUpdate(
         serviceID: number,
         action: string,

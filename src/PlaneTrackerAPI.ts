@@ -17,6 +17,33 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return z.boolean().parse(response.state);
     }
 
+    resetPtzCalibration = async (options?: THttpRequestOptions) => {
+        const agent = this.getAgent(options?.proxyParams);
+        return await agent.get({
+            path: `${BASE_PATH}/package/resetPtzCalibration.cgi`,
+            parameters: this.apiUser,
+            timeout: options?.timeout,
+        });
+    };
+
+    resetFocusCalibration = async (options?: THttpRequestOptions) => {
+        const agent = this.getAgent(options?.proxyParams);
+        return await agent.get({
+            path: `${BASE_PATH}/package/resetFocusCalibration.cgi`,
+            parameters: this.apiUser,
+            timeout: options?.timeout,
+        });
+    };
+
+    serverRunCheck = async (options?: THttpRequestOptions) => {
+        const agent = this.getAgent(options?.proxyParams);
+        return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
+    };
+
+    //   ----------------------------------------
+    //                   Settings
+    //   ----------------------------------------
+
     fetchCameraSettings = async (options?: THttpRequestOptions) => {
         return await this._getJson(`${BASE_PATH}/package_camera_settings.cgi`, { action: 'get' }, options);
     };
@@ -35,21 +62,61 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await this._getJson(`${BASE_PATH}/package_server_settings.cgi`, { action: 'get' }, options);
     };
 
-    fetchMapInfo = async (options?: THttpRequestOptions) => {
-        return await this._getJson(`${BASE_PATH}/package/getMapInfo.cgi`, undefined, options);
+    exportAppSettings = async (dataType: TExportDataType, options?: THttpRequestOptions) => {
+        return await this._getBlob(`${BASE_PATH}/package_data.cgi`, { action: 'EXPORT', dataType }, options);
     };
+
+    importAppSettings = async (dataType: TImportDataType, formData: FormData, options?: THttpRequestOptions) => {
+        const agent = this.getAgent(options?.proxyParams);
+        return await agent.post({
+            path: `${BASE_PATH}/package_data.cgi`,
+            data: formData,
+            parameters: { action: 'IMPORT', dataType },
+            timeout: options?.timeout,
+        });
+    };
+
+    //   ----------------------------------------
+    //             Planes & Tracking
+    //   ----------------------------------------
 
     fetchFlightInfo = async (icao: ICAO, options?: THttpRequestOptions) => {
         return await this._getJson(`${BASE_PATH}/package/flightInfo.cgi`, { icao: encodeURIComponent(icao) }, options);
     };
 
-    getZones = async (options?: THttpRequestOptions) => {
-        return await this._getJson(`${BASE_PATH}/package/getZones.cgi`, undefined, options);
+    getTrackingMode = async (options?: THttpRequestOptions) => {
+        return await this._getJson(`${BASE_PATH}/package/getTrackingMode.cgi`, undefined, options);
+    };
+    setTrackingMode = async (modeJsonString: string, options?: THttpRequestOptions) => {
+        return await this._postJsonEncoded(
+            `${BASE_PATH}/package/setTrackingMode.cgi`,
+            modeJsonString,
+            this.apiUser,
+            options
+        );
     };
 
-    setZones = async (zonesJsonString: string, options?: THttpRequestOptions) => {
-        return await this._postJsonEncoded(`${BASE_PATH}/package/setZones.cgi`, zonesJsonString, this.apiUser, options);
+    startTrackingPlane = async (icao: ICAO, options?: THttpRequestOptions) => {
+        const agent = this.getAgent(options?.proxyParams);
+        return await agent.get({
+            path: `${BASE_PATH}/package/trackIcao.cgi`,
+            parameters: { icao, ...this.apiUser },
+            timeout: options?.timeout,
+        });
     };
+
+    stopTrackingPlane = async (options?: THttpRequestOptions) => {
+        const agent = this.getAgent(options?.proxyParams);
+        return await agent.get({
+            path: `${BASE_PATH}/package/resetIcao.cgi`,
+            parameters: this.apiUser,
+            timeout: options?.timeout,
+        });
+    };
+
+    //   ----------------------------------------
+    //                   Lists
+    //   ----------------------------------------
 
     getPriorityList = async (options?: THttpRequestOptions) => {
         return await this._getJson(`${BASE_PATH}/package/getPriorityList.cgi`, undefined, options);
@@ -87,34 +154,20 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         );
     };
 
-    getTrackingMode = async (options?: THttpRequestOptions) => {
-        return await this._getJson(`${BASE_PATH}/package/getTrackingMode.cgi`, undefined, options);
-    };
-    setTrackingMode = async (modeJsonString: string, options?: THttpRequestOptions) => {
-        return await this._postJsonEncoded(
-            `${BASE_PATH}/package/setTrackingMode.cgi`,
-            modeJsonString,
-            this.apiUser,
-            options
-        );
+    //   ----------------------------------------
+    //                   Map & Zones
+    //   ----------------------------------------
+
+    fetchMapInfo = async (options?: THttpRequestOptions) => {
+        return await this._getJson(`${BASE_PATH}/package/getMapInfo.cgi`, undefined, options);
     };
 
-    startTrackingPlane = async (icao: ICAO, options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
-        return await agent.get({
-            path: `${BASE_PATH}/package/trackIcao.cgi`,
-            parameters: { icao, ...this.apiUser },
-            timeout: options?.timeout,
-        });
+    getZones = async (options?: THttpRequestOptions) => {
+        return await this._getJson(`${BASE_PATH}/package/getZones.cgi`, undefined, options);
     };
 
-    stopTrackingPlane = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
-        return await agent.get({
-            path: `${BASE_PATH}/package/resetIcao.cgi`,
-            parameters: this.apiUser,
-            timeout: options?.timeout,
-        });
+    setZones = async (zonesJsonString: string, options?: THttpRequestOptions) => {
+        return await this._postJsonEncoded(`${BASE_PATH}/package/setZones.cgi`, zonesJsonString, this.apiUser, options);
     };
 
     goToCoordinates = async (lat: number, lon: number, alt?: number, options?: THttpRequestOptions) => {
@@ -126,37 +179,9 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         });
     };
 
-    exportAppSettings = async (dataType: TExportDataType, options?: THttpRequestOptions) => {
-        return await this._getBlob(`${BASE_PATH}/package_data.cgi`, { action: 'EXPORT', dataType }, options);
-    };
-
-    importAppSettings = async (dataType: TImportDataType, formData: FormData, options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
-        return await agent.post({
-            path: `${BASE_PATH}/package_data.cgi`,
-            data: formData,
-            parameters: { action: 'IMPORT', dataType },
-            timeout: options?.timeout,
-        });
-    };
-
-    resetPtzCalibration = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
-        return await agent.get({
-            path: `${BASE_PATH}/package/resetPtzCalibration.cgi`,
-            parameters: this.apiUser,
-            timeout: options?.timeout,
-        });
-    };
-
-    resetFocusCalibration = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
-        return await agent.get({
-            path: `${BASE_PATH}/package/resetFocusCalibration.cgi`,
-            parameters: this.apiUser,
-            timeout: options?.timeout,
-        });
-    };
+    //   ----------------------------------------
+    //                   Genetec
+    //   ----------------------------------------
 
     checkGenetecConnection = async (params: TParameters, options?: THttpRequestOptions) => {
         return await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, params, options);
@@ -167,10 +192,9 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await res.json();
     };
 
-    serverRunCheck = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
-        return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
-    };
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
 
     private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
         const agent = this.getAgent(options?.proxyParams);
