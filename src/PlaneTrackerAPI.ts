@@ -1,19 +1,12 @@
 import { z } from 'zod';
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
 import { paramToUrl, responseStringify } from './internal/utils';
-import { TExportDataType, TImportDataType } from './types/PlaneTrackerAPI';
+import { ICAO, TApiUser, TExportDataType, TImportDataType } from './types/PlaneTrackerAPI';
 import { ParsingBlobError } from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
 
-export type TApiUser = {
-    userId: string;
-    userName: string;
-    userPriority: number;
-};
-
-type ICAO = string;
-export const BASE_PATH = '/local/planetracker';
+const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(private client: Client, private apiUser: TApiUser) {}
 

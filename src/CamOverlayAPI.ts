@@ -18,7 +18,7 @@ import { widgetsSchema } from './models/CamOverlayAPI/widgetsSchema';
 import { fileListSchema, storageSchema } from './models/CamOverlayAPI/fileSchema';
 import { ProxyClient } from './internal/ProxyClient';
 
-export const BASE_PATH = '/local/camoverlay/api';
+const BASE_PATH = '/local/camoverlay/api';
 export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(private client: Client) {}
 
