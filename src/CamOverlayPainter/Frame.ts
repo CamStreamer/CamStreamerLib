@@ -1,45 +1,7 @@
 import { EventEmitter } from 'events';
 import { CamOverlayDrawingAPI, TAlign, TCairoCreateResponse, TUploadImageResponse } from '../CamOverlayDrawingAPI';
 import ResourceManager from './ResourceManager';
-
-export type TRgb = [number, number, number];
-export type TRgba = [number, number, number, number];
-export type TTmf = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
-export type TObjectFitType = 'fill' | 'fit' | 'none';
-export type TFrameOptions = {
-    enabled?: boolean;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    text?: string;
-    fontColor?: TRgb;
-    font?: string;
-    bgColor?: TRgba;
-    bgImage?: string;
-    bgType?: TObjectFitType;
-    borderRadius?: number;
-    borderWidth?: number;
-    borderColor?: TRgba;
-    customDraw?: TDrawingCallback;
-    layer?: number;
-};
-
-export type TFrameInfo = {
-    width: number;
-    height: number;
-};
-export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string, info: TFrameInfo) => Promise<void>;
-
-export interface Frame {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'layoutChanged', listener: () => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'layoutChanged'): boolean;
-}
+import { TDrawingCallback, TFrameOptions, TObjectFitType, TRgb, TRgba, TTmf } from '../types/CamOverlayPainter';
 
 export class Frame extends EventEmitter {
     protected enabled: boolean;
