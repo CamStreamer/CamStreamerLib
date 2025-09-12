@@ -1,4 +1,4 @@
-import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI, TAlign, TCairoCreateResponse, TUploadImageResponse } from '../CamOverlayDrawingAPI';
 import { COORD } from '../CamOverlayPainter/Painter';
 
 export type TRgb = [number, number, number];
@@ -29,6 +29,32 @@ export type TFrameInfo = {
     height: number;
 };
 export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string, info: TFrameInfo) => Promise<void>;
+
+export type TFrame = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+export type TText = {
+    text: string;
+    textAlign: TAlign;
+    textType: TTmf;
+    fontColor: TRgb;
+    font: TCairoCreateResponse | undefined;
+    fontName: string | undefined;
+};
+export type TBg = {
+    bgColor: TRgba | undefined;
+    bgImage: TUploadImageResponse | undefined;
+    bgImageName: string | undefined;
+    bgType: TObjectFitType | undefined;
+};
+export type TBorder = {
+    borderRadius: number;
+    borderWidth: number;
+    borderColor: TRgba;
+};
 
 export interface Frame {
     on(event: 'open', listener: () => void): this;
