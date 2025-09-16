@@ -74,7 +74,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         return z.boolean().parse(data);
     }
 
-    async getIpListFromNetworkCheck(options?: THttpRequestOptions): Promise<TNetworkCamera[]> {
+    async getNetworkCameraList(options?: THttpRequestOptions): Promise<TNetworkCamera[]> {
         const data = await this.get(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
         return networkCameraListSchema.parse(data);
     }
