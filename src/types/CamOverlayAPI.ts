@@ -1,7 +1,13 @@
 import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
 import { widgetListSchema, widgetsSchema } from '../models/CamOverlayAPI/widgetsSchema';
-import { fileListSchema, fileSchema, storageSchema } from '../models/CamOverlayAPI/fileSchema';
+import {
+    fileDataSchema,
+    fileListSchema,
+    fileSchema,
+    storageResponseSchema,
+    storageSchema,
+} from '../models/CamOverlayAPI/fileSchema';
 import { customGraphicsSchema, fieldSchema } from '../models/CamOverlayAPI/customGraphicsSchema';
 import {
     infoTickerSchema,
@@ -40,8 +46,11 @@ export enum ImageType {
     PNG,
     JPEG,
 }
+export type TFileData = z.infer<typeof fileDataSchema>;
 
 export type TStorage = z.infer<typeof storageSchema>;
+export type TStorageResponse = z.infer<typeof storageResponseSchema>;
+export type TStorageDataList = z.infer<typeof storageResponseSchema.shape.list>;
 
 export type TInfoticker = z.infer<typeof infoTickerSchema>;
 export type TAccuweather = z.infer<typeof accuweatherSchema>;

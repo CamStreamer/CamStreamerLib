@@ -76,3 +76,9 @@ export const sharingSchema = widgetCommonSchema.extend({
     screenSize: z.number().positive(),
     fps: z.number(),
 });
+
+export const WSResponseSchema = z.object({
+    status: z.number(),
+    message: z.string(),
+    data: z.string(),
+});
