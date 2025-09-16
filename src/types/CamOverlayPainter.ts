@@ -1,5 +1,6 @@
-import { CamOverlayDrawingAPI, TAlign, TCairoCreateResponse, TUploadImageResponse } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
 import { COORD } from '../CamOverlayPainter/Painter';
+import { TAlign, TCairoCreateResponse, TUploadImageResponse } from './CamOverlayDrawingAPI';
 
 export type TRgb = [number, number, number];
 export type TRgba = [number, number, number, number];

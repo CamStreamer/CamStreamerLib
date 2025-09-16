@@ -1,4 +1,6 @@
-import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, TCairoCreateResponse } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingOptions, TCairoCreateResponse } from '../types/CamOverlayDrawingAPI';
+
 import ResourceManager from './ResourceManager';
 import { Frame } from './Frame';
 import { TCoAlignment, TLayer, TPainterOptions, TFrameOptions } from '../types/CamOverlayPainter';

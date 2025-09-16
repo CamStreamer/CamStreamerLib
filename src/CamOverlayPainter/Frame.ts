@@ -1,5 +1,7 @@
 import { EventEmitter } from 'events';
-import { CamOverlayDrawingAPI, TAlign, TCairoCreateResponse, TUploadImageResponse } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
+import { TAlign, TCairoCreateResponse, TUploadImageResponse } from '../types/CamOverlayDrawingAPI';
+
 import ResourceManager from './ResourceManager';
 import {
     TBg,
