@@ -125,22 +125,22 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     //             CamOverlay services
     //   ----------------------------------------
 
-    async updateInfoticker(serviceID: number, text: string, options?: THttpRequestOptions) {
-        await this._get({ path: `${BASE_PATH}/infoticker.cgi?service_id=${serviceID}&text=${text}` }, options);
+    async updateInfoticker(serviceId: number, text: string, options?: THttpRequestOptions) {
+        await this._get({ path: `${BASE_PATH}/infoticker.cgi?service_id=${serviceId}&text=${text}` }, options);
     }
 
-    async setEnabled(serviceID: number, enabled: boolean, options?: THttpRequestOptions) {
-        await this._post({ path: `${BASE_PATH}/enabled.cgi?id_${serviceID}=${enabled ? 1 : 0}`, data: '' }, options);
+    async setEnabled(serviceId: number, enabled: boolean, options?: THttpRequestOptions) {
+        await this._post({ path: `${BASE_PATH}/enabled.cgi?id_${serviceId}=${enabled ? 1 : 0}`, data: '' }, options);
     }
 
-    async isEnabled(serviceID: number, options?: THttpRequestOptions): Promise<boolean> {
+    async isEnabled(serviceId: number, options?: THttpRequestOptions): Promise<boolean> {
         const agent = this.getAgent(options?.proxyParams);
         const res = await agent.get({ path: `${BASE_PATH}/services.cgi?action=get`, timeout: options?.timeout });
         if (res.ok) {
             const data: TWidgetList = JSON.parse(await res.text());
 
             for (const service of data.services) {
-                if (service.id === serviceID) {
+                if (service.id === serviceId) {
                     return service.enabled === 1;
                 }
             }
@@ -219,7 +219,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     //               Custom Graphics
     //   ----------------------------------------
 
-    updateCGText(serviceID: number, fields: TField[], options?: THttpRequestOptions) {
+    updateCGText(serviceId: number, fields: TField[], options?: THttpRequestOptions) {
         const params: Record<string, string> = {};
 
         for (const field of fields) {
@@ -231,20 +231,20 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
             }
         }
 
-        return this.promiseCGUpdate(serviceID, 'update_text', params, undefined, undefined, options);
+        return this.promiseCGUpdate(serviceId, 'update_text', params, undefined, undefined, options);
     }
 
-    updateCGImagePos(serviceID: number, coordinates: TCoordinates = '', x = 0, y = 0, options?: THttpRequestOptions) {
+    updateCGImagePos(serviceId: number, coordinates: TCoordinates = '', x = 0, y = 0, options?: THttpRequestOptions) {
         const params = {
             coord_system: coordinates,
             pos_x: x,
             pos_y: y,
         };
-        return this.promiseCGUpdate(serviceID, 'update_image', params, undefined, undefined, options);
+        return this.promiseCGUpdate(serviceId, 'update_image', params, undefined, undefined, options);
     }
 
     updateCGImage(
-        serviceID: number,
+        serviceId: number,
         path: string,
         coordinates: TCoordinates = '',
         x = 0,
@@ -257,11 +257,11 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
             pos_y: y,
             image: path,
         };
-        return this.promiseCGUpdate(serviceID, 'update_image', params, undefined, undefined, options);
+        return this.promiseCGUpdate(serviceId, 'update_image', params, undefined, undefined, options);
     }
 
     updateCGImageFromData(
-        serviceID: number,
+        serviceId: number,
         imageType: ImageType,
         imageData: Buffer,
         coordinates: TCoordinates = '',
@@ -275,7 +275,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
             pos_x: x,
             pos_y: y,
         };
-        return this.promiseCGUpdate(serviceID, 'update_image', params, contentType, imageData, options);
+        return this.promiseCGUpdate(serviceId, 'update_image', params, contentType, imageData, options);
     }
 
     //   ----------------------------------------
@@ -283,7 +283,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     //   ----------------------------------------
 
     private async promiseCGUpdate(
-        serviceID: number,
+        serviceId: number,
         action: string,
         params: Record<string, string | number> = {},
         contentType?: string,
@@ -302,7 +302,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
             data: data ?? '',
             parameters: {
                 action: action,
-                service_id: serviceID.toString(),
+                service_id: serviceId.toString(),
                 ...params,
             },
             headers,

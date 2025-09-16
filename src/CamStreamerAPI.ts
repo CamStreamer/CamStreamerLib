@@ -13,17 +13,17 @@ export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TRespons
         const streamListRes = await this.get(`${BASE_PATH}/stream/list.cgi`, undefined, options);
         return streamListSchema.parse(streamListRes.data);
     }
-    async getStream(streamID: string, options?: THttpRequestOptions): Promise<TStreamAttributes> {
-        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamID}`, undefined, options);
+    async getStream(streamId: string, options?: THttpRequestOptions): Promise<TStreamAttributes> {
+        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
         return streamAttributesSchema.parse(stream.data);
     }
-    async getStreamParameter(streamID: string, paramName: string, options?: THttpRequestOptions): Promise<string> {
-        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamID}`, undefined, options);
+    async getStreamParameter(streamId: string, paramName: string, options?: THttpRequestOptions): Promise<string> {
+        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
         return stream.data[paramName];
     }
 
     async setStream(
-        streamID: string,
+        streamId: string,
         params: Partial<TStreamAttributes>,
         options?: THttpRequestOptions
     ): Promise<void> {
@@ -31,7 +31,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TRespons
         await this.get(
             `${BASE_PATH}/stream/set.cgi`,
             {
-                stream_id: streamID,
+                stream_id: streamId,
                 streamDelay: streamDelay ?? '',
                 startTime: startTime ?? 'null',
                 stopTime: stopTime ?? 'null',
@@ -41,20 +41,20 @@ export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TRespons
         );
     }
     async setStreamParameter(
-        streamID: string,
+        streamId: string,
         paramName: string,
         value: string,
         options?: THttpRequestOptions
     ): Promise<void> {
-        await this.get(`${BASE_PATH}/stream/set.cgi?stream_id=${streamID}&${paramName}=${value}`, undefined, options);
+        await this.get(`${BASE_PATH}/stream/set.cgi?stream_id=${streamId}&${paramName}=${value}`, undefined, options);
     }
 
-    async isStreaming(streamID: string, options?: THttpRequestOptions): Promise<boolean> {
-        const response = await this.get(`${BASE_PATH}/get_streamstat.cgi?stream_id=${streamID}`, undefined, options);
+    async isStreaming(streamId: string, options?: THttpRequestOptions): Promise<boolean> {
+        const response = await this.get(`${BASE_PATH}/get_streamstat.cgi?stream_id=${streamId}`, undefined, options);
         return response.data.is_streaming === 1;
     }
-    async deleteStream(streamID: string, options?: THttpRequestOptions): Promise<void> {
-        await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamID }, options);
+    async deleteStream(streamId: string, options?: THttpRequestOptions): Promise<void> {
+        await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
     }
 
     wsAuthorization(options?: THttpRequestOptions): Promise<string> {
