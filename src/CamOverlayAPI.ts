@@ -164,7 +164,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         return widgetsSchema.parse(data);
     }
 
-    async getWidgets(options?: THttpRequestOptions): Promise<TWidgetList['services']> {
+    async getWidgets(options?: THttpRequestOptions): Promise<TWidget[]> {
         const widgetList = await this._get<TWidgetList>(
             {
                 path: `${BASE_PATH}/services.cgi`,
