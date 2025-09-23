@@ -122,6 +122,10 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await this.client.get(`${BASE_URL}/package/resetPtzCalibration.cgi?${this._apiUserQuery}`);
     };
 
+    resetFocusCalibration = async () => {
+        return await this.client.get(`${BASE_URL}/package/resetFocusCalibration.cgi?${this._apiUserQuery}`);
+    };
+
     checkGenetecConnection = async (params: TParameters) => {
         return await this._postUrlEncoded(`${BASE_URL}/package/checkGenetecConnection.cgi`, params);
     };
