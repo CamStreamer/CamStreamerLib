@@ -51,10 +51,8 @@ export class HttpRequestSender {
         } catch (err) {
             if (err instanceof Error) {
                 err.stack = `${err.stack}\nCaptured at:\n${stackHolder.stack}`;
-                throw err;
-            } else {
-                throw err;
             }
+            throw err;
         }
     }
 
