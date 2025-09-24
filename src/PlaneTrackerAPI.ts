@@ -40,8 +40,13 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
     };
 
-    getLiveViewAlias = async (rtspUrl: string) => {
-        return await this.client.get(`${baseUrl}/getLiveViewAlias.cgi?rtsp_url=${encodeURIComponent(rtspUrl)}`);
+    getLiveViewAlias = async (rtspUrl: string, options?: THttpRequestOptions) => {
+        const agent = this.getAgent(options?.proxyParams);
+        return await agent.get({
+            path: `${BASE_PATH}/getLiveViewAlias.cgi`,
+            parameters: { rtsp_url: rtspUrl },
+            timeout: options?.timeout,
+        });
     };
 
     //   ----------------------------------------
