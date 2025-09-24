@@ -20,7 +20,7 @@ export * from './types/PlaneTrackerAPI';
 
 export { Frame } from './CamOverlayPainter/Frame';
 export { Painter } from './CamOverlayPainter/Painter';
-export { ResourceManager } from './CamOverlayPainter/Painter';
+export { ResourceManager } from './CamOverlayPainter/ResourceManager';
 export * from './types/CamOverlayPainter';
 
 export { CamOverlayDrawingAPI } from './CamOverlayDrawingAPI';

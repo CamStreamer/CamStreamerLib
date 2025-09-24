@@ -1,9 +1,9 @@
 import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
 import { CamOverlayDrawingOptions, TCairoCreateResponse } from '../types/CamOverlayDrawingAPI';
 
-import ResourceManager from './ResourceManager';
+import { ResourceManager } from './ResourceManager';
 import { Frame } from './Frame';
-import { TCoAlignment, TLayer, TPainterOptions, TFrameOptions } from '../types/CamOverlayPainter';
+import { TCoAlignment, TLayer, TPainterOptions } from '../types/CamOverlayPainter';
 
 export const COORD = {
     top_left: [-1, -1],
@@ -223,5 +223,3 @@ export class Painter extends Frame {
         }
     }
 }
-
-export { Frame, TFrameOptions as FrameOptions, ResourceManager, CamOverlayDrawingOptions };

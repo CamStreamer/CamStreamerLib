@@ -2,7 +2,7 @@ import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
 import { TUploadImageResponse, TCairoCreateResponse } from '../types/CamOverlayDrawingAPI';
 import * as fs from 'fs/promises';
 
-export default class ResourceManager {
+export class ResourceManager {
     private imgFileNames: Record<string, string> = {};
     private fontFileNames: Record<string, string> = {};
     private images: Record<string, TUploadImageResponse> = {};
