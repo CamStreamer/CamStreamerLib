@@ -180,7 +180,7 @@ const preview = await coApi.getFilePreviewFromCamera(path);
 
 ### CamOverlay services
 
-### updateInfoticker(serviceID, text)
+### updateInfoticker(serviceId, text)
 
 Updates text in the Infoticker service, if any is running.
 
@@ -193,7 +193,7 @@ Updates text in the Infoticker service, if any is running.
 await coApi.updateInfoticker(id, text);
 ```
 
-### setEnabled(serviceID, enabled)
+### setEnabled(serviceId, enabled)
 
 Enables/disables the bound CO service.
 
@@ -206,7 +206,7 @@ Enables/disables the bound CO service.
 await coApi.setEnabled(id, true);
 ```
 
-### isEnabled(serviceID)
+### isEnabled(serviceId)
 
 Returns whether the bound CO service is enabled (true) or disabled (false).
 
@@ -233,13 +233,29 @@ const widget = await coApi.getSingleWidget(id);
 
 Returns the complete settings of all CamOverlay services.
 
+```javascript
+const widgets = await coApi.getWidgets();
+```
+
 ### updateSingleWidget(widget)
 
 Changes the settings of the given CamOverlay service.
 
+-   **Returns:** `Promise<void>`
+
+```javascript
+await coApi.updateSingleWidget(widget);
+```
+
 ### updateWidgets(widgets)
 
 Changes the settings of all CamOverlay services.
+
+-   **Returns:** `Promise<void>`
+
+```javascript
+await coApi.updateWidgets(widgets);
+```
 
 ### Custom Graphics
 

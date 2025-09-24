@@ -21,6 +21,8 @@ npm install camstreamerlib
 
 -   [VapixAPI](doc/VapixAPI.md) is a module to access Axis camera VAPIX interface.
 
+-   [VapixEvents](doc/VapixEvents.md) is a module which allows receiving camera events from the VAPIX API.
+
 -   [CamStreamerAPI](doc/CamStreamerAPI.md) is a module for easy control of video streaming in the CamStreamer ACAP application (RTMP, HLS, SRT and MPEG-TS protocols).
 
 -   [CamOverlayAPI](doc/CamOverlayAPI.md) is a module to access CamOverlay HTTP interface.
@@ -29,13 +31,15 @@ npm install camstreamerlib
 
 -   [CamOverlayPainter/](doc/CamOverlayPainter.md) contains three modules which makes easier to use CamOverlayDrawingAPI.
 
+-   [CamScripterAPI](doc/CamScripterAPI.md) is a module which allows receiving events from CamScripter ACAP application.
+
 -   [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) is a module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.
 
 -   [CamSwitcherAPI](doc/CamSwitcherAPI.md) is a module to access CamSwitcher API.
 
 -   [CamSwitcherEvents](doc/CamSwitcherEvents.md) is a module which allows receiving events from CamSwitcher ACAP application.
 
--   [VapixEvents](doc/VapixEvents.md) is a module which allows receiving camera events from the VAPIX API.
+-   [PlaneTrackerAPI](doc/PlaneTrackerAPI.md) is a module to access PlaneTracker API.
 
 -   [GenetecAgent](doc/GenetecAgent.md) is a module which allows receiving and sending data to Genetec VMS.
 
