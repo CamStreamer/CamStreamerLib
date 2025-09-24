@@ -1,5 +1,5 @@
-import { allowedWidgetNames } from './constants';
-import { overlaySchema, widgetCommonSchema } from './widgetCommonSchema';
+import { overlaySchema, TWidget, widgetCommonSchema } from './CamOverlayAPI';
+import { allowedWidgetNames } from '../../CamOverlayAPI';
 
 import { z } from 'zod';
 
@@ -13,3 +13,5 @@ export const ptzSchema = widgetCommonSchema.extend({
         })
     ),
 });
+export type TPtz = z.infer<typeof ptzSchema>;
+export const isPtz = (widget: TWidget): widget is TPtz => widget.name === 'ptz';

@@ -1,10 +1,15 @@
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
 import { paramToUrl, responseStringify } from './internal/utils';
 
+import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
+import { networkCameraListSchema, THttpRequestOptions, TProxyParams, TNetworkCamera } from './types/common';
+import { z } from 'zod';
+import { ProxyClient } from './internal/ProxyClient';
 import {
+    fileListSchema,
     ImageType,
+    storageDataListSchema,
     TCoordinates,
-    TField,
     TFile,
     TFileData,
     TFileList,
@@ -14,14 +19,22 @@ import {
     TStorageResponse,
     TWidget,
     TWidgetList,
-} from './types/CamOverlayAPI';
-import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
-import { networkCameraListSchema, THttpRequestOptions, TProxyParams, TNetworkCamera } from './types/common';
-import { z } from 'zod';
-import { widgetsSchema } from './models/CamOverlayAPI/widgetsSchema';
-import { fileListSchema, storageDataListSchema } from './models/CamOverlayAPI/fileSchema';
-import { ProxyClient } from './internal/ProxyClient';
-import { WSResponseSchema } from './models/CamOverlayAPI';
+    widgetsSchema,
+    WSResponseSchema,
+} from './types/CamOverlayAPI/CamOverlayAPI';
+import { TField } from './types/CamOverlayAPI';
+
+export const allowedWidgetNames = {
+    accuweather: 'accuweather',
+    infoticker: 'infoticker',
+    customGraphics: 'customGraphics',
+    ptzCompass: 'ptzCompass',
+    images: 'images',
+    ptz: 'ptz',
+    pip: 'pip',
+    screenSharing: 'screenSharing',
+    web_camera: 'web_camera',
+} as const;
 
 const BASE_PATH = '/local/camoverlay/api';
 export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse>> {

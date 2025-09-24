@@ -7,7 +7,3 @@ export * from './ptzCompassSchema';
 export * from './ptzSchema';
 export * from './screenSharingSchema';
 export * from './webCameraSharingSchema';
-export * from './widgetCommonSchema';
-export * from './widgetsSchema';
-export * from './constants';
-export * from './fileSchema';
