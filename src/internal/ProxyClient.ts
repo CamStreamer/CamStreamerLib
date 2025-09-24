@@ -1,49 +1,37 @@
 import { IClient, TGetParams, TPostParams, TResponse } from './types';
-import { TProxyParam } from '../types/common';
+import { TProxyParams } from '../types/common';
 import { addParametersToPath } from './utils';
 
 export class ProxyClient<Client extends IClient<TResponse> = IClient<TResponse>> {
-    constructor(public client: Client, public getProxyUrl: () => string) {}
+    constructor(private client: Client, private proxyParams: TProxyParams) {}
 
-    get = (proxy: TProxyParam, ...args: TGetParams) => {
-        const [path, parameters, headers] = args;
-        const url = addParametersToPath(path, parameters);
-        const { realUrl, realHeaders } = this.getReal(proxy, url, headers);
-        return this.client.get(realUrl, {}, realHeaders);
+    get = (params: TGetParams) => {
+        const { path, parameters, headers, timeout } = params;
+        const targetPath = addParametersToPath(path, parameters);
+        const { realPath, realHeaders } = this.getReal(targetPath, headers);
+        return this.client.get({ path: realPath, headers: realHeaders, timeout });
     };
 
-    post = (proxy: TProxyParam, ...args: TPostParams) => {
-        const [path, data, parameters, headers] = args;
-        const url = addParametersToPath(path, parameters);
-        const { realUrl, realHeaders } = this.getReal(proxy, url, headers);
-        return this.client.post(realUrl, data, {}, realHeaders);
+    post = (params: TPostParams) => {
+        const { path, data, parameters, headers, timeout } = params;
+        const targetPath = addParametersToPath(path, parameters);
+        const { realPath, realHeaders } = this.getReal(targetPath, headers);
+        return this.client.post({ path: realPath, data, headers: realHeaders, timeout });
     };
 
-    private getReal = (proxy: TProxyParam, url: string, headers?: Record<string, string>): TReal => {
-        if (proxy !== null) {
-            return {
-                realUrl: this.getProxyUrl(),
-                realHeaders: {
-                    ...(headers ?? {}),
-                    'x-target-camera-protocol': proxy.port === 443 ? 'https' : 'http',
-                    'x-target-camera-path': url,
-                    'x-target-camera-ip': proxy.ip,
-                    'x-target-camera-mdns': proxy.mdnsName,
-                    'x-target-camera-port': String(proxy.port),
-                    'x-target-camera-pass': proxy.pass,
-                    'x-target-camera-user': proxy.user,
-                },
-            };
-        }
-
+    private getReal = (targetPath: string, headers: Record<string, string> | undefined) => {
         return {
-            realUrl: url,
-            realHeaders: headers,
+            realPath: this.proxyParams.path,
+            realHeaders: {
+                ...(headers ?? {}),
+                'x-target-camera-protocol': this.proxyParams.target.port === 443 ? 'https' : 'http',
+                'x-target-camera-path': targetPath,
+                'x-target-camera-ip': this.proxyParams.target.ip,
+                'x-target-camera-mdns': this.proxyParams.target.mdnsName,
+                'x-target-camera-port': String(this.proxyParams.target.port),
+                'x-target-camera-pass': this.proxyParams.target.pass,
+                'x-target-camera-user': this.proxyParams.target.user,
+            },
         };
     };
 }
-
-type TReal = {
-    realUrl: string;
-    realHeaders?: Record<string, string>;
-};

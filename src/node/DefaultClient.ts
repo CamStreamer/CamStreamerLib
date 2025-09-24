@@ -28,35 +28,35 @@ export class DefaultClient implements IClient<UndiciResponse> {
         this.httpRequestSender = new HttpRequestSender(agentOptions);
     }
 
-    get url() {
-        return `${this.tls ? 'https' : 'http'}://${this.user}:${this.pass}@${this.ip}:${this.port}`;
-    }
-
-    get = (...params: TGetParams) => {
-        const [path, parameters, headers] = params;
-        const options = this.getBaseConnectionParams('GET', path, parameters ?? {});
-        options.headers = headers;
+    get = (params: TGetParams) => {
+        const { path, parameters, headers, timeout } = params;
+        const options = this.getBaseConnectionParams('GET', path, parameters, headers, timeout);
         return this.httpRequestSender.sendRequest(options);
     };
 
-    post = (...params: TPostParams) => {
-        const [path, data, parameters, headers] = params;
-        const options = this.getBaseConnectionParams('POST', path, parameters ?? {});
-        options.headers = headers;
+    post = (params: TPostParams) => {
+        const { path, data, parameters, headers, timeout } = params;
+        const options = this.getBaseConnectionParams('POST', path, parameters, headers, timeout);
         return this.httpRequestSender.sendRequest(options, data as UndiciFormData);
     };
 
-    private getBaseConnectionParams(method: string, path: string, params: TParameters): HttpRequestOptions {
-        const pathName = addParametersToPath(path, params);
-
+    private getBaseConnectionParams(
+        method: string,
+        path: string,
+        params: TParameters | undefined,
+        headers: Record<string, string> | undefined,
+        timeout: number | undefined
+    ): HttpRequestOptions {
         return {
             method: method,
             protocol: this.tls ? 'https:' : 'http:',
             host: this.ip,
             port: this.port,
-            path: pathName,
+            path: addParametersToPath(path, params),
             user: this.user,
             pass: this.pass,
+            headers,
+            timeout,
         };
     }
 }

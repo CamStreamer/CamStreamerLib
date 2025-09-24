@@ -25,17 +25,28 @@ export const keyboardShortcutsSchema = z.record(keyboardShortcutSchema);
 export type TKeyboardShortcut = z.infer<typeof keyboardShortcutSchema>;
 export type TKeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
 
-export type TProxyParam = {
+export type TProxyTarget = {
     ip: string;
     mdnsName: string;
     port: number;
     user: string;
     pass: string;
-} | null;
+};
+
+export type TProxyParams = {
+    path: string;
+    target: TProxyTarget;
+};
+
+export type THttpRequestOptions = {
+    timeout?: number;
+    proxyParams?: TProxyParams;
+};
 
 export type TCameraImageConfig = {
     camera?: string;
     resolution?: string;
     compression?: number;
-    overlays?: 'off';
+    overlays?: string;
+    [key: string]: string | number | undefined; // Allows additional properties
 };

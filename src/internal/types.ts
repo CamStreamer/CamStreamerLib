@@ -16,18 +16,24 @@ export type TParameters = Record<string, string | number | boolean | null | unde
 
 export type TResponse = Response | UndiciResponse;
 
-export type TGetParams = [url: string, parameters?: TParameters, headers?: Record<string, string>];
+export type TGetParams = {
+    path: string;
+    parameters?: TParameters;
+    headers?: Record<string, string>;
+    timeout?: number;
+};
 
-export type TPostParams = [
-    url: string,
-    data: string | Buffer | FormData,
-    parameters?: TParameters,
-    headers?: Record<string, string>
-];
+export type TPostParams = {
+    path: string;
+    data: string | Buffer | FormData;
+    parameters?: TParameters;
+    headers?: Record<string, string>;
+    timeout?: number;
+};
 
 export interface IClient<TRes extends TResponse> {
-    get: (...params: TGetParams) => Promise<TRes>;
-    post: (...params: TPostParams) => Promise<TRes>;
+    get: (params: TGetParams) => Promise<TRes>;
+    post: (params: TPostParams) => Promise<TRes>;
 }
 
 // Blob response is different in browser and node.js, so we need to define it separately

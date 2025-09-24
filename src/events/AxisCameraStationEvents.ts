@@ -1,22 +1,17 @@
-import { DefaultClient } from '../node/DefaultClient';
-import { IClient, HttpOptions } from '../internal/types';
-import { isClient, pad } from '../internal/utils';
-import { Response } from 'undici';
-
-export type AcsEventsOptions = HttpOptions;
+import { HttpOptions } from '../internal/types';
+import { pad } from '../internal/utils';
+import { THttpRequestOptions, TProxyParams } from '../types/common';
+import { ProxyClient } from '../internal/ProxyClient';
+import { DefaultClient } from '../node';
 
 export class AxisCameraStationEvents {
-    private client: IClient<Response>;
+    private client: DefaultClient;
 
-    constructor(private sourceKey: string, opt: AcsEventsOptions | IClient<Response> = {}) {
-        if (isClient(opt)) {
-            this.client = opt;
-        } else {
-            this.client = new DefaultClient(opt);
-        }
+    constructor(clientOptions: HttpOptions, private sourceKey: string) {
+        this.client = new DefaultClient(clientOptions);
     }
 
-    async sendEvent(data: Record<string, string>, eventType: string) {
+    async sendEvent(data: Record<string, string>, eventType: string, options?: THttpRequestOptions) {
         const dateString = this.getDate();
         const event = {
             addExternalDataRequest: {
@@ -28,9 +23,15 @@ export class AxisCameraStationEvents {
         };
         const eventData = JSON.stringify(event);
 
-        const res = await this.client.post('/Acs/Api/ExternalDataFacade/AddExternalData', eventData, undefined, {
-            'Content-Type': 'application/json',
-            'Content-Length': eventData.length.toString(),
+        const agent = this.getAgent(options?.proxyParams);
+        const res = await agent.post({
+            path: '/Acs/Api/ExternalDataFacade/AddExternalData',
+            data: eventData,
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Length': eventData.length.toString(),
+            },
+            timeout: options?.timeout,
         });
 
         if (!res.ok) {
@@ -48,5 +49,9 @@ export class AxisCameraStationEvents {
         const seconds = pad(date.getUTCSeconds(), 2);
 
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    private getAgent(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 }

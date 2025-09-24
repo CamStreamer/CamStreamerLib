@@ -49,6 +49,7 @@ export type GenetecAgentOptions = {
     user?: string;
     pass?: string;
     appId?: string;
+    timeout?: number;
 };
 
 export class GenetecAgent {
@@ -65,6 +66,7 @@ export class GenetecAgent {
             user: options.user ?? 'root',
             pass: options.pass ?? '',
             appId: options.appId ?? '',
+            timeout: options.timeout ?? 10000,
         };
 
         this.baseUrl = `${this.settings.protocol}://${this.settings.ip}:${this.settings.port}/${this.settings.baseUri}`;
@@ -73,7 +75,7 @@ export class GenetecAgent {
 
     async checkConnection(): Promise<TConnectionResponse> {
         const requestOptions = this.getRequestOptions('GET');
-        const res = await fetch(`${this.baseUrl}/`, requestOptions);
+        const res = await this.fetchWithTimeout(`${this.baseUrl}/`, requestOptions);
 
         if (!res.ok) {
             throw new Error(await responseStringify(res));
@@ -83,7 +85,7 @@ export class GenetecAgent {
 
     async getAllCameraGuids(): Promise<TCameraGuidsResponse> {
         const requestOptions = this.getRequestOptions('GET');
-        const res = await fetch(`${this.baseUrl}/${GET_CAMERAS_URL}`, requestOptions);
+        const res = await this.fetchWithTimeout(`${this.baseUrl}/${GET_CAMERAS_URL}`, requestOptions);
 
         if (!res.ok) {
             throw new Error(await responseStringify(res));
@@ -110,7 +112,7 @@ export class GenetecAgent {
                 camerasDetailsUrl.push(`entity=${guid},${params}`);
             }
 
-            const res = await fetch(
+            const res = await this.fetchWithTimeout(
                 `${this.baseUrl}/${GET_CAMERAS_DETAILS_URL}${camerasDetailsUrl.join(',')}`,
                 requestOptions
             );
@@ -136,7 +138,10 @@ export class GenetecAgent {
             cameraEntitiesUrl.push(`${ACTION}(${guid},${timeStamp},${bookmarkText})`);
         }
 
-        const res = await fetch(`${this.baseUrl}/action?q=${cameraEntitiesUrl.join(',')}`, requestOptions);
+        const res = await this.fetchWithTimeout(
+            `${this.baseUrl}/action?q=${cameraEntitiesUrl.join(',')}`,
+            requestOptions
+        );
 
         if (!res.ok) {
             throw new Error(await responseStringify(res));
@@ -166,5 +171,15 @@ export class GenetecAgent {
         const miliSeconds = pad(date.getUTCMilliseconds(), 2);
 
         return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.${miliSeconds}Z`;
+    }
+
+    private async fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), this.settings.timeout);
+        try {
+            return await fetch(url, { ...options, signal: controller.signal });
+        } finally {
+            clearTimeout(timeoutId);
+        }
     }
 }

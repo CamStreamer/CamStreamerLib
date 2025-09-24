@@ -23,7 +23,7 @@
         "@types/adm-zip": "^0.5.5",
         "@types/jest": "^28.0.0",
         "@types/lodash": "^4.17.18",
-        "@types/node": "^18.19.39",
+        "@types/node": "^18.19.127",
         "@types/ws": "^8.5.10",
         "@typescript-eslint/eslint-plugin": "^6.8.0",
         "@typescript-eslint/parser": "^6.8.0",
