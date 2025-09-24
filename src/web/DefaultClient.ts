@@ -27,11 +27,13 @@ export class DefaultClient implements IClient<Response> {
 
     private async fetchWithTimeout(url: string, options: RequestInit, timeout?: number): Promise<Response> {
         const controller = new AbortController();
-        const timeoutId = timeout ? setTimeout(() => controller.abort(), timeout) : null;
+        const timeoutId = timeout !== undefined ? setTimeout(() => controller.abort(), timeout) : null;
         try {
             return await fetch(url, { ...options, signal: controller.signal });
         } finally {
-            if (timeoutId) clearTimeout(timeoutId);
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
         }
     }
 }

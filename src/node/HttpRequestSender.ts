@@ -43,8 +43,19 @@ export class HttpRequestSender {
         });
     }
 
-    sendRequest(options: HttpRequestOptions, postData?: Buffer | string | UndiciFormData) {
-        return this.sendRequestWithAuth(options, postData);
+    async sendRequest(options: HttpRequestOptions, postData?: Buffer | string | UndiciFormData) {
+        const stackHolder: { stack: string } = { stack: '' };
+        Error.captureStackTrace(stackHolder, this.sendRequest);
+        try {
+            return await this.sendRequestWithAuth(options, postData);
+        } catch (err) {
+            if (err instanceof Error) {
+                err.stack = `${err.stack}\nCaptured at:\n${stackHolder.stack}`;
+                throw err;
+            } else {
+                throw err;
+            }
+        }
     }
 
     private async sendRequestWithAuth(
@@ -138,7 +149,7 @@ export class HttpRequestSender {
                 authData.wwwAuthenticateHeader
             );
         } else {
-            return `Basic ${btoa(options.user + ':' + options.pass)}`;
+            return `Basic ${Buffer.from(`${options.user}:${options.pass}`).toString('base64')}`;
         }
     }
 }
