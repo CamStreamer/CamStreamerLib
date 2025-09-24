@@ -5,32 +5,33 @@ import { responseStringify } from './internal/utils';
 import { TStreamAttributes, TStreamList, streamAttributesSchema, streamListSchema } from './types/CamStreamerAPI';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 
+const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client) {}
 
     async getStreamList(options?: THttpRequestOptions): Promise<TStreamList> {
-        const streamListRes = await this.get('/local/camstreamer/stream/list.cgi', undefined, options);
+        const streamListRes = await this.get(`${BASE_PATH}/stream/list.cgi`, undefined, options);
         return streamListSchema.parse(streamListRes.data);
     }
-    async getStream(streamID: string, options?: THttpRequestOptions): Promise<TStreamAttributes> {
-        const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`, undefined, options);
+    async getStream(streamId: string, options?: THttpRequestOptions): Promise<TStreamAttributes> {
+        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
         return streamAttributesSchema.parse(stream.data);
     }
-    async getStreamParameter(streamID: string, paramName: string, options?: THttpRequestOptions): Promise<string> {
-        const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`, undefined, options);
+    async getStreamParameter(streamId: string, paramName: string, options?: THttpRequestOptions): Promise<string> {
+        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
         return stream.data[paramName];
     }
 
     async setStream(
-        streamID: string,
+        streamId: string,
         params: Partial<TStreamAttributes>,
         options?: THttpRequestOptions
     ): Promise<void> {
         const { streamDelay, startTime, stopTime, ...rest } = params;
         await this.get(
-            '/local/camstreamer/stream/set.cgi',
+            `${BASE_PATH}/stream/set.cgi`,
             {
-                stream_id: streamID,
+                stream_id: streamId,
                 streamDelay: streamDelay ?? '',
                 startTime: startTime ?? 'null',
                 stopTime: stopTime ?? 'null',
@@ -40,37 +41,33 @@ export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TRespons
         );
     }
     async setStreamParameter(
-        streamID: string,
+        streamId: string,
         paramName: string,
         value: string,
         options?: THttpRequestOptions
     ): Promise<void> {
-        await this.get(
-            `/local/camstreamer/stream/set.cgi?stream_id=${streamID}&${paramName}=${value}`,
-            undefined,
-            options
-        );
+        await this.get(`${BASE_PATH}/stream/set.cgi?stream_id=${streamId}&${paramName}=${value}`, undefined, options);
     }
 
-    async isStreaming(streamID: string, options?: THttpRequestOptions): Promise<boolean> {
-        const response = await this.get(
-            `/local/camstreamer/get_streamstat.cgi?stream_id=${streamID}`,
-            undefined,
-            options
-        );
+    async isStreaming(streamId: string, options?: THttpRequestOptions): Promise<boolean> {
+        const response = await this.get(`${BASE_PATH}/get_streamstat.cgi?stream_id=${streamId}`, undefined, options);
         return response.data.is_streaming === 1;
     }
-    async deleteStream(streamID: string, options?: THttpRequestOptions): Promise<void> {
-        await this.get('/local/camstreamer/stream/remove.cgi', { stream_id: streamID }, options);
+    async deleteStream(streamId: string, options?: THttpRequestOptions): Promise<void> {
+        await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
     }
 
     wsAuthorization(options?: THttpRequestOptions): Promise<string> {
-        return this.get('/local/camstreamer/ws_authorization.cgi', undefined, options);
+        return this.get(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
     }
 
     async getUtcTime(options?: THttpRequestOptions): Promise<number> {
-        return await this.get('/local/camstreamer/get_utc_time.cgi', undefined, options);
+        return await this.get(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
     }
+
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
 
     private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions): Promise<any> {
         const agent = this.getAgent(options?.proxyParams);

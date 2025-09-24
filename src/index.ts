@@ -15,5 +15,13 @@ export * from './types/CamSwitcherEvents';
 export * from './types/CamSwitcherAPI';
 export * from './types/VapixAPI';
 export * from './types/CamOverlayAPI';
-export * from './models/CamOverlayAPI';
+export * from './types/CamOverlayAPI/CamOverlayAPI';
 export * from './types/PlaneTrackerAPI';
+
+export { Frame } from './CamOverlayPainter/Frame';
+export { Painter } from './CamOverlayPainter/Painter';
+export { ResourceManager } from './CamOverlayPainter/ResourceManager';
+export * from './types/CamOverlayPainter';
+
+export { CamOverlayDrawingAPI } from './CamOverlayDrawingAPI';
+export * from './types/CamOverlayDrawingAPI';

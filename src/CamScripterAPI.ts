@@ -15,7 +15,7 @@ import {
 } from './types/CamScripterAPI';
 import { networkCameraListSchema, THttpRequestOptions, TNetworkCamera, TProxyParams } from './types/common';
 
-export const BASE_PATH = '/local/camscripter';
+const BASE_PATH = '/local/camscripter';
 export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client) {}
 
@@ -93,6 +93,10 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
         const data = await this.get(`${BASE_PATH}/node_update.cgi?storage=${storage}`, undefined, options);
         return camscripterApiResponseSchema.parse(data);
     }
+
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
 
     private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions): Promise<any> {
         const agent = this.getAgent(options?.proxyParams);

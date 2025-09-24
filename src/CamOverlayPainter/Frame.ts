@@ -1,45 +1,20 @@
 import { EventEmitter } from 'events';
-import { CamOverlayDrawingAPI, TAlign, TCairoCreateResponse, TUploadImageResponse } from '../CamOverlayDrawingAPI';
-import ResourceManager from './ResourceManager';
+import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
+import { TAlign, TCairoCreateResponse, TUploadImageResponse } from '../types/CamOverlayDrawingAPI';
 
-export type TRgb = [number, number, number];
-export type TRgba = [number, number, number, number];
-export type TTmf = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
-export type TObjectFitType = 'fill' | 'fit' | 'none';
-export type TFrameOptions = {
-    enabled?: boolean;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    text?: string;
-    fontColor?: TRgb;
-    font?: string;
-    bgColor?: TRgba;
-    bgImage?: string;
-    bgType?: TObjectFitType;
-    borderRadius?: number;
-    borderWidth?: number;
-    borderColor?: TRgba;
-    customDraw?: TDrawingCallback;
-    layer?: number;
-};
-
-export type TFrameInfo = {
-    width: number;
-    height: number;
-};
-export type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string, info: TFrameInfo) => Promise<void>;
-
-export interface Frame {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'layoutChanged', listener: () => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'layoutChanged'): boolean;
-}
+import { ResourceManager } from './ResourceManager';
+import {
+    TBg,
+    TBorder,
+    TDrawingCallback,
+    TFrame,
+    TFrameOptions,
+    TObjectFitType,
+    TRgb,
+    TRgba,
+    TText,
+    TTmf,
+} from '../types/CamOverlayPainter';
 
 export class Frame extends EventEmitter {
     protected enabled: boolean;
@@ -114,6 +89,14 @@ export class Frame extends EventEmitter {
         this.width = width;
         this.height = height;
     }
+    getFrameInfo(): TFrame {
+        return {
+            x: this.posX,
+            y: this.posY,
+            width: this.width,
+            height: this.height,
+        };
+    }
 
     setText(text: string, align: TAlign, textType: TTmf = 'TFM_OVERFLOW', fontColor?: TRgb): void {
         this.text = text;
@@ -134,6 +117,17 @@ export class Frame extends EventEmitter {
         this.fontName = undefined;
         this.font = fontData;
     }
+    getTextInfo(): TText {
+        return {
+            text: this.text,
+            textAlign: this.align,
+            textType: this.textType,
+            fontColor: this.fontColor,
+            font: this.font,
+            fontName: this.fontName,
+        };
+    }
+
     setBgColor(color: TRgba): void {
         this.bgColor = color;
     }
@@ -150,17 +144,30 @@ export class Frame extends EventEmitter {
     setBgType(type: TObjectFitType): void {
         this.bgType = type;
     }
+    getBgInfo(): TBg {
+        return {
+            bgColor: this.bgColor,
+            bgImage: this.bgImage,
+            bgImageName: this.bgImageName,
+            bgType: this.bgType,
+        };
+    }
 
     setBorderRadius(radius: number): void {
         this.borderRadius = radius;
     }
-
     setBorderWidth(width: number): void {
         this.borderWidth = width;
     }
-
     setBorderColor(color: TRgba): void {
         this.borderColor = color;
+    }
+    getBorderInfo(): TBorder {
+        return {
+            borderRadius: this.borderRadius,
+            borderWidth: this.borderWidth,
+            borderColor: this.borderColor,
+        };
     }
 
     setCustomDraw(customDraw: TDrawingCallback) {

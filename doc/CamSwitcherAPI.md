@@ -106,7 +106,7 @@ Gets the maximum FPS for a video source.
 const maxFps = await cswApi.getMaxFps(1);
 ```
 
-### getIpListFromNetworkCheck()
+### getNetworkCameraList()
 
 Gets the list of network cameras.
 
@@ -119,7 +119,7 @@ Gets the list of network cameras.
     ```
 
 ```javascript
-const cameras = await cswApi.getIpListFromNetworkCheck();
+const cameras = await cswApi.getNetworkCameraList();
 ```
 
 ## Methods websockets

@@ -1,5 +1,5 @@
-import { allowedWidgetNames } from './constants';
-import { coordinateSystemSchema, widgetCommonSchema } from './widgetCommonSchema';
+import { coordinateSystemSchema, TWidget, widgetCommonSchema } from './CamOverlayAPI';
+import { allowedWidgetNames } from '../../CamOverlayAPI';
 
 import { z } from 'zod';
 
@@ -37,3 +37,5 @@ export const pipSchema = widgetCommonSchema.extend({
     borderWidth: z.number(),
     scale: z.number(),
 });
+export type TPip = z.infer<typeof pipSchema>;
+export const isPip = (widget: TWidget): widget is TPip => widget.name === 'pip';

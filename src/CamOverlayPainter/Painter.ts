@@ -1,6 +1,9 @@
-import { CamOverlayDrawingAPI, CamOverlayDrawingOptions, TCairoCreateResponse } from '../CamOverlayDrawingAPI';
-import ResourceManager from './ResourceManager';
-import { Frame, TFrameOptions } from './Frame';
+import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
+import { CamOverlayDrawingOptions, TCairoCreateResponse } from '../types/CamOverlayDrawingAPI';
+
+import { ResourceManager } from './ResourceManager';
+import { Frame } from './Frame';
+import { TCoAlignment, TLayer, TPainterOptions } from '../types/CamOverlayPainter';
 
 export const COORD = {
     top_left: [-1, -1],
@@ -13,19 +16,6 @@ export const COORD = {
     center_right: [1, 0],
     bottom_right: [1, 1],
 } as const;
-type TCoAlignment = keyof typeof COORD;
-
-export type TPainterOptions = TFrameOptions & {
-    screenWidth: number;
-    screenHeight: number;
-    coAlignment: TCoAlignment;
-};
-
-type TLayer = {
-    layer: number;
-    surfaceCache?: string;
-    cairoCache?: string;
-};
 
 export class Painter extends Frame {
     private screenWidth: number;
@@ -233,5 +223,3 @@ export class Painter extends Frame {
         }
     }
 }
-
-export { Frame, TFrameOptions as FrameOptions, ResourceManager, CamOverlayDrawingOptions };

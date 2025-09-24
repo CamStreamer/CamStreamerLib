@@ -1,11 +1,12 @@
-import { allowedWidgetNames } from './constants';
+import { allowedWidgetNames } from '../../CamOverlayAPI';
 import {
     coordinateSystemSchema,
     fontSchema,
     languageSchema,
+    TWidget,
     weatherUnitSchema,
     widgetCommonSchema,
-} from './widgetCommonSchema';
+} from './CamOverlayAPI';
 
 import { z } from 'zod';
 
@@ -51,3 +52,5 @@ export const accuweatherSchema = widgetCommonSchema.extend({
     ]),
     scale: z.number().nonnegative(),
 });
+export type TAccuweather = z.infer<typeof accuweatherSchema>;
+export const isAccuweather = (widget: TWidget): widget is TAccuweather => widget.name === 'accuweather';

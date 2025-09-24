@@ -1,76 +1,16 @@
 import * as EventEmitter from 'events';
-
-import { WsOptions } from './internal/types';
 import { WsClient, WsClientOptions } from './node/WsClient';
-
-export type CamOverlayDrawingOptions = WsOptions & {
-    camera?: number | number[];
-    zIndex?: number;
-};
-
-type TMessage = {
-    command: string;
-    call_id?: number;
-    params: unknown[];
-};
-
-export type TCairoResponse = {
-    message: string;
-    call_id: number;
-};
-
-export type TCairoCreateResponse = {
-    var: string;
-    call_id: number;
-};
-
-export type TUploadImageResponse = {
-    var: string;
-    width: number;
-    height: number;
-    call_id: number;
-};
-
-export type TErrorResponse = {
-    error: string;
-    call_id?: number;
-};
-
-export type TService = {
-    id: number;
-    enabled: number;
-    schedule: string;
-    name: string;
-    identifier: string;
-    cameraList: number[];
-};
-
-export type TServiceList = {
-    services: TService[];
-};
-
-export type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
-export type TextFit = 'TFM_SCALE' | 'TFM_TRUNCATE' | 'TFM_OVERFLOW';
-export type TWriteTextParams = [string, string, number, number, number, number, TAlign, TextFit?];
-
-type TResponse = TCairoResponse | TCairoCreateResponse | TUploadImageResponse;
-type AsyncMessage = {
-    resolve: (value: TResponse) => void;
-    reject: (reason: Error) => void;
-    sentTimestamp: number;
-};
-
-export interface CamOverlayDrawingAPI {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-    on(event: 'message', listener: (msg: string) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'error', err: Error): boolean;
-    emit(event: 'message', msg: string): boolean;
-}
+import {
+    AsyncMessage,
+    CamOverlayDrawingOptions,
+    TCODResponse,
+    TCairoCreateResponse,
+    TCairoResponse,
+    TErrorResponse,
+    TUploadImageResponse,
+    TWriteTextParams,
+    TMessage,
+} from './types/CamOverlayDrawingAPI';
 
 export class CamOverlayDrawingAPI extends EventEmitter {
     private tls: boolean;
@@ -209,7 +149,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private incomingWsMessageHandler(msgData: Buffer) {
-        const dataJSON = JSON.parse(msgData.toString()) as TResponse | TErrorResponse;
+        const dataJSON = JSON.parse(msgData.toString()) as TCODResponse | TErrorResponse;
 
         let errorResponse: TErrorResponse | undefined;
         if ('error' in dataJSON) {
@@ -220,7 +160,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             if (errorResponse !== undefined) {
                 this.sendMessages[dataJSON.call_id]?.reject(new Error(errorResponse.error));
             } else {
-                this.sendMessages[dataJSON.call_id]?.resolve(dataJSON as TResponse);
+                this.sendMessages[dataJSON.call_id]?.resolve(dataJSON as TCODResponse);
             }
             delete this.sendMessages[dataJSON.call_id];
         }
@@ -233,7 +173,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private sendMessage(msgJson: TMessage) {
-        return new Promise<TResponse>((resolve, reject) => {
+        return new Promise<TCODResponse>((resolve, reject) => {
             try {
                 if (!this.wsConnected) {
                     throw new Error('No CamOverlay connection');
@@ -255,7 +195,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     private sendBinaryMessage(msgJson: TMessage, data: Buffer) {
-        return new Promise<TResponse>((resolve, reject) => {
+        return new Promise<TCODResponse>((resolve, reject) => {
             try {
                 if (!this.wsConnected) {
                     throw new Error('No CamOverlay connection');
