@@ -25,13 +25,13 @@ npm install camstreamerlib
 
 -   [CamStreamerAPI](doc/CamStreamerAPI.md) is a module for easy control of video streaming in the CamStreamer ACAP application (RTMP, HLS, SRT and MPEG-TS protocols).
 
--   [CamOverlayAPI](doc/CamOverlayAPI.md) is a module to access CamOverlay HTTP interface.
+-   [CamOverlayAPI](doc/CamOverlayAPI.md) is a module to access CamOverlay API.
 
 -   [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) is a module for easy control of CamOverlay drawing API. For more details on supported video overlay drawing functions see https://camstreamer.com/camoverlay-api1
 
 -   [CamOverlayPainter/](doc/CamOverlayPainter.md) contains three modules which makes easier to use CamOverlayDrawingAPI.
 
--   [CamScripterAPI](doc/CamScripterAPI.md) is a module which allows receiving events from CamScripter ACAP application.
+-   [CamScripterAPI](doc/CamScripterAPI.md) is a module to access CamScripter API.
 
 -   [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) is a module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.
 
