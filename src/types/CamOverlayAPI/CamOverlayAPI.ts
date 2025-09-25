@@ -1,15 +1,13 @@
 import { z } from 'zod';
+import { infoTickerSchema } from './infotickerSchema';
+import { accuweatherSchema } from './accuweatherSchema';
+import { ptzCompassSchema } from './ptzCompassSchema';
+import { imagesSchema } from './imagesSchema';
+import { ptzSchema } from './ptzSchema';
+import { pipSchema } from './pipSchema';
 import { customGraphicsSchema } from './customGraphicsSchema';
-import {
-    infoTickerSchema,
-    accuweatherSchema,
-    ptzCompassSchema,
-    imagesSchema,
-    ptzSchema,
-    pipSchema,
-    screenSharingSchema,
-    webCameraSharingSchema,
-} from './index';
+import { screenSharingSchema } from './screenSharingSchema';
+import { webCameraSharingSchema } from './webCameraSharingSchema';
 
 export const WSResponseSchema = z.object({
     status: z.number(),
@@ -19,75 +17,8 @@ export const WSResponseSchema = z.object({
 export type TWSResponse = z.infer<typeof WSResponseSchema>;
 
 //   ----------------------------------------
-//                   Common
-//   ----------------------------------------
-
-export const coordinateSystemSchema = z.union([
-    z.literal('top_left'),
-    z.literal('top'),
-    z.literal('top_right'),
-    z.literal('left'),
-    z.literal('center'),
-    z.literal('right'),
-    z.literal('bottom_left'),
-    z.literal('bottom'),
-    z.literal('bottom_right'),
-]);
-export type TCoordinates = z.infer<typeof coordinateSystemSchema> | '';
-
-export const languageSchema = z.union([
-    z.literal('en-us'),
-    z.literal('fr-fr'),
-    z.literal('ja-jp'),
-    z.literal('pt-pt'),
-    z.literal('es-es'),
-    z.literal('de-de'),
-    z.literal('ko-kr'),
-    z.literal('zh-hk'),
-    z.literal('zh-cn'),
-    z.literal('nl-nl'),
-    z.literal('cs-cz'),
-    z.literal('ru-ru'),
-    z.literal('sv-se'),
-]);
-export type TLanguage = z.infer<typeof languageSchema>;
-
-export const fontSchema = z.union([
-    z.literal('classic'),
-    z.literal('digital'),
-    z.custom<string>((val) => {
-        return typeof val === 'string';
-    }),
-]);
-export type TFont = z.infer<typeof fontSchema>;
-
-export const weatherUnitSchema = z.union([z.literal('Metric'), z.literal('Imperial')]);
-export type TWeatherUnit = z.infer<typeof weatherUnitSchema>;
-
-//   ----------------------------------------
 //                   Widgets
 //   ----------------------------------------
-
-export const widgetCommonSchema = z.object({
-    id: z.number().nonnegative(),
-    enabled: z.union([z.literal(0), z.literal(1)]),
-    automationType: z.union([
-        z.literal('time'),
-        z.literal('manual'),
-        z.literal('schedule'),
-        z.custom<`input${number}`>((val) => {
-            return typeof val === 'string' ? /^input\d+$/.test(val) : false;
-        }),
-    ]),
-    invertInput: z.boolean().optional(),
-    cameraList: z.array(z.number()),
-    camera: z.number().nonnegative().optional(), // Deprecated, may still exist in old versions of CO
-    schedule: z.string().optional(),
-    customName: z.string(),
-    zIndex: z.number().optional(),
-    width: z.number().nonnegative(),
-    height: z.number().nonnegative(),
-});
 
 export const widgetsSchema = z.discriminatedUnion('name', [
     infoTickerSchema,
@@ -107,25 +38,32 @@ export const widgetListSchema = z.object({
 });
 export type TWidgetList = z.infer<typeof widgetListSchema>;
 
-export const sharingSchema = widgetCommonSchema.extend({
-    pos_x: z.number().nonnegative(),
-    pos_y: z.number().nonnegative(),
-    coordSystem: coordinateSystemSchema,
-    screenSize: z.number().positive(),
-    fps: z.number(),
-});
+export type TAccuweather = z.infer<typeof accuweatherSchema>;
+export const isAccuweather = (widget: TWidget): widget is TAccuweather => widget.name === 'accuweather';
 
-export const overlaySchema = z.object({
-    active: z.boolean(),
-    coordSystem: coordinateSystemSchema,
-    pos_x: z.number(),
-    pos_y: z.number(),
-    imgPath: z.string(),
-    imgName: z.string(),
-    duration: z.number(),
-    scale: z.number(),
-    fps: z.number().optional(),
-});
+export type TCustomGraphics = z.infer<typeof customGraphicsSchema>;
+export const isCustomGraphics = (widget: TWidget): widget is TCustomGraphics => widget.name === 'customGraphics';
+
+export type TImages = z.infer<typeof imagesSchema>;
+export const isImages = (widget: TWidget): widget is TImages => widget.name === 'images';
+
+export type TInfoticker = z.infer<typeof infoTickerSchema>;
+export const isInfoticker = (widget: TWidget): widget is TInfoticker => widget.name === 'infoticker';
+
+export type TPip = z.infer<typeof pipSchema>;
+export const isPip = (widget: TWidget): widget is TPip => widget.name === 'pip';
+
+export type TPtzCompass = z.infer<typeof ptzCompassSchema>;
+export const isPtzCompass = (widget: TWidget): widget is TPtzCompass => widget.name === 'ptzCompass';
+
+export type TPtz = z.infer<typeof ptzSchema>;
+export const isPtz = (widget: TWidget): widget is TPtz => widget.name === 'ptz';
+
+export type TScreenSharing = z.infer<typeof screenSharingSchema>;
+export const isScreenSharing = (widget: TWidget): widget is TScreenSharing => widget.name === 'screenSharing';
+
+export type TWebCameraSharing = z.infer<typeof webCameraSharingSchema>;
+export const isWebCameraSharing = (widget: TWidget): widget is TWebCameraSharing => widget.name === 'web_camera';
 
 //   ----------------------------------------
 //               Storage & Files

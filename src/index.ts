@@ -15,7 +15,6 @@ export * from './types/CamSwitcherEvents';
 export * from './types/CamSwitcherAPI';
 export * from './types/VapixAPI';
 export * from './types/CamOverlayAPI';
-export * from './types/CamOverlayAPI/CamOverlayAPI';
 export * from './types/PlaneTrackerAPI';
 
 export { Frame } from './CamOverlayPainter/Frame';

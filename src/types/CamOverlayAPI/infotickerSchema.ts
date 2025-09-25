@@ -1,7 +1,11 @@
-import { fontSchema, languageSchema, TWidget, weatherUnitSchema, widgetCommonSchema } from './CamOverlayAPI';
-import { allowedWidgetNames } from '../../CamOverlayAPI';
-
 import { z } from 'zod';
+import {
+    allowedWidgetNames,
+    fontSchema,
+    languageSchema,
+    weatherUnitSchema,
+    widgetCommonSchema,
+} from './widgetCommonTypes';
 
 export const infoTickerSchema = widgetCommonSchema.extend({
     name: z.literal(allowedWidgetNames.infoticker),
@@ -24,5 +28,3 @@ export const infoTickerSchema = widgetCommonSchema.extend({
     sourceType: z.union([z.literal('text'), z.literal('url')]),
     source: z.string(),
 });
-export type TInfoticker = z.infer<typeof infoTickerSchema>;
-export const isInfoticker = (widget: TWidget): widget is TInfoticker => widget.name === 'infoticker';

@@ -1,7 +1,5 @@
-import { coordinateSystemSchema, TWidget, widgetCommonSchema } from './CamOverlayAPI';
-import { allowedWidgetNames } from '../../CamOverlayAPI';
-
 import { z } from 'zod';
+import { allowedWidgetNames, coordinateSystemSchema, widgetCommonSchema } from './widgetCommonTypes';
 
 export const ptzCompassSchema = widgetCommonSchema.extend({
     name: z.literal(allowedWidgetNames.ptzCompass),
@@ -23,5 +21,3 @@ export const ptzCompassSchema = widgetCommonSchema.extend({
     generalIframeHeight: z.number().optional(),
     generalAddress: z.string().optional(),
 });
-export type TPtzCompass = z.infer<typeof ptzCompassSchema>;
-export const isPtzCompass = (widget: TWidget): widget is TPtzCompass => widget.name === 'ptzCompass';

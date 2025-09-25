@@ -1,7 +1,5 @@
-import { coordinateSystemSchema, fontSchema, TWidget, widgetCommonSchema } from './CamOverlayAPI';
-import { allowedWidgetNames } from '../../CamOverlayAPI';
-
 import { z } from 'zod';
+import { allowedWidgetNames, coordinateSystemSchema, fontSchema, widgetCommonSchema } from './widgetCommonTypes';
 
 const mappingZonesCommonSchema = z.object({
     name: z.string(),
@@ -70,8 +68,6 @@ export const customGraphicsSchema = widgetCommonSchema.extend({
     customAreaCorners: z.union([z.literal('sharp'), z.literal('rounded')]),
     mappingZones: z.array(mappingZoneSchema),
 });
-export type TCustomGraphics = z.infer<typeof customGraphicsSchema>;
-export const isCustomGraphics = (widget: TWidget): widget is TCustomGraphics => widget.name === 'customGraphics';
 
 export const fieldSchema = z.object({
     field_name: z.string(),

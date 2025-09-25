@@ -10,6 +10,7 @@ import {
     ImageType,
     storageDataListSchema,
     TCoordinates,
+    TField,
     TFile,
     TFileData,
     TFileList,
@@ -21,20 +22,7 @@ import {
     TWidgetList,
     widgetsSchema,
     WSResponseSchema,
-} from './types/CamOverlayAPI/CamOverlayAPI';
-import { TField } from './types/CamOverlayAPI';
-
-export const allowedWidgetNames = {
-    accuweather: 'accuweather',
-    infoticker: 'infoticker',
-    customGraphics: 'customGraphics',
-    ptzCompass: 'ptzCompass',
-    images: 'images',
-    ptz: 'ptz',
-    pip: 'pip',
-    screenSharing: 'screenSharing',
-    web_camera: 'web_camera',
-} as const;
+} from './types/CamOverlayAPI';
 
 const BASE_PATH = '/local/camoverlay/api';
 export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
