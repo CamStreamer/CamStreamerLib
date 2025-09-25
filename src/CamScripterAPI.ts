@@ -21,6 +21,10 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
 
     static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
 
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
+
     async checkCameraTime(options?: THttpRequestOptions): Promise<boolean> {
         const data = await this.get(`${BASE_PATH}/camera_time.cgi`, undefined, options);
         return cameraTimeResponseSchema.parse(data).state;
@@ -99,7 +103,7 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
     //   ----------------------------------------
 
     private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions): Promise<any> {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
         if (res.ok) {
@@ -114,7 +118,7 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
         parameters?: Record<string, string>,
         options?: THttpRequestOptions
     ): Promise<any> {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data, parameters, timeout: options?.timeout });
 
         if (res.ok) {
@@ -122,9 +126,5 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
         } else {
             throw new Error(await responseStringify(res));
         }
-    }
-
-    private getAgent(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 }

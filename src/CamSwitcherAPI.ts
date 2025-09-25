@@ -57,8 +57,12 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
     static getClipPreviewUrlPath = (id: string, storage: TStorageType) =>
         `${BASE_PATH}/clip_preview.cgi?clip_name=${id}&storage=${storage}`;
 
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
+
     async generateSilence(sampleRate: number, channels: TAudioChannel, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         await agent.get({
             path: `${BASE_PATH}/generate_silence.cgi`,
             parameters: {
@@ -194,7 +198,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         formData.append('clip_type', clipType);
         formData.append('file', file, fileName);
 
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data: formData, timeout: options?.timeout });
         const output = (await res.json()) as { status: number; message: string };
 
@@ -365,7 +369,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
     //   ----------------------------------------
 
     private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
         if (res.ok) {
@@ -377,7 +381,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
     }
 
     private async set(path: string, data: any, parameters?: Record<string, string>, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data: JSON.stringify(data), parameters, timeout: options?.timeout });
 
         if (res.ok) {
@@ -410,10 +414,6 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         }
 
         throw new Error("Error: no parametr '" + paramName + "' was found");
-    }
-
-    private getAgent(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 }
 

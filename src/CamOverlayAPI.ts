@@ -44,6 +44,10 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
     static getFilePreviewPath = (path: string) => `${BASE_PATH}/image.cgi?path=${encodeURIComponent(path)}`;
 
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
+
     async checkCameraTime(options?: THttpRequestOptions): Promise<boolean> {
         const response = await this._get({ path: `${BASE_PATH}/camera_time.cgi` }, options);
         return z.boolean().parse(response.state);
@@ -147,7 +151,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     }
 
     async isEnabled(serviceId: number, options?: THttpRequestOptions): Promise<boolean> {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path: `${BASE_PATH}/services.cgi?action=get`, timeout: options?.timeout });
         if (res.ok) {
             const data: TWidgetList = JSON.parse(await res.text());
@@ -309,7 +313,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
             headers = { 'Content-Type': contentType };
         }
 
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({
             path,
             data: data ?? '',
@@ -334,7 +338,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         },
         options?: THttpRequestOptions
     ): Promise<TResponseData> | never {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ ...params, timeout: options?.timeout });
         if (res.ok) {
             return (await res.json()) as TResponseData;
@@ -351,7 +355,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         },
         options?: THttpRequestOptions
     ): Promise<TResponseData> | never {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ ...params, timeout: options?.timeout });
         if (res.ok) {
             return (await res.json()) as TResponseData;
@@ -368,7 +372,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         },
         options?: THttpRequestOptions
     ) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ ...params, timeout: options?.timeout });
         if (res.ok) {
             return await this.parseBlobResponse(res);
@@ -405,9 +409,5 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     ): Promise<TResponseData> | never {
         const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
         return this._post({ path, data, parameters, headers: { ...baseHeaders, ...headers } }, options);
-    }
-
-    private getAgent(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 }

@@ -40,6 +40,10 @@ import { XMLParser } from 'fast-xml-parser';
 export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(private client: Client) {}
 
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
+
     /**
      * url encoded post request
      * there is a problem on some routers with the url size limit
@@ -52,7 +56,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     ) {
         const data = paramToUrl(parameters);
         const head = { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' };
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
         if (!res.ok) {
             throw new Error(await responseStringify(res));
@@ -71,7 +75,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     ) {
         const data = JSON.stringify(jsonData);
         const head = { ...headers, 'Content-Type': 'application/json' };
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
         if (!res.ok) {
             throw new Error(await responseStringify(res));
@@ -80,7 +84,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     }
 
     async getCameraImage(parameters: TCameraImageConfig, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({ path: '/axis-cgi/jpg/image.cgi', parameters, timeout: options?.timeout });
     }
 
@@ -92,7 +96,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
             '<GetEventInstances xmlns="http://www.axis.com/vapix/ws/event1"/>' +
             '</s:Body>' +
             '</s:Envelope>';
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({
             path: '/vapix/services',
             data,
@@ -279,7 +283,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     async getTimezone(options?: THttpRequestOptions) {
         // try v2 api first
         try {
-            const agent = this.getAgent(options?.proxyParams);
+            const agent = this.getClient(options?.proxyParams);
             const resV2 = await agent.get({ path: '/config/rest/time/v2/timeZone', timeout: options?.timeout });
 
             if (!resV2.ok) {
@@ -585,7 +589,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     //  -------------------------------
 
     async getApplicationList(options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path: '/axis-cgi/applications/list.cgi', timeout: options?.timeout });
         const xml = await res.text();
         const parser = new XMLParser({
@@ -608,7 +612,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     }
 
     async startApplication(applicationID: string, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path: '/axis-cgi/applications/control.cgi',
             parameters: {
@@ -625,7 +629,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     }
 
     async restartApplication(applicationID: string, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path: '/axis-cgi/applications/control.cgi',
             parameters: {
@@ -642,7 +646,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     }
 
     async stopApplication(applicationID: string, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path: '/axis-cgi/applications/control.cgi',
             parameters: {
@@ -662,7 +666,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
         const formData = new FormData();
         formData.append('packfil', data, fileName);
 
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({
             path: '/axis-cgi/applications/upload.cgi',
             data: formData,
@@ -757,8 +761,4 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
         });
         return res;
     };
-
-    private getAgent(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
-    }
 }

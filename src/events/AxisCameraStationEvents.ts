@@ -11,6 +11,10 @@ export class AxisCameraStationEvents {
         this.client = new DefaultClient(clientOptions);
     }
 
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
+
     async sendEvent(data: Record<string, string>, eventType: string, options?: THttpRequestOptions) {
         const dateString = this.getDate();
         const event = {
@@ -23,7 +27,7 @@ export class AxisCameraStationEvents {
         };
         const eventData = JSON.stringify(event);
 
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({
             path: '/Acs/Api/ExternalDataFacade/AddExternalData',
             data: eventData,
@@ -49,9 +53,5 @@ export class AxisCameraStationEvents {
         const seconds = pad(date.getUTCSeconds(), 2);
 
         return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    }
-
-    private getAgent(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 }

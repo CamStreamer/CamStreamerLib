@@ -12,13 +12,17 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
 
     static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
 
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
+
     async checkCameraTime(options?: THttpRequestOptions) {
         const response = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
         return z.boolean().parse(response.state);
     }
 
     resetPtzCalibration = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({
             path: `${BASE_PATH}/package/resetPtzCalibration.cgi`,
             parameters: this.apiUser,
@@ -27,7 +31,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     resetFocusCalibration = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({
             path: `${BASE_PATH}/package/resetFocusCalibration.cgi`,
             parameters: this.apiUser,
@@ -36,12 +40,12 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     serverRunCheck = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
     };
 
     getLiveViewAlias = async (rtspUrl: string, options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({
             path: `${BASE_PATH}/getLiveViewAlias.cgi`,
             parameters: { rtsp_url: rtspUrl },
@@ -76,7 +80,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     importAppSettings = async (dataType: TImportDataType, formData: FormData, options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.post({
             path: `${BASE_PATH}/package_data.cgi`,
             data: formData,
@@ -106,7 +110,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     startTrackingPlane = async (icao: ICAO, options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({
             path: `${BASE_PATH}/package/trackIcao.cgi`,
             parameters: { icao, ...this.apiUser },
@@ -115,7 +119,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     stopTrackingPlane = async (options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({
             path: `${BASE_PATH}/package/resetIcao.cgi`,
             parameters: this.apiUser,
@@ -180,7 +184,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     };
 
     goToCoordinates = async (lat: number, lon: number, alt?: number, options?: THttpRequestOptions) => {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         return await agent.get({
             path: `${BASE_PATH}/package/goToCoordinates.cgi`,
             parameters: { lat, lon, alt, ...this.apiUser },
@@ -206,7 +210,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     //   ----------------------------------------
 
     private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path,
             parameters,
@@ -221,7 +225,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
     }
 
     private async _getBlob(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path,
             parameters,
@@ -249,7 +253,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         parameters?: TParameters,
         options?: THttpRequestOptions
     ) {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({
             path,
             data,
@@ -267,7 +271,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
 
     private async _postUrlEncoded(path: string, params: TParameters, options?: THttpRequestOptions) {
         const data = paramToUrl(params);
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({
             path,
             data,
@@ -280,9 +284,5 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         } else {
             throw new Error(await responseStringify(res));
         }
-    }
-
-    private getAgent(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 }

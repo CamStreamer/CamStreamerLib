@@ -9,6 +9,10 @@ const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(public client: Client) {}
 
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
+
     async getStreamList(options?: THttpRequestOptions): Promise<TStreamList> {
         const streamListRes = await this.get(`${BASE_PATH}/stream/list.cgi`, undefined, options);
         return streamListSchema.parse(streamListRes.data);
@@ -70,7 +74,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TRespons
     //   ----------------------------------------
 
     private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions): Promise<any> {
-        const agent = this.getAgent(options?.proxyParams);
+        const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
         if (res.ok) {
@@ -78,9 +82,5 @@ export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TRespons
         } else {
             throw new Error(await responseStringify(res));
         }
-    }
-
-    private getAgent(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 }
