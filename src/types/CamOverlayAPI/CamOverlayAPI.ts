@@ -12,8 +12,6 @@ import {
     webCameraSharingSchema,
 } from './index';
 
-export type CamOverlayOptions = HttpOptions;
-
 export const WSResponseSchema = z.object({
     status: z.number(),
     message: z.string(),

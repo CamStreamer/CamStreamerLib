@@ -11,8 +11,6 @@ import {
     TKeyboardShortcut,
 } from './common';
 
-export type CamSwitcherAPIOptions = HttpOptions;
-
 const channelTypeSchema = z.union([z.literal('audio'), z.literal('video'), z.literal('av')]);
 export type TChannelType = z.infer<typeof channelTypeSchema>;
 const playlistPlayTypeSchema = z.union([

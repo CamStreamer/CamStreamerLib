@@ -1,8 +1,5 @@
-import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
 import { toCamelCaseDeep } from '../internal/transformers';
-
-export type CameraVapixOptions = HttpOptions;
 
 export const applicationSchema = z.object({
     Name: z.string(),
