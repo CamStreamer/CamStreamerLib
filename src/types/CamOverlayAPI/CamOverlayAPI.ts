@@ -1,4 +1,3 @@
-import { HttpOptions } from '../../internal/types';
 import { z } from 'zod';
 import { customGraphicsSchema } from './customGraphicsSchema';
 import {
