@@ -28,17 +28,17 @@ export class DefaultClient implements IClient<UndiciResponse> {
         this.httpRequestSender = new HttpRequestSender(agentOptions);
     }
 
-    get = (params: TGetParams) => {
+    get(params: TGetParams) {
         const { path, parameters, headers, timeout } = params;
         const options = this.getBaseConnectionParams('GET', path, parameters, headers, timeout);
         return this.httpRequestSender.sendRequest(options);
-    };
+    }
 
-    post = (params: TPostParams) => {
+    post(params: TPostParams) {
         const { path, data, parameters, headers, timeout } = params;
         const options = this.getBaseConnectionParams('POST', path, parameters, headers, timeout);
         return this.httpRequestSender.sendRequest(options, data as UndiciFormData);
-    };
+    }
 
     private getBaseConnectionParams(
         method: string,
