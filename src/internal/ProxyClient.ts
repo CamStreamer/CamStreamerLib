@@ -5,21 +5,21 @@ import { addParametersToPath } from './utils';
 export class ProxyClient<Client extends IClient<TResponse> = IClient<TResponse>> {
     constructor(private client: Client, private proxyParams: TProxyParams) {}
 
-    get = (params: TGetParams) => {
+    get(params: TGetParams) {
         const { path, parameters, headers, timeout } = params;
         const targetPath = addParametersToPath(path, parameters);
         const { realPath, realHeaders } = this.getReal(targetPath, headers);
         return this.client.get({ path: realPath, headers: realHeaders, timeout });
-    };
+    }
 
-    post = (params: TPostParams) => {
+    post(params: TPostParams) {
         const { path, data, parameters, headers, timeout } = params;
         const targetPath = addParametersToPath(path, parameters);
         const { realPath, realHeaders } = this.getReal(targetPath, headers);
         return this.client.post({ path: realPath, data, headers: realHeaders, timeout });
-    };
+    }
 
-    private getReal = (targetPath: string, headers: Record<string, string> | undefined) => {
+    private getReal(targetPath: string, headers: Record<string, string> | undefined) {
         return {
             realPath: this.proxyParams.path,
             realHeaders: {
@@ -33,5 +33,5 @@ export class ProxyClient<Client extends IClient<TResponse> = IClient<TResponse>>
                 'x-target-camera-user': this.proxyParams.target.user,
             },
         };
-    };
+    }
 }
