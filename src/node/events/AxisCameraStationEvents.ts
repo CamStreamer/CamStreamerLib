@@ -1,8 +1,8 @@
-import { HttpOptions } from '../internal/types';
-import { pad } from '../internal/utils';
-import { THttpRequestOptions, TProxyParams } from '../types/common';
-import { ProxyClient } from '../internal/ProxyClient';
-import { DefaultClient } from '../node';
+import { HttpOptions } from '../../internal/types';
+import { pad } from '../../internal/utils';
+import { ProxyClient } from '../../internal/ProxyClient';
+import { THttpRequestOptions, TProxyParams } from '../../types/common';
+import { DefaultClient } from '../DefaultClient';
 
 export class AxisCameraStationEvents {
     private client: DefaultClient;
