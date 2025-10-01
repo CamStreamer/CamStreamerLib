@@ -381,7 +381,6 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
         if (responseText.startsWith('# Error')) {
             throw new Error(responseText);
         }
-        return true;
     }
 
     async getGuardTourList(options?: THttpRequestOptions) {

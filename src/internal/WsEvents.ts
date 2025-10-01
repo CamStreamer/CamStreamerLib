@@ -17,11 +17,15 @@ type TListenersList<T extends { type: string }> = Partial<{
 }>;
 
 export class WsEvents<T extends { type: string }, Event extends { data: string }> {
-    isDestroyed = false;
+    private _isDestroyed = false;
     private ws: IWebsocket<Event> | null = null;
     private listeners: TListenersList<T> = {};
 
     constructor(private zodSchema: TZodSchema<T>) {}
+
+    get isDestroyed() {
+        return this._isDestroyed;
+    }
 
     setWebsocket(ws: IWebsocket<Event>) {
         if (!isNullish(this.ws)) {
@@ -51,6 +55,9 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
         const typeList = this.listeners[type];
         if (typeList) {
             delete typeList[id];
+            if (Object.keys(typeList).length === 0) {
+                delete this.listeners[type];
+            }
         }
     }
 
@@ -79,7 +86,7 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
     }
 
     destroy() {
-        this.isDestroyed = true;
+        this._isDestroyed = true;
         if (!isNullish(this.ws)) {
             this.ws.destroy();
             this.ws = null;
