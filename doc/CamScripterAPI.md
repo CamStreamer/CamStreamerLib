@@ -51,11 +51,13 @@ const isValid = await cscApi.checkCameraTime();
 Find cameras on local network using mDNS protocol.
 
 -   **Returns:**
-    ```
-    Promise<Array<{
-        name: string;
-        ip: string;
-    }>>
+    ```typescript
+    Promise<
+        Array<{
+            name: string;
+            ip: string;
+        }>
+    >;
     ```
 
 ```javascript
