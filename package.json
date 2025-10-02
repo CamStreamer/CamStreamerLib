@@ -55,6 +55,8 @@
         "/**/*.js",
         "/**/*.ts"
     ],
+    "main": "cjs",
+    "module": "esm",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/CamStreamer/CamStreamerLib.git"

@@ -6,7 +6,6 @@
         "module": "esnext",
         "declaration": true,
         "removeComments": true,
-        "outDir": "dist",
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
