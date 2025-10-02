@@ -267,7 +267,8 @@ Set the camera settings.
     -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<Response | UndiciResponse>`
 
-    > [!NOTE] > `settingsJsonString` is stringified object of type `TCameraSettings`
+> [!NOTE]
+> `settingsJsonString` is stringified object of type `TCameraSettings`
 
 ```javascript
 await ptrApi.setCameraSettings(settingsJson);
@@ -432,7 +433,8 @@ Sets the tracking mode.
     JSON.stringify({ mode: 'AUTOMATIC' | 'MANUAL' });
     ```
 
-    > [!NOTE] > `modeJsonString` is stringified object of type [`TTrackingMode`](#types)
+> [!NOTE]
+> `modeJsonString` is stringified object of type [`TTrackingMode`](#types)
 
 -   **Returns:** `Promise<Response | UndiciResponse>`
 
