@@ -18,9 +18,10 @@ import {
     TStorage,
     TStorageDataList,
     TStorageResponse,
-    TWidget,
-    TWidgetList,
-    widgetsSchema,
+    TService,
+    TServiceList,
+    serviceListSchema,
+    servicesSchema,
     WSResponseSchema,
 } from './types/CamOverlayAPI';
 
@@ -147,7 +148,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path: `${BASE_PATH}/services.cgi?action=get`, timeout: options?.timeout });
         if (res.ok) {
-            const data: TWidgetList = JSON.parse(await res.text());
+            const data: TServiceList = JSON.parse(await res.text());
 
             for (const service of data.services) {
                 if (service.id === serviceId) {
@@ -160,7 +161,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         }
     }
 
-    async getSingleWidget(serviceId: number, options?: THttpRequestOptions): Promise<TWidget> {
+    async getSingleService(serviceId: number, options?: THttpRequestOptions) {
         const data = await this._get(
             {
                 path: `${BASE_PATH}/services.cgi`,
@@ -171,11 +172,11 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
             },
             options
         );
-        return widgetsSchema.parse(data);
+        return servicesSchema.parse(data);
     }
 
-    async getWidgets(options?: THttpRequestOptions): Promise<TWidget[]> {
-        const widgetList: TWidgetList = await this._get(
+    async getServices(options?: THttpRequestOptions) {
+        const serviceList: TServiceList = await this._get(
             {
                 path: `${BASE_PATH}/services.cgi`,
                 parameters: {
@@ -184,39 +185,39 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
             },
             options
         );
-        const widgets = widgetList.services;
+        const services = serviceListSchema.parse(serviceList).services;
 
-        widgets.forEach((widget) => {
-            const parsedWidget = widgetsSchema.safeParse(widget);
-            if (!parsedWidget.success) {
+        services.forEach((service) => {
+            const parsedService = servicesSchema.safeParse(service);
+            if (!parsedService.success) {
                 console.warn(
-                    `[SERVICE SCHEMA MISMATCH]: Service ${widget.name} (${widget.id}) does not match the current schema, or is a hidden service.`
+                    `[SERVICE SCHEMA MISMATCH]: Service ${service.name} (${service.id}) does not match the current schema, or is a hidden service.`
                 );
             }
         });
 
-        return widgets;
+        return services;
     }
 
-    async updateSingleWidget(widget: TWidget, options?: THttpRequestOptions) {
+    async updateSingleService(service: TService, options?: THttpRequestOptions) {
         const path = `${BASE_PATH}/services.cgi`;
         await this._postJsonEncoded(
             path,
-            JSON.stringify(widget),
+            JSON.stringify(service),
             {
                 action: 'set',
-                service_id: widget.id.toString(),
+                service_id: service.id.toString(),
             },
             undefined,
             options
         );
     }
 
-    async updateWidgets(widgets: TWidget[], options?: THttpRequestOptions) {
+    async updateServices(services: TService[], options?: THttpRequestOptions) {
         const path = `${BASE_PATH}/services.cgi`;
         await this._postJsonEncoded(
             path,
-            JSON.stringify({ services: widgets }),
+            JSON.stringify({ services: services }),
             {
                 action: 'set',
             },

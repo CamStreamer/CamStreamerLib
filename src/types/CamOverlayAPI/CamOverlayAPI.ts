@@ -23,10 +23,10 @@ export const WSResponseSchema = z.object({
 export type TWSResponse = z.infer<typeof WSResponseSchema>;
 
 //   ----------------------------------------
-//                   Widgets
+//                   Services
 //   ----------------------------------------
 
-export const widgetsSchema = z.discriminatedUnion('name', [
+export const servicesSchema = z.discriminatedUnion('name', [
     infoTickerSchema,
     accuweatherSchema,
     ptzCompassSchema,
@@ -41,39 +41,39 @@ export const widgetsSchema = z.discriminatedUnion('name', [
     baseballScoreBoardAutomaticSchema,
     scoreOverviewSchema,
 ]);
-export type TWidget = z.infer<typeof widgetsSchema>;
+export type TService = z.infer<typeof servicesSchema>;
 
-export const widgetListSchema = z.object({
-    services: z.array(widgetsSchema),
+export const serviceListSchema = z.object({
+    services: z.array(servicesSchema),
 });
-export type TWidgetList = z.infer<typeof widgetListSchema>;
+export type TServiceList = z.infer<typeof serviceListSchema>;
 
 export type TAccuweather = z.infer<typeof accuweatherSchema>;
-export const isAccuweather = (widget: TWidget): widget is TAccuweather => widget.name === 'accuweather';
+export const isAccuweather = (service: TService): service is TAccuweather => service.name === 'accuweather';
 
 export type TCustomGraphics = z.infer<typeof customGraphicsSchema>;
-export const isCustomGraphics = (widget: TWidget): widget is TCustomGraphics => widget.name === 'customGraphics';
+export const isCustomGraphics = (service: TService): service is TCustomGraphics => service.name === 'customGraphics';
 
 export type TImages = z.infer<typeof imagesSchema>;
-export const isImages = (widget: TWidget): widget is TImages => widget.name === 'images';
+export const isImages = (service: TService): service is TImages => service.name === 'images';
 
 export type TInfoticker = z.infer<typeof infoTickerSchema>;
-export const isInfoticker = (widget: TWidget): widget is TInfoticker => widget.name === 'infoticker';
+export const isInfoticker = (service: TService): service is TInfoticker => service.name === 'infoticker';
 
 export type TPip = z.infer<typeof pipSchema>;
-export const isPip = (widget: TWidget): widget is TPip => widget.name === 'pip';
+export const isPip = (service: TService): service is TPip => service.name === 'pip';
 
 export type TPtzCompass = z.infer<typeof ptzCompassSchema>;
-export const isPtzCompass = (widget: TWidget): widget is TPtzCompass => widget.name === 'ptzCompass';
+export const isPtzCompass = (service: TService): service is TPtzCompass => service.name === 'ptzCompass';
 
 export type TPtz = z.infer<typeof ptzSchema>;
-export const isPtz = (widget: TWidget): widget is TPtz => widget.name === 'ptz';
+export const isPtz = (service: TService): service is TPtz => service.name === 'ptz';
 
 export type TScreenSharing = z.infer<typeof screenSharingSchema>;
-export const isScreenSharing = (widget: TWidget): widget is TScreenSharing => widget.name === 'screenSharing';
+export const isScreenSharing = (service: TService): service is TScreenSharing => service.name === 'screenSharing';
 
 export type TWebCameraSharing = z.infer<typeof webCameraSharingSchema>;
-export const isWebCameraSharing = (widget: TWidget): widget is TWebCameraSharing => widget.name === 'web_camera';
+export const isWebCameraSharing = (service: TService): service is TWebCameraSharing => service.name === 'web_camera';
 
 export type TScoreBoard = z.infer<typeof scoreBoardSchema>;
 export const isScoreBoard = (widget: TWidget): widget is TScoreBoard => widget.name === 'scoreBoard';

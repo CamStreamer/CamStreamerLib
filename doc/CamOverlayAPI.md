@@ -22,6 +22,387 @@ const coApi = new CamOverlayAPI(
 );
 ```
 
+## Services
+
+```typescript
+type TService = {
+    id: number;
+    enabled: 0 | 1;
+    automationType: 'time' | 'manual' | 'schedule' | `input${number}`;
+    cameraList: number[];
+    customName: string;
+    width: number;
+    height: number;
+    schedule: string | undefined;
+    invertInput: boolean | undefined;
+    camera: number | undefined;
+    zIndex: number | undefined;
+};
+```
+
+### AccuWeather
+
+Display weather data in specified location as overlay.
+
+```typescript
+type TAccuweather = TService & {
+    name: 'accuweather';
+    clockType: '12h' | '24h';
+    coordSystem:
+        | 'top'
+        | 'bottom'
+        | 'top_left'
+        | 'top_right'
+        | 'left'
+        | 'center'
+        | 'right'
+        | 'bottom_left'
+        | 'bottom_right';
+    pos_y: number;
+    font: string;
+    location: string;
+    locationName: string;
+    title: string;
+    bgStartColor: '237,143,73,0.93' | '0,0,0,0.75' | '31,32,73,0.9' | '76,94,127,0.95';
+    bgEndColor: '0,0,0,0.75' | '234,181,89,0.93' | '73,96,213,0.9' | '140,150,168,0.95';
+    lang:
+        | 'en-us'
+        | 'fr-fr'
+        | 'ja-jp'
+        | 'pt-pt'
+        | 'es-es'
+        | 'de-de'
+        | 'ko-kr'
+        | 'zh-hk'
+        | 'zh-cn'
+        | 'nl-nl'
+        | 'cs-cz'
+        | 'ru-ru'
+        | 'sv-se';
+    units: 'Metric' | 'Imperial';
+    pos_x: number;
+    layout: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | '13';
+    scale: number;
+};
+```
+
+### InfoTicker
+
+Display dynamic text overlays with variables like time, weather, or sunrise, updated manually, from a URL, or via API.
+
+```typescript
+type TInfoticker = TService & {
+    name: 'infoticker';
+    showClock: 0 | 1;
+    clockType: '12h' | '24h';
+    textColor: string;
+    bgColor: string;
+    weatherLocation: string;
+    weatherLocationName: string;
+    weatherLang:
+        | 'en-us'
+        | 'fr-fr'
+        | 'ja-jp'
+        | 'pt-pt'
+        | 'es-es'
+        | 'de-de'
+        | 'ko-kr'
+        | 'zh-hk'
+        | 'zh-cn'
+        | 'nl-nl'
+        | 'cs-cz'
+        | 'ru-ru'
+        | 'sv-se';
+    weatherUnits: 'Metric' | 'Imperial';
+    numberOfLines: number;
+    switchingTime: number;
+    crawlLeft: boolean;
+    crawlSpeed: number;
+    coordSystem: 'top' | 'bottom';
+    pos_y: number;
+    font: string;
+    fontSize: number;
+    sourceType: 'text' | 'url';
+    source: string;
+};
+```
+
+### Images
+
+Display and manage images or ads directly on your live video stream.
+
+```typescript
+type TImages = TService & {
+    name: 'images';
+    overlayList: {
+        pos_x: number;
+        pos_y: number;
+        coordSystem:
+            | 'top_left'
+            | 'top'
+            | 'top_right'
+            | 'left'
+            | 'center'
+            | 'right'
+            | 'bottom_left'
+            | 'bottom'
+            | 'bottom_right';
+        active: boolean;
+        imgPath: string;
+        imgName: string;
+        duration: number;
+        scale: number;
+        fps: number | undefined;
+    }[];
+};
+```
+
+### PTZ Compass
+
+Display a compass or map overlay to show your PTZ camera’s viewing direction and sector.
+
+```typescript
+type TPtzCompass = TService & {
+    name: 'ptzCompass';
+    type: 'map' | 'compass' | 'image';
+    pos_x: number;
+    pos_y: number;
+    coordSystem:
+        | 'top_left'
+        | 'top'
+        | 'top_right'
+        | 'left'
+        | 'center'
+        | 'right'
+        | 'bottom_left'
+        | 'bottom'
+        | 'bottom_right';
+    scale: number;
+    image: string;
+    northPan: number;
+    cameraPosX: number;
+    cameraPosY: number;
+    colorScheme: 'black' | 'white' | 'orange';
+    generalLng: number | undefined;
+    generalLat: number | undefined;
+    generalZoom: number | undefined;
+    generalMapType: string | undefined;
+    generalIframeWidth: number | undefined;
+    generalIframeHeight: number | undefined;
+    generalAddress: string | undefined;
+};
+```
+
+### PTZ Overlay
+
+Display images, ads, or infographics to each PTZ preset position.
+
+```typescript
+type TPtz = TService & {
+    name: 'ptz';
+    ptz_positions: Record<
+        string,
+        {
+            overlayList: {
+                pos_x: number;
+                pos_y: number;
+                coordSystem:
+                    | 'top_left'
+                    | 'top'
+                    | 'top_right'
+                    | 'left'
+                    | 'center'
+                    | 'right'
+                    | 'bottom_left'
+                    | 'bottom'
+                    | 'bottom_right';
+                imgPath: string;
+                imgName: string;
+                duration: number;
+                scale: number;
+            }[];
+            loop: boolean;
+        }
+    >;
+};
+```
+
+### Custom Graphics
+
+Display dynamic text in the background graphics within your video stream.
+
+```typescript
+type TCustomGraphics = TService & {
+    name: 'customGraphics';
+    pos_x: number;
+    pos_y: number;
+    coordSystem:
+        | 'top_left'
+        | 'top'
+        | 'top_right'
+        | 'left'
+        | 'center'
+        | 'right'
+        | 'bottom_left'
+        | 'bottom'
+        | 'bottom_right';
+    image: string;
+    clockFormat: '12h' | '24h';
+    background: 'custom' | 'image';
+    customAreaColor: string;
+    customAreaWidth: number;
+    customAreaHeight: number;
+    customAreaCorners: 'sharp' | 'rounded';
+    mappingZones: (
+        | {
+              type: 'plain';
+              name: string;
+              textColor: string;
+              switchingTime: number;
+              pos_y: number;
+              font: string;
+              fontSize: number;
+              pos_x: number;
+              wrapText: boolean;
+              textLines: number;
+              textWidth: number;
+              textAlign: 'A_LEFT' | 'A_CENTER' | 'A_RIGHT';
+              textVerticalAlign: 'VA_TOP' | 'VA_CENTER' | 'VA_BOTTOM';
+              text: { source: string; active: boolean }[] | undefined;
+          }
+        | {
+              type: 'countdown';
+              name: string;
+              textColor: string;
+              switchingTime: number;
+              pos_y: number;
+              font: string;
+              fontSize: number;
+              pos_x: number;
+              wrapText: boolean;
+              textLines: number;
+              textWidth: number;
+              textAlign: 'A_LEFT' | 'A_CENTER' | 'A_RIGHT';
+              textVerticalAlign: 'VA_TOP' | 'VA_CENTER' | 'VA_BOTTOM';
+              settings: {
+                  startDate: number;
+                  targetDate: number;
+                  countdown: boolean;
+                  countup: boolean;
+                  displayDay: boolean;
+                  displayHour: boolean;
+                  displayMinute: boolean;
+                  displaySeconds: boolean;
+                  idleText: string;
+                  hideZeros: boolean;
+                  delimiter: 'colon' | 'letters';
+                  suffixSeconds: string;
+                  suffixMinute: string;
+                  suffixHour: string;
+                  suffixDay: string;
+                  loop: boolean;
+                  loopPeriod: number;
+                  waitingPeriod: number;
+              };
+              text: { source: string; active: boolean }[] | undefined;
+          }
+    )[];
+};
+```
+
+### Picture in Picture
+
+Insert the picture from another camera on the same network into your live stream.
+
+```typescript
+type TPip = TService & {
+    name: 'pip';
+    compression: number;
+    coordSystem:
+        | 'top'
+        | 'bottom'
+        | 'top_left'
+        | 'top_right'
+        | 'left'
+        | 'center'
+        | 'right'
+        | 'bottom_left'
+        | 'bottom_right';
+    pos_y: number;
+    pos_x: number;
+    scale: number;
+    fps: number;
+    screenSize: number;
+    source_type: 'axis_camera' | 'mjpeg_url';
+    mjpeg_url: string;
+    camera_ip: string;
+    camera_port: number;
+    camera_user: string;
+    camera_pass: string;
+    camera_width: number;
+    camera_height: number;
+    camera_view_area: string;
+    camera_overlay_params:
+        | 'overlays=off'
+        | 'overlays=all'
+        | 'overlays=text'
+        | 'overlays=image'
+        | 'overlays=application';
+    rotate: 0 | 90 | 180 | 270;
+    dewarping: { enabled: boolean; rectangle: [number, number][]; aspectRatioCorrection: number };
+    borderColor: string;
+    borderWidth: number;
+};
+```
+
+### Screen Sharing
+
+Share your screen, application window, or browser tab as a PiP in the video feed. This service only works when connected via HTTPS.
+
+```typescript
+type TScreenSharing = TService & {
+    name: 'screenSharing';
+    coordSystem:
+        | 'top'
+        | 'bottom'
+        | 'top_left'
+        | 'top_right'
+        | 'left'
+        | 'center'
+        | 'right'
+        | 'bottom_left'
+        | 'bottom_right';
+    pos_y: number;
+    pos_x: number;
+    fps: number;
+    screenSize: number;
+};
+```
+
+### Web Camera Sharing
+
+Share any camera available on your computer. This service only works when connected via HTTPS.
+
+```typescript
+type TWebCameraSharing = TService & {
+    name: 'web_camera';
+    coordSystem:
+        | 'top'
+        | 'bottom'
+        | 'top_left'
+        | 'top_right'
+        | 'left'
+        | 'center'
+        | 'right'
+        | 'bottom_left'
+        | 'bottom_right';
+    pos_y: number;
+    pos_x: number;
+    fps: number;
+    screenSize: number;
+};
+```
+
 ## Static
 
 ### getProxyUrlPath()
@@ -46,7 +427,16 @@ Returns path to a file.
 const preview = CamOverlayAPI.getFilePreviewPath(path);
 ```
 
-## Methods common
+## Methods - common
+
+### types
+
+```typescript
+type TNetworkCameraList = {
+    name: string;
+    ip: string;
+}[];
+```
 
 ### checkCameraTime()
 
@@ -62,15 +452,7 @@ const isValid = await coApi.checkCameraTime();
 
 Find cameras on local network using mDNS protocol.
 
--   **Returns:**
-    ```typescript
-    Promise<
-        Array<{
-            name: string;
-            ip: string;
-        }>
-    >;
-    ```
+-   **Returns:** [`Promise<TNetworkCameraList>`](#types)
 
 ```javascript
 const list = await coApi.getNetworkCameraList();
@@ -94,7 +476,7 @@ const token = await coApi.wsAuthorization();
 const image = await coApi.getMjpegStreamImage();
 ```
 
-## Methods Files
+## Methods - files
 
 ### types
 
@@ -126,8 +508,8 @@ type TStorageDataList = {
 List all images or files uploaded to the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
--   **Returns:** `Promise<TFile[]>;` ([`TFile`](#types))
+    -   `fileType` ([`TFileType`](#types-1))
+-   **Returns:** `Promise<TFile[]>;` ([`TFile`](#types-1))
 
 ```javascript
 const images = await coApi.listFiles('image');
@@ -138,9 +520,9 @@ const images = await coApi.listFiles('image');
 Uploads a new file to the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
+    -   `fileType` ([`TFileType`](#types-1))
     -   `formData` (FormData)
-    -   `storage` ([`TStorage`](#types))
+    -   `storage` ([`TStorage`](#types-1))
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -152,8 +534,8 @@ await coApi.uploadFile('image', data, 'url');
 Removes file from the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
-    -   `fileParams` ([`TFile`](#types)):
+    -   `fileType` ([`TFileType`](#types-1))
+    -   `fileParams` ([`TFile`](#types-1)):
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -165,8 +547,8 @@ await coApi.removeFile('font', fontData);
 Gets information about files storage.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
--   **Returns:** `Promise<TStorageDataList>` ([`TStorageDataList`](#types))
+    -   `fileType` ([`TFileType`](#types-1))
+-   **Returns:** `Promise<TStorageDataList>` ([`TStorageDataList`](#types-1))
 
 ```javascript
 const storage = await coApi.getFileStorage('font');
@@ -218,7 +600,7 @@ Returns whether the bound CO service is enabled (true) or disabled (false).
 const isEnabled = await coApi.isEnabled(id);
 ```
 
-### getSingleWidget(serviceId)
+### getSingleService(serviceId)
 
 Returns the complete settings of the given CamOverlay service.
 
@@ -226,35 +608,35 @@ Returns the complete settings of the given CamOverlay service.
     -   `serviceId` (number)
 
 ```javascript
-const widget = await coApi.getSingleWidget(id);
+const service = await coApi.getSingleService(id);
 ```
 
-### getWidgets()
+### getServices()
 
 Returns the complete settings of all CamOverlay services.
 
 ```javascript
-const widgets = await coApi.getWidgets();
+const services = await coApi.getServices();
 ```
 
-### updateSingleWidget(widget)
+### updateSingleService(service)
 
 Changes the settings of the given CamOverlay service.
 
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.updateSingleWidget(widget);
+await coApi.updateSingleService(service);
 ```
 
-### updateWidgets(widgets)
+### updateServices(services)
 
 Changes the settings of all CamOverlay services.
 
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.updateWidgets(widgets);
+await coApi.updateServices(services);
 ```
 
 ### Custom Graphics
@@ -296,7 +678,7 @@ Updates text fields listed in the parameter fields.
 
 -   **Parameters:**
     -   `serviceId` (number)
-    -   `fields` ([`TField[]`](#types-1))
+    -   `fields` ([`TField[]`](#types-2))
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -309,7 +691,7 @@ Changes the position of Custom Graphics.
 
 -   **Parameters:**
     -   `serviceId` (number)
-    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
+    -   `coordinates` ([`TCoordinates`](#types-2) | undefined)
     -   `x` (number | undefined)
     -   `y` (number | undefined)
 -   **Returns:** `Promise<void>`
@@ -326,7 +708,7 @@ If no coordinates are specified, the service will use the positioning from the l
 -   **Parameters:**
     -   `serviceId` (number)
     -   `path` (string)
-    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
+    -   `coordinates` ([`TCoordinates`](#types-2) | undefined)
     -   `x` (number | undefined)
     -   `y` (number | undefined)
 -   **Returns:** `Promise<void>`
@@ -343,9 +725,9 @@ the imageData argument. If no coordinates are specified, the service will use th
 -   **Parameters:**
 
     -   `serviceId` (number)
-    -   `imageType` ([`ImageType`](#types-1))
+    -   `imageType` ([`ImageType`](#types-2))
     -   `imageData` (Buffer)
-    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
+    -   `coordinates` ([`TCoordinates`](#types-2) | undefined)
     -   `x` (number | undefined)
     -   `y` (number | undefined)
 
