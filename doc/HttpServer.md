@@ -1,30 +1,46 @@
 # HttpServer
 
-HttpServer is a module for processing HTTP requests in your scripts. It also automatically serves up the content from the html directory, or you can register paths which you can process on your own (e.g. http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi).
+- HttpServer is a module for processing HTTP requests in your scripts.
+- It also automatically serves up the content from the html directory, or you can register paths which you can process on your own (e.g. `http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi`).
+
+## Constructor
+
+-   **new HttpServer(options)**
+
+```javascript
+import { HttpServer } from 'camstreamerlib/esm/node';
+
+const httpServer = new HttpServer({ port: 80 });
+```
+> [!NOTE]
+> The `options` parameter contains the port which the created HttpServer listens on. Values mentioned in the example are default.
 
 ## Methods
 
--   **HttpServer(options)** - The options parameter contains the port which the created HttpServer listens on. Values mentioned
-    in the example below are default.
+### onRequest(path, callback)
 
-        ```javascript
-        HttpServer({
-            port: 80,
-        });
-        ```
+It registers a callback for access to the specified path. The callback has attributes - request and response.
 
--   **onRequest(path, callback)** - It registers a callback for access to the specified path. The callback has attributes - request and response.
+-   **Parameters:**
+    -   `path` (string)
+    -   `callback` ((req: `http.IncomingMessage`, res: `http.ServerResponse`) => void)
 
-    ```javascript
-    httpServer.onRequest('/settings.cgi', function (req, res) {
-        res.statusCode = 200;
-        res.setHeader('Content-type', 'application/json');
-        res.setHeader('Access-Control-Allow-Origin', '*');
-        res.end('{"enabled": true}');
-    });
-    ```
+```javascript
+httpServer.onRequest('/settings.cgi', function (req, res) {
+    res.statusCode = 200;
+    res.setHeader('Content-type', 'application/json');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.end('{"enabled": true}');
+});
+```
 
--   **close()** - Closes the httpServer service and frees up the occupied port.
+### close()
+
+Closes the httpServer service and frees up the occupied port.
+
+```javascript
+httpServer.close();
+```
 
 ## Events
 
