@@ -5,9 +5,7 @@ import {
     keyboardShortcutsSchema,
     h264ProfileSchema,
     audioChannelCountSchema,
-    TH264Profile,
-    TAudioChannelCount,
-    TKeyboardShortcut,
+    keyboardShortcutSchema,
 } from './common';
 
 const channelTypeSchema = z.union([z.literal('audio'), z.literal('video'), z.literal('av')]);
@@ -198,42 +196,52 @@ export type TClipList = z.infer<typeof clipListSchema>['clip_list'];
 //                   Config
 //   ----------------------------------------
 
-export type TBitrateMode = 'VBR' | 'MBR' | 'ABR';
-export type TBitrateVapixParams = {
-    bitrateMode: TBitrateMode;
-    maximumBitRate: number;
-    retentionTime: number;
-    bitRateLimit: number;
-};
+export const bitrateModeSchema = z.union([z.literal('VBR'), z.literal('MBR'), z.literal('ABR')]);
+export type TBitrateMode = z.infer<typeof bitrateModeSchema>;
 
-export type TCameraOptions = {
-    resolution: string;
-    h264Profile: TH264Profile;
-    fps: number;
-    compression: number; // 0 .. 100
-    govLength: number;
-    bitrateVapixParams: string | null;
-    audioSampleRate: number;
-    audioChannelCount: TAudioChannelCount;
-    keyboard: {
-        fromSource?: TKeyboardShortcut;
-        none?: TKeyboardShortcut;
-    };
-} & TBitrateVapixParams;
+export const bitrateVapixParamsSchema = z.object({
+    bitrateMode: bitrateModeSchema,
+    maximumBitRate: z.number(),
+    retentionTime: z.number(),
+    bitRateLimit: z.number(),
+});
+export type TBitrateVapixParams = z.infer<typeof bitrateVapixParamsSchema>;
 
-export type TGlobalAudioSettingsType = 'fromSource' | 'source';
-export type TGlobalAudioSettings = {
-    type: TGlobalAudioSettingsType;
-    source: string;
-    storage?: string;
-};
+export const cameraOptionsSchema = bitrateVapixParamsSchema
+    .extend({
+        resolution: z.string(),
+        h264Profile: h264ProfileSchema,
+        fps: z.number(),
+        compression: z.number().min(0).max(100),
+        govLength: z.number(),
+        bitrateVapixParams: z.string().nullable(),
+        audioSampleRate: z.number(),
+        audioChannelCount: audioChannelCountSchema,
+        keyboard: z.object({
+            fromSource: keyboardShortcutSchema,
+            none: keyboardShortcutSchema,
+        }),
+    })
+    .partial();
+export type TCameraOptions = z.infer<typeof cameraOptionsSchema>;
+
+export const globalAudioSettingsTypeSchema = z.union([z.literal('fromSource'), z.literal('source')]);
+export const globalAudioSettingsSchema = z.object({
+    type: globalAudioSettingsTypeSchema,
+    source: z.string(),
+    storage: z.string().optional(),
+});
+export type TGlobalAudioSettingsType = z.infer<typeof globalAudioSettingsTypeSchema>;
+export type TGlobalAudioSettings = z.infer<typeof globalAudioSettingsSchema>;
 
 export type TAudioMixerSource = 'microphone' | 'secondary';
-export type TSecondaryAudioSettings = {
-    type: 'CLIP' | 'STREAM' | 'NONE';
-    streamName?: string;
-    clipName?: string;
-    storage: 'FLASH' | 'SD_DISK';
-    secondaryAudioLevel: number;
-    masterAudioLevel: number;
-};
+
+export const secondaryAudioSettingsSchema = z.object({
+    type: z.union([z.literal('CLIP'), z.literal('STREAM'), z.literal('NONE')]),
+    streamName: z.string().optional(),
+    clipName: z.string().optional(),
+    storage: storageTypeSchema,
+    secondaryAudioLevel: z.number(),
+    masterAudioLevel: z.number(),
+});
+export type TSecondaryAudioSettings = z.infer<typeof secondaryAudioSettingsSchema>;

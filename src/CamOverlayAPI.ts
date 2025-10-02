@@ -2,7 +2,7 @@ import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types
 import { paramToUrl, responseStringify } from './internal/utils';
 
 import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
-import { networkCameraListSchema, THttpRequestOptions, TProxyParams, TNetworkCamera } from './types/common';
+import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './types/common';
 import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
 import {
@@ -13,13 +13,12 @@ import {
     TField,
     TFile,
     TFileData,
-    TFileList,
     TFileType,
     TStorage,
-    TStorageDataList,
     TStorageResponse,
     TWidget,
     TWidgetList,
+    widgetListSchema,
     widgetsSchema,
     WSResponseSchema,
 } from './types/CamOverlayAPI';
@@ -36,17 +35,17 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 
-    async checkCameraTime(options?: THttpRequestOptions): Promise<boolean> {
+    async checkCameraTime(options?: THttpRequestOptions) {
         const response = await this._get({ path: `${BASE_PATH}/camera_time.cgi` }, options);
         return z.boolean().parse(response.state);
     }
 
-    async getNetworkCameraList(options?: THttpRequestOptions): Promise<TNetworkCamera[]> {
+    async getNetworkCameraList(options?: THttpRequestOptions) {
         const response = await this._get({ path: `${BASE_PATH}/network_camera_list.cgi` }, options);
         return networkCameraListSchema.parse(response.camera_list);
     }
 
-    async wsAuthorization(options?: THttpRequestOptions): Promise<string> {
+    async wsAuthorization(options?: THttpRequestOptions) {
         const response = await this._get({ path: `${BASE_PATH}/ws_authorization.cgi` }, options);
         return WSResponseSchema.parse(response).data;
     }
@@ -66,7 +65,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     //            files - fonts, images
     //   ----------------------------------------
 
-    async listFiles(fileType: TFileType, options?: THttpRequestOptions): Promise<TFileList> {
+    async listFiles(fileType: TFileType, options?: THttpRequestOptions) {
         const files = await this._get<TFileData>(
             {
                 path: `${BASE_PATH}/upload_${fileType}.cgi`,
@@ -106,7 +105,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         );
     }
 
-    async getFileStorage(fileType: TFileType, options?: THttpRequestOptions): Promise<TStorageDataList> {
+    async getFileStorage(fileType: TFileType, options?: THttpRequestOptions) {
         const data = await this._get<TStorageResponse>(
             {
                 path: `${BASE_PATH}/upload_${fileType}.cgi`,
@@ -138,7 +137,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         await this._post({ path: `${BASE_PATH}/enabled.cgi?id_${serviceId}=${enabled ? 1 : 0}`, data: '' }, options);
     }
 
-    async isEnabled(serviceId: number, options?: THttpRequestOptions): Promise<boolean> {
+    async isEnabled(serviceId: number, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path: `${BASE_PATH}/services.cgi?action=get`, timeout: options?.timeout });
         if (res.ok) {
@@ -155,7 +154,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         }
     }
 
-    async getSingleWidget(serviceId: number, options?: THttpRequestOptions): Promise<TWidget> {
+    async getSingleWidget(serviceId: number, options?: THttpRequestOptions) {
         const data = await this._get<TWidget>(
             {
                 path: `${BASE_PATH}/services.cgi`,
@@ -169,7 +168,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         return widgetsSchema.parse(data);
     }
 
-    async getWidgets(options?: THttpRequestOptions): Promise<TWidget[]> {
+    async getWidgets(options?: THttpRequestOptions) {
         const widgetList = await this._get<TWidgetList>(
             {
                 path: `${BASE_PATH}/services.cgi`,
@@ -179,7 +178,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
             },
             options
         );
-        const widgets = widgetList.services;
+        const widgets = widgetListSchema.parse(widgetList).services;
 
         widgets.forEach((widget) => {
             const parsedWidget = widgetsSchema.safeParse(widget);

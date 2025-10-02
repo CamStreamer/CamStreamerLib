@@ -3,25 +3,17 @@ import { AddNewClipError } from './errors/errors';
 import { IClient, TResponse } from './internal/types';
 import { isClip, isNullish, responseStringify } from './internal/utils';
 import {
-    TAudioPushInfo,
-    TOutputInfo,
     storageInfoListSchema,
     outputInfoSchema,
     audioPushInfoSchema,
     clipListSchema,
     playlistQueueSchema,
-    TStorageInfo,
     TStreamSaveList,
-    TClipList,
-    TStreamSaveLoadList,
     streamSaveLoadSchema,
-    TClipSaveLoadList,
     clipSaveLoadSchema,
-    TPlaylistSaveLoadList,
     playlistSaveLoadSchema,
     trackerSaveLoadSchema,
     TTrackerSaveList,
-    TrackerSaveLoadList,
     TClipSaveList,
     TPlaylistSaveList,
     TCameraOptions,
@@ -29,12 +21,13 @@ import {
     TBitrateVapixParams,
     TGlobalAudioSettings,
     TSecondaryAudioSettings,
+    secondaryAudioSettingsSchema,
+    globalAudioSettingsSchema,
 } from './types/CamSwitcherAPI';
 import {
     networkCameraListSchema,
     TAudioChannel,
     THttpRequestOptions,
-    TNetworkCamera,
     TProxyParams,
     TStorageType,
 } from './types/common';
@@ -44,7 +37,6 @@ import { FIRMWARE_WITH_BITRATE_MODES_SUPPORT } from './internal/constants';
 import { ProxyClient } from './internal/ProxyClient';
 
 const BASE_PATH = '/local/camswitcher/api';
-
 export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
     private vapixAgent: VapixAPI;
 
@@ -78,12 +70,12 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         return z.boolean().parse(data);
     }
 
-    async getNetworkCameraList(options?: THttpRequestOptions): Promise<TNetworkCamera[]> {
+    async getNetworkCameraList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
         return networkCameraListSchema.parse(data);
     }
 
-    async getMaxFps(source: number, options?: THttpRequestOptions): Promise<number> {
+    async getMaxFps(source: number, options?: THttpRequestOptions) {
         const data = await this.get(
             `${BASE_PATH}/get_max_framerate.cgi`,
             {
@@ -94,7 +86,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         return z.number().parse(data);
     }
 
-    async getStorageInfo(options?: THttpRequestOptions): Promise<TStorageInfo[]> {
+    async getStorageInfo(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/get_storage.cgi`, undefined, options);
         return storageInfoListSchema.parse(data);
     }
@@ -103,17 +95,17 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
     //                 Websockets
     //   ----------------------------------------
 
-    async wsAuthorization(options?: THttpRequestOptions): Promise<string> {
+    async wsAuthorization(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
         return z.string().parse(data);
     }
 
-    async getOutputInfo(options?: THttpRequestOptions): Promise<TOutputInfo> {
+    async getOutputInfo(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/output_info.cgi`, undefined, options);
         return outputInfoSchema.parse(data);
     }
 
-    async getAudioPushInfo(options?: THttpRequestOptions): Promise<TAudioPushInfo> {
+    async getAudioPushInfo(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/audio_push_info.cgi`, undefined, options);
         return audioPushInfoSchema.parse(data);
     }
@@ -122,22 +114,22 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
     //                   Sources
     //   ----------------------------------------
 
-    async getStreamSaveList(options?: THttpRequestOptions): Promise<TStreamSaveLoadList> {
+    async getStreamSaveList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/streams.cgi`, { action: 'get' }, options);
         return streamSaveLoadSchema.parse(data);
     }
 
-    async getClipSaveList(options?: THttpRequestOptions): Promise<TClipSaveLoadList> {
+    async getClipSaveList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/clips.cgi`, { action: 'get' }, options);
         return clipSaveLoadSchema.parse(data);
     }
 
-    async getPlaylistSaveList(options?: THttpRequestOptions): Promise<TPlaylistSaveLoadList> {
+    async getPlaylistSaveList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/playlists.cgi`, { action: 'get' }, options);
         return playlistSaveLoadSchema.parse(data);
     }
 
-    async getTrackerSaveList(options?: THttpRequestOptions): Promise<TrackerSaveLoadList> {
+    async getTrackerSaveList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/trackers.cgi`, { action: 'get' }, options);
         return trackerSaveLoadSchema.parse(data);
     }
@@ -211,7 +203,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         return this.get(`${BASE_PATH}/clip_remove.cgi`, { clip_name: clipId, storage }, options);
     }
 
-    async getClipList(options?: THttpRequestOptions): Promise<TClipList> {
+    async getClipList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/clip_list.cgi`, undefined, options);
         return clipListSchema.parse(data).clip_list;
     }
@@ -292,7 +284,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
 
     //* ******************   Get
 
-    async getCamSwitchOptions(options?: THttpRequestOptions): Promise<Partial<TCameraOptions>> {
+    async getCamSwitchOptions(options?: THttpRequestOptions) {
         const saveData = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.SETTINGS, options);
 
         if (isNullish(saveData.video)) {
@@ -324,7 +316,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         };
     }
 
-    async getGlobalAudioSettings(options?: THttpRequestOptions): Promise<TGlobalAudioSettings> {
+    async getGlobalAudioSettings(options?: THttpRequestOptions) {
         const settings: TGlobalAudioSettings = {
             type: 'fromSource',
             source: 'fromSource',
@@ -340,13 +332,13 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
             settings.storage = res.storage;
         }
 
-        return settings;
+        return globalAudioSettingsSchema.parse(settings);
     }
 
-    async getSecondaryAudioSettings(options?: THttpRequestOptions): Promise<TSecondaryAudioSettings> {
+    async getSecondaryAudioSettings(options?: THttpRequestOptions) {
         const res = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.SECONDARY_AUDIO, options);
 
-        const settings = {
+        const settings: TSecondaryAudioSettings = {
             type: res.type ?? 'NONE',
             streamName: res.stream_name,
             clipName: res.clip_name,
@@ -355,13 +347,13 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
             masterAudioLevel: res.master_audio_level ?? 1,
         };
 
-        return settings;
+        return secondaryAudioSettingsSchema.parse(settings);
     }
 
     async getPermanentRtspUrlToken(options?: THttpRequestOptions) {
         const paramName = CSW_PARAM_NAMES.RTSP_TOKEN;
         const res = await this.vapixAgent.getParameter([paramName], options);
-        return res[paramName] ?? '';
+        return z.string().parse(res[paramName] ?? '');
     }
 
     //   ----------------------------------------
@@ -427,14 +419,14 @@ const CSW_PARAM_NAMES = {
 
 const parseBitrateOptionsToBitrateVapixParams = (
     firmWareVersion: string,
-    bitrateMode: TBitrateMode | null,
+    bitrateMode: TBitrateMode | undefined,
     cameraOptions: TCameraOptions
 ): string => {
     if (!isFirmwareVersionAtLeast(firmWareVersion, FIRMWARE_WITH_BITRATE_MODES_SUPPORT)) {
         return `videomaxbitrate=${cameraOptions.maximumBitRate}`;
     }
 
-    if (bitrateMode === null) {
+    if (bitrateMode === undefined) {
         return '';
     }
 
