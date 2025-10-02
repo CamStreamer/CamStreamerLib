@@ -1,10 +1,25 @@
 import { z } from 'zod';
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
 import { paramToUrl, responseStringify } from './internal/utils';
-import { ICAO, TApiUser, TExportDataType, TImportDataType } from './types/PlaneTrackerAPI';
+import {
+    blackListSchema,
+    cameraSettingsSchema,
+    flightInfoSchema,
+    ICAO,
+    mapInfoSchema,
+    priorityListSchema,
+    serverSettingsSchema,
+    TApiUser,
+    TExportDataType,
+    TImportDataType,
+    trackingModeSchema,
+    whiteListSchema,
+    zonesSchema,
+} from './types/PlaneTrackerAPI';
 import { ParsingBlobError } from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
+import { cameraListSchema } from './node';
 
 const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
@@ -58,7 +73,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async fetchCameraSettings(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package_camera_settings.cgi`, { action: 'get' }, options);
+        const data = await this._getJson(`${BASE_PATH}/package_camera_settings.cgi`, { action: 'get' }, options);
+        return cameraSettingsSchema.parse(data);
     }
     async setCameraSettings(settingsJsonString: string, options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -72,7 +88,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async fetchServerSettings(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package_server_settings.cgi`, { action: 'get' }, options);
+        const data = await this._getJson(`${BASE_PATH}/package_server_settings.cgi`, { action: 'get' }, options);
+        return serverSettingsSchema.parse(data);
     }
 
     async exportAppSettings(dataType: TExportDataType, options?: THttpRequestOptions) {
@@ -98,11 +115,17 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async fetchFlightInfo(icao: ICAO, options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package/flightInfo.cgi`, { icao: encodeURIComponent(icao) }, options);
+        const data = await this._getJson(
+            `${BASE_PATH}/package/flightInfo.cgi`,
+            { icao: encodeURIComponent(icao) },
+            options
+        );
+        return flightInfoSchema.parse(data);
     }
 
     async getTrackingMode(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package/getTrackingMode.cgi`, undefined, options);
+        const data = await this._getJson(`${BASE_PATH}/package/getTrackingMode.cgi`, undefined, options);
+        return trackingModeSchema.parse(data);
     }
     async setTrackingMode(modeJsonString: string, options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -136,7 +159,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async getPriorityList(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package/getPriorityList.cgi`, undefined, options);
+        const data = await this._getJson(`${BASE_PATH}/package/getPriorityList.cgi`, undefined, options);
+        return priorityListSchema.parse(data);
     }
     async setPriorityList(priorityListJsonString: string, options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -148,7 +172,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async getWhiteList(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package/getWhiteList.cgi`, undefined, options);
+        const data = await this._getJson(`${BASE_PATH}/package/getWhiteList.cgi`, undefined, options);
+        return whiteListSchema.parse(data);
     }
     async setWhiteList(whiteListJsonString: string, options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -160,7 +185,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async getBlackList(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package/getBlackList.cgi`, undefined, options);
+        const data = await this._getJson(`${BASE_PATH}/package/getBlackList.cgi`, undefined, options);
+        return blackListSchema.parse(data);
     }
     async setBlackList(blackListJsonString: string, options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -176,11 +202,13 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async fetchMapInfo(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package/getMapInfo.cgi`, undefined, options);
+        const data = await this._getJson(`${BASE_PATH}/package/getMapInfo.cgi`, undefined, options);
+        return mapInfoSchema.parse(data);
     }
 
     async getZones(options?: THttpRequestOptions) {
-        return await this._getJson(`${BASE_PATH}/package/getZones.cgi`, undefined, options);
+        const data = await this._getJson(`${BASE_PATH}/package/getZones.cgi`, undefined, options);
+        return zonesSchema.parse(data);
     }
 
     async setZones(zonesJsonString: string, options?: THttpRequestOptions) {
@@ -206,7 +234,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async getGenetecCameraList(params: TParameters, options?: THttpRequestOptions) {
         const res = await this._postUrlEncoded(`${BASE_PATH}/package/getGenetecCameraList.cgi`, params, options);
-        return await res.json();
+        return cameraListSchema.parse(await res.json());
     }
 
     //   ----------------------------------------

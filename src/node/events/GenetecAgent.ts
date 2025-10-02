@@ -29,6 +29,15 @@ const cameraDetailsResponseSchema = z.object({
 export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
 export type TCameraDetail = z.infer<typeof cameraDetailSchema>;
 
+export const cameraListSchema = z.array(
+    z.object({
+        index: z.number(),
+        value: z.string(),
+        label: z.string(),
+    })
+);
+export type TCameraList = z.infer<typeof cameraListSchema>;
+
 export type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
 export type TProtocol = 'http' | 'https' | 'https_insecure';
 

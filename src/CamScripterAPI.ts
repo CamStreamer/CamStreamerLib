@@ -8,12 +8,9 @@ import {
     nodeStateSchema,
     packageInfoListSchema,
     storageSchema,
-    TNodeState,
-    TPackageInfoList,
-    TStorage,
     TStorageType,
 } from './types/CamScripterAPI';
-import { networkCameraListSchema, THttpRequestOptions, TNetworkCamera, TProxyParams } from './types/common';
+import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './types/common';
 
 const BASE_PATH = '/local/camscripter';
 export class CamScripterAPI<Client extends IClient<TResponse, any>> {
@@ -25,12 +22,12 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 
-    async checkCameraTime(options?: THttpRequestOptions): Promise<boolean> {
+    async checkCameraTime(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/camera_time.cgi`, undefined, options);
         return cameraTimeResponseSchema.parse(data).state;
     }
 
-    async getNetworkCameraList(options?: THttpRequestOptions): Promise<TNetworkCamera[]> {
+    async getNetworkCameraList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
         return networkCameraListSchema.parse(data.camera_list);
     }
@@ -39,12 +36,12 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
     //                   Packages
     //   ----------------------------------------
 
-    async getStorageInfo(options?: THttpRequestOptions): Promise<TStorage> {
+    async getStorageInfo(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/package/get_storage.cgi`, undefined, options);
         return storageSchema.parse(data);
     }
 
-    async getPackageList(options?: THttpRequestOptions): Promise<TPackageInfoList> {
+    async getPackageList(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/package/list.cgi`, undefined, options);
         return packageInfoListSchema.parse(data);
     }
@@ -100,7 +97,7 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
     //                   Node.js
     //   ----------------------------------------
 
-    async getNodejsStatus(options?: THttpRequestOptions): Promise<TNodeState> {
+    async getNodejsStatus(options?: THttpRequestOptions) {
         const data = await this.get(`${BASE_PATH}/diagnostics.cgi`, undefined, options);
         return nodeStateSchema.parse(data);
     }

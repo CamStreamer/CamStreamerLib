@@ -1,4 +1,4 @@
-import z from 'zod';
+import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
 import { IClient, TParameters, TResponse } from './internal/types';
 import { responseStringify } from './internal/utils';
