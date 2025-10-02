@@ -22,6 +22,25 @@ const cscApi = new CamScripterAPI(
 );
 ```
 
+> [!NOTE]
+> The majority of CamScripterAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
+
+```typescript
+type THttpRequestOptions = {
+    timeout?: number;
+    proxyParams?: {
+        path: string;
+        target: {
+            ip: string;
+            mdnsName: string;
+            port: number;
+            user: string;
+            pass: string;
+        };
+    };
+};
+```
+
 ## Static
 
 ### getProxyUrlPath()
@@ -34,165 +53,178 @@ Returns relative path to proxy.cgi
 const url = CamScripterAPI.getProxyUrlPath();
 ```
 
-## Methods common
+## Methods - Common
 
-### checkCameraTime()
+### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
 
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 const isValid = await cscApi.checkCameraTime();
 ```
 
-### getNetworkCameraList()
+### getNetworkCameraList(options?)
 
 Find cameras on local network using mDNS protocol.
 
--   **Returns:**
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TNetworkCamera[]>`
+
     ```typescript
-    Promise<
-        Array<{
-            name: string;
-            ip: string;
-        }>
-    >;
+    type TNetworkCamera = {
+        name: string;
+        ip: string;
+    };
     ```
 
 ```javascript
 const list = await cscApi.getNetworkCameraList();
 ```
 
-## Methods packages
+## Methods - Packages
 
-### getStorageInfo()
+### getStorageInfo(options?)
 
 Get available storage and it's capacity in MB.
 
--   **Returns:**
-    ```
-    Promise<Array<{
-        type: "INTERNAL" | "SD_CARD";
-        capacity_mb: number;
-    }>>
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TStorage>`
+
+    ```typescript
+    type TStorage =
+        | [
+              {
+                  type: 'INTERNAL';
+                  capacity_mb: number;
+              },
+              {
+                  type: 'SD_CARD';
+                  capacity_mb: number;
+              }
+          ]
+        | [
+              {
+                  type: 'INTERNAL';
+                  capacity_mb: number;
+              }
+          ];
     ```
 
 ```javascript
 const storage = await cscApi.getStorageInfo();
 ```
 
-### getPackageList()
+### getPackageList(options?)
 
 List all installed packages.
 
--   **Returns:**
-    ```
-    Promise<Array<{
-        storage: "INTERNAL" | "SD_CARD";
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TPackageInfoList>`
+
+    ```typescript
+    type TPackageInfoList = {
+        storage: 'INTERNAL' | 'SD_CARD';
         manifest: {
-        package_name: string;
-        package_menu_name: string;
-        package_version: string;
-        vendor: string;
-        ui_link: string;
-        required_camscripter_version?: string | undefined;
-        required_camscripter_rbi_version?: string | undefined;
+            package_name: string;
+            package_menu_name: string;
+            package_version: string;
+            vendor: string;
+            ui_link: string;
+            required_camscripter_version: string | undefined;
+            required_camscripter_rbi_version: string | undefined;
         };
-    }>>
+    }[];
     ```
 
 ```javascript
 const packages = await cscApi.getPackageList();
 ```
 
-### installPackages(formData, storage)
+### installPackages(formData, storage, options?)
 
 Install package.
 
 -   **Parameters:**
     -   `formData` (FormData)
-    -   `storage`: (`INTERNAL | SD_CARD`)
--   **Returns:**
-    ```
-    Promise<{
-        message: string;
+    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`)
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TCamscripterApiResponse>`
+
+    ```typescript
+    type TCamscripterApiResponse = {
         status: number;
-    }>
+        message: string;
+    };
     ```
 
 ```javascript
 await cscApi.installPackages(data, 'SD_CARD');
 ```
 
-### uninstallPackage(packageId)
+### uninstallPackage(packageId, options?)
 
 Remove package.
 
 -   **Parameters:**
     -   `packageId` (string)
--   **Returns:**
-    ```
-    Promise<{
-        message: string;
-        status: number;
-    }>
-    ```
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TCamscripterApiResponse>`
 
 ```javascript
 await cscApi.uninstallPackage(id);
 ```
 
-### importSettings(packageId, formData)
+### importSettings(packageId, formData, options?)
 
 Imports package settings.
 
 -   **Parameters:**
     -   `packageId` (string)
     -   `formData` (FormData)
--   **Returns:**
-    ```
-    Promise<{
-        message: string;
-        status: number;
-    }>
-    ```
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TCamscripterApiResponse>`
 
 ```javascript
 await cscApi.importSettings(id, data);
 ```
 
-### exportSettings(packageId, formData)
+### exportSettings(packageId, formData, options?)
 
 Exports package settings.
 
 -   **Parameters:**
     -   `packageId` (string)
     -   `formData` (FormData)
--   **Returns:**
-    ```
-    Promise<{
-        message: string;
-        status: number;
-    }>
-    ```
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TCamscripterApiResponse>`
 
 ```javascript
 await cscApi.exportSettings(id, data);
 ```
 
-## Methods Nodejs
+## Methods - Node.js
 
-### getNodejsStatus()
+### getNodejsStatus(options?)
 
 Return diagnostics information.
 
--   **Returns:**
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TNodeState>`
+
+    ```typescript
+    type TNodeState = {
+        node_state: 'OK' | 'NOT_INSTALLED' | 'NOT_FOUND';
+    };
     ```
-    Promise<{
-        node_state: "OK" | "NOT_INSTALLED" | "NOT_FOUND";
-    }>
-    ```
+
 -   **node_state:**
     -   `OK` - NodeJS is installed and ready to use
     -   `NOT_INSTALLED` - NodeJS is not installed
@@ -202,19 +234,14 @@ Return diagnostics information.
 const status = await cscApi.getNodejsStatus();
 ```
 
-### installNodejs(storage)
+### installNodejs(storage, options?)
 
 Decompress bundled NodeJS gzip file into chosen location, which is then stored in NodejsLocation parameter.
 
 -   **Parameters:**
-    -   `storage`: (`INTERNAL | SD_CARD`)
--   **Returns:**
-    ```
-    Promise<{
-        message: string;
-        status: number;
-    }>
-    ```
+    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`)
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TCamscripterApiResponse>`
 
 ```javascript
 await cscApi.installNodejs('INTERNAL');
