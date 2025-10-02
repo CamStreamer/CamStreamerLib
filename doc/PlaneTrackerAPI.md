@@ -67,7 +67,7 @@ const url = PlaneTrackerAPI.getProxyUrlPath();
 
 ## Methods common
 
-### checkCameraTime(options)
+### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
 
@@ -79,7 +79,7 @@ Check camera time against CamStreamer server.
 const isValid = await ptrApi.checkCameraTime();
 ```
 
-### resetPtzCalibration(options)
+### resetPtzCalibration(options?)
 
 -   Resets the PTZ calibration data and restarts the script.
 -   The calibration process is started again after the script starts.
@@ -92,7 +92,7 @@ const isValid = await ptrApi.checkCameraTime();
 await ptrApi.resetPtzCalibration();
 ```
 
-### resetFocusCalibration(options)
+### resetFocusCalibration(options?)
 
 -   Resets the Focus calibration data and restarts the script.
 -   The calibration process is started again after the script starts.
@@ -105,7 +105,7 @@ await ptrApi.resetPtzCalibration();
 await ptrApi.resetFocusCalibration();
 ```
 
-### serverRunCheck(options)
+### serverRunCheck(options?)
 
 Checks if the http server is running.
 
@@ -117,7 +117,7 @@ Checks if the http server is running.
 await ptrApi.serverRunCheck();
 ```
 
-### getLiveViewAlias(rtspUrl, options)
+### getLiveViewAlias(rtspUrl, options?)
 
 -   **Parameters:**
     -   `rtspUrl` (string)
@@ -130,7 +130,7 @@ await ptrApi.serverRunCheck();
 
 ## Methods - Settings
 
-### fetchCameraSettings(options)
+### fetchCameraSettings(options?)
 
 Get the camera settings.
 
@@ -258,7 +258,7 @@ type TCameraSettings = {
 const settings = await ptrApi.fetchCameraSettings();
 ```
 
-### setCameraSettings(settingsJsonString, options)
+### setCameraSettings(settingsJsonString, options?)
 
 Set the camera settings.
 
@@ -302,7 +302,7 @@ type TServerSettings = {
 const settings = await ptrApi.fetchServerSettings();
 ```
 
-### exportAppSettings(dataType, options)
+### exportAppSettings(dataType, options?)
 
 Export all settings into a `.zip` file:
 
@@ -315,7 +315,7 @@ Export all settings into a `.zip` file:
     -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<Blob>`
 
-### importAppSettings(dataType, formData, options)
+### importAppSettings(dataType, formData, options?)
 
 Import all settings in a `.zip` file.
 
@@ -339,7 +339,7 @@ type TTrackingMode = {
 };
 ```
 
-### fetchFlightInfo(icao, options)
+### fetchFlightInfo(icao, options?)
 
 Retrieves flight information based on the ICAO code.
 
@@ -380,7 +380,7 @@ type TFlightInfo = {
 const info = await ptrApi.fetchFlightInfo('4BAA66');
 ```
 
-### startTrackingPlane(icao, options)
+### startTrackingPlane(icao, options?)
 
 -   Tracks a plane by its ICAO code.
 -   The plane is tracked even if it is not available in the FlightRadar24 API.
@@ -395,7 +395,7 @@ const info = await ptrApi.fetchFlightInfo('4BAA66');
 await ptrApi.startTrackingPlane('4BAA66');
 ```
 
-### stopTrackingPlane(options)
+### stopTrackingPlane(options?)
 
 Resets the forced tracking of any plane.
 
@@ -407,7 +407,7 @@ Resets the forced tracking of any plane.
 await ptrApi.stopTrackingPlane();
 ```
 
-### getTrackingMode(options)
+### getTrackingMode(options?)
 
 Gets the current tracking mode settings.
 
@@ -419,7 +419,7 @@ Gets the current tracking mode settings.
 const mode = await ptrApi.getTrackingMode();
 ```
 
-### setTrackingMode(modeJsonString, options)
+### setTrackingMode(modeJsonString, options?)
 
 Sets the tracking mode.
 
@@ -446,7 +446,7 @@ await ptrApi.setTrackingMode(mode);
 
 ### Methods - Genetec
 
-### checkGenetecConnection(params, options)
+### checkGenetecConnection(params, options?)
 
 Check the connection to Genetec.
 
@@ -459,7 +459,7 @@ Check the connection to Genetec.
 await ptrApi.checkGenetecConnection();
 ```
 
-### getGenetecCameraList(params, options)
+### getGenetecCameraList(params, options?)
 
 Get the list of cameras available in Genetec.
 
