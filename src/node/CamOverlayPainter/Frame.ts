@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events';
 import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
-import { TAlign, TCairoCreateResponse, TUploadImageResponse } from '../types/CamOverlayDrawingAPI';
+import { TAlign, TCairoCreateResponse, TUploadImageResponse } from '../../types/CamOverlayDrawingAPI';
 
 import { ResourceManager } from './ResourceManager';
 import {
@@ -14,7 +14,7 @@ import {
     TRgba,
     TText,
     TTmf,
-} from '../types/CamOverlayPainter';
+} from '../../types/CamOverlayPainter';
 
 export class Frame extends EventEmitter {
     protected enabled: boolean;

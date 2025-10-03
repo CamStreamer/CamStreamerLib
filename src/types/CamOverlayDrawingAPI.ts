@@ -42,7 +42,7 @@ export type TService = {
     cameraList: number[];
 };
 
-export type TServiceList = {
+export type TCoServiceList = {
     services: TService[];
 };
 
@@ -56,15 +56,3 @@ export type AsyncMessage = {
     reject: (reason: Error) => void;
     sentTimestamp: number;
 };
-
-export interface CamOverlayDrawingAPI {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-    on(event: 'message', listener: (msg: string) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'error', err: Error): boolean;
-    emit(event: 'message', msg: string): boolean;
-}

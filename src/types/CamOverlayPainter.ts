@@ -1,6 +1,17 @@
-import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
-import { COORD } from '../CamOverlayPainter/Painter';
+import { CamOverlayDrawingAPI } from '../node/CamOverlayDrawingAPI';
 import { TAlign, TCairoCreateResponse, TUploadImageResponse } from './CamOverlayDrawingAPI';
+
+export const COORD = {
+    top_left: [-1, -1],
+    center_left: [-1, 0],
+    bottom_left: [-1, 1],
+    top_center: [0, -1],
+    center: [0, 0],
+    bottom_center: [0, 1],
+    top_right: [1, -1],
+    center_right: [1, 0],
+    bottom_right: [1, 1],
+} as const;
 
 export type TRgb = [number, number, number];
 export type TRgba = [number, number, number, number];
@@ -56,16 +67,6 @@ export type TBorder = {
     borderWidth: number;
     borderColor: TRgba;
 };
-
-export interface Frame {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'layoutChanged', listener: () => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'layoutChanged'): boolean;
-}
 
 export type TCoAlignment = keyof typeof COORD;
 export type TPainterOptions = TFrameOptions & {
