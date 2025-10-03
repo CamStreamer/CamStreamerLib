@@ -1,5 +1,3 @@
-import * as prettifyXml from 'prettify-xml';
-
 import { IClient, TParameters, TResponse } from './internal/types';
 import { arrayToUrl, isNullish, paramToUrl, responseStringify } from './internal/utils';
 
@@ -105,8 +103,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
         if (!res.ok) {
             throw new Error(await responseStringify(res));
         }
-        const declarations = await res.text();
-        return prettifyXml(declarations);
+        return await res.text();
     }
 
     async getSupportedAudioSampleRate(options?: THttpRequestOptions): Promise<TAudioSampleRates[]> {
