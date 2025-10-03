@@ -55,8 +55,27 @@
         "/**/*.js",
         "/**/*.ts"
     ],
-    "main": "cjs",
-    "module": "esm",
+    "type": "module",
+    "main": "./cjs/index.js",
+    "module": "./esm/index.js",
+    "types": "types/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./esm/index.js",
+            "require": "./cjs/index.js",
+            "types": "./types/index.d.ts"
+        },
+        "./web": {
+            "import": "./esm/web/index.js",
+            "require": "./cjs/web/index.js",
+            "types": "./types/web/index.d.ts"
+        },
+        "./node": {
+            "import": "./esm/node/index.js",
+            "require": "./cjs/node/index.js",
+            "types": "./types/node/index.d.ts"
+        }
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/CamStreamer/CamStreamerLib.git"

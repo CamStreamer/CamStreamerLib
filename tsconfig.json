@@ -4,13 +4,14 @@
         "target": "esnext",
         "lib": ["dom", "DOM.Iterable", "ES2022"],
         "module": "esnext",
-        "declaration": true,
         "removeComments": true,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "typeRoots": ["typings", "node_modules/@types"],
-        "noUncheckedIndexedAccess": true
+        "noUncheckedIndexedAccess": true,
+        "declaration": true,
+        "declarationDir": "./dist/types"
     },
     "include": ["src"],
     "exclude": ["node_modules"]
