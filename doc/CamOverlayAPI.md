@@ -22,6 +22,25 @@ const coApi = new CamOverlayAPI(
 );
 ```
 
+> [!NOTE]
+> The majority of CamOverlayAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
+
+```typescript
+type THttpRequestOptions = {
+    timeout?: number;
+    proxyParams?: {
+        path: string;
+        target: {
+            ip: string;
+            mdnsName: string;
+            port: number;
+            user: string;
+            pass: string;
+        };
+    };
+};
+```
+
 ## Services
 
 ```typescript
@@ -403,25 +422,6 @@ type TWebCameraSharing = TService & {
 };
 ```
 
-> [!NOTE]
-> The majority of CamOverlayAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
-
-```typescript
-type THttpRequestOptions = {
-    timeout?: number;
-    proxyParams?: {
-        path: string;
-        target: {
-            ip: string;
-            mdnsName: string;
-            port: number;
-            user: string;
-            pass: string;
-        };
-    };
-};
-```
-
 ## Static
 
 ### getBasePath()
@@ -458,7 +458,7 @@ const preview = CamOverlayAPI.getFilePreviewPath(path);
 
 ## Methods - Common
 
-### getClient(proxyParams)
+### getClient(proxyParams?)
 
 Returns CamOverlay client - can be used in custom CamOverlay API calls.
 
@@ -571,7 +571,7 @@ List all images or files uploaded to the camera.
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types))
     -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TFile[]>;` ([`TFile`](#types))
+-   **Returns:** `Promise<TFile[]>` ([`TFile`](#types))
 
 ```javascript
 const images = await coApi.listFiles('image');
@@ -630,11 +630,13 @@ const storage = await coApi.getFileStorage('font');
 const preview = await coApi.getFilePreviewFromCamera(path);
 ```
 
-### CamOverlay services
+### Methods - CamOverlay services
+
+See list of all available services: [`Services`](#services)
 
 ### updateInfoticker(serviceId, text, options?)
 
-Updates text in the Infoticker service, if any is running.
+Updates text in the [`Infoticker`](#infoticker) service, if any is running.
 
 -   **Parameters:**
     -   `serviceId` (number)
@@ -680,6 +682,7 @@ Returns the complete settings of the given CamOverlay service.
 -   **Parameters:**
     -   `serviceId` (number)
     -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TAccuWeather | TInfoTicker | ...>` (see all [`services`](#services))
 
 ```javascript
 const service = await coApi.getSingleService(id);
@@ -691,6 +694,7 @@ Returns the complete settings of all CamOverlay services.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<Array<TAccuWeather | TInfoTicker | ...>>` (see all [`services`](#services))
 
 ```javascript
 const services = await coApi.getServices();
@@ -701,7 +705,7 @@ const services = await coApi.getServices();
 Changes the settings of the given CamOverlay service.
 
 -   **Parameters:**
-    -   `widget`
+    -   `service` ([`TAccuWeather | TInfoTicker | ...`](#services))
     -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<void>`
 
@@ -714,7 +718,7 @@ await coApi.updateSingleService(service);
 Changes the settings of all CamOverlay services.
 
 -   **Parameters:**
-    -   `widgets`
+    -   `services` ([`Array<TAccuWeather | TInfoTicker | ...>`](#services))
     -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<void>`
 
@@ -722,7 +726,7 @@ Changes the settings of all CamOverlay services.
 await coApi.updateServices(services);
 ```
 
-### Custom Graphics
+### Methods - Custom Graphics
 
 ### types
 
@@ -775,7 +779,7 @@ Changes the position of Custom Graphics.
 
 -   **Parameters:**
     -   `serviceId` (number)
-    -   `coordinates` ([`TCoordinates`](#types-2) | undefined)
+    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
     -   `x` (number | undefined)
     -   `y` (number | undefined)
     -   `options` (`THttpRequestOptions` | undefined)
@@ -794,7 +798,7 @@ If no coordinates are specified, the service will use the positioning from the l
 
     -   `serviceId` (number)
     -   `path` (string)
-    -   `coordinates` ([`TCoordinates`](#types-2) | undefined)
+    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
     -   `x` (number | undefined)
     -   `y` (number | undefined)
     -   `options` (`THttpRequestOptions` | undefined)
@@ -813,9 +817,9 @@ the imageData argument. If no coordinates are specified, the service will use th
 -   **Parameters:**
 
     -   `serviceId` (number)
-    -   `imageType` ([`ImageType`](#types-2))
+    -   `imageType` ([`ImageType`](#types-1))
     -   `imageData` (Buffer)
-    -   `coordinates` ([`TCoordinates`](#types-2) | undefined)
+    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
     -   `x` (number | undefined)
     -   `y` (number | undefined)
     -   `options` (`THttpRequestOptions` | undefined)
