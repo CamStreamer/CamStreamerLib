@@ -434,14 +434,14 @@ Returns the base path of camoverlay API
 const url = CamOverlayAPI.getBasePath();
 ```
 
-### getProxyUrlPath()
+### getProxyPath()
 
 Returns relative path to proxy.cgi
 
 -   **Returns:** `string`
 
 ```javascript
-const url = CamOverlayAPI.getProxyUrlPath();
+const url = CamOverlayAPI.getProxyPath();
 ```
 
 ### getFilePreviewPath(path)
