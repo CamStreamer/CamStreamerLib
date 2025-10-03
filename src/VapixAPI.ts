@@ -424,9 +424,9 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         return guardTourSchema.parse(gTourList);
     }
 
-    setGuardTourEnabled(guardTourID: string, enable: boolean, options?: THttpRequestOptions) {
+    setGuardTourEnabled(guardTourId: string, enable: boolean, options?: THttpRequestOptions) {
         const params: Record<string, string> = {};
-        params[guardTourID + '.Running'] = enable ? 'yes' : 'no';
+        params[guardTourId + '.Running'] = enable ? 'yes' : 'no';
         return this.setParameter(params, options);
     }
 
@@ -617,12 +617,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         return applicationListSchema.parse(appList);
     }
 
-    async startApplication(applicationID: string, options?: THttpRequestOptions) {
+    async startApplication(applicationId: string, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path: '/axis-cgi/applications/control.cgi',
             parameters: {
-                package: applicationID.toLowerCase(),
+                package: applicationId.toLowerCase(),
                 action: 'start',
             },
             timeout: options?.timeout,
@@ -634,12 +634,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         }
     }
 
-    async restartApplication(applicationID: string, options?: THttpRequestOptions) {
+    async restartApplication(applicationId: string, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path: '/axis-cgi/applications/control.cgi',
             parameters: {
-                package: applicationID.toLowerCase(),
+                package: applicationId.toLowerCase(),
                 action: 'restart',
             },
             timeout: options?.timeout,
@@ -651,12 +651,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         }
     }
 
-    async stopApplication(applicationID: string, options?: THttpRequestOptions) {
+    async stopApplication(applicationId: string, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
             path: '/axis-cgi/applications/control.cgi',
             parameters: {
-                package: applicationID.toLowerCase(),
+                package: applicationId.toLowerCase(),
                 action: 'stop',
             },
             timeout: options?.timeout,
