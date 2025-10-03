@@ -1,73 +1,17 @@
 import * as EventEmitter from 'events';
 
-import { WsOptions } from './internal/types';
-import { WsClient, WsClientOptions } from './node/WsClient';
+import { WsOptions } from '../internal/types';
+import { WsClient, WsClientOptions } from './WsClient';
+import {
+    TAsyncMessage,
+    TCamScripterErrorResponse,
+    TCamScripterEvent,
+    TEventDeclaration,
+    TEventUndeclaration,
+    TCamScripterMessage,
+    TCamScripterResponse,
+} from '../types/CamScripterAPICameraEventsGenerator';
 
-export type CamScripterOptions = WsOptions;
-
-export type TDeclaration = {
-    type?: '' | 'SOURCE' | 'DATA';
-    namespace: string;
-    key: string;
-    value: string | boolean | number;
-    value_type: 'STRING' | 'INT' | 'BOOL' | 'DOUBLE';
-    key_nice_name?: string;
-    value_nice_name?: string;
-};
-
-export type TEventDeclaration = {
-    declaration_id: string;
-    stateless: boolean;
-    declaration: TDeclaration[];
-};
-
-export type TEventUndeclaration = {
-    declaration_id: string;
-};
-
-export type TEventData = {
-    namespace: string;
-    key: string;
-    value: string | boolean | number;
-    value_type: 'STRING' | 'INT' | 'BOOL' | 'DOUBLE';
-};
-
-export type TEvent = {
-    declaration_id: string;
-    event_data: TEventData[];
-};
-
-export type TResponse = {
-    call_id: number;
-    message: string;
-};
-
-export type TErrorResponse = {
-    error: string;
-    call_id?: number;
-};
-
-type TMessage = {
-    call_id: number;
-    command: string;
-    data: unknown;
-};
-
-type TAsyncMessage = {
-    resolve: (value: TResponse) => void;
-    reject: (reason?: any) => void;
-    sentTimestamp: number;
-};
-
-export interface CamScripterAPICameraEventsGenerator {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'error', err: Error): boolean;
-}
 export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private tls: boolean;
     private tlsInsecure: boolean;
@@ -81,7 +25,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private wsConnected: boolean;
     private ws!: WsClient;
 
-    constructor(options?: CamScripterOptions) {
+    constructor(options?: WsOptions) {
         super();
 
         this.tls = options?.tls ?? false;
@@ -126,7 +70,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         });
     }
 
-    sendEvent(event: TEvent) {
+    sendEvent(event: TCamScripterEvent) {
         return this.sendMessage({
             call_id: 0,
             command: 'send_event',
@@ -163,18 +107,18 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     }
 
     private incomingWsMessageHandler(msgData: Buffer) {
-        const dataJSON = JSON.parse(msgData.toString()) as TResponse | TErrorResponse;
+        const dataJSON = JSON.parse(msgData.toString()) as TCamScripterResponse | TCamScripterErrorResponse;
 
-        let errorResponse: TErrorResponse | undefined;
+        let errorResponse: TCamScripterErrorResponse | undefined;
         if ('error' in dataJSON) {
-            errorResponse = dataJSON as TErrorResponse;
+            errorResponse = dataJSON as TCamScripterErrorResponse;
         }
 
         if (dataJSON.call_id !== undefined) {
             if (errorResponse !== undefined) {
                 this.sendMessages[dataJSON.call_id]?.reject(new Error(errorResponse.error));
             } else {
-                this.sendMessages[dataJSON.call_id]?.resolve(dataJSON as TResponse);
+                this.sendMessages[dataJSON.call_id]?.resolve(dataJSON as TCamScripterResponse);
             }
             delete this.sendMessages[dataJSON.call_id];
         }
@@ -184,8 +128,8 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
         }
     }
 
-    private sendMessage(msgJson: TMessage) {
-        return new Promise<TResponse>((resolve, reject) => {
+    private sendMessage(msgJson: TCamScripterMessage) {
+        return new Promise<TCamScripterResponse>((resolve, reject) => {
             if (!this.wsConnected) {
                 throw new Error("Websocket hasn't been opened yet.");
             }
