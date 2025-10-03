@@ -187,14 +187,14 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         file: any, // Buffer | File
         clipType: 'video' | 'audio',
         storage: TStorageType,
-        id: string,
+        clipId: string,
         fileName?: string,
         options?: THttpRequestOptions
     ) {
         const path = `${BASE_PATH}/clip_upload.cgi?storage=${storage}`;
 
         const formData = new this.CustomFormData();
-        formData.append('clip_name', id);
+        formData.append('clip_name', clipId);
         formData.append('clip_type', clipType);
         formData.append('file', file, fileName);
 
@@ -207,8 +207,8 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         }
     }
 
-    removeClip(id: string, storage: TStorageType, options?: THttpRequestOptions) {
-        return this.get(`${BASE_PATH}/clip_remove.cgi`, { clip_name: id, storage }, options);
+    removeClip(clipId: string, storage: TStorageType, options?: THttpRequestOptions) {
+        return this.get(`${BASE_PATH}/clip_remove.cgi`, { clip_name: clipId, storage }, options);
     }
 
     async getClipList(options?: THttpRequestOptions): Promise<TClipList> {
@@ -276,8 +276,8 @@ export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TRespons
         return this.setParamFromCameraJSON(CSW_PARAM_NAMES.SECONDARY_AUDIO, data, options);
     }
 
-    setDefaultPlaylist(id: string, options?: THttpRequestOptions) {
-        const value = JSON.stringify({ default_playlist_id: id });
+    setDefaultPlaylist(playlistId: string, options?: THttpRequestOptions) {
+        const value = JSON.stringify({ default_playlist_id: playlistId });
         return this.vapixAgent.setParameter(
             {
                 [CSW_PARAM_NAMES.DEFAULT_PLAYLIST]: value,
