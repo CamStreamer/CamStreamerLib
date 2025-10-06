@@ -7,7 +7,7 @@ import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
 
 const BASE_PATH = '/local/planetracker';
-export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
+export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     constructor(private client: Client, private apiUser: TApiUser) {}
 
     static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
@@ -79,7 +79,11 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
         return await this._getBlob(`${BASE_PATH}/package_data.cgi`, { action: 'EXPORT', dataType }, options);
     }
 
-    async importAppSettings(dataType: TImportDataType, formData: FormData, options?: THttpRequestOptions) {
+    async importAppSettings(
+        dataType: TImportDataType,
+        formData: Parameters<Client['post']>[0]['data'],
+        options?: THttpRequestOptions
+    ) {
         const agent = this.getClient(options?.proxyParams);
         return await agent.post({
             path: `${BASE_PATH}/package_data.cgi`,
@@ -241,7 +245,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
 
     private async parseBlobResponse(response: TResponse) {
         try {
-            return (await response.blob()) as unknown as TBlobResponse<Client>;
+            return (await response.blob()) as TBlobResponse<Client>;
         } catch (err) {
             throw new ParsingBlobError(err);
         }
@@ -249,7 +253,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse> = IClient<TRespon
 
     private async _postJsonEncoded(
         path: string,
-        data: string | Buffer | FormData,
+        data: string | Parameters<Client['post']>[0]['data'],
         parameters?: TParameters,
         options?: THttpRequestOptions
     ) {

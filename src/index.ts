@@ -2,6 +2,7 @@ export * from './internal/types';
 export * from './internal/constants';
 export * from './internal/utils';
 export * from './internal/versionCompare';
+export * from './internal/ProxyClient';
 export * from './types/common';
 
 export { CamSwitcherAPI } from './CamSwitcherAPI';

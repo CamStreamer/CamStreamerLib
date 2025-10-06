@@ -45,8 +45,8 @@ import { ProxyClient } from './internal/ProxyClient';
 
 const BASE_PATH = '/local/camswitcher/api';
 
-export class CamSwitcherAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
-    private vapixAgent: VapixAPI;
+export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
+    private vapixAgent: VapixAPI<Client>;
 
     constructor(public client: Client, private CustomFormData = FormData) {
         this.vapixAgent = new VapixAPI(client);

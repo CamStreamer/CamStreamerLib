@@ -25,7 +25,7 @@ import {
 } from './types/CamOverlayAPI';
 
 const BASE_PATH = '/local/camoverlay/api';
-export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
+export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     constructor(private client: Client) {}
 
     static getBasePath = () => BASE_PATH;
@@ -67,7 +67,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     //   ----------------------------------------
 
     async listFiles(fileType: TFileType, options?: THttpRequestOptions): Promise<TFileList> {
-        const files = await this._get<TFileData>(
+        const files: TFileData = await this._get(
             {
                 path: `${BASE_PATH}/upload_${fileType}.cgi`,
                 parameters: {
@@ -79,7 +79,12 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         return fileListSchema.parse(files.list);
     }
 
-    async uploadFile(fileType: TFileType, formData: FormData, storage: TStorage, options?: THttpRequestOptions) {
+    async uploadFile(
+        fileType: TFileType,
+        formData: Parameters<Client['post']>[0]['data'],
+        storage: TStorage,
+        options?: THttpRequestOptions
+    ) {
         await this._post(
             {
                 path: `${BASE_PATH}/upload_${fileType}.cgi`,
@@ -107,7 +112,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     }
 
     async getFileStorage(fileType: TFileType, options?: THttpRequestOptions): Promise<TStorageDataList> {
-        const data = await this._get<TStorageResponse>(
+        const data: TStorageResponse = await this._get(
             {
                 path: `${BASE_PATH}/upload_${fileType}.cgi`,
                 parameters: {
@@ -156,7 +161,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     }
 
     async getSingleWidget(serviceId: number, options?: THttpRequestOptions): Promise<TWidget> {
-        const data = await this._get<TWidget>(
+        const data = await this._get(
             {
                 path: `${BASE_PATH}/services.cgi`,
                 parameters: {
@@ -170,7 +175,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     }
 
     async getWidgets(options?: THttpRequestOptions): Promise<TWidget[]> {
-        const widgetList = await this._get<TWidgetList>(
+        const widgetList: TWidgetList = await this._get(
             {
                 path: `${BASE_PATH}/services.cgi`,
                 parameters: {
@@ -268,7 +273,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
     updateCGImageFromData(
         serviceId: number,
         imageType: ImageType,
-        imageData: Buffer,
+        imageData: Parameters<Client['post']>[0]['data'],
         coordinates: TCoordinates = '',
         x = 0,
         y = 0,
@@ -292,7 +297,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         action: string,
         params: Record<string, string | number> = {},
         contentType?: string,
-        data?: Buffer,
+        data?: Parameters<Client['post']>[0]['data'],
         options?: THttpRequestOptions
     ) {
         const path = `${BASE_PATH}/customGraphics.cgi`;
@@ -318,35 +323,35 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
         }
     }
 
-    private async _get<TResponseData = any>(
+    private async _get(
         params: {
             path: string;
             parameters?: TParameters;
             headers?: Record<string, string>;
         },
         options?: THttpRequestOptions
-    ): Promise<TResponseData> | never {
+    ) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ ...params, timeout: options?.timeout });
         if (res.ok) {
-            return (await res.json()) as TResponseData;
+            return await res.json();
         } else {
             throw new Error(await responseStringify(res));
         }
     }
-    private async _post<TResponseData = any>(
+    private async _post(
         params: {
             path: string;
-            data: string | Buffer | FormData;
+            data: string | Parameters<Client['post']>[0]['data'];
             parameters?: TParameters;
             headers?: Record<string, string>;
         },
         options?: THttpRequestOptions
-    ): Promise<TResponseData> | never {
+    ) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ ...params, timeout: options?.timeout });
         if (res.ok) {
-            return (await res.json()) as TResponseData;
+            return await res.json();
         } else {
             throw new Error(await responseStringify(res));
         }
@@ -371,30 +376,30 @@ export class CamOverlayAPI<Client extends IClient<TResponse> = IClient<TResponse
 
     private async parseBlobResponse(response: TResponse) {
         try {
-            return (await response.blob()) as unknown as TBlobResponse<Client>;
+            return (await response.blob()) as TBlobResponse<Client>;
         } catch (err) {
             throw new ParsingBlobError(err);
         }
     }
 
-    private async _postUrlEncoded<TResponseData = any>(
+    private async _postUrlEncoded(
         path: string,
         params: TParameters,
         headers?: Record<string, string>,
         options?: THttpRequestOptions
-    ): Promise<TResponseData> | never {
+    ) {
         const data = paramToUrl(params);
         const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
         return this._post({ path, data, headers: { ...baseHeaders, ...headers } }, options);
     }
 
-    private async _postJsonEncoded<TResponseData = any>(
+    private async _postJsonEncoded(
         path: string,
-        data: string | Buffer | FormData,
+        data: string | Parameters<Client['post']>[0]['data'],
         parameters?: TParameters,
         headers?: Record<string, string>,
         options?: THttpRequestOptions
-    ): Promise<TResponseData> | never {
+    ) {
         const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
         return this._post({ path, data, parameters, headers: { ...baseHeaders, ...headers } }, options);
     }

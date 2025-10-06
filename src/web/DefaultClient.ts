@@ -1,7 +1,7 @@
 import { IClient, TGetParams, TPostParams } from '../internal/types';
 import { addParametersToPath } from '../internal/utils';
 
-export class DefaultClient implements IClient<Response> {
+export class DefaultClient implements IClient<Response, FormData | ArrayBuffer> {
     get = (params: TGetParams) => {
         return this.fetchWithTimeout(
             addParametersToPath(params.path, params.parameters),
@@ -13,7 +13,7 @@ export class DefaultClient implements IClient<Response> {
         );
     };
 
-    post = (params: TPostParams) => {
+    post = (params: TPostParams<FormData | ArrayBuffer>) => {
         return this.fetchWithTimeout(
             addParametersToPath(params.path, params.parameters),
             {

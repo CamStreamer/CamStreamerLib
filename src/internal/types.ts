@@ -1,5 +1,3 @@
-import { Response as UndiciResponse } from 'undici';
-
 export type Options = {
     ip?: string;
     port?: number;
@@ -13,8 +11,13 @@ export type HttpOptions = Options & { keepAlive?: boolean };
 export type WsOptions = Options;
 
 export type TParameters = Record<string, string | number | boolean | null | undefined>;
-
-export type TResponse = Response | UndiciResponse;
+export type TResponse = {
+    json: () => Promise<any>;
+    text: () => Promise<string>;
+    blob: () => Promise<unknown>;
+    status: number;
+    ok: boolean;
+};
 
 export type TGetParams = {
     path: string;
@@ -23,21 +26,21 @@ export type TGetParams = {
     timeout?: number;
 };
 
-export type TPostParams = {
+export type TPostParams<Data> = {
     path: string;
-    data: string | Buffer | FormData;
+    data: string | Data;
     parameters?: TParameters;
     headers?: Record<string, string>;
     timeout?: number;
 };
 
-export interface IClient<TRes extends TResponse> {
+export interface IClient<TRes extends TResponse, Data> {
     get: (params: TGetParams) => Promise<TRes>;
-    post: (params: TPostParams) => Promise<TRes>;
+    post: (params: TPostParams<Data>) => Promise<TRes>;
 }
 
 // Blob response is different in browser and node.js, so we need to define it separately
-export type TBlobResponse<Client extends IClient<TResponse>> = Awaited<
+export type TBlobResponse<Client extends IClient<TResponse, any>> = Awaited<
     ReturnType<Awaited<ReturnType<Client['get']>>['blob']>
 >;
 

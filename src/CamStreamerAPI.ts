@@ -6,7 +6,7 @@ import { TStreamAttributes, TStreamList, streamAttributesSchema, streamListSchem
 import { THttpRequestOptions, TProxyParams } from './types/common';
 
 const BASE_PATH = '/local/camstreamer';
-export class CamStreamerAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
+export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     constructor(public client: Client) {}
 
     getClient(proxyParams?: TProxyParams) {

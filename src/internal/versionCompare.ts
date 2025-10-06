@@ -39,7 +39,7 @@ export const versionCompare = (a: string, b: string) => {
 
     for (let i = 0; i < aSplit.length; i++) {
         if (aSplit[i] !== bSplit[i]) {
-            return aSplit[i] < bSplit[i] ? -1 : 1;
+            return aSplit[i]! < bSplit[i]! ? -1 : 1;
         }
     }
 

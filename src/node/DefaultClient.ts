@@ -3,7 +3,7 @@ import { addParametersToPath } from '../internal/utils';
 import { AgentOptions, HttpRequestOptions, HttpRequestSender } from './HttpRequestSender';
 import { FormData as UndiciFormData, Response as UndiciResponse } from 'undici';
 
-export class DefaultClient implements IClient<UndiciResponse> {
+export class DefaultClient implements IClient<UndiciResponse, UndiciFormData | Buffer> {
     private tls: boolean;
     private ip: string;
     private port: number;
@@ -34,10 +34,10 @@ export class DefaultClient implements IClient<UndiciResponse> {
         return this.httpRequestSender.sendRequest(options);
     }
 
-    post(params: TPostParams) {
+    post(params: TPostParams<UndiciFormData | Buffer>) {
         const { path, data, parameters, headers, timeout } = params;
         const options = this.getBaseConnectionParams('POST', path, parameters, headers, timeout);
-        return this.httpRequestSender.sendRequest(options, data as UndiciFormData);
+        return this.httpRequestSender.sendRequest(options, data);
     }
 
     private getBaseConnectionParams(
