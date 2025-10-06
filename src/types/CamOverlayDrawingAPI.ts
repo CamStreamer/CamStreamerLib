@@ -33,7 +33,7 @@ export type TErrorResponse = {
     call_id?: number;
 };
 
-export type TService = {
+export type TCoService = {
     id: number;
     enabled: number;
     schedule: string;
@@ -43,7 +43,7 @@ export type TService = {
 };
 
 export type TCoServiceList = {
-    services: TService[];
+    services: TCoService[];
 };
 
 export type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';

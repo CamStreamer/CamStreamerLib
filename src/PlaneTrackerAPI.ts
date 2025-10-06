@@ -19,7 +19,7 @@ import {
 import { ParsingBlobError } from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
-import { cameraListSchema } from './node';
+import { cameraListSchema } from './types/GenetecAgent';
 
 const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {

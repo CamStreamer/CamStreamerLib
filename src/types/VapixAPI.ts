@@ -13,6 +13,19 @@ export const applicationSchema = z.object({
     VendorHomePage: z.string().optional(),
     LicenseName: z.string().optional(),
 });
+export const applicationListSchema = applicationSchema.extend({
+    appId: z
+        .union([
+            z.literal('CamStreamer'),
+            z.literal('CamSwitcher'),
+            z.literal('CamOverlay'),
+            z.literal('CamScripter'),
+            z.literal('PlaneTracker'),
+            z.literal('Ndihxplugin'),
+            z.literal('SportTracker'),
+        ])
+        .nullable(),
+});
 
 export const APP_IDS = [
     'CamStreamer',
@@ -24,9 +37,7 @@ export const APP_IDS = [
     'SportTracker',
 ] as const;
 export type TApplicationId = (typeof APP_IDS)[number];
-export type TApplication = z.infer<typeof applicationSchema> & {
-    appId: null | TApplicationId;
-};
+export type TApplication = z.infer<typeof applicationListSchema>;
 
 export const guardTourSchema = z.object({
     id: z.string(),
@@ -55,14 +66,15 @@ const audioSampleRatesOutSchema = audioSampleRatesSchema.transform(toCamelCaseDe
 export type TAudioSampleRates = z.infer<typeof audioSampleRatesOutSchema>;
 
 export const sdCardWatchedStatuses = ['OK', 'connected', 'disconnected'] as const;
-export type TSDCardInfo = {
-    status: (typeof sdCardWatchedStatuses)[number];
-    totalSize: number;
-    freeSize: number;
-};
+export const sdCardInfoSchema = z.object({
+    status: z.enum(sdCardWatchedStatuses),
+    totalSize: z.number(),
+    freeSize: z.number(),
+});
+export type TSDCardInfo = z.infer<typeof sdCardInfoSchema>;
 
-export const PtzOverviewSchema = z.record(z.number(), z.array(z.object({ id: z.number(), name: z.string() })));
-export type TPtzOverview = z.infer<typeof PtzOverviewSchema>;
+export const ptzOverviewSchema = z.record(z.number(), z.array(z.object({ id: z.number(), name: z.string() })));
+export type TPtzOverview = z.infer<typeof ptzOverviewSchema>;
 
 export const cameraPTZItemDataSchema = z.object({
     pan: z.number().optional(),

@@ -7,7 +7,6 @@ import {
     TSDCardInfo,
     TPtzOverview,
     TCameraPTZItem,
-    TCameraPTZItemData,
     TAudioDevice,
     TAudioDeviceFromRequest,
     sdCardWatchedStatuses,
@@ -21,6 +20,10 @@ import {
     getPortsResponseSchema,
     TPortSetSchema,
     TPortSequenceStateSchema,
+    guardTourSchema,
+    ptzOverviewSchema,
+    cameraPTZItemDataSchema,
+    applicationListSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -278,7 +281,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             throw new MaxFPSError('FPS_NOT_SPECIFIED');
         }
 
-        return captureMode.maxFPS;
+        return z.number().parse(captureMode.maxFPS);
     }
 
     async getTimezone(options?: THttpRequestOptions) {
@@ -310,7 +313,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         if (data.data.timeZone === undefined) {
             throw new Error('Time zone not setup on the device');
         }
-        return data.data.timeZone;
+        return z.string().parse(data.data.timeZone);
     }
 
     async getDateTimeInfo(options?: THttpRequestOptions) {
@@ -322,6 +325,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     async getDevicesSettings(options?: THttpRequestOptions): Promise<TAudioDevice[]> {
         const data = { apiVersion: '1.0', method: 'getDevicesSettings' };
         const res = await this.postJson('/axis-cgi/audiodevicecontrol.cgi', data, undefined, options);
+
         const result = audioDeviceRequestSchema.parse(await res.json());
         return result.data.devices.map((device: TAudioDeviceFromRequest) => ({
             ...device,
@@ -417,7 +421,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
                 break;
             }
         }
-        return gTourList;
+        return guardTourSchema.parse(gTourList);
     }
 
     setGuardTourEnabled(guardTourID: string, enable: boolean, options?: THttpRequestOptions) {
@@ -452,10 +456,10 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
                 }
             }
         }
-        return positions;
+        return z.array(z.string()).parse(positions);
     }
 
-    async listPTZ(camera: number, options?: THttpRequestOptions): Promise<TCameraPTZItem[]> {
+    async listPTZ(camera: number, options?: THttpRequestOptions) {
         const url = `/axis-cgi/com/ptz.cgi`;
         const response = await this.postUrlEncoded(
             url,
@@ -475,7 +479,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         return VapixAPI.parseCameraPtzResponse(text)[camera] ?? [];
     }
 
-    async listPtzVideoSourceOverview(options?: THttpRequestOptions): Promise<TPtzOverview> {
+    async listPtzVideoSourceOverview(options?: THttpRequestOptions) {
         const response = await this.postUrlEncoded(
             '/axis-cgi/com/ptz.cgi',
             {
@@ -502,7 +506,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
                     res[camera - 1] = item.map(({ data: itemData, ...d }) => d);
                 }
             });
-        return res;
+        return ptzOverviewSchema.parse(res);
     }
 
     goToPreset(channel: number, presetName: string, options?: THttpRequestOptions) {
@@ -517,7 +521,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         );
     }
 
-    async getPtzPosition(camera: number, options?: THttpRequestOptions): Promise<TCameraPTZItemData> {
+    async getPtzPosition(camera: number, options?: THttpRequestOptions) {
         const res = await this.postUrlEncoded(
             '/axis-cgi/com/ptz.cgi',
             {
@@ -530,11 +534,11 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
 
         const params = VapixAPI.parseParameters(await res.text());
 
-        return {
+        return cameraPTZItemDataSchema.parse({
             pan: Number(params.pan),
             tilt: Number(params.tilt),
             zoom: Number(params.zoom),
-        };
+        });
     }
 
     //  -------------------------------
@@ -553,7 +557,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             options
         );
 
-        const portResponseParsed = await getPortsResponseSchema.parse(res.json());
+        const portResponseParsed = getPortsResponseSchema.parse(await res.json());
         return portResponseParsed.data.items;
     }
 
@@ -604,12 +608,13 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         if (!Array.isArray(apps)) {
             apps = [apps];
         }
-        return apps.map((app: z.infer<typeof applicationSchema>) => {
+        const appList = apps.map((app: z.infer<typeof applicationSchema>) => {
             return {
                 ...app,
                 appId: APP_IDS.find((id) => id.toLowerCase() === app.Name.toLowerCase()) ?? null,
             };
         });
+        return applicationListSchema.parse(appList);
     }
 
     async startApplication(applicationID: string, options?: THttpRequestOptions) {
@@ -689,6 +694,10 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             throw new Error('installing error: ' + text);
         }
     }
+
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
 
     private static parseParameters = (response: string) => {
         const params: Record<string, string> = {};
