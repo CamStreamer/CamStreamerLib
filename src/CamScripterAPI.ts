@@ -16,7 +16,7 @@ import {
 import { networkCameraListSchema, THttpRequestOptions, TNetworkCamera, TProxyParams } from './types/common';
 
 const BASE_PATH = '/local/camscripter';
-export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
+export class CamScripterAPI<Client extends IClient<TResponse, any>> {
     constructor(public client: Client) {}
 
     static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
@@ -49,7 +49,11 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
         return packageInfoListSchema.parse(data);
     }
 
-    async installPackages(formData: FormData, storage: TStorageType, options?: THttpRequestOptions) {
+    async installPackages(
+        formData: Parameters<Client['post']>[0]['data'],
+        storage: TStorageType,
+        options?: THttpRequestOptions
+    ) {
         const data = await this.post(
             `${BASE_PATH}/package/install.cgi?storage=${storage}`,
             formData,
@@ -64,7 +68,11 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
         return camscripterApiResponseSchema.parse(data);
     }
 
-    async importSettings(packageId: string, formData: FormData, options?: THttpRequestOptions) {
+    async importSettings(
+        packageId: string,
+        formData: Parameters<Client['post']>[0]['data'],
+        options?: THttpRequestOptions
+    ) {
         const data = await this.post(
             `${BASE_PATH}/package/data.cgi?action=IMPORT&package_name=${packageId}`,
             formData,
@@ -74,7 +82,11 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
         return camscripterApiResponseSchema.parse(data);
     }
 
-    async exportSettings(packageId: string, formData: FormData, options?: THttpRequestOptions) {
+    async exportSettings(
+        packageId: string,
+        formData: Parameters<Client['post']>[0]['data'],
+        options?: THttpRequestOptions
+    ) {
         const data = await this.post(
             `${BASE_PATH}/package/data.cgi?action=EXPORT&package_name=${packageId}`,
             formData,
@@ -114,7 +126,7 @@ export class CamScripterAPI<Client extends IClient<TResponse> = IClient<TRespons
     }
     private async post(
         path: string,
-        data: string | Buffer | FormData,
+        data: string | Parameters<Client['post']>[0]['data'],
         parameters?: Record<string, string>,
         options?: THttpRequestOptions
     ): Promise<any> {

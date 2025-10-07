@@ -4,13 +4,14 @@
         "target": "esnext",
         "lib": ["dom", "DOM.Iterable", "ES2022"],
         "module": "commonjs",
-        "declaration": true,
         "removeComments": true,
         "outDir": "dist/cjs",
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "strict": true,
-        "typeRoots": ["typings", "node_modules/@types"]
+        "typeRoots": ["typings", "node_modules/@types"],
+        "declaration": true,
+        "declarationDir": "./dist/types"
     },
     "include": ["src"],
     "exclude": ["node_modules"]

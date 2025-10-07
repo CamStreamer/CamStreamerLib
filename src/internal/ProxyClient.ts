@@ -2,21 +2,22 @@ import { IClient, TGetParams, TPostParams, TResponse } from './types';
 import { TProxyParams } from '../types/common';
 import { addParametersToPath } from './utils';
 
-export class ProxyClient<Client extends IClient<TResponse> = IClient<TResponse>> {
+// we are not limmiting Data type here, because ProxyClient takes it from client
+export class ProxyClient<Client extends IClient<TResponse, any>> {
     constructor(private client: Client, private proxyParams: TProxyParams) {}
 
     get(params: TGetParams) {
         const { path, parameters, headers, timeout } = params;
         const targetPath = addParametersToPath(path, parameters);
         const { realPath, realHeaders } = this.getReal(targetPath, headers);
-        return this.client.get({ path: realPath, headers: realHeaders, timeout });
+        return this.client.get({ path: realPath, headers: realHeaders, timeout }) as ReturnType<Client['get']>;
     }
 
-    post(params: TPostParams) {
+    post(params: Parameters<Client['post']>[0]) {
         const { path, data, parameters, headers, timeout } = params;
         const targetPath = addParametersToPath(path, parameters);
         const { realPath, realHeaders } = this.getReal(targetPath, headers);
-        return this.client.post({ path: realPath, data, headers: realHeaders, timeout });
+        return this.client.post({ path: realPath, data, headers: realHeaders, timeout }) as ReturnType<Client['post']>;
     }
 
     private getReal(targetPath: string, headers: Record<string, string> | undefined) {

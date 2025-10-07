@@ -1,5 +1,3 @@
-import * as prettifyXml from 'prettify-xml';
-
 import { IClient, TParameters, TResponse } from './internal/types';
 import { arrayToUrl, isNullish, paramToUrl, responseStringify } from './internal/utils';
 
@@ -37,8 +35,8 @@ import { TCameraImageConfig, THttpRequestOptions, TProxyParams } from './types/c
 import { z } from 'zod';
 import { XMLParser } from 'fast-xml-parser';
 
-export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
-    constructor(private client: Client) {}
+export class VapixAPI<Client extends IClient<TResponse, any>> {
+    constructor(public client: Client, private CustomFormData = FormData) {}
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
@@ -85,7 +83,11 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
 
     async getCameraImage(parameters: TCameraImageConfig, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        return await agent.get({ path: '/axis-cgi/jpg/image.cgi', parameters, timeout: options?.timeout });
+        return (await agent.get({
+            path: '/axis-cgi/jpg/image.cgi',
+            parameters,
+            timeout: options?.timeout,
+        })) as ReturnType<Client['get']>;
     }
 
     async getEventDeclarations(options?: THttpRequestOptions): Promise<string> {
@@ -105,8 +107,7 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
         if (!res.ok) {
             throw new Error(await responseStringify(res));
         }
-        const declarations = await res.text();
-        return prettifyXml(declarations);
+        return await res.text();
     }
 
     async getSupportedAudioSampleRate(options?: THttpRequestOptions): Promise<TAudioSampleRates[]> {
@@ -661,8 +662,12 @@ export class VapixAPI<Client extends IClient<TResponse> = IClient<TResponse>> {
         }
     }
 
-    async installApplication(data: Blob, fileName: string, options?: THttpRequestOptions) {
-        const formData = new FormData();
+    async installApplication(
+        data: Parameters<typeof FormData.prototype.append>[1],
+        fileName: string,
+        options?: THttpRequestOptions
+    ) {
+        const formData = new this.CustomFormData();
         formData.append('packfil', data, fileName);
 
         const agent = this.getClient(options?.proxyParams);

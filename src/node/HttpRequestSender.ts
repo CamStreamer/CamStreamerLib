@@ -1,4 +1,4 @@
-import { Digest } from '../internal/Digest';
+import { Digest } from './Digest';
 import {
     Agent,
     fetch as undiciFetch,

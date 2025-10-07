@@ -8,6 +8,13 @@ import { pipSchema } from './pipSchema';
 import { customGraphicsSchema } from './customGraphicsSchema';
 import { screenSharingSchema } from './screenSharingSchema';
 import { webCameraSharingSchema } from './webCameraSharingSchema';
+import { overlaySchema } from './widgetCommonTypes';
+import {
+    baseballScoreBoardAutomaticSchema,
+    baseballScoreBoardSchema,
+    scoreBoardSchema,
+    scoreOverviewSchema,
+} from './scoreBoardSchema';
 
 export const WSResponseSchema = z.object({
     status: z.number(),
@@ -30,6 +37,10 @@ export const widgetsSchema = z.discriminatedUnion('name', [
     customGraphicsSchema,
     screenSharingSchema,
     webCameraSharingSchema,
+    scoreBoardSchema,
+    baseballScoreBoardSchema,
+    baseballScoreBoardAutomaticSchema,
+    scoreOverviewSchema,
 ]);
 export type TWidget = z.infer<typeof widgetsSchema>;
 
@@ -64,6 +75,20 @@ export const isScreenSharing = (widget: TWidget): widget is TScreenSharing => wi
 
 export type TWebCameraSharing = z.infer<typeof webCameraSharingSchema>;
 export const isWebCameraSharing = (widget: TWidget): widget is TWebCameraSharing => widget.name === 'web_camera';
+
+export type TScoreBoard = z.infer<typeof scoreBoardSchema>;
+export const isScoreBoard = (widget: TWidget): widget is TScoreBoard => widget.name === 'scoreBoard';
+
+export type TBaseballScoreBoard = z.infer<typeof baseballScoreBoardSchema>;
+export const isBaseballScoreBoard = (widget: TWidget): widget is TBaseballScoreBoard =>
+    widget.name === 'baseballScoreBoard';
+
+export type TBaseballScoreBoardAutomatic = z.infer<typeof baseballScoreBoardAutomaticSchema>;
+export const isBaseballScoreBoardAutomatic = (widget: TWidget): widget is TBaseballScoreBoardAutomatic =>
+    widget.name === 'myBallBaseballWidgets';
+
+export type TScoreOverview = z.infer<typeof scoreOverviewSchema>;
+export const isScoreOverview = (widget: TWidget): widget is TScoreOverview => widget.name === 'scoreOverview';
 
 //   ----------------------------------------
 //               Storage & Files
@@ -113,3 +138,5 @@ export const fileDataSchema = z.object({
     list: fileListSchema,
 });
 export type TFileData = z.infer<typeof fileDataSchema>;
+
+export type TOverlayListItem = z.infer<typeof overlaySchema>;
