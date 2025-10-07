@@ -1,5 +1,5 @@
 import { ProxyClient } from './internal/ProxyClient';
-import { IClient, TResponse } from './internal/types';
+import { IClient, TParameters, TResponse } from './internal/types';
 import { responseStringify } from './internal/utils';
 
 import { TStreamAttributes, TStreamList, streamAttributesSchema, streamListSchema } from './types/CamStreamerAPI';
@@ -37,8 +37,8 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
             {
                 stream_id: streamId,
                 streamDelay: streamDelay ?? '',
-                startTime: startTime ?? 'null',
-                stopTime: stopTime ?? 'null',
+                startTime: startTime ?? null,
+                stopTime: stopTime ?? null,
                 ...rest,
             },
             options
@@ -73,7 +73,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     //                   Private
     //   ----------------------------------------
 
-    private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions): Promise<any> {
+    private async get(path: string, parameters?: TParameters, options?: THttpRequestOptions): Promise<any> {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 

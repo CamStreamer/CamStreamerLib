@@ -23,8 +23,8 @@ export const streamAttributesSchema = z.object({
     trigger: z.string(),
     schedule: z.string(),
     prepareAhead: z.string(),
-    startTime: z.string(),
-    stopTime: z.string(),
+    startTime: z.number().optional(),
+    stopTime: z.number().optional(),
 });
 export type TStreamAttributes = z.infer<typeof streamAttributesSchema>;
 export const streamListSchema = z.record(z.string(), streamAttributesSchema);

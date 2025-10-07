@@ -373,7 +373,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
         if (res.ok) {
-            const d = (await res.json()) as any;
+            const d = await res.json();
             return d.data;
         } else {
             throw new Error(await responseStringify(res));
