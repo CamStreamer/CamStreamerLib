@@ -20,17 +20,12 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
     private _isDestroyed = false;
     private listeners: TListenersList<T> = {};
 
-    constructor(private zodSchema: TZodSchema<T>, public ws: IWebsocket<Event>) {}
+    constructor(private zodSchema: TZodSchema<T>, public ws: IWebsocket<Event>) {
+        this.ws.onmessage = (e: Event) => this.onMessage(e);
+    }
 
     get isDestroyed() {
         return this._isDestroyed;
-    }
-
-    setWebsocket(ws: IWebsocket<Event>) {
-        this.ws.onmessage = () => {};
-        this.ws.destroy();
-        this.ws = ws;
-        this.ws.onmessage = (e: Event) => this.onMessage(e);
     }
 
     resendInitData() {
