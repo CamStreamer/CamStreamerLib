@@ -63,16 +63,29 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         const response = await this.get(`${BASE_PATH}/get_streamstat.cgi?stream_id=${streamId}`, undefined, options);
         return response.data.is_streaming === 1;
     }
-    async deleteStream(streamId: number, options?: THttpRequestOptions): Promise<void> {
-        await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
+    async deleteStream(streamId: number, options?: THttpRequestOptions): Promise<boolean> {
+        try {
+            const res = await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
+            return res.data.status === 200;
+        } catch (error) {
+            return false;
+        }
     }
 
-    wsAuthorization(options?: THttpRequestOptions): Promise<string> {
-        return this.get(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
+    async wsAuthorization(options?: THttpRequestOptions): Promise<string> {
+        const res = await this.get(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
+        if (res.status !== 200) {
+            throw new Error(`Server error on ws authorization: ${res.message}`);
+        }
+        return res.data;
     }
 
     async getUtcTime(options?: THttpRequestOptions): Promise<number> {
-        return await this.get(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
+        const res = await this.get(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
+        if (res.status !== 200) {
+            throw new Error(`Server error on get UTC time: ${res.message}`);
+        }
+        return res.data;
     }
 
     //   ----------------------------------------
