@@ -36,9 +36,13 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return stream.data[paramName];
     }
 
-    async setStream(streamId: number, params: Partial<TStream>, options?: THttpRequestOptions): Promise<void> {
+    async setStream(
+        streamId: number,
+        params: Partial<TStream>,
+        options?: THttpRequestOptions
+    ): Promise<{ message: string; status: number }> {
         const { streamDelay, startTime, stopTime, ...rest } = params;
-        await this.get(
+        return await this.get(
             `${BASE_PATH}/stream/set.cgi`,
             {
                 stream_id: streamId,
@@ -55,8 +59,12 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         paramName: string,
         value: string,
         options?: THttpRequestOptions
-    ): Promise<void> {
-        await this.get(`${BASE_PATH}/stream/set.cgi?stream_id=${streamId}&${paramName}=${value}`, undefined, options);
+    ): Promise<{ message: string; status: number }> {
+        return await this.get(
+            `${BASE_PATH}/stream/set.cgi?stream_id=${streamId}&${paramName}=${value}`,
+            undefined,
+            options
+        );
     }
 
     async isStreaming(streamId: number, options?: THttpRequestOptions): Promise<boolean> {
@@ -64,15 +72,11 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return response.data.is_streaming === 1;
     }
     async deleteStream(streamId: number, options?: THttpRequestOptions): Promise<boolean> {
-        try {
-            const res = await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
-            return res.data.status === 200;
-        } catch (error) {
-            return false;
-        }
+        const res = await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
+        return res.data.status === 200;
     }
 
-    async wsAuthorization(options?: THttpRequestOptions): Promise<string> {
+    async getWsAuthorization(options?: THttpRequestOptions): Promise<string> {
         const res = await this.get(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
         if (res.status !== 200) {
             throw new Error(`Server error on ws authorization: ${res.message}`);
