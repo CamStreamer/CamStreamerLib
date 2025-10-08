@@ -3,8 +3,6 @@ import { arrayToUrl, isNullish, paramToUrl, responseStringify } from './internal
 
 import {
     TGuardTour,
-    TAudioSampleRates,
-    TSDCardInfo,
     TPtzOverview,
     TCameraPTZItem,
     TAudioDevice,
@@ -24,6 +22,7 @@ import {
     ptzOverviewSchema,
     cameraPTZItemDataSchema,
     applicationListSchema,
+    sdCardInfoSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -93,7 +92,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         })) as ReturnType<Client['get']>;
     }
 
-    async getEventDeclarations(options?: THttpRequestOptions): Promise<string> {
+    async getEventDeclarations(options?: THttpRequestOptions) {
         const data =
             '<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">' +
             '<s:Body xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' +
@@ -113,13 +112,14 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         return await res.text();
     }
 
-    async getSupportedAudioSampleRate(options?: THttpRequestOptions): Promise<TAudioSampleRates[]> {
+    async getSupportedAudioSampleRate(options?: THttpRequestOptions) {
         const path = '/axis-cgi/audio/streamingcapabilities.cgi';
         const jsonData = { apiVersion: '1.0', method: 'list' };
         const res = await this.postJson(path, jsonData, undefined, options);
 
         const encoders = audioSampleRatesResponseSchema.parse(await res.json()).data.encoders;
         const data = encoders.aac ?? encoders.AAC ?? [];
+
         return data.map((item: { sample_rate: number; bit_rates: number[] }) => {
             return {
                 sampleRate: item.sample_rate,
@@ -157,7 +157,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         }
     }
 
-    async checkSDCard(options?: THttpRequestOptions): Promise<TSDCardInfo> {
+    async checkSDCard(options?: THttpRequestOptions) {
         const res = await this.postUrlEncoded(
             '/axis-cgi/disks/list.cgi',
             {
@@ -178,11 +178,11 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
 
         const data = result.root.disks.disk;
 
-        return {
+        return sdCardInfoSchema.parse({
             totalSize: parseInt(data.totalsize),
             freeSize: parseInt(data.freesize),
             status: sdCardWatchedStatuses.includes(data.status) ? data.status : 'disconnected',
-        };
+        });
     }
 
     mountSDCard(options?: THttpRequestOptions) {
@@ -439,7 +439,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             '/axis-cgi/com/ptz.cgi',
             {
                 query: 'presetposcam',
-                camera: channel.toString(),
+                camera: channel,
             },
             undefined,
             options

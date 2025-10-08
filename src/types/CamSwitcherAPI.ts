@@ -176,7 +176,7 @@ export const clipListSchema = z.object({
                         sample_rate: z.number(),
                         h264_profile: h264ProfileSchema,
                         h264_level: z.literal('4.1'),
-                        gop: z.number(), // No idea why they on server call it gop ... its govLength
+                        gop: z.number(), // govLength
                         fps: z.number(),
                         bitrate: z.number(),
                     }),
