@@ -19,7 +19,7 @@ import {
     TServiceList,
     serviceListSchema,
     servicesSchema,
-    WSResponseSchema,
+    wsResponseSchema,
 } from './types/CamOverlayAPI';
 
 const BASE_PATH = '/local/camoverlay/api';
@@ -46,7 +46,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
 
     async wsAuthorization(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
-        return WSResponseSchema.parse(res).message;
+        return wsResponseSchema.parse(res).message;
     }
 
     async getMjpegStreamImage(mjpegUrl: string, options?: THttpRequestOptions) {
