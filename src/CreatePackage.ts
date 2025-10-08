@@ -1,6 +1,6 @@
-import * as AdmZip from 'adm-zip';
-import * as Path from 'path';
-import * as fs from 'fs';
+import AdmZip from 'adm-zip';
+import Path from 'path';
+import fs from 'fs';
 
 import { execSync } from 'child_process';
 

@@ -22,8 +22,9 @@ export class ResourceManager {
         if (this.images[moniker] !== undefined) {
             return this.images[moniker];
         }
-        if (this.imgFileNames[moniker] !== undefined) {
-            const imgData = await fs.readFile(this.imgFileNames[moniker]);
+        const path = this.imgFileNames[moniker];
+        if (path !== undefined) {
+            const imgData = await fs.readFile(path);
             this.images[moniker] = await this.co.uploadImageData(imgData);
             return this.images[moniker];
         }
@@ -35,8 +36,9 @@ export class ResourceManager {
         if (this.fonts[moniker] !== undefined) {
             return this.fonts[moniker];
         }
-        if (this.fontFileNames[moniker] !== undefined) {
-            const fontData = await fs.readFile(this.fontFileNames[moniker]);
+        const path = this.fontFileNames[moniker];
+        if (path !== undefined) {
+            const fontData = await fs.readFile(path);
             this.fonts[moniker] = await this.co.uploadFontData(fontData);
             return this.fonts[moniker];
         }

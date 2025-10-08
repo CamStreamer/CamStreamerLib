@@ -1,18 +1,7 @@
 {
+    "extends": "./tsconfig.json",
     "compilerOptions": {
-        "moduleResolution": "node",
-        "target": "esnext",
-        "lib": ["dom", "DOM.Iterable", "ES2022"],
-        "module": "commonjs",
-        "removeComments": true,
-        "outDir": "dist/cjs",
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "strict": true,
-        "typeRoots": ["typings", "node_modules/@types"],
-        "declaration": true,
-        "declarationDir": "./dist/types"
-    },
-    "include": ["src"],
-    "exclude": ["node_modules"]
+        "module": "CommonJS",
+        "outDir": "./dist/cjs"
+    }
 }

@@ -496,9 +496,10 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         Object.keys(data)
             .map(Number)
             .forEach((camera) => {
-                if (data[camera] !== undefined) {
+                const item = data[camera];
+                if (item !== undefined) {
                     // convert source (sometimes called camera) to viewNumber
-                    res[camera - 1] = data[camera]?.map(({ data: itemData, ...d }) => d);
+                    res[camera - 1] = item.map(({ data: itemData, ...d }) => d);
                 }
             });
         return res;
