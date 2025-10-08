@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { allowedWidgetNames, overlaySchema, widgetCommonSchema } from './widgetCommonTypes';
+import { serviceNames, overlaySchema, serviceCommonSchema } from './serviceCommonTypes';
 
-export const imagesSchema = widgetCommonSchema.extend({
-    name: z.literal(allowedWidgetNames.images),
+export const imagesSchema = serviceCommonSchema.extend({
+    name: z.literal(serviceNames.images),
     overlayList: z.array(overlaySchema),
 });

@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { allowedWidgetNames, coordinateSystemSchema, widgetCommonSchema } from './widgetCommonTypes';
+import { serviceNames, coordinateSystemSchema, serviceCommonSchema } from './serviceCommonTypes';
 
-export const pipSchema = widgetCommonSchema.extend({
-    name: z.literal(allowedWidgetNames.pip),
+export const pipSchema = serviceCommonSchema.extend({
+    name: z.literal(serviceNames.pip),
     coordSystem: coordinateSystemSchema,
     pos_x: z.number(),
     pos_y: z.number(),

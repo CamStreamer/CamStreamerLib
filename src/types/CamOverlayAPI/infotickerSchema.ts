@@ -1,14 +1,8 @@
 import { z } from 'zod';
-import {
-    allowedWidgetNames,
-    fontSchema,
-    languageSchema,
-    weatherUnitSchema,
-    widgetCommonSchema,
-} from './widgetCommonTypes';
+import { serviceNames, fontSchema, languageSchema, weatherUnitSchema, serviceCommonSchema } from './serviceCommonTypes';
 
-export const infoTickerSchema = widgetCommonSchema.extend({
-    name: z.literal(allowedWidgetNames.infoticker),
+export const infoTickerSchema = serviceCommonSchema.extend({
+    name: z.literal(serviceNames.infoticker),
     showClock: z.union([z.literal(0), z.literal(1)]),
     clockType: z.union([z.literal('12h'), z.literal('24h')]),
     textColor: z.string(),

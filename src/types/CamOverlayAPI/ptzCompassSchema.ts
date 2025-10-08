@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { allowedWidgetNames, coordinateSystemSchema, widgetCommonSchema } from './widgetCommonTypes';
+import { serviceNames, coordinateSystemSchema, serviceCommonSchema } from './serviceCommonTypes';
 
-export const ptzCompassSchema = widgetCommonSchema.extend({
-    name: z.literal(allowedWidgetNames.ptzCompass),
+export const ptzCompassSchema = serviceCommonSchema.extend({
+    name: z.literal(serviceNames.ptzCompass),
     pos_x: z.number(),
     pos_y: z.number(),
     coordSystem: coordinateSystemSchema,

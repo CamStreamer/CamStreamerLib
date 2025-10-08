@@ -8,7 +8,7 @@ import { pipSchema } from './pipSchema';
 import { customGraphicsSchema } from './customGraphicsSchema';
 import { screenSharingSchema } from './screenSharingSchema';
 import { webCameraSharingSchema } from './webCameraSharingSchema';
-import { overlaySchema } from './widgetCommonTypes';
+import { overlaySchema } from './serviceCommonTypes';
 import {
     baseballScoreBoardAutomaticSchema,
     baseballScoreBoardSchema,
@@ -76,18 +76,18 @@ export type TWebCameraSharing = z.infer<typeof webCameraSharingSchema>;
 export const isWebCameraSharing = (service: TService): service is TWebCameraSharing => service.name === 'web_camera';
 
 export type TScoreBoard = z.infer<typeof scoreBoardSchema>;
-export const isScoreBoard = (widget: TWidget): widget is TScoreBoard => widget.name === 'scoreBoard';
+export const isScoreBoard = (service: TService): service is TScoreBoard => service.name === 'scoreBoard';
 
 export type TBaseballScoreBoard = z.infer<typeof baseballScoreBoardSchema>;
-export const isBaseballScoreBoard = (widget: TWidget): widget is TBaseballScoreBoard =>
-    widget.name === 'baseballScoreBoard';
+export const isBaseballScoreBoard = (service: TService): service is TBaseballScoreBoard =>
+    service.name === 'baseballScoreBoard';
 
 export type TBaseballScoreBoardAutomatic = z.infer<typeof baseballScoreBoardAutomaticSchema>;
-export const isBaseballScoreBoardAutomatic = (widget: TWidget): widget is TBaseballScoreBoardAutomatic =>
-    widget.name === 'myBallBaseballWidgets';
+export const isBaseballScoreBoardAutomatic = (service: TService): service is TBaseballScoreBoardAutomatic =>
+    service.name === 'myBallBaseballWidgets';
 
 export type TScoreOverview = z.infer<typeof scoreOverviewSchema>;
-export const isScoreOverview = (widget: TWidget): widget is TScoreOverview => widget.name === 'scoreOverview';
+export const isScoreOverview = (service: TService): service is TScoreOverview => service.name === 'scoreOverview';
 
 //   ----------------------------------------
 //               Storage & Files

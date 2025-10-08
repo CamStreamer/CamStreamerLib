@@ -1,5 +1,5 @@
 export * from './CamOverlayAPI';
-export * from './widgetCommonTypes';
+export * from './serviceCommonTypes';
 export * from './accuweatherSchema';
 export * from './customGraphicsSchema';
 export * from './imagesSchema';

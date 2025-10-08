@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const allowedWidgetNames = {
+export const serviceNames = {
     accuweather: 'accuweather',
     infoticker: 'infoticker',
     customGraphics: 'customGraphics',
@@ -10,6 +10,10 @@ export const allowedWidgetNames = {
     pip: 'pip',
     screenSharing: 'screenSharing',
     web_camera: 'web_camera',
+    scoreBoard: 'scoreBoard',
+    baseballScoreBoard: 'baseballScoreBoard',
+    myBallBaseballWidgets: 'myBallBaseballWidgets',
+    scoreOverview: 'scoreOverview',
 } as const;
 
 export const coordinateSystemSchema = z.union([
@@ -54,7 +58,7 @@ export type TFont = z.infer<typeof fontSchema>;
 export const weatherUnitSchema = z.union([z.literal('Metric'), z.literal('Imperial')]);
 export type TWeatherUnit = z.infer<typeof weatherUnitSchema>;
 
-export const widgetCommonSchema = z.object({
+export const serviceCommonSchema = z.object({
     id: z.number().nonnegative(),
     enabled: z.union([z.literal(0), z.literal(1)]),
     automationType: z.union([
@@ -75,7 +79,7 @@ export const widgetCommonSchema = z.object({
     height: z.number().nonnegative(),
 });
 
-export const sharingSchema = widgetCommonSchema.extend({
+export const sharingSchema = serviceCommonSchema.extend({
     pos_x: z.number().nonnegative(),
     pos_y: z.number().nonnegative(),
     coordSystem: coordinateSystemSchema,

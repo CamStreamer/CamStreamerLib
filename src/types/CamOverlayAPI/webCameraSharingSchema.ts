@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { allowedWidgetNames, sharingSchema } from './widgetCommonTypes';
+import { serviceNames, sharingSchema } from './serviceCommonTypes';
 
 export const webCameraSharingSchema = sharingSchema.extend({
-    name: z.literal(allowedWidgetNames.web_camera),
+    name: z.literal(serviceNames.web_camera),
 });

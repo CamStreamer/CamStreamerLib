@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { coordinateSystemSchema } from './widgetCommonTypes';
+import { coordinateSystemSchema, serviceNames } from './serviceCommonTypes';
 
 export const sportFontSchema = z.union([z.literal('classic'), z.intersection(z.string(), z.object({}))]);
 
@@ -9,7 +9,7 @@ export const scoreBoardSchema = z.object({
     schedule: z.string().optional(),
     cameraList: z.array(z.number()),
     zIndex: z.number().nonnegative(),
-    name: z.literal('scoreBoard'),
+    name: z.literal(serviceNames.scoreBoard),
     pos_x: z.number(),
     pos_y: z.number(),
     coordSystem: coordinateSystemSchema,
@@ -41,7 +41,7 @@ export const baseballScoreBoardSchema = z.object({
     schedule: z.string().optional(),
     cameraList: z.array(z.number()),
     zIndex: z.number().nonnegative(),
-    name: z.literal('baseballScoreBoard'),
+    name: z.literal(serviceNames.baseballScoreBoard),
     pos_x: z.number(),
     pos_y: z.number(),
     coordSystem: coordinateSystemSchema,
@@ -82,7 +82,7 @@ export const baseballScoreBoardAutomaticSchema = z.object({
     schedule: z.string().optional(),
     cameraList: z.array(z.number()),
     zIndex: z.number().nonnegative(),
-    name: z.literal('myBallBaseballWidgets'),
+    name: z.literal(serviceNames.myBallBaseballWidgets),
     width: z.number(),
     height: z.number(),
     scale: z.number(),
@@ -112,7 +112,7 @@ export const scoreOverviewSchema = z.object({
     enabled: z.union([z.literal(0), z.literal(1)]),
     cameraList: z.array(z.number()),
     zIndex: z.number().nonnegative(),
-    name: z.literal('scoreOverview'),
+    name: z.literal(serviceNames.scoreOverview),
     pos_x: z.number(),
     pos_y: z.number(),
     coordSystem: coordinateSystemSchema,

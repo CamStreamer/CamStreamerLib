@@ -1,8 +1,8 @@
 import { z } from 'zod';
-import { allowedWidgetNames, overlaySchema, widgetCommonSchema } from './widgetCommonTypes';
+import { serviceNames, overlaySchema, serviceCommonSchema } from './serviceCommonTypes';
 
-export const ptzSchema = widgetCommonSchema.extend({
-    name: z.literal(allowedWidgetNames.ptz),
+export const ptzSchema = serviceCommonSchema.extend({
+    name: z.literal(serviceNames.ptz),
     ptz_positions: z.record(
         z.string(),
         z.object({

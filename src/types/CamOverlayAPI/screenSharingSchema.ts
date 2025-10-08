@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { allowedWidgetNames, sharingSchema } from './widgetCommonTypes';
+import { serviceNames, sharingSchema } from './serviceCommonTypes';
 
 export const screenSharingSchema = sharingSchema.extend({
-    name: z.literal(allowedWidgetNames.screenSharing),
+    name: z.literal(serviceNames.screenSharing),
 });

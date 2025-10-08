@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { allowedWidgetNames, coordinateSystemSchema, fontSchema, widgetCommonSchema } from './widgetCommonTypes';
+import { serviceNames, coordinateSystemSchema, fontSchema, serviceCommonSchema } from './serviceCommonTypes';
 
 const mappingZonesCommonSchema = z.object({
     name: z.string(),
@@ -54,8 +54,8 @@ const mappingZoneCountdownSchema = mappingZonesCommonSchema.extend({
 
 export const mappingZoneSchema = z.discriminatedUnion('type', [mappingZonePlainSchema, mappingZoneCountdownSchema]);
 
-export const customGraphicsSchema = widgetCommonSchema.extend({
-    name: z.literal(allowedWidgetNames.customGraphics),
+export const customGraphicsSchema = serviceCommonSchema.extend({
+    name: z.literal(serviceNames.customGraphics),
     pos_x: z.number(),
     pos_y: z.number(),
     coordSystem: coordinateSystemSchema,

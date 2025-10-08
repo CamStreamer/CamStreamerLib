@@ -1,15 +1,15 @@
 import { z } from 'zod';
 import {
-    allowedWidgetNames,
+    serviceNames,
     coordinateSystemSchema,
     fontSchema,
     languageSchema,
     weatherUnitSchema,
-    widgetCommonSchema,
-} from './widgetCommonTypes';
+    serviceCommonSchema,
+} from './serviceCommonTypes';
 
-export const accuweatherSchema = widgetCommonSchema.extend({
-    name: z.literal(allowedWidgetNames.accuweather),
+export const accuweatherSchema = serviceCommonSchema.extend({
+    name: z.literal(serviceNames.accuweather),
     location: z.string(), // Location key
     locationName: z.string(), // Title from location api
     title: z.string(), // Title from user
