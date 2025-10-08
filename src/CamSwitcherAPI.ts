@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { AddNewClipError } from './errors/errors';
-import { IClient, TResponse } from './internal/types';
+import { IClient, TParameters, TResponse } from './internal/types';
 import { isClip, isNullish, responseStringify } from './internal/utils';
 import {
     storageInfoListSchema,
@@ -66,29 +66,29 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     }
 
     async checkCameraTime(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/camera_time.cgi`, undefined, options);
-        return z.boolean().parse(data);
+        const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
+        return z.boolean().parse(res.data);
     }
 
     async getNetworkCameraList(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
-        return networkCameraListSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
+        return networkCameraListSchema.parse(res.data);
     }
 
     async getMaxFps(source: number, options?: THttpRequestOptions) {
-        const data = await this.get(
+        const res = await this._getJson(
             `${BASE_PATH}/get_max_framerate.cgi`,
             {
-                video_source: source.toString(),
+                video_source: source,
             },
             options
         );
-        return z.number().parse(data);
+        return z.number().parse(res.data);
     }
 
     async getStorageInfo(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/get_storage.cgi`, undefined, options);
-        return storageInfoListSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/get_storage.cgi`, undefined, options);
+        return storageInfoListSchema.parse(res.data);
     }
 
     //   ----------------------------------------
@@ -96,18 +96,18 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async wsAuthorization(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
-        return z.string().parse(data);
+        const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
+        return z.string().parse(res.data);
     }
 
     async getOutputInfo(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/output_info.cgi`, undefined, options);
-        return outputInfoSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/output_info.cgi`, undefined, options);
+        return outputInfoSchema.parse(res.data);
     }
 
     async getAudioPushInfo(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/audio_push_info.cgi`, undefined, options);
-        return audioPushInfoSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/audio_push_info.cgi`, undefined, options);
+        return audioPushInfoSchema.parse(res.data);
     }
 
     //   ----------------------------------------
@@ -115,39 +115,39 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async getStreamSaveList(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/streams.cgi`, { action: 'get' }, options);
-        return streamSaveLoadSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/streams.cgi`, { action: 'get' }, options);
+        return streamSaveLoadSchema.parse(res.data);
     }
 
     async getClipSaveList(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/clips.cgi`, { action: 'get' }, options);
-        return clipSaveLoadSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/clips.cgi`, { action: 'get' }, options);
+        return clipSaveLoadSchema.parse(res.data);
     }
 
     async getPlaylistSaveList(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/playlists.cgi`, { action: 'get' }, options);
-        return playlistSaveLoadSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/playlists.cgi`, { action: 'get' }, options);
+        return playlistSaveLoadSchema.parse(res.data);
     }
 
     async getTrackerSaveList(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/trackers.cgi`, { action: 'get' }, options);
-        return trackerSaveLoadSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/trackers.cgi`, { action: 'get' }, options);
+        return trackerSaveLoadSchema.parse(res.data);
     }
 
     async setStreamSaveList(data: TStreamSaveList, options?: THttpRequestOptions) {
-        return await this.set(`${BASE_PATH}/streams.cgi`, data, { action: 'set' }, options);
+        return await this._post(`${BASE_PATH}/streams.cgi`, data, { action: 'set' }, options);
     }
 
     async setClipSaveList(data: TClipSaveList, options?: THttpRequestOptions) {
-        return await this.set(`${BASE_PATH}/clips.cgi`, data, { action: 'set' }, options);
+        return await this._post(`${BASE_PATH}/clips.cgi`, data, { action: 'set' }, options);
     }
 
     async setPlaylistSaveList(data: TPlaylistSaveList, options?: THttpRequestOptions) {
-        return await this.set(`${BASE_PATH}/playlists.cgi`, data, { action: 'set' }, options);
+        return await this._post(`${BASE_PATH}/playlists.cgi`, data, { action: 'set' }, options);
     }
 
     async setTrackerSaveList(data: TTrackerSaveList, options?: THttpRequestOptions) {
-        return await this.set(`${BASE_PATH}/trackers.cgi`, data, { action: 'set' }, options);
+        return await this._post(`${BASE_PATH}/trackers.cgi`, data, { action: 'set' }, options);
     }
 
     //   ----------------------------------------
@@ -155,20 +155,20 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async playlistSwitch(playlistName: string, options?: THttpRequestOptions) {
-        await this.get(`${BASE_PATH}/playlist_switch.cgi`, { playlist_name: playlistName }, options);
+        await this._getJson(`${BASE_PATH}/playlist_switch.cgi`, { playlist_name: playlistName }, options);
     }
     async playlistQueuePush(playlistName: string, options?: THttpRequestOptions) {
-        await this.get(`${BASE_PATH}/playlist_queue_push.cgi`, { playlist_name: playlistName }, options);
+        await this._getJson(`${BASE_PATH}/playlist_queue_push.cgi`, { playlist_name: playlistName }, options);
     }
     async playlistQueueClear(options?: THttpRequestOptions) {
-        await this.get(`${BASE_PATH}/playlist_queue_clear.cgi`, undefined, options);
+        await this._getJson(`${BASE_PATH}/playlist_queue_clear.cgi`, undefined, options);
     }
     async playlistQueueList(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/playlist_queue_list.cgi`, undefined, options);
-        return playlistQueueSchema.parse(data).playlistQueueList;
+        const res = await this._getJson(`${BASE_PATH}/playlist_queue_list.cgi`, undefined, options);
+        return playlistQueueSchema.parse(res.data).playlistQueueList;
     }
     async playlistQueuePlayNext(options?: THttpRequestOptions) {
-        await this.get(`${BASE_PATH}/playlist_queue_play_next.cgi`, undefined, options);
+        await this._getJson(`${BASE_PATH}/playlist_queue_play_next.cgi`, undefined, options);
     }
 
     //   ----------------------------------------
@@ -183,7 +183,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         fileName?: string,
         options?: THttpRequestOptions
     ) {
-        const path = `${BASE_PATH}/clip_upload.cgi?storage=${storage}`;
+        const path = `${BASE_PATH}/clip_upload.cgi`;
 
         const formData = new this.CustomFormData();
         formData.append('clip_name', clipId);
@@ -191,7 +191,14 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         formData.append('file', file, fileName);
 
         const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data: formData, timeout: options?.timeout });
+        const res = await agent.post({
+            path,
+            data: formData,
+            parameters: {
+                storage: storage,
+            },
+            timeout: options?.timeout,
+        });
         const output = (await res.json()) as { status: number; message: string };
 
         if (output.status !== 200) {
@@ -200,12 +207,12 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     }
 
     removeClip(clipId: string, storage: TStorageType, options?: THttpRequestOptions) {
-        return this.get(`${BASE_PATH}/clip_remove.cgi`, { clip_name: clipId, storage }, options);
+        return this._getJson(`${BASE_PATH}/clip_remove.cgi`, { clip_name: clipId, storage }, options);
     }
 
     async getClipList(options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/clip_list.cgi`, undefined, options);
-        return clipListSchema.parse(data).clip_list;
+        const res = await this._getJson(`${BASE_PATH}/clip_list.cgi`, undefined, options);
+        return clipListSchema.parse(res.data).clip_list;
     }
 
     //   ----------------------------------------
@@ -360,25 +367,29 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     //                   Private
     //   ----------------------------------------
 
-    private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions) {
+    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
         if (res.ok) {
-            const d = await res.json();
-            return d.data;
+            return await res.json();
         } else {
             throw new Error(await responseStringify(res));
         }
     }
 
-    private async set(path: string, data: any, parameters?: Record<string, string>, options?: THttpRequestOptions) {
+    private async _post(
+        path: string,
+        data: string | Parameters<Client['post']>[0]['data'],
+        parameters?: TParameters,
+        options?: THttpRequestOptions,
+        headers?: Record<string, string>
+    ) {
         const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data: JSON.stringify(data), parameters, timeout: options?.timeout });
+        const res = await agent.post({ path, data, parameters, timeout: options?.timeout, headers });
 
         if (res.ok) {
-            const parsed = await res.json();
-            return parsed.message === 'OK';
+            return await res.json();
         } else {
             throw new Error(await responseStringify(res));
         }
@@ -390,7 +401,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         return this.vapixAgent.setParameter(params, options);
     }
 
-    private async getParamFromCameraAndJSONParse(paramName: string, options?: THttpRequestOptions): Promise<any> {
+    private async getParamFromCameraAndJSONParse(paramName: string, options?: THttpRequestOptions) {
         const data = await this.vapixAgent.getParameter([paramName], options);
         if (data[paramName] !== undefined) {
             // Check if requested parametr exists

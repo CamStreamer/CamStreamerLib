@@ -15,25 +15,27 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async getStreamList(options?: THttpRequestOptions) {
-        const streamListRes = await this.get(`${BASE_PATH}/stream/list.cgi`, undefined, options);
-        const list = z.record(z.string(), cameraStreamSchema).parse(streamListRes.data);
-        const res: Record<number, TStream> = {};
+        const res = await this._getJson(`${BASE_PATH}/stream/list.cgi`, undefined, options);
+
+        const list = z.record(z.string(), cameraStreamSchema).parse(res.data);
+        const streamList: Record<number, TStream> = {};
+
         for (const [key, data] of Object.entries(list)) {
             const streamId = parseInt(key);
-            res[streamId] = parseCameraStreamResponse(data);
+            streamList[streamId] = parseCameraStreamResponse(data);
         }
-        return res;
+        return streamList;
     }
 
-    async getStream(streamId: number, options?: THttpRequestOptions): Promise<TStream> {
-        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
-        const cameraData = cameraStreamSchema.parse(stream.data);
+    async getStream(streamId: number, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
+        const cameraData = cameraStreamSchema.parse(res.data);
         return parseCameraStreamResponse(cameraData);
     }
 
-    async getStreamParameter(streamId: number, paramName: string, options?: THttpRequestOptions): Promise<string> {
-        const stream = await this.get(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
-        return stream.data[paramName];
+    async getStreamParameter(streamId: number, paramName: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
+        return z.string().parse(res.data[paramName]);
     }
 
     async setStream(
@@ -42,7 +44,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         options?: THttpRequestOptions
     ): Promise<{ message: string; status: number }> {
         const { streamDelay, startTime, stopTime, ...rest } = params;
-        return await this.get(
+        return await this._getJson(
             `${BASE_PATH}/stream/set.cgi`,
             {
                 stream_id: streamId,
@@ -60,43 +62,39 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         value: string,
         options?: THttpRequestOptions
     ): Promise<{ message: string; status: number }> {
-        return await this.get(
-            `${BASE_PATH}/stream/set.cgi?stream_id=${streamId}&${paramName}=${value}`,
-            undefined,
-            options
-        );
+        return await this._getJson(`${BASE_PATH}/stream/set.cgi`, { stream_id: streamId, [paramName]: value }, options);
     }
 
-    async isStreaming(streamId: number, options?: THttpRequestOptions): Promise<boolean> {
-        const response = await this.get(`${BASE_PATH}/get_streamstat.cgi?stream_id=${streamId}`, undefined, options);
-        return response.data.is_streaming === 1;
+    async isStreaming(streamId: number, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/get_streamstat.cgi`, { stream_id: streamId }, options);
+        return res.data.is_streaming === 1;
     }
-    async deleteStream(streamId: number, options?: THttpRequestOptions): Promise<boolean> {
-        const res = await this.get(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
+    async deleteStream(streamId: number, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
         return res.data.status === 200;
     }
 
-    async getWsAuthorization(options?: THttpRequestOptions): Promise<string> {
-        const res = await this.get(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
+    async wsAuthorization(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
         if (res.status !== 200) {
             throw new Error(`Server error on ws authorization: ${res.message}`);
         }
-        return res.data;
+        return z.string().parse(res.data);
     }
 
-    async getUtcTime(options?: THttpRequestOptions): Promise<number> {
-        const res = await this.get(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
+    async getUtcTime(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
         if (res.status !== 200) {
             throw new Error(`Server error on get UTC time: ${res.message}`);
         }
-        return res.data;
+        return z.number().parse(res.data);
     }
 
     //   ----------------------------------------
     //                   Private
     //   ----------------------------------------
 
-    private async get(path: string, parameters?: TParameters, options?: THttpRequestOptions): Promise<any> {
+    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
