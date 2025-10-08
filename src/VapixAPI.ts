@@ -392,7 +392,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const gTourList = new Array<TGuardTour>();
         const response = await this.getParameter('GuardTour', options);
         for (let i = 0; i < 20; i++) {
-            const gTourBaseName = 'root.GuardTour.G' + i;
+            const gTourBaseName = 'GuardTour.G' + i;
             if (gTourBaseName + '.CamNbr' in response) {
                 const gTour: TGuardTour = {
                     id: gTourBaseName,
@@ -404,7 +404,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
                     tour: [],
                 };
                 for (let j = 0; j < 100; j++) {
-                    const tourBaseName = 'root.GuardTour.G' + i + '.Tour.T' + j;
+                    const tourBaseName = 'GuardTour.G' + i + '.Tour.T' + j;
                     if (tourBaseName + '.MoveSpeed' in response) {
                         const tour = {
                             moveSpeed: response[tourBaseName + '.MoveSpeed'],
