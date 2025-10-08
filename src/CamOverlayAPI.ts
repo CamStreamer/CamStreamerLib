@@ -48,7 +48,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
 
     async wsAuthorization(options?: THttpRequestOptions): Promise<string> {
         const response = await this._get({ path: `${BASE_PATH}/ws_authorization.cgi` }, options);
-        return WSResponseSchema.parse(response).data;
+        return WSResponseSchema.parse(response).message;
     }
 
     async getMjpegStreamImage(mjpegUrl: string, options?: THttpRequestOptions) {

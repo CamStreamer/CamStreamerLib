@@ -19,7 +19,6 @@ import {
 export const WSResponseSchema = z.object({
     status: z.number(),
     message: z.string(),
-    data: z.string(),
 });
 export type TWSResponse = z.infer<typeof WSResponseSchema>;
 
