@@ -13,7 +13,7 @@ export const applicationSchema = z.object({
     VendorHomePage: z.string().optional(),
     LicenseName: z.string().optional(),
 });
-export const applicationListSchema = applicationSchema.extend({
+export const applicationListSchema = z.array(applicationSchema.extend({
     appId: z
         .union([
             z.literal('CamStreamer'),
@@ -25,7 +25,7 @@ export const applicationListSchema = applicationSchema.extend({
             z.literal('SportTracker'),
         ])
         .nullable(),
-});
+}));
 
 export const APP_IDS = [
     'CamStreamer',
@@ -37,7 +37,8 @@ export const APP_IDS = [
     'SportTracker',
 ] as const;
 export type TApplicationId = (typeof APP_IDS)[number];
-export type TApplication = z.infer<typeof applicationListSchema>;
+export type TApplicationList = z.infer<typeof applicationListSchema>;
+export type TApplication = z.infer<typeof applicationListSchema>[number];
 
 export const guardTourSchema = z.object({
     id: z.string(),

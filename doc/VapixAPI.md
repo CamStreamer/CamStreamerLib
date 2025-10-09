@@ -634,16 +634,79 @@ await vapix.setPortStateSequence(1, [
 
 Get the list of installed Acap applications.
 
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TApplicationList>`
+
+    ```typescript
+    type TApplicationList = {
+        Name: string;
+        NiceName: string;
+        Vendor: string;
+        Version: string;
+        License: string;
+        Status: string;
+        appId: "CamStreamer" | "CamSwitcher" | "CamOverlay" | "CamScripter" | "PlaneTracker" | "Ndihxplugin" | "SportTracker" | null;
+        ApplicationID: string | undefined;
+        ConfigurationPage: string | undefined;
+        VendorHomePage: string | undefined;
+        LicenseName: string | undefined;
+    }[];
+    ```
+
+```javascript
+const appList = await vapix.getApplicationList();
+```
+
 ### startApplication(applicationId, options?)
 
 Start the application whose name is given by the parameter `applicationId`.
+
+-   **Parameters:**
+    -   `applicationId` (string)
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await vapix.startApplication("CamStreamer");
+```
 
 ### restartApplication(applicationId, options?)
 
 Restart the application whose name is given by the parameter `applicationId`.
 
+-   **Parameters:**
+    -   `applicationId` (string)
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await vapix.restartApplication("CamStreamer");
+```
+
 ### stopApplication(applicationId, options?)
 
 Stop the application whose name is given by the parameter `applicationId`.
 
+-   **Parameters:**
+    -   `applicationId` (string)
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await vapix.stopApplication("CamStreamer");
+```
+
 ### installApplication(data, fileName, options?)
+
+Install ACAP application.
+
+-   **Parameters:**
+    -   `data` (FormData)
+    -   `fileName` (string)
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await vapix.installApplication(blob, 'CamStreamer.eap');
+```
