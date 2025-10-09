@@ -9,8 +9,8 @@ Access the Axis camera VAPIX interface. For more details, see the documentation 
 The `options` parameter contains access to the camera and specifies which protocol should be used.
 
 ```javascript
-import { DefaultClient } from 'camstreamerlib/esm/node';
-import { VapixAPI } from 'camstreamerlib/esm';
+import { DefaultClient } from 'camstreamerlib/web';
+import { VapixAPI } from 'camstreamerlib/web';
 
 const vapix = new VapixAPI(
     new DefaultClient({
@@ -72,8 +72,8 @@ const client = vapix.getClient();
 
 -   **Parameters:**
     -   `path` (string)
-    -   `parameters` ()
-    -   `headers` ()
+    -   `parameters` (`TParameters`)
+    -   `headers` (`Record<string, string>`)
     -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<>`
 
@@ -89,8 +89,8 @@ Universal method for HTTP POST requests to the camera VAPIX API.
 
 -   **Parameters:**
     -   `path` (string)
-    -   `jsonData` ()
-    -   `headers` ()
+    -   `jsonData` (`Record<string, any>`)
+    -   `headers` (`Record<string, string>`)
     -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<>`
 

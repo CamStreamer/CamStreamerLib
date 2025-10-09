@@ -7,8 +7,8 @@ Module for access to the CamSwitcher HTTP interface.
 -   **new CamSwitcherAPI(client)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
-import { DefaultClient } from 'camstreamerlib/esm/node';
-import { CamSwitcherAPI } from 'camstreamerlib/esm';
+import { DefaultClient } from 'camstreamerlib/web';
+import { CamSwitcherAPI } from 'camstreamerlib/web';
 
 const cswApi = new CamSwitcherAPI(
     new DefaultClient({
@@ -43,27 +43,27 @@ type THttpRequestOptions = {
 
 ## Static
 
-### getProxyUrlPath()
+### getProxyPath()
 
 Returns relative path to proxy.cgi
 
 -   **Returns:** `string`
 
 ```javascript
-const url = CamSwitcherAPI.getProxyUrlPath();
+const path = CamSwitcherAPI.getProxyPath();
 ```
 
-### getWsEventsUrlPath()
+### getWsEventsPath()
 
 Returns relative path for event websocket
 
 -   **Returns:** `string`
 
 ```javascript
-const url = CamSwitcherAPI.getWsEventsUrlPath();
+const path = CamSwitcherAPI.getWsEventsPath();
 ```
 
-### getClipPreviewUrlPath(id, storage)
+### getClipPreviewPath(id, storage)
 
 Returns relative path for clip preview
 
@@ -73,12 +73,12 @@ Returns relative path for clip preview
 -   **Returns:** `string`
 
 ```javascript
-const url = CamSwitcherAPI.getClipPreviewUrlPath('clip1', 'FLASH');
+const path = CamSwitcherAPI.getClipPreviewPath('clip1', 'FLASH');
 ```
 
 ## Methods - Common
 
-### getClient(proxyParams)
+### getClient(proxyParams?)
 
 Returns CamSwitcher client - can be used in custom CamSwitcher API calls.
 

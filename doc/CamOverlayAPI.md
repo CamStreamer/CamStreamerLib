@@ -7,8 +7,8 @@ Module for access to the CamOverlay HTTP interface.
 -   **new CamOverlayAPI(client)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
-import { DefaultClient } from 'camstreamerlib/esm/node';
-import { CamOverlayAPI } from 'camstreamerlib/esm';
+import { DefaultClient } from 'camstreamerlib/web';
+import { CamOverlayAPI } from 'camstreamerlib/web';
 
 const coApi = new CamOverlayAPI(
     new DefaultClient({

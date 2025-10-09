@@ -7,8 +7,8 @@ Module for access to the CamScripter HTTP interface.
 -   **new CamScripterAPI(client)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
-import { DefaultClient } from 'camstreamerlib/esm/node';
-import { CamScripterAPI } from 'camstreamerlib/esm';
+import { DefaultClient } from 'camstreamerlib/web';
+import { CamScripterAPI } from 'camstreamerlib/web';
 
 const cscApi = new CamScripterAPI(
     new DefaultClient({
@@ -43,17 +43,36 @@ type THttpRequestOptions = {
 
 ## Static
 
-### getProxyUrlPath()
+### getProxyPath()
 
 Returns relative path to proxy.cgi
 
 -   **Returns:** `string`
 
 ```javascript
-const url = CamScripterAPI.getProxyUrlPath();
+const path = CamScripterAPI.getProxyPath();
 ```
 
 ## Methods - Common
+
+### getClient(proxyParams?)
+
+Returns CamScripter client - can be used in custom CamScripter API calls.
+
+-   **Parameters:**
+
+    -   `proxyParams`:
+
+    ```typescript
+    type TProxyParams =
+        | {
+              path: string;
+              target: TProxyTarget;
+          }
+        | undefined;
+    ```
+
+-   **Returns:** `Client | ProxyClient<Client>`
 
 ### checkCameraTime(options?)
 

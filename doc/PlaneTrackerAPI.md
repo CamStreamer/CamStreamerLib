@@ -7,8 +7,8 @@ Module for access to the CamOverlay HTTP interface.
 -   **new PlaneTrackerAPI(client)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
-import { DefaultClient } from 'camstreamerlib/esm/node';
-import { PlaneTrackerAPI } from 'camstreamerlib/esm';
+import { DefaultClient } from 'camstreamerlib/web';
+import { PlaneTrackerAPI } from 'camstreamerlib/web';
 
 const ptrApi = new PlaneTrackerAPI(
     new DefaultClient({
@@ -55,14 +55,14 @@ type THttpRequestOptions = {
 
 ## Static
 
-### getProxyUrlPath()
+### getProxyPath()
 
 Returns relative path to proxy.cgi
 
 -   **Returns:** `string`
 
 ```javascript
-const url = PlaneTrackerAPI.getProxyUrlPath();
+const path = PlaneTrackerAPI.getProxyPath();
 ```
 
 ## Methods common
