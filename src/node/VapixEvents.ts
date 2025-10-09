@@ -1,36 +1,9 @@
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { WsOptions } from './internal/types';
-import { WsClient, WsClientOptions } from './node/WsClient';
+import { WsOptions } from '../internal/types';
+import { WsClient, WsClientOptions } from './WsClient';
+import { TVapixEventMessage } from '../types/VapixEvents';
 
-export type VapixEventsOptions = WsOptions;
-
-type TEventMessage = {
-    apiVersion: string;
-    method: string;
-    params: {
-        notification: {
-            timestamp: number;
-            topic: string;
-            message: {
-                source: Record<string, string>;
-                data: Record<string, string>;
-                key: Record<string, string>;
-            };
-        };
-    };
-};
-export interface VapixEvents {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-    on(event: string, listener: (data: TEventMessage) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'error', err: Error): boolean;
-    emit(event: string, msg: TEventMessage): boolean;
-}
 export class VapixEvents extends EventEmitter {
     private tls: boolean;
     private tlsInsecure: boolean;
@@ -41,7 +14,7 @@ export class VapixEvents extends EventEmitter {
 
     private ws!: WsClient;
 
-    constructor(options: VapixEventsOptions = {}) {
+    constructor(options: WsOptions = {}) {
         super();
 
         this.tls = options.tls ?? false;
@@ -109,7 +82,7 @@ export class VapixEvents extends EventEmitter {
                 return;
             }
             const eventName: string = dataJSON.params.notification.topic;
-            this.emit(eventName, dataJSON as TEventMessage);
+            this.emit(eventName, dataJSON as TVapixEventMessage);
         });
         this.ws.on('error', (error: Error) => {
             this.emit('error', error);

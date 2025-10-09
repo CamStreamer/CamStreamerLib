@@ -1,47 +1,13 @@
-import { z } from 'zod';
 import { responseStringify, pad } from '../../internal/utils';
-
-const successResponseSchema = z.object({
-    Rsp: z.object({
-        Status: z.literal('Ok'),
-    }),
-});
-
-const cameraGuidsResponseSchema = z.object({
-    Rsp: z.object({
-        Status: z.literal('Ok'),
-        Result: z.array(z.object({ Guid: z.string() })),
-    }),
-});
-export type TCameraGuidsResponse = z.infer<typeof cameraGuidsResponseSchema>;
-
-const cameraDetailSchema = z.object({
-    Guid: z.string().optional(),
-    Name: z.string().optional(),
-    EntityType: z.string().optional(),
-});
-const cameraDetailsResponseSchema = z.object({
-    Rsp: z.object({
-        Status: z.literal('Ok'),
-        Result: z.union([z.array(cameraDetailSchema), cameraDetailSchema]),
-    }),
-});
-export type TCameraDetailsResponse = z.infer<typeof cameraDetailsResponseSchema>;
-export type TCameraDetail = z.infer<typeof cameraDetailSchema>;
-
-export type TParams = Array<'Guid' | 'Name' | 'EntityType'>;
-export type TProtocol = 'http' | 'https' | 'https_insecure';
-
-export type GenetecAgentOptions = {
-    protocol?: TProtocol;
-    ip?: string;
-    port?: number;
-    baseUri?: string;
-    user?: string;
-    pass?: string;
-    appId?: string;
-    timeout?: number;
-};
+import {
+    cameraDetailsResponseSchema,
+    cameraGuidsResponseSchema,
+    GenetecAgentOptions,
+    successResponseSchema,
+    TCameraDetail,
+    TCameraGuidsResponse,
+    TParams,
+} from '../../types/GenetecAgent';
 
 export class GenetecAgent {
     private settings: GenetecAgentOptions;

@@ -16,11 +16,11 @@ import {
     scoreOverviewSchema,
 } from './scoreBoardSchema';
 
-export const WSResponseSchema = z.object({
+export const wsResponseSchema = z.object({
     status: z.number(),
     message: z.string(),
 });
-export type TWSResponse = z.infer<typeof WSResponseSchema>;
+export type TWSResponse = z.infer<typeof wsResponseSchema>;
 
 //   ----------------------------------------
 //                   Services

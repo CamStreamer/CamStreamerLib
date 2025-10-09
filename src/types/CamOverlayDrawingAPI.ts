@@ -33,7 +33,7 @@ export type TErrorResponse = {
     call_id?: number;
 };
 
-export type TService = {
+export type TCoService = {
     id: number;
     enabled: number;
     schedule: string;
@@ -42,8 +42,8 @@ export type TService = {
     cameraList: number[];
 };
 
-export type TServiceList = {
-    services: TService[];
+export type TCoServiceList = {
+    services: TCoService[];
 };
 
 export type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
@@ -56,15 +56,3 @@ export type AsyncMessage = {
     reject: (reason: Error) => void;
     sentTimestamp: number;
 };
-
-export interface CamOverlayDrawingAPI {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-    on(event: 'message', listener: (msg: string) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'error', err: Error): boolean;
-    emit(event: 'message', msg: string): boolean;
-}

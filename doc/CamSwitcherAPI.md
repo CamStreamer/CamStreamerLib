@@ -7,8 +7,8 @@ Module for access to the CamSwitcher HTTP interface.
 -   **new CamSwitcherAPI(client)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
-import { DefaultClient } from 'camstreamerlib/esm/node';
-import { CamSwitcherAPI } from 'camstreamerlib/esm';
+import { DefaultClient } from 'camstreamerlib/web';
+import { CamSwitcherAPI } from 'camstreamerlib/web';
 
 const cswApi = new CamSwitcherAPI(
     new DefaultClient({
@@ -22,479 +22,350 @@ const cswApi = new CamSwitcherAPI(
 );
 ```
 
+> [!TIP]
+> The majority of CamSwitcherAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
+
+```typescript
+type THttpRequestOptions = {
+    timeout?: number;
+    proxyParams?: {
+        path: string;
+        target: {
+            ip: string;
+            mdnsName: string;
+            port: number;
+            user: string;
+            pass: string;
+        };
+    };
+};
+```
+
 ## Static
 
-### getProxyUrlPath()
+### getProxyPath()
+
+Returns relative path to proxy.cgi
 
 -   **Returns:** `string`
-    returns relative path to proxy.cgi
 
 ```javascript
-const url = CamSwitcherAPI.getProxyUrlPath();
+const path = CamSwitcherAPI.getProxyPath();
 ```
 
-### getWsEventsUrlPath()
+### getWsEventsPath()
+
+Returns relative path for event websocket
 
 -   **Returns:** `string`
-    returns relative path for event websocket
 
 ```javascript
-const url = CamSwitcherAPI.getWsEventsUrlPath();
+const path = CamSwitcherAPI.getWsEventsPath();
 ```
 
-### getClipPreviewUrlPath()
+### getClipPreviewPath(id, storage)
 
+Returns relative path for clip preview
+
+-   **Parameters:**
+    -   `id` (string)
+    -   `storage`: (`"SD_DISK"` | `"FLASH"`)
 -   **Returns:** `string`
-    returns relative path for clip preview
 
 ```javascript
-const url = CamSwitcherAPI.getClipPreviewUrlPath();
+const path = CamSwitcherAPI.getClipPreviewPath('clip1', 'FLASH');
 ```
 
-## Methods common
+## Methods - Common
 
-### generateSilence(sampleRate, channels)
+### getClient(proxyParams?)
+
+Returns CamSwitcher client - can be used in custom CamSwitcher API calls.
+
+-   **Parameters:**
+
+    -   `proxyParams`:
+
+    ```typescript
+    type TProxyParams =
+        | {
+              path: string;
+              target: TProxyTarget;
+          }
+        | undefined;
+    ```
+
+-   **Returns:** `Client | ProxyClient<Client>`
+
+```javascript
+const client = cswApi.getClient();
+```
+
+### generateSilence(sampleRate, channels, options?)
 
 Generates silence clip, used when there is no audio. Its mandatory to have silence clip generated to CSw work properly
 
 -   **Parameters:**
     -   `sampleRate` (number): audio sample rate
-    -   `channels`: ("mono" | "stereo")
+    -   `channels`: (`"mono"` | `"stereo"`)
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.generateSilence(41500, 'mono');
 ```
 
-### checkCameraTime()
+### checkCameraTime(options?)
 
 Check if camera has correct time setted up (used for checking trial license)
 
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 const isValid = await cswApi.checkCameraTime();
 ```
 
-### getStorageInfo()
+### getStorageInfo(options?)
 
 Gets storage information.
 
--   **Returns:**
-    ```
-    Promise<Array<{
-        storage: "SD_DISK" | "FLASH";
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TStorageInfo>`
+
+    ```typescript
+    type TStorageInfo = {
+        storage: 'SD_DISK' | 'FLASH';
         writable: boolean;
         size: number;
         available: number;
-    }>>
+    };
     ```
 
 ```javascript
 const storageInfo = await cswApi.getStorageInfo();
 ```
 
-### getMaxFps(source)
+### getMaxFps(source, options?)
 
 Gets the maximum FPS for a video source.
 
 -   **Parameters:**
     -   `source` (number): Video source index.
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<number>`
 
 ```javascript
 const maxFps = await cswApi.getMaxFps(1);
 ```
 
-### getNetworkCameraList()
+### getNetworkCameraList(options?)
 
 Gets the list of network cameras.
 
--   **Returns:**
-    ```
-    Promise<Array<{
+-   **Parameters:**
+    -   `source` (number): Video source index.
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TNetworkCamera[]>`
+
+    ```typescript
+    type TNetworkCamera = {
         name: string;
         ip: string;
-    }>>
+    };
     ```
 
 ```javascript
 const cameras = await cswApi.getNetworkCameraList();
 ```
 
-## Methods websockets
+## Methods - Websockets
 
-### wsAuthorization()
+### wsAuthorization(options?)
 
 Gets the WebSocket authorization token to authorize event websocket
 
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<string>`
 
 ```javascript
 const token = await cswApi.wsAuthorization();
 ```
 
-### getOutputInfo()
+### getOutputInfo(options?)
 
 Gets parameters to set up video stream websocket.
 
--   **Returns:**
-    ```
-    Promise<{
-        rtsp_url: string;
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TOutputInfo>`
+
+    ```typescript
+    type TOutputInfo = {
+        rtspUrl: string;
         ws: string;
-        ws_initial_message: string;
-    }>
+        wsInitialMessage: string;
+    };
     ```
 
 ```javascript
 const outputInfo = await cswApi.getOutputInfo();
 ```
 
-### getAudioPushInfo()
+### getAudioPushInfo(options?)
 
 Gets parameters to set up audio push websocket.
 
--   **Returns:**
-    ```
-    Promise<{
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TAudioPushInfo>`
+
+    ```typescript
+    type TAudioPushInfo = {
         ws: string;
-        ws_initial_message: string;
-    }>
+        wsInitialMessage: string;
+    };
     ```
 
 ```javascript
 const audioPushInfo = await cswApi.getAudioPushInfo();
 ```
 
-## Methods sources
+## Methods - Streams
 
-### getStreamSaveList()
+### types
+
+```typescript
+type TStreamSave = {
+    ip: string;
+    enabled: boolean;
+    niceName: string;
+    mdnsName: string;
+    port: number;
+    auth: string;
+    query: string;
+    channel: 'audio' | 'video' | 'av';
+    keyboard: Record<string, string | null>;
+    viewNumber: number;
+    sortIndexOverview: number | undefined;
+};
+
+type TStramSaveList = Record<string, TStreamSave>;
+type TStreamSaveLoadList = Record<string, Partial<TStreamSave>>;
+```
+
+### getStreamSaveList(options?)
 
 Gets the list of saved streams.
 
--   **Returns:**
-    ```
-    Promise<{
-        [streamId: string]: {
-            niceName?: string;
-            ip?: string;
-            mdnsName?: string;
-            port?: number;
-            enabled?: boolean;
-            auth?: string;
-            query?: string;
-            channel?: 'audio' | 'video' | 'av';
-            keyboard?: object;
-            sortIndexOverview?: number;
-            viewNumber?: number;
-        }
-    }>
-    ```
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TStreamSaveLoadList>` ([`TStreamSaveLoadList`](#types))
 
 ```javascript
 const streams = await cswApi.getStreamSaveList();
 ```
 
-### getClipSaveList()
-
-Gets the list of saved clips.
-
--   **Returns:**
-    ```
-    Promise<{
-        [clipId: string]: {
-            niceName?: string;
-            channel?: 'audio' | 'video' | 'av';
-            keyboard?: object;
-            sortIndexOverview?: number;
-        }
-    }>
-    ```
-
-```javascript
-const clips = await cswApi.getClipSaveList();
-```
-
-### getPlaylistSaveList()
-
-Gets the list of saved playlists.
-
--   **Returns:**
-    ```
-    Promise<{
-        [playlistId: string]: {
-            channel: 'audio' | 'video' | 'av';
-            isFavourite: boolean;
-            keyboard: object;
-            niceName: string;
-            sortIndexFavourite?: number;
-            sortIndexOverview?: number;
-            play_type: 'PLAY_ALL' | 'PLAY_ALL_LOOP' | 'PLAY_ALL_SHUFFLED' | 'PLAY_ALL_LOOP_SHUFFLED' | 'PLAY_ONE_RANDOM';
-            default?: boolean;
-            stream_list: Array<{
-                id: string;
-                isTimeoutCustom: boolean;
-                ptz_preset_pos_name: string;
-                repeat: number;
-                timeout: number;
-                video: {
-                    stream_name?: string;
-                    clip_name?: string;
-                    tracker_name?: string;
-                    storage?: 'SD_DISK' | 'FLASH',
-                };
-                audio?: {
-                    stream_name?: string;
-                    clip_name?: string;
-                    tracker_name?: string;
-                    storage?: 'SD_DISK' | 'FLASH',
-                };
-            }>;
-        }
-    }>
-    ```
-
-```javascript
-const playlists = await cswApi.getPlaylistSaveList();
-```
-
-### getTrackerSaveList()
-
-Gets the list of saved trackers.
-
--   **Returns:**
-    ```
-    Promise<{
-        [trackerId: string]: {
-            id?: string;
-            name?: string;
-            previewId?: string;
-            duration?: number;
-            keyboard?: object;
-            channel?: 'audio' | 'video' | 'av';
-            sortIndexOverview?: number;
-            width?: number;
-            height?: number;
-            fps?: number;
-            motion_history_frames?: number;
-            include_zone?: number[][];
-            include_node_ids?: string[];
-            camera_list?: Array<{
-                id?: string;
-                name?: string;
-                overview?: boolean;
-                zone?: number[];
-                playlist_name?: string;
-                ptz_preset_pos_no?: number;
-            }>;
-            viewNumber?: number;
-            camera_view_number?: number;
-        }
-    }>
-    ```
-
-```javascript
-const trackers = await cswApi.getTrackerSaveList();
-```
-
-### setStreamSaveList(data)
+### setStreamSaveList(data, options?)
 
 Sets the list of saved streams.
 
 -   **Parameters:**
-    -   `data` (object):
-        ```
-        { [streamId: string]: {
-            niceName: string;
-            ip: string;
-            mdnsName: string;
-            port: number;
-            enabled: boolean;
-            auth: string;
-            query: string;
-            channel: 'audio' | 'video' | 'av';
-            keyboard: object;
-            sortIndexOverview?: number;
-            viewNumber: number
-        } }
-        ```
+    -   `data` ([`TStreamSaveList`](#types))
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await cswApi.setStreamSaveList(streamData);
 ```
 
-### setClipSaveList(data)
+## Methods - Clips
+
+### types
+
+```typescript
+type TClipSave = {
+    niceName: string;
+    channel: 'audio' | 'video' | 'av';
+    keyboard: Record<string, string | null>;
+    sortIndexOverview: number;
+};
+
+type TClipSaveList = Record<string, TClipSave>;
+type TClipSaveLoadList = Record<string, Partial<TClipSave>>;
+```
+
+```typescript
+type TClipList = Record<
+    string,
+    {
+        storage: 'SD_DISK' | 'FLASH';
+        duration: number;
+        stream_list: (
+            | {
+                  type: 'video';
+                  width: number;
+                  height: number;
+                  fps: number;
+                  sample_rate: number;
+                  h264_profile: 'high' | 'main' | 'baseline';
+                  h264_level: '4.1';
+                  gop: number;
+                  bitrate: number;
+              }
+            | {
+                  type: 'audio';
+                  sample_rate: number;
+                  channel_count: 1 | 2;
+              }
+        )[];
+    }
+>;
+```
+
+```typescript
+type TStorageType = 'SD_DISK' | 'FLASH';
+```
+
+### getClipSaveList(options?)
+
+Gets the list of saved clips.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TClipSaveLoadList>` ([`TClipSaveLoadList`](#types-1))
+
+```javascript
+const clips = await cswApi.getClipSaveList();
+```
+
+### setClipSaveList(data, options?)
 
 Sets the list of saved clips.
 
 -   **Parameters:**
-    -   `data` (object):
-        ```
-        { [clipId: string]: {
-            niceName: string;
-            channel: 'audio' | 'video' | 'av';
-            keyboard: object;
-            sortIndexOverview: number;
-        } }
-        ```
+    -   `data` ([`TClipSaveList`](#types-1))
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await cswApi.setClipSaveList(clipData);
 ```
 
-### setPlaylistSaveList(data)
-
-Sets the list of saved playlists.
-
--   **Parameters:**
-    -   `data` (object):
-        ```
-        { [playlistId: string]: {
-            channel: 'audio' | 'video' | 'av';
-            isFavourite: boolean;
-            keyboard: object;
-            niceName: string;
-            sortIndexFavourite?: number;
-            sortIndexOverview?: number;
-            play_type: 'PLAY_ALL' | 'PLAY_ALL_LOOP' | 'PLAY_ALL_SHUFFLED' | 'PLAY_ALL_LOOP_SHUFFLED' | 'PLAY_ONE_RANDOM';
-            default?: boolean;
-            stream_list: Array<{
-                id: string;
-                isTimeoutCustom: boolean;
-                ptz_preset_pos_name: string;
-                repeat: number;
-                timeout: number;
-                video: {
-                    stream_name?: string;
-                    clip_name?: string;
-                    tracker_name?: string;
-                    storage?: 'SD_DISK' | 'FLASH',
-                };
-                audio?: {
-                    stream_name?: string;
-                    clip_name?: string;
-                    tracker_name?: string;
-                    storage?: 'SD_DISK' | 'FLASH',
-                };
-            }>;
-        } }
-        ```
--   **Returns:** `Promise<boolean>`
-
-```javascript
-await cswApi.setPlaylistSaveList(playlistData);
-```
-
-### setTrackerSaveList(data)
-
-Sets the list of saved trackers.
-
--   **Parameters:**
-    -   `data` (object):
-        ```
-        { [trackerId: string]: {
-            id: string;
-            name: string;
-            previewId: string;
-            duration: number;
-            keyboard: object;
-            channel: 'audio' | 'video' | 'av';
-            sortIndexOverview: number;
-            width: number;
-            height: number;
-            fps: number;
-            motion_history_frames: number;
-            include_zone: number[][];
-            include_node_ids: string[];
-            camera_list: Array<{
-                id: string;
-                name: string;
-                overview: boolean;
-                zone: number[];
-                playlist_name: string;
-                ptz_preset_pos_no: number;
-            }>;
-            viewNumber: number;
-            camera_view_number: number;
-        } }
-        ```
--   **Returns:** `Promise<boolean>`
-
-```javascript
-await cswApi.setTrackerSaveList(trackerData);
-```
-
-## Methods playlists
-
-### playlistSwitch(playlistName)
-
-Switches to the specified playlist.
-
--   **Parameters:**
-    -   `playlistName` (string): Name of the playlist to switch to.
--   **Returns:** `Promise<void>`
-
-```javascript
-await cswApi.playlistSwitch('MyPlaylist');
-```
-
-### playlistQueuePush(playlistName)
-
-Adds a playlist to the queue.
-
--   **Parameters:**
-    -   `playlistName` (string): Name of the playlist to add to the queue.
--   **Returns:** `Promise<void>`
-
-```javascript
-await cswApi.playlistQueuePush('MyPlaylist');
-```
-
-### playlistQueueClear()
-
-Clears the playlist queue.
-
--   **Returns:** `Promise<void>`
-
-```javascript
-await cswApi.playlistQueueClear();
-```
-
-### playlistQueueList()
-
-Gets the current playlist queue.
-
--   **Returns:** `Promise<string[]>` - Array of playlist names in the queue.
-
-```javascript
-const queue = await cswApi.playlistQueueList();
-```
-
-### playlistQueuePlayNext()
-
-Plays the next playlist in the queue.
-
--   **Returns:** `Promise<void>`
-
-```javascript
-await cswApi.playlistQueuePlayNext();
-```
-
-## Methods clips
-
-### addNewClip(file, clipType, storage, id, fileName?)
+### addNewClip(file, clipType, storage, id, fileName?, options?)
 
 Uploads a new clip (video or audio).
 
 -   **Parameters:**
     -   `file` (Buffer | File): The clip file data.
     -   `clipType` ('video' | 'audio'): Type of the clip.
-    -   `storage` (string): Storage type, e.g. 'SD_DISK' or 'FLASH'.
+    -   `storage` ([`TStorageType`](#types-1)): Storage type, e.g. 'SD_DISK' or 'FLASH'.
     -   `id` (string): Clip identifier.
     -   `fileName` (string, optional): Name of the file.
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -502,217 +373,374 @@ const fileBuffer = fs.readFileSync('clip.mp4');
 await cswApi.addNewClip(fileBuffer, 'video', 'SD_DISK', 'clipId', 'clip.mp4');
 ```
 
-### removeClip(id, storage)
+### removeClip(id, storage, options?)
 
 Removes a clip by ID and storage type.
 
 -   **Parameters:**
     -   `id` (string): Clip identifier.
-    -   `storage` (string): Storage type.
+    -   `storage` ([`TStorageType`](#types-1)): Storage type.
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.removeClip('clipId', 'SD_DISK');
 ```
 
-### getClipList()
+### getClipList(options?)
 
 Gets the list of clips.
 
--   **Returns:**
-    ```
-    Promise<{
-        [clipId: string]: {
-            storage: string;
-            duration: number;
-            stream_list: Array<{
-                type: 'video';
-                width: number;
-                height: number;
-                sample_rate: number;
-                h264_profile: string;
-                h264_level: '4.1';
-                gop: number;
-                fps: number;
-                bitrate: number
-            } | {
-                type: 'audio';
-                sample_rate: number;
-                channel_count: number
-            } >;
-        }
-    }>
-    ```
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TClipList>` ([`TClipList`](#types-1))
 
 ```javascript
 const clips = await cswApi.getClipList();
 ```
 
-## Methods configuration
+## Methods - Playlists
 
-### setCamSwitchOptions(data, cameraFWVersion)
+### types
+
+```typescript
+type TPlaylistSave = {
+    niceName: string;
+    channel: 'audio' | 'video' | 'av';
+    keyboard: Record<string, string | null>;
+    isFavourite: boolean;
+    play_type: 'PLAY_ALL' | 'PLAY_ALL_LOOP' | 'PLAY_ALL_SHUFFLED' | 'PLAY_ALL_LOOP_SHUFFLED' | 'PLAY_ONE_RANDOM';
+    stream_list: {
+        repeat: number;
+        video: {
+            storage?: 'SD_DISK' | 'FLASH' | undefined;
+            stream_name?: string | undefined;
+            clip_name?: string | undefined;
+            tracker_name?: string | undefined;
+        };
+        id: string;
+        isTimeoutCustom: boolean;
+        ptz_preset_pos_name: string;
+        timeout: number;
+        audio:
+            | {
+                  storage?: 'SD_DISK' | 'FLASH' | undefined;
+                  stream_name?: string | undefined;
+                  clip_name?: string | undefined;
+                  tracker_name?: string | undefined;
+              }
+            | undefined;
+    }[];
+    sortIndexOverview: number | undefined;
+    sortIndexFavourite: number | undefined;
+    default: boolean | undefined;
+};
+
+type TPlaylistSaveList = Record<string, TPlaylistSave>;
+type TPlaylistSaveLoadList = Record<string, Partial<TPlaylistSave>>;
+```
+
+### getPlaylistSaveList(options?)
+
+Gets the list of saved playlists.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TPlaylistSaveLoadList>` ([`TPlaylistSaveLoadList`](#types-2))
+
+```javascript
+const playlists = await cswApi.getPlaylistSaveList();
+```
+
+### setPlaylistSaveList(data, options?)
+
+Sets the list of saved playlists.
+
+-   **Parameters:**
+    -   `data` ([`TPlaylistSaveList`](#types-2))
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<boolean>`
+
+```javascript
+await cswApi.setPlaylistSaveList(playlistData);
+```
+
+### playlistSwitch(playlistName, options?)
+
+Switches to the specified playlist.
+
+-   **Parameters:**
+    -   `playlistName` (string): Name of the playlist to switch to.
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cswApi.playlistSwitch('MyPlaylist');
+```
+
+### playlistQueuePush(playlistName, options?)
+
+Adds a playlist to the queue.
+
+-   **Parameters:**
+    -   `playlistName` (string): Name of the playlist to add to the queue.
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cswApi.playlistQueuePush('MyPlaylist');
+```
+
+### playlistQueueClear(options?)
+
+Clears the playlist queue.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cswApi.playlistQueueClear();
+```
+
+### playlistQueueList(options?)
+
+Gets the current playlist queue.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<string[]>` - Array of playlist names in the queue.
+
+```javascript
+const queue = await cswApi.playlistQueueList();
+```
+
+### playlistQueuePlayNext(options?)
+
+Plays the next playlist in the queue.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cswApi.playlistQueuePlayNext();
+```
+
+## Methods - Trackers
+
+### types
+
+```typescript
+type TTrackerSave = {
+    channel: 'audio' | 'video' | 'av';
+    keyboard: Record<string, string | null>;
+    sortIndexOverview: number;
+    viewNumber: number;
+    id: string;
+    name: string;
+    previewId: string;
+    duration: number;
+    width: number;
+    height: number;
+    fps: number;
+    motion_history_frames: number;
+    include_zone: number[][];
+    include_node_ids: string[];
+    camera_list: {
+        id: string;
+        name: string;
+        overview: boolean;
+        zone: number[];
+        playlist_name: string;
+        ptz_preset_pos_no: number;
+    }[];
+    camera_view_number: number;
+};
+
+type TTrackerSaveList = Record<string, TTrackerSave>;
+type TrackerSaveLoadList = Record<string, Partial<TTrackerSave>>;
+```
+
+### getTrackerSaveList(options?)
+
+Gets the list of saved trackers.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TrackerSaveLoadList>` ([`TrackerSaveLoadList`](#types-3))
+
+```javascript
+const trackers = await cswApi.getTrackerSaveList();
+```
+
+### setTrackerSaveList(data, options?)
+
+Sets the list of saved trackers.
+
+-   **Parameters:**
+
+    -   `data` ([`TrackerSaveList`](#types-3)):
+    -   `options` (`THttpRequestOptions` | undefined)
+
+-   **Returns:** `Promise<boolean>`
+
+```javascript
+await cswApi.setTrackerSaveList(trackerData);
+```
+
+## Methods - Configuration
+
+### types
+
+```typescript
+type TCameraOptions = {
+    resolution: string;
+    h264Profile: 'high' | 'main' | 'baseline';
+    fps: number;
+    compression: number;
+    govLength: number;
+    bitrateVapixParams: string | null;
+    audioSampleRate: number;
+    audioChannelCount: 1 | 2;
+    keyboard: {
+        fromSource?: Record<string, string | null>;
+        none?: Record<string, string | null>;
+    };
+    bitrateMode: 'VBR' | 'MBR' | 'ABR';
+    maximumBitRate: number;
+    retentionTime: number;
+    bitRateLimit: number;
+};
+```
+
+```typescript
+type TGlobalAudioSettings = {
+    type: 'fromSource' | 'source';
+    source: string;
+    storage?: string;
+};
+```
+
+```typescript
+type TSecondaryAudioSettings = {
+    type: 'CLIP' | 'STREAM' | 'NONE';
+    streamName?: string;
+    clipName?: string;
+    storage: 'SD_DISK' | 'FLASH';
+    secondaryAudioLevel: number;
+    masterAudioLevel: number;
+};
+```
+
+### setCamSwitchOptions(data, cameraFWVersion, options?)
 
 Sets camera switcher options.
 
 -   **Parameters:**
-    -   `data` (object):
-        ```
-        {
-            resolution: string;
-            h264Profile: string;
-            fps: number;
-            compression: number;
-            govLength: number;
-            bitrateVapixParams: string | null;
-            audioSampleRate: number;
-            audioChannelCount: number;
-            keyboard: object;
-            bitrateMode: 'VBR' | 'MBR' | 'ABR';
-            maximumBitRate: number;
-            retentionTime: number;
-            bitRateLimit: number;
-        }
-        ```
+    -   `data` ([`TCameraOptions`](#types-4))
     -   `cameraFWVersion` (string): Camera firmware version.
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await cswApi.setCamSwitchOptions(options, '10.0.0');
 ```
 
-### setGlobalAudioSettings(settings)
+### setGlobalAudioSettings(settings, options?)
 
 Sets global audio settings.
 
 -   **Parameters:**
-    -   `settings` (object):
-        ```
-        {
-            type: 'fromSource' | 'source';
-            source: string;
-            storage?: string;
-        }
-        ```
+    -   `settings` ([`TGlobalAudioSettings`](#types-4))
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await cswApi.setGlobalAudioSettings(audioSettings);
 ```
 
-### setSecondaryAudioSettings(settings)
+### setSecondaryAudioSettings(settings, options?)
 
 Sets secondary audio settings.
 
 -   **Parameters:**
-    -   `settings` (object):
-        ```
-        {
-            type: 'CLIP' | 'STREAM' | 'NONE';
-            streamName?: string;
-            clipName?: string;
-            storage: 'FLASH' | 'SD_DISK';
-            secondaryAudioLevel: number;
-            masterAudioLevel: number;
-        }
-        ```
+    -   `settings` ([`TSecondaryAudioSettings`](#types-4))
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await cswApi.setSecondaryAudioSettings(secondaryAudioSettings);
 ```
 
-### setDefaultPlaylist(id)
+### setDefaultPlaylist(id, options?)
 
 Sets the default playlist.
 
 -   **Parameters:**
     -   `id` (string): Playlist identifier.
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await cswApi.setDefaultPlaylist('playlistId');
 ```
 
-### setPermanentRtspUrlToken(token)
+### setPermanentRtspUrlToken(token, options?)
 
 Sets a permanent RTSP URL token.
 
 -   **Parameters:**
     -   `token` (string): RTSP token string.
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await cswApi.setPermanentRtspUrlToken('token123');
 ```
 
-### getCamSwitchOptions()
+### getCamSwitchOptions(options?)
 
 Gets camera switcher options.
 
--   **Returns:**
-    ```
-    Promise<{
-        resolution?: string;
-        h264Profile?: string;
-        fps?: number;
-        compression?: number;
-        govLength?: number;
-        bitrateVapixParams?: string | null;
-        audioSampleRate?: number;
-        audioChannelCount?: number;
-        keyboard?: object;
-        bitrateMode?: 'VBR' | 'MBR' | 'ABR';
-        maximumBitRate?: number;
-        retentionTime?: number;
-        bitRateLimit?: number;
-    }>
-    ```
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<Partial<TCameraOptions>>` ([`TCameraOptions`](#types-4))
 
 ```javascript
-const options = await cswApi.getCamSwitchOptions();
+const cswOptions = await cswApi.getCamSwitchOptions();
 ```
 
-### getGlobalAudioSettings()
+### getGlobalAudioSettings(options?)
 
 Gets global audio settings.
 
--   **Returns:**
-    ```
-    Promise<{
-        type: 'fromSource' | 'source';
-        source: string;
-        storage?: string;
-    }>
-    ```
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TGlobalAudioSettings>` ([`TGlobalAudioSettings`](#types-4)):
 
 ```javascript
 const audioSettings = await cswApi.getGlobalAudioSettings();
 ```
 
-### getSecondaryAudioSettings()
+### getSecondaryAudioSettings(options?)
 
 Gets secondary audio settings.
 
--   **Returns:**
-    ```
-    Promise<{
-        type: 'CLIP' | 'STREAM' | 'NONE';
-        streamName?: string;
-        clipName?: string;
-        storage: 'FLASH' | 'SD_DISK';
-        secondaryAudioLevel: number;
-        masterAudioLevel: number;
-    }>
-    ```
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
+-   **Returns:** `Promise<TSecondaryAudioSettings>` ([`TSecondaryAudioSettings`](#types-4))
 
 ```javascript
 const secondaryAudioSettings = await cswApi.getSecondaryAudioSettings();
 ```
 
-### getPermanentRtspUrlToken()
+### getPermanentRtspUrlToken(options?)
 
 Gets the permanent RTSP URL token.
 
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions` | undefined)
 -   **Returns:** `Promise<string>`
 
 ```javascript

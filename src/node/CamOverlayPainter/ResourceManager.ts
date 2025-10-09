@@ -1,5 +1,5 @@
 import { CamOverlayDrawingAPI } from '../CamOverlayDrawingAPI';
-import { TUploadImageResponse, TCairoCreateResponse } from '../types/CamOverlayDrawingAPI';
+import { TUploadImageResponse, TCairoCreateResponse } from '../../types/CamOverlayDrawingAPI';
 import * as fs from 'fs/promises';
 
 export class ResourceManager {

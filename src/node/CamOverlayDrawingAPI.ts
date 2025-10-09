@@ -1,5 +1,5 @@
 import EventEmitter from 'events';
-import { WsClient, WsClientOptions } from './node/WsClient';
+import { WsClient, WsClientOptions } from './WsClient';
 import {
     AsyncMessage,
     CamOverlayDrawingOptions,
@@ -10,7 +10,7 @@ import {
     TUploadImageResponse,
     TWriteTextParams,
     TMessage,
-} from './types/CamOverlayDrawingAPI';
+} from '../types/CamOverlayDrawingAPI';
 
 export class CamOverlayDrawingAPI extends EventEmitter {
     private tls: boolean;

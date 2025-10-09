@@ -1,5 +1,5 @@
 import { ProxyClient } from './internal/ProxyClient';
-import { IClient, TResponse } from './internal/types';
+import { IClient, TParameters, TResponse } from './internal/types';
 import { responseStringify } from './internal/utils';
 
 import {
@@ -8,45 +8,42 @@ import {
     nodeStateSchema,
     packageInfoListSchema,
     storageSchema,
-    TNodeState,
-    TPackageInfoList,
-    TStorage,
     TStorageType,
 } from './types/CamScripterAPI';
-import { networkCameraListSchema, THttpRequestOptions, TNetworkCamera, TProxyParams } from './types/common';
+import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './types/common';
 
 const BASE_PATH = '/local/camscripter';
 export class CamScripterAPI<Client extends IClient<TResponse, any>> {
     constructor(public client: Client) {}
 
-    static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
+    static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 
-    async checkCameraTime(options?: THttpRequestOptions): Promise<boolean> {
-        const data = await this.get(`${BASE_PATH}/camera_time.cgi`, undefined, options);
-        return cameraTimeResponseSchema.parse(data).state;
+    async checkCameraTime(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
+        return cameraTimeResponseSchema.parse(res).state;
     }
 
-    async getNetworkCameraList(options?: THttpRequestOptions): Promise<TNetworkCamera[]> {
-        const data = await this.get(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
-        return networkCameraListSchema.parse(data.camera_list);
+    async getNetworkCameraList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
+        return networkCameraListSchema.parse(res.camera_list);
     }
 
     //   ----------------------------------------
     //                   Packages
     //   ----------------------------------------
 
-    async getStorageInfo(options?: THttpRequestOptions): Promise<TStorage> {
-        const data = await this.get(`${BASE_PATH}/package/get_storage.cgi`, undefined, options);
-        return storageSchema.parse(data);
+    async getStorageInfo(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/package/get_storage.cgi`, undefined, options);
+        return storageSchema.parse(res);
     }
 
-    async getPackageList(options?: THttpRequestOptions): Promise<TPackageInfoList> {
-        const data = await this.get(`${BASE_PATH}/package/list.cgi`, undefined, options);
-        return packageInfoListSchema.parse(data);
+    async getPackageList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/package/list.cgi`, undefined, options);
+        return packageInfoListSchema.parse(res);
     }
 
     async installPackages(
@@ -54,18 +51,13 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         storage: TStorageType,
         options?: THttpRequestOptions
     ) {
-        const data = await this.post(
-            `${BASE_PATH}/package/install.cgi?storage=${storage}`,
-            formData,
-            undefined,
-            options
-        );
-        return camscripterApiResponseSchema.parse(data);
+        const res = await this._post(`${BASE_PATH}/package/install.cgi`, formData, { storage: storage }, options);
+        return camscripterApiResponseSchema.parse(res);
     }
 
     async uninstallPackage(packageId: string, options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/package/remove.cgi?package_name=${packageId}`, undefined, options);
-        return camscripterApiResponseSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/package/remove.cgi`, { package_name: packageId }, options);
+        return camscripterApiResponseSchema.parse(res);
     }
 
     async importSettings(
@@ -73,13 +65,16 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         formData: Parameters<Client['post']>[0]['data'],
         options?: THttpRequestOptions
     ) {
-        const data = await this.post(
-            `${BASE_PATH}/package/data.cgi?action=IMPORT&package_name=${packageId}`,
+        const res = await this._post(
+            `${BASE_PATH}/package/data.cgi`,
             formData,
-            undefined,
+            {
+                action: 'IMPORT',
+                package_name: packageId,
+            },
             options
         );
-        return camscripterApiResponseSchema.parse(data);
+        return camscripterApiResponseSchema.parse(res);
     }
 
     async exportSettings(
@@ -87,34 +82,37 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         formData: Parameters<Client['post']>[0]['data'],
         options?: THttpRequestOptions
     ) {
-        const data = await this.post(
-            `${BASE_PATH}/package/data.cgi?action=EXPORT&package_name=${packageId}`,
+        const res = await this._post(
+            `${BASE_PATH}/package/data.cgi`,
             formData,
-            undefined,
+            {
+                action: 'EXPORT',
+                package_name: packageId,
+            },
             options
         );
-        return camscripterApiResponseSchema.parse(data);
+        return camscripterApiResponseSchema.parse(res);
     }
 
     //   ----------------------------------------
     //                   Node.js
     //   ----------------------------------------
 
-    async getNodejsStatus(options?: THttpRequestOptions): Promise<TNodeState> {
-        const data = await this.get(`${BASE_PATH}/diagnostics.cgi`, undefined, options);
-        return nodeStateSchema.parse(data);
+    async getNodejsStatus(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/diagnostics.cgi`, undefined, options);
+        return nodeStateSchema.parse(res);
     }
 
     async installNodejs(storage: TStorageType, options?: THttpRequestOptions) {
-        const data = await this.get(`${BASE_PATH}/node_update.cgi?storage=${storage}`, undefined, options);
-        return camscripterApiResponseSchema.parse(data);
+        const res = await this._getJson(`${BASE_PATH}/node_update.cgi`, { storage: storage }, options);
+        return camscripterApiResponseSchema.parse(res);
     }
 
     //   ----------------------------------------
     //                   Private
     //   ----------------------------------------
 
-    private async get(path: string, parameters?: Record<string, string>, options?: THttpRequestOptions): Promise<any> {
+    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
@@ -124,14 +122,15 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
             throw new Error(await responseStringify(res));
         }
     }
-    private async post(
+    private async _post(
         path: string,
         data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: Record<string, string>,
-        options?: THttpRequestOptions
-    ): Promise<any> {
+        parameters?: TParameters,
+        options?: THttpRequestOptions,
+        headers?: Record<string, string>
+    ) {
         const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, parameters, timeout: options?.timeout });
+        const res = await agent.post({ path, data, parameters, headers, timeout: options?.timeout });
 
         if (res.ok) {
             return await res.json();

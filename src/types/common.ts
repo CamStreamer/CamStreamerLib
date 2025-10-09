@@ -18,6 +18,7 @@ export const networkCameraListSchema = z.array(
         ip: z.string(),
     })
 );
+export type TNetworkCameraList = z.infer<typeof networkCameraListSchema>;
 export type TNetworkCamera = z.infer<typeof networkCameraListSchema>[number];
 
 export const keyboardShortcutSchema = z.string().nullable();
