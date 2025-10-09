@@ -22,7 +22,7 @@ const cswApi = new CamSwitcherAPI(
 );
 ```
 
-> [!NOTE]
+> [!TIP]
 > The majority of CamSwitcherAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
 
 ```typescript

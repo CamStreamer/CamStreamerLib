@@ -24,7 +24,7 @@ const vapix = new VapixAPI(
 );
 ```
 
-> [!NOTE]
+> [!TIP]
 > The majority of VapixAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
 
 ```typescript

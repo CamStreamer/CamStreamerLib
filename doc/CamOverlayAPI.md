@@ -22,7 +22,7 @@ const coApi = new CamOverlayAPI(
 );
 ```
 
-> [!NOTE]
+> [!TIP]
 > The majority of CamOverlayAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
 
 ```typescript

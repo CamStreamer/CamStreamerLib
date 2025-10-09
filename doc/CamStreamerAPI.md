@@ -24,7 +24,7 @@ const csApi = new CamStreamerAPI(
 );
 ```
 
-> [!NOTE]
+> [!TIP]
 > The majority of CamStreamerAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
 
 ```typescript

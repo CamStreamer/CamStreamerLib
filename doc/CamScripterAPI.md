@@ -22,7 +22,7 @@ const cscApi = new CamScripterAPI(
 );
 ```
 
-> [!NOTE]
+> [!TIP]
 > The majority of CamScripterAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
 
 ```typescript

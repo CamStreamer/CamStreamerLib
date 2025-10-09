@@ -34,7 +34,7 @@ type TApiUser = {
 };
 ```
 
-> [!NOTE]
+> [!TIP]
 > The majority of PlaneTrackerAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
 
 ```typescript
