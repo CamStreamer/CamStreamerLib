@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
-import { paramToUrl, responseStringify } from './internal/utils';
+import { responseStringify } from './internal/utils';
 import {
     blackListSchema,
     cameraSettingsSchema,
