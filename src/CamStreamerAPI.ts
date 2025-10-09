@@ -14,6 +14,26 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 
+    async wsAuthorization(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
+        if (res.status !== 200) {
+            throw new Error(`Server error on ws authorization: ${res.message}`);
+        }
+        return z.string().parse(res.data);
+    }
+
+    async getUtcTime(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
+        if (res.status !== 200) {
+            throw new Error(`Server error on get UTC time: ${res.message}`);
+        }
+        return z.number().parse(res.data);
+    }
+
+    //   ----------------------------------------
+    //                   Streams
+    //   ----------------------------------------
+
     async getStreamList(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/stream/list.cgi`, undefined, options);
 
@@ -28,13 +48,13 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async getStream(streamId: number, options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
+        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi`, { stream_id: streamId }, options);
         const cameraData = cameraStreamSchema.parse(res.data);
         return parseCameraStreamResponse(cameraData);
     }
 
     async getStreamParameter(streamId: number, paramName: string, options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi?stream_id=${streamId}`, undefined, options);
+        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi`, { stream_id: streamId }, options);
         return z.string().parse(res.data[paramName]);
     }
 
@@ -72,22 +92,6 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     async deleteStream(streamId: number, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
         return res.data.status === 200;
-    }
-
-    async wsAuthorization(options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
-        if (res.status !== 200) {
-            throw new Error(`Server error on ws authorization: ${res.message}`);
-        }
-        return z.string().parse(res.data);
-    }
-
-    async getUtcTime(options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
-        if (res.status !== 200) {
-            throw new Error(`Server error on get UTC time: ${res.message}`);
-        }
-        return z.number().parse(res.data);
     }
 
     //   ----------------------------------------

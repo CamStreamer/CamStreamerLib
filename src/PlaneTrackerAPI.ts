@@ -30,7 +30,7 @@ const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     constructor(private client: Client, private apiUser: TApiUser) {}
 
-    static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
+    static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;

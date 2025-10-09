@@ -16,7 +16,7 @@ const BASE_PATH = '/local/camscripter';
 export class CamScripterAPI<Client extends IClient<TResponse, any>> {
     constructor(public client: Client) {}
 
-    static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
+    static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;

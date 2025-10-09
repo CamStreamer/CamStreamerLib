@@ -44,9 +44,9 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         this.vapixAgent = new VapixAPI(client);
     }
 
-    static getProxyUrlPath = () => `${BASE_PATH}/proxy.cgi`;
-    static getWsEventsUrlPath = () => `/local/camswitcher/events`;
-    static getClipPreviewUrlPath = (id: string, storage: TStorageType) =>
+    static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
+    static getWsEventsPath = () => `/local/camswitcher/events`;
+    static getClipPreviewPath = (id: string, storage: TStorageType) =>
         `${BASE_PATH}/clip_preview.cgi?clip_name=${id}&storage=${storage}`;
 
     getClient(proxyParams?: TProxyParams) {
