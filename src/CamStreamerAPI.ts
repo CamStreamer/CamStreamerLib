@@ -5,10 +5,11 @@ import { responseStringify } from './internal/utils';
 
 import { cameraStreamSchema, TCameraStream, TStream } from './types/CamStreamerAPI';
 import { THttpRequestOptions, TProxyParams } from './types/common';
+import { UtcTimeFetchError, WsAuthorizationError } from './errors/errors';
 
 const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
-    constructor(public client: Client) {}
+    constructor(private client: Client) {}
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
@@ -17,7 +18,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     async wsAuthorization(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
         if (res.status !== 200) {
-            throw new Error(`Server error on ws authorization: ${res.message}`);
+            throw new WsAuthorizationError(res.message);
         }
         return z.string().parse(res.data);
     }
@@ -25,7 +26,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     async getUtcTime(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
         if (res.status !== 200) {
-            throw new Error(`Server error on get UTC time: ${res.message}`);
+            throw new UtcTimeFetchError(res.message);
         }
         return z.number().parse(res.data);
     }
@@ -58,13 +59,9 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return z.string().parse(res.data[paramName]);
     }
 
-    async setStream(
-        streamId: number,
-        params: Partial<TStream>,
-        options?: THttpRequestOptions
-    ): Promise<{ message: string; status: number }> {
+    async setStream(streamId: number, params: Partial<TStream>, options?: THttpRequestOptions) {
         const { streamDelay, startTime, stopTime, ...rest } = params;
-        return await this._getJson(
+        await this._getJson(
             `${BASE_PATH}/stream/set.cgi`,
             {
                 stream_id: streamId,
@@ -76,13 +73,8 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
             options
         );
     }
-    async setStreamParameter(
-        streamId: number,
-        paramName: string,
-        value: string,
-        options?: THttpRequestOptions
-    ): Promise<{ message: string; status: number }> {
-        return await this._getJson(`${BASE_PATH}/stream/set.cgi`, { stream_id: streamId, [paramName]: value }, options);
+    async setStreamParameter(streamId: number, paramName: string, value: string, options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/stream/set.cgi`, { stream_id: streamId, [paramName]: value }, options);
     }
 
     async isStreaming(streamId: number, options?: THttpRequestOptions) {

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AddNewClipError } from './errors/errors';
+import { AddNewClipError, JsonParseError, ParameterNotFoundError } from './errors/errors';
 import { IClient, TParameters, TResponse } from './internal/types';
 import { isClip, isNullish, responseStringify } from './internal/utils';
 import {
@@ -40,7 +40,7 @@ const BASE_PATH = '/local/camswitcher/api';
 export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     private vapixAgent: VapixAPI<Client>;
 
-    constructor(public client: Client, private CustomFormData = FormData) {
+    constructor(private client: Client, private CustomFormData = FormData) {
         this.vapixAgent = new VapixAPI(client);
     }
 
@@ -53,6 +53,16 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 
+    async checkCameraTime(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
+        return z.boolean().parse(res.data);
+    }
+
+    async getNetworkCameraList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
+        return networkCameraListSchema.parse(res.data);
+    }
+
     async generateSilence(sampleRate: number, channels: TAudioChannel, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         await agent.get({
@@ -63,16 +73,6 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
             },
             timeout: options?.timeout,
         });
-    }
-
-    async checkCameraTime(options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
-        return z.boolean().parse(res.data);
-    }
-
-    async getNetworkCameraList(options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
-        return networkCameraListSchema.parse(res.data);
     }
 
     async getMaxFps(source: number, options?: THttpRequestOptions) {
@@ -135,19 +135,19 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     }
 
     async setStreamSaveList(data: TStreamSaveList, options?: THttpRequestOptions) {
-        return await this._post(`${BASE_PATH}/streams.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/streams.cgi`, data, { action: 'set' }, options);
     }
 
     async setClipSaveList(data: TClipSaveList, options?: THttpRequestOptions) {
-        return await this._post(`${BASE_PATH}/clips.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/clips.cgi`, data, { action: 'set' }, options);
     }
 
     async setPlaylistSaveList(data: TPlaylistSaveList, options?: THttpRequestOptions) {
-        return await this._post(`${BASE_PATH}/playlists.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/playlists.cgi`, data, { action: 'set' }, options);
     }
 
     async setTrackerSaveList(data: TTrackerSaveList, options?: THttpRequestOptions) {
-        return await this._post(`${BASE_PATH}/trackers.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/trackers.cgi`, data, { action: 'set' }, options);
     }
 
     //   ----------------------------------------
@@ -206,8 +206,8 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         }
     }
 
-    removeClip(clipId: string, storage: TStorageType, options?: THttpRequestOptions) {
-        return this._getJson(`${BASE_PATH}/clip_remove.cgi`, { clip_name: clipId, storage }, options);
+    async removeClip(clipId: string, storage: TStorageType, options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/clip_remove.cgi`, { clip_name: clipId, storage }, options);
     }
 
     async getClipList(options?: THttpRequestOptions) {
@@ -412,11 +412,11 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
                     return JSON.parse(data[paramName] + '');
                 }
             } catch {
-                throw new Error('Error: in JSON parsing of ' + paramName + '. Cannot parse: ' + data[paramName]);
+                throw new JsonParseError(paramName, data[paramName]);
             }
         }
 
-        throw new Error("Error: no parametr '" + paramName + "' was found");
+        throw new ParameterNotFoundError(paramName);
     }
 }
 
