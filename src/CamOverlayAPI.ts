@@ -155,16 +155,6 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     async getServices(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/services.cgi`, { action: 'get' }, options);
         const services = serviceListSchema.parse(res).services;
-
-        services.forEach((service) => {
-            const parsedService = servicesSchema.safeParse(service);
-            if (!parsedService.success) {
-                console.warn(
-                    `[SERVICE SCHEMA MISMATCH]: Service ${service.name} (${service.id}) does not match the current schema, or is a hidden service.`
-                );
-            }
-        });
-
         return services;
     }
 

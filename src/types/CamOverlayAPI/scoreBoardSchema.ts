@@ -1,7 +1,12 @@
 import { z } from 'zod';
 import { coordinateSystemSchema, serviceNames } from './serviceCommonTypes';
 
-export const sportFontSchema = z.union([z.literal('classic'), z.intersection(z.string(), z.object({}))]);
+export const sportFontSchema = z.union([
+    z.literal('classic'),
+    z.custom<string>((val) => {
+        return typeof val === 'string';
+    }),
+]);
 
 export const scoreBoardSchema = z.object({
     id: z.number().nonnegative(),
