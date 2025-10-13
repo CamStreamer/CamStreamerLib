@@ -111,8 +111,11 @@ export const cameraSettingsSchema = z.object({
     trackingConfig: z
         .object({
             prioritizeEmergency: z.boolean(),
+            guardTourEnabled: z.boolean().default(false),
+            guardTourId: z.number().int().nonnegative().default(0),
         })
-        .default({ prioritizeEmergency: true }),
+        .default({ prioritizeEmergency: true, guardTourEnabled: false, guardTourId: 0 }),
+
     overlayText: z
         .object({
             displayIcao: z.boolean().optional(),

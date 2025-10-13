@@ -1,9 +1,6 @@
-import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
 
-export type CamScripterOptions = HttpOptions;
-
-export type TStorageType = 'INTERNAL' | 'SD_CARD';
+export type TCameraStorageType = 'INTERNAL' | 'SD_CARD';
 
 export const nodeStateSchema = z.object({
     node_state: z.union([z.literal('OK'), z.literal('NOT_INSTALLED'), z.literal('NOT_FOUND')]),
@@ -36,17 +33,17 @@ export type TServerPackageData = {
     vendor: string;
 };
 
-export const storageSchema = z.union([
+export const cameraStorageSchema = z.union([
     z.tuple([
         z.object({ type: z.literal('INTERNAL'), capacity_mb: z.number() }),
         z.object({ type: z.literal('SD_CARD'), capacity_mb: z.number() }),
     ]),
     z.tuple([z.object({ type: z.literal('INTERNAL'), capacity_mb: z.number() })]),
 ]);
-export type TStorage = z.infer<typeof storageSchema>;
+export type TCameraStorage = z.infer<typeof cameraStorageSchema>;
 export type TStorageParsedData = {
     size: number;
-    storageType: TStorageType;
+    storageType: TCameraStorageType;
 }[];
 
 export const camscripterApiResponseSchema = z.object({

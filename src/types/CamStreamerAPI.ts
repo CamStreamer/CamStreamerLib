@@ -1,7 +1,4 @@
-import { HttpOptions } from '../internal/types';
 import { z } from 'zod';
-
-export type CamStreamerAPIOptions = HttpOptions;
 
 export const cameraStreamSchema = z.object({
     enabled: z.string(),

@@ -13,7 +13,7 @@ import {
     TField,
     TFile,
     TFileType,
-    TStorage,
+    TFileStorageType,
     TStorageResponse,
     TService,
     TServiceList,
@@ -69,7 +69,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     async uploadFile(
         fileType: TFileType,
         formData: Parameters<Client['post']>[0]['data'],
-        storage: TStorage,
+        storage: TFileStorageType,
         options?: THttpRequestOptions
     ) {
         await this._post(

@@ -99,18 +99,18 @@ export enum ImageType {
     JPEG,
 }
 
-export const storageSchema = z.union([
+export const fileStorageTypeSchema = z.union([
     z.literal('flash'),
     z.literal('SD0'),
     z.literal('ftp'),
     z.literal('samba'),
     z.literal('url'),
 ]);
-export type TStorage = z.infer<typeof storageSchema>;
+export type TFileStorageType = z.infer<typeof fileStorageTypeSchema>;
 
 export const storageDataListSchema = z.array(
     z.object({
-        type: storageSchema,
+        type: fileStorageTypeSchema,
         state: z.string(),
     })
 );
@@ -125,7 +125,7 @@ export type TStorageResponse = z.infer<typeof storageResponseSchema>;
 export const fileSchema = z.object({
     name: z.string(),
     path: z.string().url(),
-    storage: storageSchema,
+    storage: fileStorageTypeSchema,
 });
 export type TFile = z.infer<typeof fileSchema>;
 
