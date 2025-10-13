@@ -1,8 +1,11 @@
 export * from './DefaultClient';
 export * from './WsClient';
 export * from './HttpServer';
+export * from './HttpRequestSender';
 export * from './events/AxisCameraStationEvents';
+
 export * from './events/GenetecAgent';
+export * from '../types/GenetecAgent';
 
 export { ResourceManager } from './CamOverlayPainter/ResourceManager';
 export { Painter } from './CamOverlayPainter/Painter';
