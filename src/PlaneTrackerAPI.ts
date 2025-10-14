@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
-import { responseStringify } from './internal/utils';
+import { paramToUrl, responseStringify } from './internal/utils';
 import {
     blackListSchema,
     cameraSettingsSchema,
@@ -142,7 +142,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return trackingModeSchema.parse(res);
     }
     async setTrackingMode(mode: TTrackingMode['mode'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, { mode }, this.apiUser, options);
+        await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, mode, this.apiUser, options);
     }
 
     async startTrackingPlane(icao: ICAO, options?: THttpRequestOptions) {
@@ -185,12 +185,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return whiteListSchema.parse(res);
     }
     async setWhiteList(whiteList: TWhiteList['whiteList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(
-            `${BASE_PATH}/package/setWhiteList.cgi`,
-            { whiteList },
-            this.apiUser,
-            options
-        );
+        return await this._postJsonEncoded(`${BASE_PATH}/package/setWhiteList.cgi`, whiteList, this.apiUser, options);
     }
 
     async getBlackList(options?: THttpRequestOptions) {
@@ -198,12 +193,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return blackListSchema.parse(res);
     }
     async setBlackList(blackList: TBlackList['blackList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(
-            `${BASE_PATH}/package/setBlackList.cgi`,
-            { blackList },
-            this.apiUser,
-            options
-        );
+        return await this._postJsonEncoded(`${BASE_PATH}/package/setBlackList.cgi`, blackList, this.apiUser, options);
     }
 
     //   ----------------------------------------
@@ -221,7 +211,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async setZones(zones: TZones['zones'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setZones.cgi`, { zones }, this.apiUser, options);
+        await this._postJsonEncoded(`${BASE_PATH}/package/setZones.cgi`, zones, this.apiUser, options);
     }
 
     async goToCoordinates(lat: number, lon: number, alt?: number, options?: THttpRequestOptions) {
@@ -238,11 +228,11 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async checkGenetecConnection(params: TParameters, options?: THttpRequestOptions) {
-        return await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, '', params, options);
+        return await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, params, options);
     }
 
     async getGenetecCameraList(params: TParameters, options?: THttpRequestOptions) {
-        const res = await this._postUrlEncoded(`${BASE_PATH}/package/getGenetecCameraList.cgi`, '', params, options);
+        const res = await this._postUrlEncoded(`${BASE_PATH}/package/getGenetecCameraList.cgi`, params, options);
         return cameraListSchema.parse(res);
     }
 
@@ -303,13 +293,13 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     private async _postUrlEncoded(
         path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
         parameters: TParameters,
         options?: THttpRequestOptions,
         headers?: Record<string, string>
     ) {
         const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
-        return this._post(path, data, parameters, options, { ...baseHeaders, ...headers });
+        const data = paramToUrl(parameters);
+        return this._post(path, data, {}, options, { ...baseHeaders, ...headers });
     }
 
     private async _postJsonEncoded(
@@ -320,6 +310,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         headers?: Record<string, string>
     ) {
         const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-        return this._post(path, data, parameters, options, { ...baseHeaders, ...headers });
+        const jsonData = JSON.stringify(data);
+        return this._post(path, jsonData, parameters, options, { ...baseHeaders, ...headers });
     }
 }
