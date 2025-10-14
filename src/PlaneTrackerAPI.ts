@@ -20,9 +20,10 @@ import {
     TWhiteList,
     TZones,
     whiteListSchema,
+    wsAliasResponseSchema,
     zonesSchema,
 } from './types/PlaneTrackerAPI';
-import { ParsingBlobError } from './errors/errors';
+import { ImportSettingsError, ParsingBlobError, ResetCalibrationError } from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
 import { cameraListSchema } from './types/GenetecAgent';
@@ -44,34 +45,41 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async resetPtzCalibration(options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        await agent.get({
+        const res = await agent.get({
             path: `${BASE_PATH}/package/resetPtzCalibration.cgi`,
             parameters: this.apiUser,
             timeout: options?.timeout,
         });
+        if (!res.ok) {
+            throw new ResetCalibrationError('PTZ', await responseStringify(res));
+        }
     }
 
     async resetFocusCalibration(options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        await agent.get({
+        const res = await agent.get({
             path: `${BASE_PATH}/package/resetFocusCalibration.cgi`,
             parameters: this.apiUser,
             timeout: options?.timeout,
         });
+        if (!res.ok) {
+            throw new ResetCalibrationError('FOCUS', await responseStringify(res));
+        }
     }
 
     async serverRunCheck(options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
+        return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
     }
 
     async getLiveViewAlias(rtspUrl: string, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        await agent.get({
+        const res = await agent.get({
             path: `${BASE_PATH}/getLiveViewAlias.cgi`,
             parameters: { rtsp_url: rtspUrl },
             timeout: options?.timeout,
         });
+        return wsAliasResponseSchema.parse(await res.json());
     }
 
     //   ----------------------------------------
@@ -83,7 +91,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return cameraSettingsSchema.parse(res);
     }
     async setCameraSettings(settings: TCameraSettings, options?: THttpRequestOptions) {
-        await this._postJsonEncoded(
+        return await this._postJsonEncoded(
             `${BASE_PATH}/package_camera_settings.cgi`,
             settings,
             {
@@ -108,12 +116,16 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         options?: THttpRequestOptions
     ) {
         const agent = this.getClient(options?.proxyParams);
-        await agent.post({
+        const res = await agent.post({
             path: `${BASE_PATH}/package_data.cgi`,
             data: formData,
             parameters: { action: 'IMPORT', dataType },
             timeout: options?.timeout,
         });
+
+        if (!res.ok) {
+            throw new ImportSettingsError(await responseStringify(res));
+        }
     }
 
     //   ----------------------------------------
@@ -160,7 +172,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return priorityListSchema.parse(res);
     }
     async setPriorityList(priorityList: TPriorityList['priorityList'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(
+        return await this._postJsonEncoded(
             `${BASE_PATH}/package/setPriorityList.cgi`,
             { priorityList },
             this.apiUser,
@@ -173,7 +185,12 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return whiteListSchema.parse(res);
     }
     async setWhiteList(whiteList: TWhiteList['whiteList'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setWhiteList.cgi`, { whiteList }, this.apiUser, options);
+        return await this._postJsonEncoded(
+            `${BASE_PATH}/package/setWhiteList.cgi`,
+            { whiteList },
+            this.apiUser,
+            options
+        );
     }
 
     async getBlackList(options?: THttpRequestOptions) {
@@ -181,7 +198,12 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return blackListSchema.parse(res);
     }
     async setBlackList(blackList: TBlackList['blackList'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setBlackList.cgi`, { blackList }, this.apiUser, options);
+        return await this._postJsonEncoded(
+            `${BASE_PATH}/package/setBlackList.cgi`,
+            { blackList },
+            this.apiUser,
+            options
+        );
     }
 
     //   ----------------------------------------
@@ -204,7 +226,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async goToCoordinates(lat: number, lon: number, alt?: number, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        await agent.get({
+        return await agent.get({
             path: `${BASE_PATH}/package/goToCoordinates.cgi`,
             parameters: { lat, lon, alt, ...this.apiUser },
             timeout: options?.timeout,
@@ -216,7 +238,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     //   ----------------------------------------
 
     async checkGenetecConnection(params: TParameters, options?: THttpRequestOptions) {
-        await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, '', params, options);
+        return await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, '', params, options);
     }
 
     async getGenetecCameraList(params: TParameters, options?: THttpRequestOptions) {

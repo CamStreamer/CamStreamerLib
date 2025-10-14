@@ -9,6 +9,12 @@ export type TApiUser = {
     userPriority: number;
 };
 
+export const wsAliasResponseSchema = z.object({
+    alias: z.string(),
+    ws: z.string(),
+    ws_initial_message: z.string(),
+});
+
 //   ----------------------------------------
 //                 Settings
 //   ----------------------------------------

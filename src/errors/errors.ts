@@ -143,3 +143,18 @@ export class TimezoneFetchError extends Error {
         this.name = 'TimezoneFetchError';
     }
 }
+
+type TCalibrationType = 'PTZ' | 'FOCUS';
+
+export class ResetCalibrationError extends Error {
+    constructor(type: TCalibrationType, err: unknown) {
+        super('Error resetting ' + type.toLowerCase() + ' calibration: ' + err);
+        this.name = 'ResetCalibrationError';
+    }
+}
+export class ImportSettingsError extends Error {
+    constructor(err: unknown) {
+        super('Error importing settings: ' + err);
+        this.name = 'ImportSettingsError';
+    }
+}
