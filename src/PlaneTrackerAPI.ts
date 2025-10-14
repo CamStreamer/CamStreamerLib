@@ -43,6 +43,25 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return z.boolean().parse(res.state);
     }
 
+    async serverRunCheck(options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
+    }
+
+    async getLiveViewAlias(rtspUrl: string, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.get({
+            path: `${BASE_PATH}/getLiveViewAlias.cgi`,
+            parameters: { rtsp_url: rtspUrl },
+            timeout: options?.timeout,
+        });
+        return wsAliasResponseSchema.parse(await res.json());
+    }
+
+    //   ----------------------------------------
+    //                 Calibration
+    //   ----------------------------------------
+
     async resetPtzCalibration(options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({
@@ -65,21 +84,6 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (!res.ok) {
             throw new ResetCalibrationError('FOCUS', await responseStringify(res));
         }
-    }
-
-    async serverRunCheck(options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
-    }
-
-    async getLiveViewAlias(rtspUrl: string, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({
-            path: `${BASE_PATH}/getLiveViewAlias.cgi`,
-            parameters: { rtsp_url: rtspUrl },
-            timeout: options?.timeout,
-        });
-        return wsAliasResponseSchema.parse(await res.json());
     }
 
     //   ----------------------------------------
@@ -142,7 +146,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return trackingModeSchema.parse(res);
     }
     async setTrackingMode(mode: TTrackingMode['mode'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, { mode: mode }, this.apiUser, options);
+        await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, { mode }, this.apiUser, options);
     }
 
     async startTrackingPlane(icao: ICAO, options?: THttpRequestOptions) {
@@ -174,7 +178,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     async setPriorityList(priorityList: TPriorityList['priorityList'], options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
             `${BASE_PATH}/package/setPriorityList.cgi`,
-            { priorityList: priorityList },
+            { priorityList },
             this.apiUser,
             options
         );
@@ -187,7 +191,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     async setWhiteList(whiteList: TWhiteList['whiteList'], options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
             `${BASE_PATH}/package/setWhiteList.cgi`,
-            { whiteList: whiteList },
+            { whiteList },
             this.apiUser,
             options
         );
@@ -200,7 +204,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     async setBlackList(blackList: TBlackList['blackList'], options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
             `${BASE_PATH}/package/setBlackList.cgi`,
-            { blackList: blackList },
+            { blackList },
             this.apiUser,
             options
         );
@@ -266,22 +270,6 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         }
     }
 
-    private async _post(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, parameters, headers, timeout: options?.timeout });
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new Error(await responseStringify(res));
-        }
-    }
-
     private async _getBlob(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.get({ path, parameters, timeout: options?.timeout });
@@ -301,26 +289,43 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         }
     }
 
-    private async _postUrlEncoded(
-        path: string,
-        parameters: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
-        const data = paramToUrl(parameters);
-        return this._post(path, data, {}, options, { ...baseHeaders, ...headers });
-    }
-
     private async _postJsonEncoded(
         path: string,
         data: string | Parameters<Client['post']>[0]['data'],
         parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
+        options?: THttpRequestOptions
     ) {
-        const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
+        const agent = this.getClient(options?.proxyParams);
         const jsonData = JSON.stringify(data);
-        return this._post(path, jsonData, parameters, options, { ...baseHeaders, ...headers });
+        const res = await agent.post({
+            path,
+            data: jsonData,
+            parameters,
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            timeout: options?.timeout,
+        });
+
+        if (res.ok) {
+            return res;
+        } else {
+            throw new Error(await responseStringify(res));
+        }
+    }
+
+    private async _postUrlEncoded(path: string, params: TParameters, options?: THttpRequestOptions) {
+        const data = paramToUrl(params);
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.post({
+            path,
+            data,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            timeout: options?.timeout,
+        });
+
+        if (res.ok) {
+            return res;
+        } else {
+            throw new Error(await responseStringify(res));
+        }
     }
 }
