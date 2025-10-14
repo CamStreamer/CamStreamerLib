@@ -247,7 +247,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async getGenetecCameraList(params: TParameters, options?: THttpRequestOptions) {
         const res = await this._postUrlEncoded(`${BASE_PATH}/package/getGenetecCameraList.cgi`, params, options);
-        return cameraListSchema.parse(res);
+        return cameraListSchema.parse(await res.json());
     }
 
     //   ----------------------------------------
