@@ -142,7 +142,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return trackingModeSchema.parse(res);
     }
     async setTrackingMode(mode: TTrackingMode['mode'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, mode, this.apiUser, options);
+        await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, { mode: mode }, this.apiUser, options);
     }
 
     async startTrackingPlane(icao: ICAO, options?: THttpRequestOptions) {
@@ -174,7 +174,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     async setPriorityList(priorityList: TPriorityList['priorityList'], options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
             `${BASE_PATH}/package/setPriorityList.cgi`,
-            { priorityList },
+            { priorityList: priorityList },
             this.apiUser,
             options
         );
@@ -185,7 +185,12 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return whiteListSchema.parse(res);
     }
     async setWhiteList(whiteList: TWhiteList['whiteList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(`${BASE_PATH}/package/setWhiteList.cgi`, whiteList, this.apiUser, options);
+        return await this._postJsonEncoded(
+            `${BASE_PATH}/package/setWhiteList.cgi`,
+            { whiteList: whiteList },
+            this.apiUser,
+            options
+        );
     }
 
     async getBlackList(options?: THttpRequestOptions) {
@@ -193,7 +198,12 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return blackListSchema.parse(res);
     }
     async setBlackList(blackList: TBlackList['blackList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(`${BASE_PATH}/package/setBlackList.cgi`, blackList, this.apiUser, options);
+        return await this._postJsonEncoded(
+            `${BASE_PATH}/package/setBlackList.cgi`,
+            { blackList: blackList },
+            this.apiUser,
+            options
+        );
     }
 
     //   ----------------------------------------
@@ -210,7 +220,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return zonesSchema.parse(res);
     }
 
-    async setZones(zones: TZones['zones'], options?: THttpRequestOptions) {
+    async setZones(zones: TZones, options?: THttpRequestOptions) {
         await this._postJsonEncoded(`${BASE_PATH}/package/setZones.cgi`, zones, this.apiUser, options);
     }
 
