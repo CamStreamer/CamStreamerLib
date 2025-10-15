@@ -8,7 +8,7 @@ Module for access to the CamSwitcher HTTP interface.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
-import { CamSwitcherAPI } from 'camstreamerlib/web';
+import { CamSwitcherAPI } from 'camstreamerlib';
 
 const cswApi = new CamSwitcherAPI(
     new DefaultClient({
@@ -68,8 +68,8 @@ const path = CamSwitcherAPI.getWsEventsPath();
 Returns relative path for clip preview
 
 -   **Parameters:**
-    -   `id` (string)
-    -   `storage`: (`"SD_DISK"` | `"FLASH"`)
+    -   `id` (`string`)
+    -   `storage`: (`'SD_DISK'` | `'FLASH'`)
 -   **Returns:** `string`
 
 ```javascript
@@ -84,7 +84,7 @@ Returns CamSwitcher client - can be used in custom CamSwitcher API calls.
 
 -   **Parameters:**
 
-    -   `proxyParams`:
+    -   `proxyParams` (`TProxyParams`, optional)
 
     ```typescript
     type TProxyParams =
@@ -106,9 +106,9 @@ const client = cswApi.getClient();
 Generates silence clip, used when there is no audio. Its mandatory to have silence clip generated to CSw work properly
 
 -   **Parameters:**
-    -   `sampleRate` (number): audio sample rate
-    -   `channels`: (`"mono"` | `"stereo"`)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `sampleRate` (`number`): audio sample rate
+    -   `channels`: (`'mono'` | `'stereo'`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -117,10 +117,10 @@ await cswApi.generateSilence(41500, 'mono');
 
 ### checkCameraTime(options?)
 
-Check if camera has correct time setted up (used for checking trial license)
+Check if camera has correct time set up (used for checking trial license)
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -132,7 +132,7 @@ const isValid = await cswApi.checkCameraTime();
 Gets storage information.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TStorageInfo>`
 
     ```typescript
@@ -153,8 +153,8 @@ const storageInfo = await cswApi.getStorageInfo();
 Gets the maximum FPS for a video source.
 
 -   **Parameters:**
-    -   `source` (number): Video source index.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `source` (`number`): Video source index.
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<number>`
 
 ```javascript
@@ -166,8 +166,8 @@ const maxFps = await cswApi.getMaxFps(1);
 Gets the list of network cameras.
 
 -   **Parameters:**
-    -   `source` (number): Video source index.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `source` (`number`): Video source index.
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TNetworkCamera[]>`
 
     ```typescript
@@ -188,7 +188,7 @@ const cameras = await cswApi.getNetworkCameraList();
 Gets the WebSocket authorization token to authorize event websocket
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string>`
 
 ```javascript
@@ -200,7 +200,7 @@ const token = await cswApi.wsAuthorization();
 Gets parameters to set up video stream websocket.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TOutputInfo>`
 
     ```typescript
@@ -220,7 +220,7 @@ const outputInfo = await cswApi.getOutputInfo();
 Gets parameters to set up audio push websocket.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TAudioPushInfo>`
 
     ```typescript
@@ -262,7 +262,7 @@ type TStreamSaveLoadList = Record<string, Partial<TStreamSave>>;
 Gets the list of saved streams.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TStreamSaveLoadList>` ([`TStreamSaveLoadList`](#types))
 
 ```javascript
@@ -275,7 +275,7 @@ Sets the list of saved streams.
 
 -   **Parameters:**
     -   `data` ([`TStreamSaveList`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -335,7 +335,7 @@ type TStorageType = 'SD_DISK' | 'FLASH';
 Gets the list of saved clips.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TClipSaveLoadList>` ([`TClipSaveLoadList`](#types-1))
 
 ```javascript
@@ -348,7 +348,7 @@ Sets the list of saved clips.
 
 -   **Parameters:**
     -   `data` ([`TClipSaveList`](#types-1))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -360,12 +360,12 @@ await cswApi.setClipSaveList(clipData);
 Uploads a new clip (video or audio).
 
 -   **Parameters:**
-    -   `file` (Buffer | File): The clip file data.
-    -   `clipType` ('video' | 'audio'): Type of the clip.
+    -   `file` (`Buffer` | `File`): The clip file data.
+    -   `clipType` (`'video'` | `'audio'`): Type of the clip.
     -   `storage` ([`TStorageType`](#types-1)): Storage type, e.g. 'SD_DISK' or 'FLASH'.
-    -   `id` (string): Clip identifier.
-    -   `fileName` (string, optional): Name of the file.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `id` (`string`): Clip identifier.
+    -   `fileName` (`string`, optional): Name of the file.
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -380,7 +380,7 @@ Removes a clip by ID and storage type.
 -   **Parameters:**
     -   `id` (string): Clip identifier.
     -   `storage` ([`TStorageType`](#types-1)): Storage type.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -392,7 +392,7 @@ await cswApi.removeClip('clipId', 'SD_DISK');
 Gets the list of clips.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TClipList>` ([`TClipList`](#types-1))
 
 ```javascript
@@ -445,7 +445,7 @@ type TPlaylistSaveLoadList = Record<string, Partial<TPlaylistSave>>;
 Gets the list of saved playlists.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TPlaylistSaveLoadList>` ([`TPlaylistSaveLoadList`](#types-2))
 
 ```javascript
@@ -458,7 +458,7 @@ Sets the list of saved playlists.
 
 -   **Parameters:**
     -   `data` ([`TPlaylistSaveList`](#types-2))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -471,7 +471,7 @@ Switches to the specified playlist.
 
 -   **Parameters:**
     -   `playlistName` (string): Name of the playlist to switch to.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -484,7 +484,7 @@ Adds a playlist to the queue.
 
 -   **Parameters:**
     -   `playlistName` (string): Name of the playlist to add to the queue.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -496,7 +496,7 @@ await cswApi.playlistQueuePush('MyPlaylist');
 Clears the playlist queue.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -508,7 +508,7 @@ await cswApi.playlistQueueClear();
 Gets the current playlist queue.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string[]>` - Array of playlist names in the queue.
 
 ```javascript
@@ -520,7 +520,7 @@ const queue = await cswApi.playlistQueueList();
 Plays the next playlist in the queue.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -567,7 +567,7 @@ type TrackerSaveLoadList = Record<string, Partial<TTrackerSave>>;
 Gets the list of saved trackers.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TrackerSaveLoadList>` ([`TrackerSaveLoadList`](#types-3))
 
 ```javascript
@@ -581,7 +581,7 @@ Sets the list of saved trackers.
 -   **Parameters:**
 
     -   `data` ([`TrackerSaveList`](#types-3)):
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 
 -   **Returns:** `Promise<boolean>`
 
@@ -640,7 +640,7 @@ Sets camera switcher options.
 -   **Parameters:**
     -   `data` ([`TCameraOptions`](#types-4))
     -   `cameraFWVersion` (string): Camera firmware version.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -653,7 +653,7 @@ Sets global audio settings.
 
 -   **Parameters:**
     -   `settings` ([`TGlobalAudioSettings`](#types-4))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -666,7 +666,7 @@ Sets secondary audio settings.
 
 -   **Parameters:**
     -   `settings` ([`TSecondaryAudioSettings`](#types-4))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -679,7 +679,7 @@ Sets the default playlist.
 
 -   **Parameters:**
     -   `id` (string): Playlist identifier.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -692,7 +692,7 @@ Sets a permanent RTSP URL token.
 
 -   **Parameters:**
     -   `token` (string): RTSP token string.
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -704,7 +704,7 @@ await cswApi.setPermanentRtspUrlToken('token123');
 Gets camera switcher options.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Partial<TCameraOptions>>` ([`TCameraOptions`](#types-4))
 
 ```javascript
@@ -716,7 +716,7 @@ const cswOptions = await cswApi.getCamSwitchOptions();
 Gets global audio settings.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TGlobalAudioSettings>` ([`TGlobalAudioSettings`](#types-4)):
 
 ```javascript
@@ -728,7 +728,7 @@ const audioSettings = await cswApi.getGlobalAudioSettings();
 Gets secondary audio settings.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TSecondaryAudioSettings>` ([`TSecondaryAudioSettings`](#types-4))
 
 ```javascript
@@ -740,7 +740,7 @@ const secondaryAudioSettings = await cswApi.getSecondaryAudioSettings();
 Gets the permanent RTSP URL token.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string>`
 
 ```javascript

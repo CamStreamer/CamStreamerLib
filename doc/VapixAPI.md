@@ -1,16 +1,22 @@
 # VapixAPI
 
-Access the Axis camera VAPIX interface. For more details, see the documentation for the [Axis camera VAPIX library](https://www.axis.com/vapix-library/).
+Access the Axis camera VAPIX interface.
+
+> [!TIP]
+> For more details, see the documentation for the [Axis camera VAPIX library](https://www.axis.com/vapix-library/).
+
 
 ## Constructor
 
--   **new VapixAPI(client)** - Look at the [Client](./Client.md) docs.
+-   **new VapixAPI(client, CustomFormData)**
+- Look at the [Client](./Client.md) docs.
+- `CustomFormData` is an optional parameter which defaults to type of `FormData`
 
 The `options` parameter contains access to the camera and specifies which protocol should be used.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
-import { VapixAPI } from 'camstreamerlib/web';
+import { VapixAPI } from 'camstreamerlib';
 
 const vapix = new VapixAPI(
     new DefaultClient({
@@ -22,6 +28,22 @@ const vapix = new VapixAPI(
         pass: '',
     })
 );
+```
+
+### Common types
+
+```typescript
+type TResponse = {
+    json: () => Promise<any>;
+    text: () => Promise<string>;
+    blob: () => Promise<unknown>;
+    status: number;
+    ok: boolean;
+};
+
+type TParameters = {
+    [key: string]: string | number | boolean | null | undefined;
+}
 ```
 
 > [!TIP]
@@ -51,7 +73,7 @@ Returns VAPIX API client - can be used in custom VAPIX API calls.
 
 -   **Parameters:**
 
-    -   `proxyParams`:
+    -   `proxyParams` (`TProxyParams`, optional)
 
     ```typescript
     type TProxyParams =
@@ -71,16 +93,16 @@ const client = vapix.getClient();
 ### postUrlEncoded(path, parameters?, headers?, options?)
 
 -   **Parameters:**
-    -   `path` (string)
-    -   `parameters` (`TParameters`)
-    -   `headers` (`Record<string, string>`)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<>`
+    -   `path` (`string`)
+    -   `parameters` ([`TParameters`](#common-types), optional)
+    -   `headers` (`Record<string, string>`, optional)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 Universal method for HTTP URL encoded POST requests to the camera VAPIX API.
 
 ```javascript
-vapix.postUrlEncoded('/axis-cgi/param.cgi', 'action=update&camscripter.enabled=1');
+await vapix.postUrlEncoded('/axis-cgi/param.cgi', 'action=update&camscripter.enabled=1');
 ```
 
 ### postJson(path, jsonData, headers?, options?)
@@ -90,12 +112,12 @@ Universal method for HTTP POST requests to the camera VAPIX API.
 -   **Parameters:**
     -   `path` (string)
     -   `jsonData` (`Record<string, any>`)
-    -   `headers` (`Record<string, string>`)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<>`
+    -   `headers` (`Record<string, string>`, optional)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
-vapix.postJson();
+await vapix.postJson();
 ```
 
 ### getCameraImage(parameters, options?)
@@ -105,7 +127,7 @@ Get an image of the camera using the specified compression and resolution.
 -   **Parameters:**
 
     -   `parameters` (`TCameraImageConfig`)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 
     ```typescript
     type TCameraImageConfig = {
@@ -117,7 +139,7 @@ Get an image of the camera using the specified compression and resolution.
     };
     ```
 
--   **Returns:** `Promise<Response | UndiciResponse>`
+-   **Returns:** `ReturnType<Client['get']>`
 
 ```javascript
 await vapix.getCameraImage({});
@@ -128,7 +150,7 @@ await vapix.getCameraImage({});
 Get all the available camera events.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string>`
 
 ```javascript
@@ -140,7 +162,7 @@ await vapix.getEventDeclarations();
 Return all supported audio sample rates.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TAudioSampleRates>`
 
     ```typescript
@@ -157,7 +179,7 @@ await vapix.getSupportedAudioSampleRate();
 ### performAutofocus(options?)
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -169,7 +191,7 @@ await vapix.performAutofocus();
 Return info about the camera's SD card.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TSDCardInfo>`
 
     ```typescript
@@ -189,7 +211,7 @@ await vapix.checkSdCard();
 Mount/unmount SD Card.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<number>`
 
 ```javascript
@@ -203,7 +225,7 @@ Returns SD Card progress number.
 
 -   **Parameters:**
     -   `jobId` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<number>`
 
 ```javascript
@@ -214,11 +236,12 @@ await vapix.fetchSDCardJobProgress(1);
 
 Generate and return a server report including product information, parameter settings, and system logs.
 
--   [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
+> [!TIP]
+> [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TResponse | UndiciResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
 await vapix.downloadCameraReport();
@@ -228,11 +251,12 @@ await vapix.downloadCameraReport();
 
 Generate and return a system log information.
 
--   [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
+> [!TIP]
+> [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TResponse | UndiciResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
 await vapix.getSystemLog();
@@ -243,8 +267,8 @@ await vapix.getSystemLog();
 Return the maximum supported FPS on the given channel.
 
 -   **Parameters:**
-    -   `channel` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `channel` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<number>`
 
 ```javascript
@@ -259,7 +283,7 @@ Return the timezone of the camera.
 > There are two enpoints for getting camera timezone - one is depracated - the method tries calling the new one, if it fails it tries the depracated one
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string>`
 
 ```javascript
@@ -271,9 +295,9 @@ const timezone = await vapix.getTimezone();
 Return the maximum supported FPS on the given channel.
 
 -   **Parameters:**
-    -   `channel` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<>`
+    -   `channel` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:**
 
     ```typescript
     Promise<{
@@ -294,7 +318,7 @@ const timeInfo = await vapix.getDateTimeInfo();
 ### getDevicesSettings(options?)
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TAudioDevice[]>`:
 
     ```typescript
@@ -349,8 +373,8 @@ const settings = await vapix.getDevicesSettings();
 ### fetchRemoteDeviceInfo(payload, options?)
 
 -   **Parameters:**
-    -   `options` (T extends Record<string, any>)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `payload` (`T extends Record<string, any>`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<any>`
 
 ```javascript
@@ -362,7 +386,7 @@ await vapix.fetchRemoteDeviceInfo(payload);
 Read all custom HTTP headers from the camera.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Record<string, string>>`
 
 ```javascript
@@ -374,9 +398,9 @@ const headers = await vapix.getHeaders();
 Add custom HTTP headers to the camera.
 
 -   **Parameters:**
-    -   `headers` (Record<string, string>)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TResponse | UndiciResponse>`
+    -   `headers` (`Record<string, string>`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
 await vapix.setHeaders(headers);
@@ -389,8 +413,8 @@ await vapix.setHeaders(headers);
 Get parameters from the camera.
 
 -   **Parameters:**
-    -   `paramNames` (string | string[])
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `paramNames` (`string` | `string[]`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Record<string, string>>`
 
 ```javascript
@@ -402,8 +426,8 @@ const params = await vapix.getParameter(['camscripter', 'camoverlay']);
 Set parameters to the camera.
 
 -   **Parameters:**
-    -   `params` (Record<string, string | number | boolean>)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `params` (`Record<string, string | number | boolean>`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -415,7 +439,7 @@ const params = await vapix.setParameter({ 'root.camscripter.Enabled': '1' });
 Get the list of guard tours.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TGuardTour[]>`:
 
     ```typescript
@@ -445,9 +469,9 @@ const guardList = await vapix.getGuardTourList();
 Enable or disable the guard tour.
 
 -   **Parameters:**
-    -   `guardTourId` (string)
-    -   `enable` (boolean)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `guardTourId` (`string`)
+    -   `enable` (`boolean`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -461,8 +485,8 @@ await vapix.setGuardTourEnabled('root.GuardTour.G0', true);
 Get a list of PTZ presets for the specified channel. Channels are numbered from 1.
 
 -   **Parameters:**
-    -   `channel` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `channel` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string[]>`
 
 ```javascript
@@ -472,8 +496,8 @@ const presets = await vapix.getPTZPresetList(1);
 ### listPTZ(camera, options?)
 
 -   **Parameters:**
-    -   `camera` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `camera` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TCameraPTZItem[]>`:
 
     ```typescript
@@ -497,7 +521,7 @@ const list = await vapix.listPTZ(2);
 Return current preset positions for all video channels.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TPtzOverview>`:
 
     ```typescript
@@ -518,10 +542,10 @@ const overview = await vapix.listPtzVideoSourceOverview();
 Move the camera channel to the PTZ preset.
 
 -   **Parameters:**
-    -   `channel` (number)
-    -   `presetName` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TResponse | UndiciResponse>`
+    -   `channel` (`number`)
+    -   `presetName` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
 await vapix.goToPreset(1, 'home');
@@ -532,8 +556,8 @@ await vapix.goToPreset(1, 'home');
 Return values of pan, tilt, and zoom for the current position.
 
 -   **Parameters:**
-    -   `camera` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `camera` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TCameraPTZItemData>`
 
     ```typescript
@@ -555,7 +579,7 @@ await vapix.goToPreset(2);
 Get the list of ports and their configurations.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:**
 
     ```typescript
@@ -583,7 +607,7 @@ Set the configuration for multiple ports.
 
 -   **Parameters:**
     -   `ports` (`TPortSetSchema[]`)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
     ```typescript
@@ -609,9 +633,9 @@ await vapix.setPorts([
 Set a sequence of states for a specific port.
 
 -   **Parameters:**
-    -   `port` (number)
+    -   `port` (`number`)
     -   `sequence` (`TPortSequenceStateSchema[]`)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
     ```typescript
@@ -635,7 +659,7 @@ await vapix.setPortStateSequence(1, [
 Get the list of installed Acap applications.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TApplicationList>`
 
     ```typescript
@@ -663,8 +687,8 @@ const appList = await vapix.getApplicationList();
 Start the application whose name is given by the parameter `applicationId`.
 
 -   **Parameters:**
-    -   `applicationId` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `applicationId` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -676,8 +700,8 @@ await vapix.startApplication("CamStreamer");
 Restart the application whose name is given by the parameter `applicationId`.
 
 -   **Parameters:**
-    -   `applicationId` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `applicationId` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -689,8 +713,8 @@ await vapix.restartApplication("CamStreamer");
 Stop the application whose name is given by the parameter `applicationId`.
 
 -   **Parameters:**
-    -   `applicationId` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `applicationId` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -702,9 +726,9 @@ await vapix.stopApplication("CamStreamer");
 Install ACAP application.
 
 -   **Parameters:**
-    -   `data` (FormData)
-    -   `fileName` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `data` (`Parameters<typeof FormData.prototype.append>[1]`)
+    -   `fileName` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript

@@ -22,7 +22,7 @@ const httpServer = new HttpServer({ port: 80 });
 It registers a callback for access to the specified path. The callback has attributes - request and response.
 
 -   **Parameters:**
-    -   `path` (string)
+    -   `path` (`string`)
     -   `callback` ((req: `http.IncomingMessage`, res: `http.ServerResponse`) => void)
 
 ```javascript

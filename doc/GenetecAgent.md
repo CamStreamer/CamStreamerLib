@@ -97,8 +97,8 @@ const details = await agent.getCameraDetails(
 Add Genetec bookmark with a timestamp to one or more cameras.
 
 -   **Parameters:**
-    -   `guids` (string[])
-    -   `bookMarkText` (string)
+    -   `guids` (`string[]`)
+    -   `bookMarkText` (`string`)
 -   **Returns:** `Promise<void>`
 
 ```javascript

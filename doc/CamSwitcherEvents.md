@@ -7,8 +7,8 @@ Module for receiving CamSwitcher events. Will set up ws connection to the camera
 -   **new CamSwitcherEvents(wsClient)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
-import { WsEventClient } from 'camstreamerlib/esm/node';
-import { CamSwitcherEvents } from 'camstreamerlib/esm';
+import { WsEventClient } from 'camstreamerlib/node';
+import { CamSwitcherEvents } from 'camstreamerlib';
 
 const cswEvents = new CamSwitcherEvents();
 cswevents.setWebsocket(
@@ -30,7 +30,7 @@ cswevents.setWebsocket(
 Sets the websocket client for receiving events.
 
 -   **Parameters:**
-    -   `ws` (IWebsocket): Websocket client instance.
+    -   `ws` (`IWebsocket`): Websocket client instance.
 -   **Returns:** `void`
 
 ```javascript
@@ -52,9 +52,9 @@ cswEvents.resendInitData();
 Adds a listener for a specific event type.
 
 -   **Parameters:**
-    -   `type` (string): Event type (e.g. 'PlaylistSwitch', 'StreamAvailable', ...)
-    -   `listener` (function): `(data, isInit) => void` where `data` is the event object and `isInit` is a boolean.
-    -   `id` (string): Unique listener ID.
+    -   `type` (`string`): Event type (e.g. 'PlaylistSwitch', 'StreamAvailable', ...)
+    -   `listener` (`function`): `(data, isInit) => void` where `data` is the event object and `isInit` is a boolean.
+    -   `id` (`string`): Unique listener ID.
 -   **Returns:** `void`
 
 ```javascript
@@ -72,8 +72,8 @@ cswEvents.addListener(
 Removes a listener for a specific event type and ID.
 
 -   **Parameters:**
-    -   `type` (string): Event type.
-    -   `id` (string): Listener ID.
+    -   `type` (`string`): Event type.
+    -   `id` (`string`): Listener ID.
 -   **Returns:** `void`
 
 ```javascript

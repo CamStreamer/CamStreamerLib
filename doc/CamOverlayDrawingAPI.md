@@ -1,13 +1,16 @@
 # CamOverlayDrawingAPI
 
-Module for easy control of the CamOverlay drawing API. For more details on supported drawing functions, see https://camstreamer.com/camoverlay-api1
+Module for easy control of the CamOverlay drawing API.
+
+> [!TIP]
+> For more details on supported drawing functions see https://camstreamer.com/camoverlay-api1
 
 ## Constructor
 
 -   **CamOverlayDrawingAPI(options)** - The options parameter contains access to the camera. Values mentioned in the example below are defaults.
 
     ```typescript
-    const coAPI = CamOverlayDrawingAPI({
+    const coAPI = new CamOverlayDrawingAPI({
         tls: false,
         tlsInsecure: false,
         ip: '127.0.0.1',
@@ -37,19 +40,20 @@ Close the WebSocket connection.
 coAPI.disconnect();
 ```
 
-### cairo(command, params...)()
-
--   **Parameters:**
-
-    -   `command` (string)
-    -   `params` (unknown[])
+### cairo(command, params)
 
 Call a function from the Cairo library.
 
--   See https://cairographics.org/manual/ and https://support.camstreamer.com/hc/en-us/articles/360010465797-CamOverlay-App-1-x-API-documentation for implemented functions.
+-   **Parameters:**
+    -   `command` (`string`)
+    -   `params` (`unknown[]`)
+
+> [!TIP]
+> See https://cairographics.org/manual/ and https://support.camstreamer.com/hc/en-us/articles/360010465797-CamOverlay-App-1-x-API-documentation for implemented functions.
 
 ```typescript
-coApi.cairo('cairo_image_surface_create', 'CAIRO_FORMAT_ARGB32', 200, 200); // https://cairographics.org/manual/cairo-Image-Surfaces.html#cairo-image-surface-create
+coApi.cairo('cairo_image_surface_create', 'CAIRO_FORMAT_ARGB32', 200, 200);
+// https://cairographics.org/manual/cairo-Image-Surfaces.html#cairo-image-surface-create
 ```
 
 ### writeText(cairoContext, text, posX, posY, width, height, align, textFitMethod)
@@ -58,20 +62,20 @@ Write aligned text to the box specified by x, y coordinates, width, and height.
 
 -   **Parameters:**
 
-    -   `cairoContext` (string)
-    -   `text` (string)
-    -   `posX` (number)
-    -   `posY` (number)
-    -   `width` (number)
-    -   `height` (number)
-    -   `align` (`A_RIGHT` | `A_LEFT` | `A_CENTER`)
-    -   `textFitMethod` (`TFM_SCALE` | `TFM_TRUNCATE` | `TFM_OVERFLOW`)
+    -   `cairoContext` (`string`)
+    -   `text` (`string`)
+    -   `posX` (`number`)
+    -   `posY` (`number`)
+    -   `width` (`number`)
+    -   `height` (`number`)
+    -   `align` (`'A_RIGHT'` | `'A_LEFT'` | `'A_CENTER'`)
+    -   `textFitMethod` (`'TFM_SCALE'` | `'TFM_TRUNCATE'` | `'TFM_OVERFLOW'`)
 
 -   TextFitMethod options:
 
-    -   `TFM_SCALE` - Text size is adjusted to the width and height of the box.
-    -   `TFM_TRUNCATE` - Text size is truncated to the width of the box.
-    -   `TFM_OVERFLOW` - Text overflows the box.
+    -   `'TFM_SCALE'` - Text size is adjusted to the width and height of the box.
+    -   `'TFM_TRUNCATE'` - Text size is truncated to the width of the box.
+    -   `'TFM_OVERFLOW'` - Text overflows the box.
 
 ```typescript
 coApi.writeText('cairo0', 'Hello World', 5, 100, 190, 15, 'A_RIGHT', 'TFM_TRUNCATE');
@@ -83,7 +87,7 @@ Upload a .jpg or .png image to the CamOverlay application. The function returns 
 
 -   **Parameters:**
 
-    -   `imgBuffer` (Buffer)
+    -   `imgBuffer` (`Buffer`)
 
 ```typescript
 coApi.uploadImageData(fs.readFileSync('image.png'));
@@ -95,7 +99,7 @@ Upload a .ttf font to the CamOverlay application.
 
 -   **Parameters:**
 
-    -   `fontBuffer` (Buffer)
+    -   `fontBuffer` (`Buffer`)
 
 ```typescript
 coApi.uploadFontData(fs.readFileSync('font.ttf'));
@@ -107,9 +111,9 @@ Show image in the video stream from the camera. Position is in coordinates -1.0,
 
 -   **Parameters:**
 
-    -   `cairoImage` (string)
-    -   `posX` (number)
-    -   `posY` (number)
+    -   `cairoImage` (`string`)
+    -   `posX` (`number`)
+    -   `posY` (`number`)
 
 ```typescript
 coApi.showCairoImage('surface0', -1.0, -1.0);
@@ -121,11 +125,11 @@ Show image in the video stream from the camera. Position is absolute in pixels, 
 
 -   **Parameters:**
 
-    -   `cairoImage` (string)
-    -   `posX` (number)
-    -   `posY` (number)
-    -   `width` (number)
-    -   `height` (number)
+    -   `cairoImage` (`string`)
+    -   `posX` (`number`)
+    -   `posY` (`number`)
+    -   `width` (`number`)
+    -   `height` (`number`)
 
 ```typescript
 coApi.showCairoImage('surface0', 100, 100, 1920, 1080);
