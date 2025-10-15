@@ -228,18 +228,31 @@ export const cameraSettingsSchema = z.object({
 export type TCameraSettings = z.infer<typeof cameraSettingsSchema>;
 
 export const serverSettingsSchema = z.object({
-    cameraCalibration: z.object({
-        posLat: z.number(),
-        posLon: z.number(),
-        geoidHN: z.number(),
-        altitudeAmsl: z.number(),
-        rotationEast: z.number(),
-        rotationNorth: z.number(),
-        rotationUp: z.number(),
-        tiltTransformationCoefA: z.number(),
-        tiltCameraKnownPoint: z.number(),
-        tiltRealKnownPoint: z.number(),
-    }),
+    cameraCalibration: z
+        .object({
+            posLat: z.number(),
+            posLon: z.number(),
+            geoidHN: z.number(),
+            altitudeAmsl: z.number(),
+            rotationEast: z.number(),
+            rotationNorth: z.number(),
+            rotationUp: z.number(),
+            tiltTransformationCoefA: z.number(),
+            tiltCameraKnownPoint: z.number(),
+            tiltRealKnownPoint: z.number(),
+        })
+        .default({
+            posLat: 50,
+            posLon: 14,
+            geoidHN: 45,
+            altitudeAmsl: 372,
+            rotationEast: 0,
+            rotationNorth: 0,
+            rotationUp: 0,
+            tiltTransformationCoefA: 1.0,
+            tiltCameraKnownPoint: 90,
+            tiltRealKnownPoint: 90,
+        }),
 });
 export type TServerSettings = z.infer<typeof serverSettingsSchema>;
 
