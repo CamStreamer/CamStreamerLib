@@ -17,7 +17,6 @@ npm install camstreamerlib
 
 ## Documentation for ACAP and Camera API
 
-
 | API  | Description |
 | ------------- | ------------- |
 | [VapixAPI](doc/VapixAPI.md)  | Module to access Axis camera VAPIX interface. |
@@ -39,39 +38,128 @@ npm install camstreamerlib
 | [CamSwitcherEvents](doc/CamSwitcherEvents.md) | Module which allows receiving events from CamSwitcher ACAP application. |
 | [GenetecAgent](doc/GenetecAgent.md) | Module which allows receiving and sending data to Genetec VMS. |
 
+</br>
 
-## Breaking changes when moving from version 3.\*.\* to 4.\*.\* (latest)
+# Breaking Changes
 
-...
+<details open>
 
+<summary>from version 3.\*.\* to 4.\*.\* (latest)</summary>
 
-## Breaking changes when moving from version 2.\*.\* to 3.\*.\*
+### Breaking changes when moving from version 3.\*.\* to 4.\*.\* (latest)
+<hr/>
+
+### ACAP API Class Constructors Updated
+
+All ACAP API classes now **require a client instance to be passed into their constructors** instead of options object.
+- This change improves flexibility by allowing you to use either the Node or Web client, depending on your environment.
+
+Example (before → now):
+
+```typescript
+// Before
+const coApi = new CamOverlayAPI({
+    ip?: string;
+    port?: number;
+    user?: string;
+    pass?: string;
+    tls?: boolean;
+    tlsInsecure?: boolean;
+    keepAlive?: boolean
+});
+
+// Now
+import { DefaultClient } from 'camstreamerlib/web';
+import { CamOverlayAPI } from 'camstreamerlib';
+
+const coApi = new CamOverlayAPI(
+    new DefaultClient({
+        tls: false,
+        tlsInsecure: false,
+        ip: '127.0.0.1',
+        port: 80,
+        user: '',
+        pass: '',
+    })
+);
+```
+
+### Imports Simplified
+
+Importing from the camstreamerlib is now much easier -> all exports are now re-exported from the root index.js.
+You no longer need to import from subpaths.
+
+Example:
+
+```typescript
+// Before
+import { CamScripterAPI } from "camstreamerlib/CamScripterAPI";
+import { Painter } from 'camstreamerlib/CamOverlayPainter/Painter';
+import { DefaultAgent } from 'camstreamerlib/DefaultAgent';
+
+// Now
+import { CamScripterAPI } from "camstreamerlib";
+import { Painter } from 'camstreamerlib/node';
+import { DefaultClient } from 'camstreamerlib/web';
+```
+
+> Note: To ensure compatibility, set the module resolution in your projects tsconfig.json to `"moduleResolution": "bundler"`.
+
+### Class and Method Refactored
+
+- **CameraVapix API** has been renamed to [**VapixAPI**](doc/VapixAPI.md).
+- **DefaultAgent** has been refactored into two separate classes - one for node, one for web as [**DefaultClient**](doc/Client.md)
+- Several method names and parameter names across the library have been updated for consistency and clarity.
+
+> Please refer to [the documentation](#documentation-for-acap-and-camera-api).
+
+- New API modules and endpoints have been introduced, providing extended functionality and better coverage of the underlying service.
+
+<hr/>
+</details>
+
+<details>
+
+<summary>from version 2.\*.\* to 3.\*.\*</summary>
+
+### Breaking changes when moving from version 2.\*.\* to 3.\*.\*
 
 -   CamStreamerlib requiers Node.js version 18 or higher.
 -   CamOverlayDrawingAPI tries to reconnect when the websocket is closed. You don't have to do it manually.
-> [!NOTE]
 > However, events `open` and `close` are still emitted in case you need to react to them.
+
 -   Files `common.ts`, `Digest.ts`, `HttpRequest.ts` and `WsClient.ts` moved to a folder internal.
 -   Removed function `httpRequest()`. Use `sendRequest()` instead. It uses the same interface except for the "noWaitForData" parameter.
-> [!IMPORTANT]
+
 > It returns (Response object)[https://developer.mozilla.org/en-US/docs/Web/API/Response] which doesn't contain data by default.
 > If you need to wait for data, you can call for example the function `await res.text()`.
 > This change affects the function `vapixGet` from (CameraVapix)[doc/CameraVapix.md] too.
 
-## Breaking changes when moving from version 1.\*.\* to 2.\*.\*
+<hr/>
+</details>
+
+<details>
+
+<summary>from version 1.\*.\* to 2.\*.\**</summary>
+
+### Breaking changes when moving from version 1.\*.\* to 2.\*.\*
 
 -   Renamed file HTTPRequest.ts to HttpRequest.ts
 -   Removed deprecated protocol attribute from all options objects (use tls instead).
 -   Removed RTSP
-> [!IMPORTANT]
 > Previously CameraVapix.ts supported both WebSocket and RTSP.
 > Starting with version 2.0.0, it supports WebSocket only.
+
 -   ServiceID shouldn't be passed to CamOverlayAPI by the options object. Pass it as a parameter.
 -   Renamed CamOverlayDrawingAPI event msg to message.
 -   Drawing services extracted from CamOverlayAPI.ts to a separate file.
-> [!IMPORTANT]
+
 > Please read [CamOverlayAPI](doc/CamOverlayAPI.md) and [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) for more information.
 
+
+
+</details>
+</br>
 
 # For Developers
 
