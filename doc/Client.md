@@ -9,12 +9,6 @@ Every Api will now use client to comunicate with camera. Use default client (exp
 
 There are two implementations for nodejs and for web.
 
-// depracated?????
-**Note:** make sure you are importing from correct build:
-
--   if your code uses ES modules import from `camstreamerlib/esm`
--   if your code uses commonjs import from `camstreamerlib/cjs`
-
 ### Nodejs
 
 For nodejs we are using undicii (pure nodejs) library to be able use keep-alive ... use one tls connection for multiple requests, browsers have this natively supported
@@ -35,7 +29,7 @@ const client = new DefaultClient({
 ### Web
 
 ```js
-import { DefaultClient, WsEventClient } from 'camstreamerlib/web'; // web
+import { DefaultClient, WsEventClient } from 'camstreamerlib/web';
 
 const client = new DefaultClient();
 ```
