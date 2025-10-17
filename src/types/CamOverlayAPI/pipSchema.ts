@@ -25,7 +25,7 @@ export const pipSchema = serviceCommonSchema.extend({
         z.literal('overlays=image'),
         z.literal('overlays=application'),
     ]),
-    rotate: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
+    rotate: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]).default(0),
     dewarping: z.object({
         enabled: z.boolean(),
         rectangle: z.array(z.tuple([z.number(), z.number()])),
