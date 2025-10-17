@@ -15,37 +15,153 @@ Examples of CamScripter packages can be found at https://github.com/CamStreamer/
 npm install camstreamerlib
 ```
 
-# Documentation for ACAP and Camera API
+## Documentation for ACAP and Camera API
 
--   [VapixAPI](doc/VapixAPI.md) is a module to access Axis camera VAPIX interface.
+| API  | Description |
+| ------------- | ------------- |
+| [VapixAPI](doc/VapixAPI.md)  | Module to access Axis camera VAPIX interface. |
+| [CamStreamerAPI](doc/CamStreamerAPI.md)  | Module for easy control of video streaming in the CamStreamer ACAP application (RTMP, HLS, SRT and MPEG-TS protocols). |
+| [CamOverlayAPI](doc/CamOverlayAPI.md)  | Module to access CamOverlay API. |
+| [CamScripterAPI](doc/CamScripterAPI.md)  | Module to access CamScripter API. |
+| [CamSwitcherAPI](doc/CamSwitcherAPI.md)  | Module to access CamSwitcher API. |
+| [PlaneTrackerAPI](doc/PlaneTrackerAPI.md)  | Module to access PlaneTracker API. |
 
--   [CamStreamerAPI](doc/CamStreamerAPI.md) is a module for easy control of video streaming in the CamStreamer ACAP application (RTMP, HLS, SRT and MPEG-TS protocols).
+## Documentation for Node.js modules
 
--   [CamOverlayAPI](doc/CamOverlayAPI.md) is a module to access CamOverlay API.
+| Module  | Description |
+| ------------- | ------------- |
+| [HttpServer](doc/HttpServer.md)  | Module for processing HTTP requests in your scripts. It also automatically serves up the content from html directory or you can register paths which you can process by your own (e.g. `http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi`). |
+| [VapixEvents](doc/VapixEvents.md) | Module which allows receiving camera events from the VAPIX API. |
+| [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) | Module for easy control of CamOverlay drawing API. For more details on supported video overlay drawing functions see https://camstreamer.com/camoverlay-api1 |
+| [CamOverlayPainter](doc/CamOverlayPainter.md) | Contains three modules which makes easier to use CamOverlayDrawingAPI. |
+| [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) | Module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events. |
+| [CamSwitcherEvents](doc/CamSwitcherEvents.md) | Module which allows receiving events from CamSwitcher ACAP application. |
+| [GenetecAgent](doc/GenetecAgent.md) | Module which allows receiving and sending data to Genetec VMS. |
 
--   [CamScripterAPI](doc/CamScripterAPI.md) is a module to access CamScripter API.
+</br>
 
--   [CamSwitcherAPI](doc/CamSwitcherAPI.md) is a module to access CamSwitcher API.
+# Breaking Changes
 
--   [PlaneTrackerAPI](doc/PlaneTrackerAPI.md) is a module to access PlaneTracker API.
+<details open>
 
-# Documentation for Node.js modules
+<summary>from version 3.\*.\* to 4.\*.\* (latest)</summary>
 
--   [HttpServer](doc/HttpServer.md) is a module for processing HTTP requests in your scripts. It also automatically serves up the content from html directory or you can register paths which you can process by your own (e.g. http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi).
+### Breaking changes when moving from version 3.\*.\* to 4.\*.\* (latest)
+<hr/>
 
--   [VapixEvents](doc/VapixEvents.md) is a module which allows receiving camera events from the VAPIX API.
+### ACAP API Class Constructors Updated
 
--   [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) is a module for easy control of CamOverlay drawing API. For more details on supported video overlay drawing functions see https://camstreamer.com/camoverlay-api1
+All ACAP API classes now **require a client instance to be passed into their constructors** instead of options object.
+- This change improves flexibility by allowing you to use either the Node or Web client, depending on your environment.
 
--   [CamOverlayPainter/](doc/CamOverlayPainter.md) contains three modules which makes easier to use CamOverlayDrawingAPI.
+Example (before → now):
 
--   [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) is a module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.
+```typescript
+// Before
+const coApi = new CamOverlayAPI({
+    ip?: string;
+    port?: number;
+    user?: string;
+    pass?: string;
+    tls?: boolean;
+    tlsInsecure?: boolean;
+    keepAlive?: boolean
+});
 
--   [CamSwitcherEvents](doc/CamSwitcherEvents.md) is a module which allows receiving events from CamSwitcher ACAP application.
+// Now
+import { DefaultClient } from 'camstreamerlib/web';
+import { CamOverlayAPI } from 'camstreamerlib';
 
--   [GenetecAgent](doc/GenetecAgent.md) is a module which allows receiving and sending data to Genetec VMS.
+const coApi = new CamOverlayAPI(
+    new DefaultClient({
+        tls: false,
+        tlsInsecure: false,
+        ip: '127.0.0.1',
+        port: 80,
+        user: '',
+        pass: '',
+    })
+);
+```
 
-## For Developers
+### Imports Simplified
+
+Importing from the camstreamerlib is now much easier -> all exports are now re-exported from the root index.js.
+You no longer need to import from subpaths.
+
+Example:
+
+```typescript
+// Before
+import { CamScripterAPI } from "camstreamerlib/CamScripterAPI";
+import { Painter } from 'camstreamerlib/CamOverlayPainter/Painter';
+import { DefaultAgent } from 'camstreamerlib/DefaultAgent';
+
+// Now
+import { CamScripterAPI } from "camstreamerlib";
+import { Painter } from 'camstreamerlib/node';
+import { DefaultClient } from 'camstreamerlib/web';
+```
+
+> Note: To ensure compatibility, set the module resolution in your projects tsconfig.json to `"moduleResolution": "bundler"`.
+
+### Class and Method Refactored
+
+- **CameraVapix API** has been renamed to [**VapixAPI**](doc/VapixAPI.md).
+- **DefaultAgent** has been refactored into two separate classes - one for node, one for web as [**DefaultClient**](doc/Client.md)
+- Several method names and parameter names across the library have been updated for consistency and clarity.
+
+> Please refer to [the documentation](#documentation-for-acap-and-camera-api).
+
+- New API modules and endpoints have been introduced, providing extended functionality and better coverage of the underlying service.
+
+<hr/>
+</details>
+
+<details>
+
+<summary>from version 2.\*.\* to 3.\*.\*</summary>
+
+### Breaking changes when moving from version 2.\*.\* to 3.\*.\*
+
+-   CamStreamerlib requiers Node.js version 18 or higher.
+-   CamOverlayDrawingAPI tries to reconnect when the websocket is closed. You don't have to do it manually.
+> However, events `open` and `close` are still emitted in case you need to react to them.
+
+-   Files `common.ts`, `Digest.ts`, `HttpRequest.ts` and `WsClient.ts` moved to a folder internal.
+-   Removed function `httpRequest()`. Use `sendRequest()` instead. It uses the same interface except for the "noWaitForData" parameter.
+
+> It returns (Response object)[https://developer.mozilla.org/en-US/docs/Web/API/Response] which doesn't contain data by default.
+> If you need to wait for data, you can call for example the function `await res.text()`.
+> This change affects the function `vapixGet` from (CameraVapix)[doc/CameraVapix.md] too.
+
+<hr/>
+</details>
+
+<details>
+
+<summary>from version 1.\*.\* to 2.\*.\**</summary>
+
+### Breaking changes when moving from version 1.\*.\* to 2.\*.\*
+
+-   Renamed file HTTPRequest.ts to HttpRequest.ts
+-   Removed deprecated protocol attribute from all options objects (use tls instead).
+-   Removed RTSP
+> Previously CameraVapix.ts supported both WebSocket and RTSP.
+> Starting with version 2.0.0, it supports WebSocket only.
+
+-   ServiceID shouldn't be passed to CamOverlayAPI by the options object. Pass it as a parameter.
+-   Renamed CamOverlayDrawingAPI event msg to message.
+-   Drawing services extracted from CamOverlayAPI.ts to a separate file.
+
+> Please read [CamOverlayAPI](doc/CamOverlayAPI.md) and [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) for more information.
+
+
+
+</details>
+</br>
+
+# For Developers
 
 ### Publishing to npm repository
 
@@ -82,35 +198,3 @@ The zip package is created in the current directory. You can choose different lo
     "create-package": "node node_modules/camstreamerlib/bin/CreatePackage.js -i -e=react"
 }
 ```
-
-### Breaking changes when moving from version 3.\*.\* to 4.\*.\*
-
-...
-
-
-### Breaking changes when moving from version 2.\*.\* to 3.\*.\*
-
--   CamStreamerlib requiers Node.js version 18 or higher.
--   CamOverlayDrawingAPI tries to reconnect when the websocket is closed. You don't have to do it manually.
-> [!IMPORTANT]
-> However, events `open` and `close` are still emitted in case you need to react to them.
--   Files common.ts, Digest.ts, HttpRequest.ts and WsClient.ts moved to a folder internal.
--   Removed function httpRequest(). Use sendRequest() instead. It uses the same interface except for the "noWaitForData" parameter.
-> [!IMPORTANT]
-> It returns (Response object)[https://developer.mozilla.org/en-US/docs/Web/API/Response] which doesn't contain data by default.
-> If you need to wait for data, you can call for example the function `await res.text()`.
-> This change affects the function `vapixGet` from (CameraVapix)[doc/CameraVapix.md] too.
-
-### Breaking changes when moving from version 1.\*.\* to 2.\*.\*
-
--   Renamed file HTTPRequest.ts to HttpRequest.ts
--   Removed deprecated protocol attribute from all options objects (use tls instead).
--   Removed RTSP
-> [!IMPORTANT]
-> Previously CameraVapix.ts supported both WebSocket and RTSP.
-> Starting with version 2.0.0, it supports WebSocket only.
--   ServiceID shouldn't be passed to CamOverlayAPI by the options object. Pass it as a parameter.
--   Renamed CamOverlayDrawingAPI event msg to message.
--   Drawing services extracted from CamOverlayAPI.ts to a separate file.
-> [!IMPORTANT]
-> Please read [CamOverlayAPI](doc/CamOverlayAPI.md) and [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md) for more information.

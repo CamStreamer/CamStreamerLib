@@ -6,11 +6,11 @@ Module for easy control of streaming in the CamStreamer Acap application.
 
 **new CamStreamerAPI(client)** - Look at the [Client](./Client.md) docs
 
--   The options parameter contains access to the camera and specifies which protocol should be used. Values mentioned in the example below are default.
+The options parameter contains access to the camera and specifies which protocol should be used. Values mentioned in the example below are default.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
-import { CamStreamerAPI } from 'camstreamerlib/web';
+import { CamStreamerAPI } from 'camstreamerlib';
 
 const csApi = new CamStreamerAPI(
     new DefaultClient({
@@ -45,13 +45,13 @@ type THttpRequestOptions = {
 
 ## Methods - Common
 
-### getClient(proxyParams)
+### getClient(proxyParams?)
 
 Returns CamStreamer client - can be used in custom CamStreamer API calls.
 
 -   **Parameters:**
 
-    -   `proxyParams`:
+    -   `proxyParams` (`TProxyParams`, optional)
 
     ```typescript
     type TProxyParams =
@@ -73,7 +73,7 @@ const client = csApi.getClient();
 Gets the WebSocket authorization token to authorize event websocket.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string>`
 
 ```javascript
@@ -85,7 +85,7 @@ const token = await csApi.wsAuthorization();
 Get UTC time.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<number>`
 
 ```javascript
@@ -127,7 +127,7 @@ type TStream = {
 Get info about CamStreamer streams in JSON format.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Record<number, TStream>>` ([`TStream`](#types))
 
 ```javascript
@@ -139,8 +139,8 @@ const streamList = csApi.getStreamList();
 Get info about the CamStreamer stream specified by `streamId`.
 
 -   **Parameters:**
-    -   `streamId` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `streamId` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TStream>` ([`TStream`](#types))
 
 ```javascript
@@ -152,9 +152,9 @@ const stream = csApi.getStream(id);
 Get a single parameter of the stream with the specified ID.
 
 -   **Parameters:**
-    -   `streamId` (string)
-    -   `paramName` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `streamId` (`number`)
+    -   `paramName` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string>`
 
 ```javascript
@@ -166,10 +166,10 @@ const param = csApi.getStreamParameter('1234', 'enabled');
 Set info about the CamStreamer stream specified by `streamId`.
 
 -   **Parameters:**
-    -   `streamId` (string)
+    -   `streamId` (`number`)
     -   `params` ([`Partial<TStream>`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<{ message: string; status: number }>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await csApi.setStream('1234', parametes);
@@ -180,11 +180,11 @@ await csApi.setStream('1234', parametes);
 Set the value of the stream parameter.
 
 -   **Parameters:**
-    -   `streamId` (string)
-    -   `paramName` (string)
-    -   `value` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<{ message: string; status: number }>`
+    -   `streamId` (`number`)
+    -   `paramName` (`string`)
+    -   `value` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await csApi.setStreamParameter('1234', 'enabled', '1');
@@ -195,8 +195,8 @@ await csApi.setStreamParameter('1234', 'enabled', '1');
 Return the state of streaming.
 
 -   **Parameters:**
-    -   `streamId` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `streamId` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -208,8 +208,8 @@ const isStreaming = csApi.isStreaming('1234');
 Delete the CamStreamer stream specified by `streamId`.
 
 -   **Parameters:**
-    -   `streamId` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `streamId` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript

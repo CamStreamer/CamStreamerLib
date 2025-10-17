@@ -8,7 +8,7 @@ Module for access to the CamOverlay HTTP interface.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
-import { PlaneTrackerAPI } from 'camstreamerlib/web';
+import { PlaneTrackerAPI } from 'camstreamerlib';
 
 const ptrApi = new PlaneTrackerAPI(
     new DefaultClient({
@@ -32,6 +32,22 @@ type TApiUser = {
     userName: string;
     userPriority: number;
 };
+```
+
+### Common types
+
+```typescript
+type TResponse = {
+    json: () => Promise<any>;
+    text: () => Promise<string>;
+    blob: () => Promise<unknown>;
+    status: number;
+    ok: boolean;
+};
+
+type TParameters = {
+    [key: string]: string | number | boolean | null | undefined;
+}
 ```
 
 > [!TIP]
@@ -65,14 +81,37 @@ Returns relative path to proxy.cgi
 const path = PlaneTrackerAPI.getProxyPath();
 ```
 
-## Methods common
+## Methods - Common
+
+### getClient(proxyParams?)
+
+Returns CamOverlay client - can be used in custom CamOverlay API calls.
+
+-   **Parameters:**
+
+    -   `proxyParams` (`TProxyParams`, optional)
+
+    ```typescript
+    type TProxyParams =
+        | {
+              path: string;
+              target: TProxyTarget;
+          }
+        | undefined;
+    ```
+
+-   **Returns:** `Client | ProxyClient<Client>`
+
+```javascript
+const client = ptrApi.getClient();
+```
 
 ### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -85,8 +124,8 @@ const isValid = await ptrApi.checkCameraTime();
 -   The calibration process is started again after the script starts.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.resetPtzCalibration();
@@ -98,8 +137,8 @@ await ptrApi.resetPtzCalibration();
 -   The calibration process is started again after the script starts.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.resetFocusCalibration();
@@ -110,8 +149,8 @@ await ptrApi.resetFocusCalibration();
 Checks if the http server is running.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
 await ptrApi.serverRunCheck();
@@ -120,12 +159,20 @@ await ptrApi.serverRunCheck();
 ### getLiveViewAlias(rtspUrl, options?)
 
 -   **Parameters:**
-    -   `rtspUrl` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `rtspUrl` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:**
+
+    ```typescript
+    Promise<{
+        alias: string;
+        ws: string;
+        ws_initial_message: string;
+    }>;
+    ```
 
 ```javascript
-await ptrApi.serverRunCheck();
+const data = await ptrApi.getLiveViewAlias(url);
 ```
 
 ## Methods - Settings
@@ -135,7 +182,7 @@ await ptrApi.serverRunCheck();
 Get the camera settings.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TCameraSettings>`:
 
 ```typescript
@@ -174,6 +221,8 @@ type TCameraSettings = {
     };
     trackingConfig: {
         prioritizeEmergency: boolean;
+        guardTourEnabled: boolean;
+        guardTourId: number;
     };
     widget: {
         enabled: boolean;
@@ -258,28 +307,25 @@ type TCameraSettings = {
 const settings = await ptrApi.fetchCameraSettings();
 ```
 
-### setCameraSettings(settingsJsonString, options?)
+### setCameraSettings(settings, options?)
 
 Set the camera settings.
 
 -   **Parameters:**
-    -   `settingsJsonString` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
-
-> [!NOTE]
-> `settingsJsonString` is stringified object of type `TCameraSettings`
+    -   `settings` (`TCameraSettings`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
-await ptrApi.setCameraSettings(settingsJson);
+await ptrApi.setCameraSettings(settings);
 ```
 
-### fetchServerSettings()
+### fetchServerSettings(options?)
 
 Get the server settings.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TServerSettings>`:
 
 ```typescript
@@ -313,7 +359,7 @@ Export all settings into a `.zip` file:
 
 -   **Parameters:**
     -   `dataType` (`'ALL'` | `'NIGHT_SKY_CALIBRATION_DATA'`)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Blob>`
 
 ### importAppSettings(dataType, formData, options?)
@@ -322,8 +368,9 @@ Import all settings in a `.zip` file.
 
 -   **Parameters:**
     -   `dataType` (`'MAP_DATA'` | `'SERVER_DATA'` | `'ALL'`)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ### Methods - Planes & Tracking
 
@@ -346,7 +393,7 @@ Retrieves flight information based on the ICAO code.
 
 -   **Parameters:**
     -   `icao` ([`ICAO`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TFlightInfo>`:
 
 ```typescript
@@ -389,8 +436,8 @@ const info = await ptrApi.fetchFlightInfo('4BAA66');
 
 -   **Parameters:**
     -   `icao` ([`ICAO`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.startTrackingPlane('4BAA66');
@@ -401,8 +448,8 @@ await ptrApi.startTrackingPlane('4BAA66');
 Resets the forced tracking of any plane.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.stopTrackingPlane();
@@ -413,38 +460,159 @@ await ptrApi.stopTrackingPlane();
 Gets the current tracking mode settings.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TTrackingMode>` ([`TTrackingMode`](#types))
 
 ```javascript
 const mode = await ptrApi.getTrackingMode();
 ```
 
-### setTrackingMode(modeJsonString, options?)
+### setTrackingMode(mode, options?)
 
 Sets the tracking mode.
 
 -   **Parameters:**
-
-    -   `modeJsonString` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
-
-    ```typescript
-    JSON.stringify({ mode: 'AUTOMATIC' | 'MANUAL' });
-    ```
-
-> [!NOTE]
-> `modeJsonString` is stringified object of type [`TTrackingMode`](#types)
-
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `mode` ([`TTrackingMode['mode']`](#types))
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
-await ptrApi.setTrackingMode(mode);
+await ptrApi.setTrackingMode('AUTOMATIC');
 ```
 
 ### Methods - Lists
 
+```typescript
+type TPriorityList = {
+    priorityList: string[];
+};
+
+type TWhiteList = {
+    whiteList: string[];
+};
+
+type TBlackList = {
+    blackList: string[];
+};
+```
+
+### get(options?)
+
+Get list of ICAOs in priority/white/black list.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TPriorityList>`, `Promise<TWhiteList>`, `Promise<TBlackList>`
+
+```javascript
+const priorityList = await ptrApi.getPriorityList();
+const whiteList = await ptrApi.getWhiteList();
+const blackList = await ptrApi.getBlackList();
+```
+
+### set(list, options?)
+
+Add ICAO to priority/white/black list.
+
+-   **Parameters:**
+    -   `priorityList` (`TPriorityList['priorityList']`)
+    -   `whiteList` (`TWhiteList['whiteList']`)
+    -   `blackList` (`TBlackList['blackList']`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
+
+```javascript
+await ptrApi.setWhiteList(['4BAA66']);
+await ptrApi.setBlackList(['4B5288']);
+await ptrApi.setPriorityList(['4BAA66', '4BCI62', '4B5288']);
+```
+
 ### Methods - Map & Zones
+
+### fetchMapInfo(options?)
+
+Gets the current tracking mode settings.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TMapInfo>`
+
+    ```typescript
+    type TMapInfo = {
+        minZoom: number;
+        maxZoom: number;
+        mapTypes: ('roadmap' | 'satellite')[];
+        tileSize: number;
+    };
+    ```
+
+```javascript
+const mapInfo = await ptrApi.fetchMapInfo();
+```
+
+### getZones(options?)
+
+Gets zones config.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TZones>`
+
+    ```typescript
+    type TZones = {
+        zones: {
+            enabled: boolean;
+            area: [
+                {
+                    lat: number;
+                    lon: number;
+                },
+                ...{
+                    lat: number;
+                    lon: number;
+                }[]
+            ];
+            weight: number;
+            name?: string | undefined;
+            minAltitudeAmsl?: number | undefined;
+            maxAltitudeAmsl?: number | undefined;
+            minSpeedKmph?: number | undefined;
+            maxSpeedKmph?: number | undefined;
+        }[];
+    };
+    ```
+
+```javascript
+const zones = await ptrApi.getZones();
+```
+
+### setZones(zones, options?)
+
+Update zones config.
+
+-   **Parameters:**
+    -   `zones` (`TZones`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.setZones(zones);
+```
+
+### goToCoordinates(lat, lon, alt?, options?)
+
+Focus camera to specified coordinates.
+
+-   **Parameters:**
+    -   `lat` (`number`)
+    -   `lon` (`number`)
+    -   `alt` (`number`, optional)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
+
+```javascript
+await ptrApi.goToCoordinates();
+```
 
 ### Methods - Genetec
 
@@ -453,9 +621,9 @@ await ptrApi.setTrackingMode(mode);
 Check the connection to Genetec.
 
 -   **Parameters:**
-    -   `params` (Record<string, string | number | boolean | null | undefined>)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Response | UndiciResponse>`
+    -   `params` ([`TParameters`](#common-types))
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TResponse>`](#common-types)
 
 ```javascript
 await ptrApi.checkGenetecConnection();
@@ -466,8 +634,8 @@ await ptrApi.checkGenetecConnection();
 Get the list of cameras available in Genetec.
 
 -   **Parameters:**
-    -   `params` (Record<string, string | number | boolean | null | undefined>)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `params` ([`TParameters`](#common-types))
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TCameraList>`:
 
     ```typescript

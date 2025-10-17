@@ -31,6 +31,9 @@ import {
     PtzNotSupportedError,
     SDCardActionError,
     SDCardJobError,
+    SettingParameterError,
+    TimezoneFetchError,
+    TimezoneNotSetupError,
 } from './errors/errors';
 import { ProxyClient } from './internal/ProxyClient';
 import { TCameraImageConfig, THttpRequestOptions, TProxyParams } from './types/common';
@@ -38,7 +41,7 @@ import { z } from 'zod';
 import { XMLParser } from 'fast-xml-parser';
 
 export class VapixAPI<Client extends IClient<TResponse, any>> {
-    constructor(public client: Client, private CustomFormData = FormData) {}
+    constructor(private client: Client, private CustomFormData = FormData) {}
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
@@ -297,7 +300,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             const json = await resV2.json();
             const data = timeZoneSchema.parse(json);
             if (data.status === 'error') {
-                throw new Error(data.error.message);
+                throw new TimezoneFetchError(data.error.message);
             }
             return data.data.activeTimeZone;
         } catch (error) {
@@ -311,7 +314,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         // fallback to deprecated api
         const data = await this.getDateTimeInfo(options);
         if (data.data.timeZone === undefined) {
-            throw new Error('Time zone not setup on the device');
+            throw new TimezoneNotSetupError();
         }
         return z.string().parse(data.data.timeZone);
     }
@@ -384,7 +387,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         );
         const responseText = await res.text();
         if (responseText.startsWith('# Error')) {
-            throw new Error(responseText);
+            throw new SettingParameterError(responseText);
         }
     }
 
@@ -691,7 +694,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
 
         const text = await res.text();
         if (text.length > 5) {
-            throw new Error('installing error: ' + text);
+            throw new ApplicationAPIError('INSTALL', text);
         }
     }
 

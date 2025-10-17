@@ -14,8 +14,8 @@ Adds the image specified by `fileName` to this `ResourceManager`.
 
 -   **Parameters:**
 
-    -   `moniker` (string)
-    -   `fileName` (string)
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
 
 ```typescript
 m.registerImage('image1', 'image1.png');
@@ -27,8 +27,8 @@ Adds the font specified by `fileName` to this `ResourceManager`.
 
 -   **Parameters:**
 
-    -   `moniker` (string)
-    -   `fileName` (string)
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
 
 ```typescript
 m.registerFont('OpenSansBold', 'OpenSans-Bold.ttf');
@@ -40,18 +40,18 @@ Uploads the image specified by `moniker` to the camera, if it hasn't been done a
 
 -   **Parameters:**
 
-    -   `moniker` (string)
+    -   `moniker` (`string`)
 
 -   **Returns:** `TUploadImageResponse`:
 
-```typescript
-type TUploadImageResponse = {
-    var: string;
-    width: number;
-    height: number;
-    call_id: number;
-};
-```
+    ```typescript
+    type TUploadImageResponse = {
+        var: string;
+        width: number;
+        height: number;
+        call_id: number;
+    };
+    ```
 
 ```typescript
 await m.image('image1');
@@ -63,16 +63,16 @@ Uploads the font specified by `moniker` to the camera, if it hasn't been done al
 
 -   **Parameters:**
 
-    -   `moniker` (string)
+    -   `moniker` (`string`)
 
 -   **Returns:** `TCairoCreateResponse`:
 
-```typescript
-type TCairoCreateResponse = {
-    var: string;
-    call_id: number;
-};
-```
+    ```typescript
+    type TCairoCreateResponse = {
+        var: string;
+        call_id: number;
+    };
+    ```
 
 ```typescript
 await m.font('OpenSansBold');
@@ -187,8 +187,8 @@ Adds the image specified by `fileName` to the internal `ResourceManager`.
 
 -   **Parameters:**
 
-    -   `moniker` (string)
-    -   `fileName` (string)
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
 
 ```typescript
 painter.registerImage('image1', 'image1.png');
@@ -200,8 +200,8 @@ Adds the font specified by `fileName` to the internal `ResourceManager`.
 
 -   **Parameters:**
 
-    -   `moniker` (string)
-    -   `fileName` (string)
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
 
 ```typescript
 painter.registerFont('OpenSansBold', 'OpenSans-Bold.ttf');
@@ -213,8 +213,8 @@ Sets the size of the screen to draw on. The resolution of the screen is expected
 
 -   **Parameters:**
 
-    -   `width` (number)
-    -   `height` (number)
+    -   `width` (`number`)
+    -   `height` (`number`)
 
 #### setCoAlignment(coAlignment)
 
@@ -243,7 +243,7 @@ Renders this painter, including all inserted frames.
 
 -   **Parameters:**
 
-    -   `scale` (number): default set to 1
+    -   `scale` (`number`): default set to 1
 
 #### hide()
 
@@ -255,7 +255,7 @@ Invalidates the specified layer and all layers above it.
 
 -   **Parameters:**
 
-    -   `layer` (number)
+    -   `layer` (`number`)
 
 ## Frame
 
@@ -314,8 +314,8 @@ Sets this frame's position to [x, y] relative to the upper left edge of the pare
 
 -   **Parameters:**
 
-    -   `x` (number)
-    -   `y` (number)
+    -   `x` (`number`)
+    -   `y` (`number`)
 
 #### setFrameSize(width, height)
 
@@ -323,8 +323,8 @@ Sets the width and height of this frame.
 
 -   **Parameters:**
 
-    -   `width` (number)
-    -   `height` (number)
+    -   `width` (`number`)
+    -   `height` (`number`)
 
 #### setText(text, align, textType, fontColor)
 
@@ -332,10 +332,10 @@ Sets which text will be displayed in this frame, its alignment, how to solve the
 
 -   **Parameters:**
 
-    -   `text` (string)
+    -   `text` (`string`)
     -   `align` (`TAlign`)
-    -   `textType` (`TTmf` | undefined): default is set to `TFM_OVERFLOW`
-    -   `fontColor` (`TRgb` | undefined)
+    -   `textType` (`TTmf` | `undefined`): default is set to `'TFM_OVERFLOW'`
+    -   `fontColor` (`TRgb` | `undefined`)
 
     ```typescript
     type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
@@ -347,7 +347,8 @@ Sets which text will be displayed in this frame, its alignment, how to solve the
 frame.setText('Hello', 'A_CENTER', 'TFM_OVERFLOW', [0, 45 / 255, 106 / 255]);
 ```
 
-> [!IMPORTANT] > `fontColor` param is specified in numbers from 0 to 1
+> [!IMPORTANT]
+> `fontColor` param is specified in numbers from 0 to 1
 
 #### setFontColor(fontColor)
 
@@ -363,7 +364,7 @@ Sets the font of the text. Use the moniker registered in ResourceManager.
 
 -   **Parameters:**
 
-    -   `fontName` (string)
+    -   `fontName` (`string`)
 
 #### setFontData(fontData)
 
@@ -387,7 +388,7 @@ Sets the background image of the frame. Use the moniker registered in ResourceMa
 
 -   **Parameters:**
 
-    -   `imageName` (string)
+    -   `imageName` (`string`)
     -   `type` (`TObjectFitType` | undefined): default set to `'fit'`
 
 #### setBgImageData(imageData, type)
@@ -421,7 +422,7 @@ Sets the border radius of the frame.
 
 -   **Parameters:**
 
-    -   `radius` (number)
+    -   `radius` (`number`)
 
 #### setBorderWidth(width)
 
@@ -429,7 +430,7 @@ Sets the border width of the frame.
 
 -   **Parameters:**
 
-    -   `width` (number)
+    -   `width` (`number`)
 
 #### setBorderColor(color)
 
@@ -437,7 +438,7 @@ Sets the border color of the frame.
 
 -   **Parameters:**
 
-    -   `color` (TRgba)
+    -   `color` (`TRgba`)
 
 #### setCustomDraw(customDraw)
 

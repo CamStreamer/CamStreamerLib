@@ -8,7 +8,7 @@ Module for access to the CamScripter HTTP interface.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
-import { CamScripterAPI } from 'camstreamerlib/web';
+import { CamScripterAPI } from 'camstreamerlib';
 
 const cscApi = new CamScripterAPI(
     new DefaultClient({
@@ -61,7 +61,7 @@ Returns CamScripter client - can be used in custom CamScripter API calls.
 
 -   **Parameters:**
 
-    -   `proxyParams`:
+    -   `proxyParams` (`TProxyParams`, optional)
 
     ```typescript
     type TProxyParams =
@@ -74,12 +74,16 @@ Returns CamScripter client - can be used in custom CamScripter API calls.
 
 -   **Returns:** `Client | ProxyClient<Client>`
 
+```javascript
+const client = cscApi.getClient();
+```
+
 ### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -91,7 +95,7 @@ const isValid = await cscApi.checkCameraTime();
 Find cameras on local network using mDNS protocol.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TNetworkCamera[]>`
 
     ```typescript
@@ -112,11 +116,11 @@ const list = await cscApi.getNetworkCameraList();
 Get available storage and it's capacity in MB.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TStorage>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TCameraStorage>`
 
     ```typescript
-    type TStorage =
+    type TCameraStorage =
         | [
               {
                   type: 'INTERNAL';
@@ -144,7 +148,7 @@ const storage = await cscApi.getStorageInfo();
 List all installed packages.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TPackageInfoList>`
 
     ```typescript
@@ -171,17 +175,10 @@ const packages = await cscApi.getPackageList();
 Install package.
 
 -   **Parameters:**
-    -   `formData` (FormData)
+    -   `formData` (`Parameters<Client['post']>[0]['data']`)
     -   `storage`: (`'INTERNAL'` | `'SD_CARD'`)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TCamscripterApiResponse>`
-
-    ```typescript
-    type TCamscripterApiResponse = {
-        status: number;
-        message: string;
-    };
-    ```
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cscApi.installPackages(data, 'SD_CARD');
@@ -192,9 +189,9 @@ await cscApi.installPackages(data, 'SD_CARD');
 Remove package.
 
 -   **Parameters:**
-    -   `packageId` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TCamscripterApiResponse>`
+    -   `packageId` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cscApi.uninstallPackage(id);
@@ -205,10 +202,10 @@ await cscApi.uninstallPackage(id);
 Imports package settings.
 
 -   **Parameters:**
-    -   `packageId` (string)
-    -   `formData` (FormData)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TCamscripterApiResponse>`
+    -   `packageId` (`string`)
+    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cscApi.importSettings(id, data);
@@ -219,10 +216,10 @@ await cscApi.importSettings(id, data);
 Exports package settings.
 
 -   **Parameters:**
-    -   `packageId` (string)
-    -   `formData` (FormData)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TCamscripterApiResponse>`
+    -   `packageId` (`string`)
+    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cscApi.exportSettings(id, data);
@@ -235,7 +232,7 @@ await cscApi.exportSettings(id, data);
 Return diagnostics information.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TNodeState>`
 
     ```typescript
@@ -259,8 +256,8 @@ Decompress bundled NodeJS gzip file into chosen location, which is then stored i
 
 -   **Parameters:**
     -   `storage`: (`'INTERNAL'` | `'SD_CARD'`)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TCamscripterApiResponse>`
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cscApi.installNodejs('INTERNAL');

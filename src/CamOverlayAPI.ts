@@ -1,7 +1,7 @@
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
 import { paramToUrl, responseStringify } from './internal/utils';
 
-import { ParsingBlobError, ServiceNotFoundError } from './errors/errors';
+import { ParsingBlobError, ServiceNotFoundError, StorageDataFetchError } from './errors/errors';
 import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './types/common';
 import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
@@ -13,7 +13,7 @@ import {
     TField,
     TFile,
     TFileType,
-    TStorage,
+    TFileStorageType,
     TStorageResponse,
     TService,
     TServiceList,
@@ -69,7 +69,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     async uploadFile(
         fileType: TFileType,
         formData: Parameters<Client['post']>[0]['data'],
-        storage: TStorage,
+        storage: TFileStorageType,
         options?: THttpRequestOptions
     ) {
         await this._post(
@@ -102,7 +102,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
             options
         );
         if (res.code !== 200) {
-            throw new Error('Error occured while fetching file storage data');
+            throw new StorageDataFetchError(res);
         }
         return storageDataListSchema.parse(res.list);
     }
@@ -125,7 +125,11 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
 
     async isEnabled(serviceId: number, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path: `${BASE_PATH}/services.cgi?action=get`, timeout: options?.timeout });
+        const res = await agent.get({
+            path: `${BASE_PATH}/services.cgi`,
+            parameters: { action: 'get' },
+            timeout: options?.timeout,
+        });
         if (res.ok) {
             const data: TServiceList = JSON.parse(await res.text());
 
@@ -260,7 +264,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     ) {
         const path = `${BASE_PATH}/customGraphics.cgi`;
         let headers = {};
-        if (contentType !== undefined && data) {
+        if (contentType !== undefined && data !== undefined) {
             headers = { 'Content-Type': contentType };
         }
 

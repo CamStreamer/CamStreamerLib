@@ -1,4 +1,4 @@
-import { IClient, TGetParams, TPostParams, TResponse } from './types';
+import { IClient, TGetParams, TResponse } from './types';
 import { TProxyParams } from '../types/common';
 import { addParametersToPath } from './utils';
 

@@ -19,7 +19,28 @@ export class ParsingBlobError extends Error {
     }
 }
 
-type TApplicationAPIAction = 'START' | 'RESTART' | 'STOP';
+export class JsonParseError extends Error {
+    constructor(paramName: string, data: unknown) {
+        super(`Error: in JSON parsing of ${paramName}. Cannot parse: ${data}`);
+        this.name = 'JsonParseError';
+    }
+}
+
+export class ParameterNotFoundError extends Error {
+    constructor(paramName: string) {
+        super(`Error: no parameter '${paramName}' was found`);
+        this.name = 'ParameterNotFoundError';
+    }
+}
+
+export class SettingParameterError extends Error {
+    constructor(message: string) {
+        super(`Error setting parameter to camera: ${message}`);
+        this.name = 'SettingParameterError';
+    }
+}
+
+type TApplicationAPIAction = 'START' | 'RESTART' | 'STOP' | 'INSTALL';
 
 export class ApplicationAPIError extends Error {
     constructor(action: TApplicationAPIAction, res: string) {
@@ -85,5 +106,55 @@ export class PtzNotSupportedError extends Error {
     constructor() {
         super('Ptz not supported.');
         this.name = 'PtzNotSupportedError';
+    }
+}
+
+export class StorageDataFetchError extends Error {
+    constructor(err: unknown) {
+        super('Error fetching storage data: ' + err);
+        this.name = 'StorageDataFetchError';
+    }
+}
+
+export class WsAuthorizationError extends Error {
+    constructor(message: string) {
+        super('Server error on ws authorization: ' + message);
+        this.name = 'WsAuthorizationError';
+    }
+}
+
+export class UtcTimeFetchError extends Error {
+    constructor(message: string) {
+        super('Server error on get UTC time: ' + message);
+        this.name = 'UtcTimeFetchError';
+    }
+}
+
+export class TimezoneNotSetupError extends Error {
+    constructor() {
+        super('Time zone not setup on the device');
+        this.name = 'TimezoneNotSetupError';
+    }
+}
+
+export class TimezoneFetchError extends Error {
+    constructor(err: unknown) {
+        super('Error fetching time zone information: ' + err);
+        this.name = 'TimezoneFetchError';
+    }
+}
+
+type TCalibrationType = 'PTZ' | 'FOCUS';
+
+export class ResetCalibrationError extends Error {
+    constructor(type: TCalibrationType, err: unknown) {
+        super('Error resetting ' + type.toLowerCase() + ' calibration: ' + err);
+        this.name = 'ResetCalibrationError';
+    }
+}
+export class ImportSettingsError extends Error {
+    constructor(err: unknown) {
+        super('Error importing settings: ' + err);
+        this.name = 'ImportSettingsError';
     }
 }

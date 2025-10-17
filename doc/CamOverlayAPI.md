@@ -8,7 +8,7 @@ Module for access to the CamOverlay HTTP interface.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
-import { CamOverlayAPI } from 'camstreamerlib/web';
+import { CamOverlayAPI } from 'camstreamerlib';
 
 const coApi = new CamOverlayAPI(
     new DefaultClient({
@@ -43,8 +43,13 @@ type THttpRequestOptions = {
 
 ## Services
 
+> [!IMPORTANT]
+> Not all listed services are available through CamOverlay ACAP.
+
 ```typescript
-type TService = {
+// Common CamOverlay Service type
+// (this type is not separately exported from cslib)
+type TCommonService = {
     id: number;
     enabled: 0 | 1;
     automationType: 'time' | 'manual' | 'schedule' | `input${number}`;
@@ -59,12 +64,29 @@ type TService = {
 };
 ```
 
+```typescript
+type TService =
+    | TAccuweather
+    | TCustomGraphics
+    | TImages
+    | TInfoticker
+    | TPip
+    | TPtzCompass
+    | TPtz
+    | TScreenSharing
+    | TWebCameraSharing
+    | TScoreBoard
+    | TBaseballScoreBoard
+    | TBaseballScoreBoardAutomatic
+    | TScoreOverview;
+```
+
 ### AccuWeather
 
 Display weather data in specified location as overlay.
 
 ```typescript
-type TAccuweather = TService & {
+type TAccuweather = TCommonService & {
     name: 'accuweather';
     clockType: '12h' | '24h';
     coordSystem:
@@ -110,7 +132,7 @@ type TAccuweather = TService & {
 Display dynamic text overlays with variables like time, weather, or sunrise, updated manually, from a URL, or via API.
 
 ```typescript
-type TInfoticker = TService & {
+type TInfoticker = TCommonService & {
     name: 'infoticker';
     showClock: 0 | 1;
     clockType: '12h' | '24h';
@@ -151,7 +173,7 @@ type TInfoticker = TService & {
 Display and manage images or ads directly on your live video stream.
 
 ```typescript
-type TImages = TService & {
+type TImages = TCommonService & {
     name: 'images';
     overlayList: {
         pos_x: number;
@@ -181,7 +203,7 @@ type TImages = TService & {
 Display a compass or map overlay to show your PTZ camera’s viewing direction and sector.
 
 ```typescript
-type TPtzCompass = TService & {
+type TPtzCompass = TCommonService & {
     name: 'ptzCompass';
     type: 'map' | 'compass' | 'image';
     pos_x: number;
@@ -217,7 +239,7 @@ type TPtzCompass = TService & {
 Display images, ads, or infographics to each PTZ preset position.
 
 ```typescript
-type TPtz = TService & {
+type TPtz = TCommonService & {
     name: 'ptz';
     ptz_positions: Record<
         string,
@@ -251,7 +273,7 @@ type TPtz = TService & {
 Display dynamic text in the background graphics within your video stream.
 
 ```typescript
-type TCustomGraphics = TService & {
+type TCustomGraphics = TCommonService & {
     name: 'customGraphics';
     pos_x: number;
     pos_y: number;
@@ -334,7 +356,7 @@ type TCustomGraphics = TService & {
 Insert the picture from another camera on the same network into your live stream.
 
 ```typescript
-type TPip = TService & {
+type TPip = TCommonService & {
     name: 'pip';
     compression: number;
     coordSystem:
@@ -379,7 +401,7 @@ type TPip = TService & {
 Share your screen, application window, or browser tab as a PiP in the video feed. This service only works when connected via HTTPS.
 
 ```typescript
-type TScreenSharing = TService & {
+type TScreenSharing = TCommonService & {
     name: 'screenSharing';
     coordSystem:
         | 'top'
@@ -403,7 +425,7 @@ type TScreenSharing = TService & {
 Share any camera available on your computer. This service only works when connected via HTTPS.
 
 ```typescript
-type TWebCameraSharing = TService & {
+type TWebCameraSharing = TCommonService & {
     name: 'web_camera';
     coordSystem:
         | 'top'
@@ -422,6 +444,174 @@ type TWebCameraSharing = TService & {
 };
 ```
 
+### Score Board
+
+```typescript
+type TScoreBoard = {
+    enabled: 0 | 1;
+    scale: number;
+    width: number;
+    height: number;
+    cameraList: number[];
+    name: 'scoreBoard';
+    font: string;
+    id: number;
+    zIndex: number;
+    coordSystem:
+        | 'top_left'
+        | 'top_right'
+        | 'bottom_left'
+        | 'bottom_right'
+        | 'top'
+        | 'bottom'
+        | 'left'
+        | 'center'
+        | 'right';
+    pos_y: number;
+    pos_x: number;
+    teamHomeShortname: string;
+    teamGuestShortname: string;
+    teamHomeBackgroundColor: string;
+    teamGuestBackgroundColor: string;
+    teamHomeTextColor: string;
+    teamGuestTextColor: string;
+    teamHomeImgPath: string;
+    teamGuestImgPath: string;
+    teamHomeCurrentScore: number;
+    teamGuestCurrentScore: number;
+    baseTimeTimestamp: number;
+    baseTimePlaytime: number;
+    currentPeriodPlaytime: number;
+    timeIsRunning: boolean;
+    currentPeriodLength: number;
+    currentPeriod: number;
+    schedule: string | undefined;
+};
+```
+
+### Baseball Score Board
+
+```typescript
+type TBaseballScoreBoard = {
+    enabled: 0 | 1;
+    scale: number;
+    width: number;
+    height: number;
+    cameraList: number[];
+    name: 'baseballScoreBoard';
+    font: string;
+    id: number;
+    zIndex: number;
+    coordSystem:
+        | 'top_left'
+        | 'top_right'
+        | 'bottom_left'
+        | 'bottom_right'
+        | 'top'
+        | 'bottom'
+        | 'left'
+        | 'center'
+        | 'right';
+    pos_y: number;
+    pos_x: number;
+    teamHomeShortname: string;
+    teamGuestShortname: string;
+    teamHomeBackgroundColor: string;
+    teamGuestBackgroundColor: string;
+    teamHomeTextColor: string;
+    teamGuestTextColor: string;
+    teamHomeCurrentScore: number;
+    teamGuestCurrentScore: number;
+    baseTimeTimestamp: number;
+    baseTimePlaytime: number;
+    timeIsRunning: boolean;
+    matchFinished: boolean;
+    bases: [boolean, boolean, boolean];
+    homeInning: boolean;
+    inning: number;
+    outs: number;
+    balls: number;
+    strikes: number;
+    schedule: string | undefined;
+    footerImgPath: string | undefined;
+    footerText: string | undefined;
+    footerBackgroundColor: string | undefined;
+    footerTextColor: string | undefined;
+};
+```
+
+### Baseball Automatic Score Board
+
+```typescript
+type TBaseballScoreBoardAutomatic = {
+    enabled: 0 | 1;
+    scale: number;
+    width: number;
+    height: number;
+    cameraList: number[];
+    name: 'myBallBaseballWidgets';
+    font: string;
+    id: number;
+    zIndex: number;
+    teamHomeBackgroundColor: string;
+    teamGuestBackgroundColor: string;
+    teamHomeTextColor: string;
+    teamGuestTextColor: string;
+    matchDetailLink: string;
+    matchListLink: string;
+    mirrored: boolean;
+    pregameWidgetText: string;
+    homeLogoPath: string;
+    guestLogoPath: string;
+    schedule: string | undefined;
+    footerImgPath: string | undefined;
+    footerText: string | undefined;
+    footerBackgroundColor: string | undefined;
+    footerTextColor: string | undefined;
+};
+```
+
+### Score Overview
+
+```typescript
+type TScoreOverview = {
+    enabled: 0 | 1;
+    scale: number;
+    width: number;
+    height: number;
+    cameraList: number[];
+    name: 'scoreOverview';
+    id: number;
+    zIndex: number;
+    coordSystem:
+        | 'top_left'
+        | 'top_right'
+        | 'bottom_left'
+        | 'bottom_right'
+        | 'top'
+        | 'bottom'
+        | 'left'
+        | 'center'
+        | 'right';
+    pos_y: number;
+    pos_x: number;
+    teamHomeBackgroundColor: string;
+    teamGuestBackgroundColor: string;
+    teamHomeTextColor: string;
+    teamGuestTextColor: string;
+    teamHomeImgPath: string;
+    teamGuestImgPath: string;
+    teamHomeCurrentScore: number;
+    teamGuestCurrentScore: number;
+    teamHomeName: string;
+    teamGuestName: string;
+    scoreVisible: boolean;
+    description: string;
+    textFont: string;
+    scoreFont: 'classic';
+};
+```
+
 ## Static
 
 ### getBasePath()
@@ -431,7 +621,7 @@ Returns the base path of camoverlay API
 -   **Returns:** `string`
 
 ```javascript
-const url = CamOverlayAPI.getBasePath();
+const basePath = CamOverlayAPI.getBasePath();
 ```
 
 ### getProxyPath()
@@ -441,7 +631,7 @@ Returns relative path to proxy.cgi
 -   **Returns:** `string`
 
 ```javascript
-const url = CamOverlayAPI.getProxyPath();
+const proxyPath = CamOverlayAPI.getProxyPath();
 ```
 
 ### getFilePreviewPath(path)
@@ -449,7 +639,7 @@ const url = CamOverlayAPI.getProxyPath();
 Returns path to a file.
 
 -   **Parameters:**
-    -   `path` (string)
+    -   `path` (`string`)
 -   **Returns:** `string`
 
 ```javascript
@@ -464,7 +654,7 @@ Returns CamOverlay client - can be used in custom CamOverlay API calls.
 
 -   **Parameters:**
 
-    -   `proxyParams`:
+    -   `proxyParams` (`TProxyParams`, optional)
 
     ```typescript
     type TProxyParams =
@@ -486,7 +676,7 @@ const client = coApi.getClient();
 Check camera time against CamStreamer server.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -499,7 +689,7 @@ Find cameras on local network using mDNS protocol.
 
 -   **Parameters:**
 
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 
 -   **Returns:** `Promise<TNetworkCameraList>`:
 
@@ -519,7 +709,7 @@ const list = await coApi.getNetworkCameraList();
 Gets the WebSocket authorization token to authorize event websocket.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<string>`
 
 ```javascript
@@ -529,8 +719,8 @@ const token = await coApi.wsAuthorization();
 ### getMjpegStreamImage(mjpegUrl, options?)
 
 -   **Parameters:**
-    -   `mjpegUrl` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `mjpegUrl` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Blob>`
 
 ```javascript
@@ -570,7 +760,7 @@ List all images or files uploaded to the camera.
 
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TFile[]>` ([`TFile`](#types))
 
 ```javascript
@@ -585,7 +775,7 @@ Uploads a new file to the camera.
     -   `fileType` ([`TFileType`](#types))
     -   `formData` (FormData)
     -   `storage` ([`TStorage`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -599,7 +789,7 @@ Removes file from the camera.
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types))
     -   `fileParams` ([`TFile`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -612,7 +802,7 @@ Gets information about files storage.
 
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TStorageDataList>` ([`TStorageDataList`](#types))
 
 ```javascript
@@ -622,8 +812,8 @@ const storage = await coApi.getFileStorage('font');
 ### getFilePreviewFromCamera(path, options?)
 
 -   **Parameters:**
-    -   `path` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `path` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Blob>`
 
 ```javascript
@@ -639,9 +829,9 @@ See list of all available services: [`Services`](#services)
 Updates text in the [`Infoticker`](#infoticker) service, if any is running.
 
 -   **Parameters:**
-    -   `serviceId` (number)
-    -   `text` (string)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `serviceId` (`number`)
+    -   `text` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -653,9 +843,9 @@ await coApi.updateInfoticker(id, text);
 Enables/disables the bound CO service.
 
 -   **Parameters:**
-    -   `serviceId` (number)
-    -   `enabled` (boolean)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `serviceId` (`number`)
+    -   `enabled` (`boolean`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -667,8 +857,8 @@ await coApi.setEnabled(id, true);
 Returns whether the bound CO service is enabled (true) or disabled (false).
 
 -   **Parameters:**
-    -   `serviceId` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `serviceId` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
@@ -680,9 +870,9 @@ const isEnabled = await coApi.isEnabled(id);
 Returns the complete settings of the given CamOverlay service.
 
 -   **Parameters:**
-    -   `serviceId` (number)
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<TAccuWeather | TInfoTicker | ...>` (see all [`services`](#services))
+    -   `serviceId` (`number`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TService>`](#services)
 
 ```javascript
 const service = await coApi.getSingleService(id);
@@ -693,8 +883,8 @@ const service = await coApi.getSingleService(id);
 Returns the complete settings of all CamOverlay services.
 
 -   **Parameters:**
-    -   `options` (`THttpRequestOptions` | undefined)
--   **Returns:** `Promise<Array<TAccuWeather | TInfoTicker | ...>>` (see all [`services`](#services))
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<TService[]>`](#services)
 
 ```javascript
 const services = await coApi.getServices();
@@ -705,8 +895,8 @@ const services = await coApi.getServices();
 Changes the settings of the given CamOverlay service.
 
 -   **Parameters:**
-    -   `service` ([`TAccuWeather | TInfoTicker | ...`](#services))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `service` ([`TService`](#services))
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -718,8 +908,8 @@ await coApi.updateSingleService(service);
 Changes the settings of all CamOverlay services.
 
 -   **Parameters:**
-    -   `services` ([`Array<TAccuWeather | TInfoTicker | ...>`](#services))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `services` ([`TService[]`](#services))
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -764,44 +954,44 @@ enum ImageType {
 Updates text fields listed in the parameter fields.
 
 -   **Parameters:**
-    -   `serviceId` (number)
+    -   `serviceId` (`number`)
     -   `fields` ([`TField[]`](#types-1))
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
 await coApi.updateCGText(id, fields);
 ```
 
-### updateCGImagePos(serviceId, coordinates, x, y, options?)
+### updateCGImagePos(serviceId, coordinates?, x?, y?, options?)
 
 Changes the position of Custom Graphics.
 
 -   **Parameters:**
-    -   `serviceId` (number)
-    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
-    -   `x` (number | undefined)
-    -   `y` (number | undefined)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `serviceId` (`number`)
+    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`)
+    -   `x` (`number`, optional, default = `0`)
+    -   `y` (`number`, optional, default = `0`)
+    -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
 await coApi.updateCGImagePos(id, 'top');
 ```
 
-### updateCGImage(serviceId, path, coordinates, x, y, options?)
+### updateCGImage(serviceId, path, coordinates?, x?, y?, options?)
 
 Updates the Custom Graphics background to an image with the specified path on the camera.
 If no coordinates are specified, the service will use the positioning from the last update.
 
 -   **Parameters:**
 
-    -   `serviceId` (number)
-    -   `path` (string)
-    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
-    -   `x` (number | undefined)
-    -   `y` (number | undefined)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `serviceId` (`number`)
+    -   `path` (`string`)
+    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`)
+    -   `x` (`number`, optional, default = `0`)
+    -   `y` (`number`, optional, default = `0`)
+    -   `options` (`THttpRequestOptions`, optional)
 
 -   **Returns:** `Promise<void>`
 
@@ -809,20 +999,20 @@ If no coordinates are specified, the service will use the positioning from the l
 await coApi.updateCGImage(id, path, 'bottom_right');
 ```
 
-### updateCGImageFromData(serviceId, imageType, imageData, coordinates, x, y, options?)
+### updateCGImageFromData(serviceId, imageType, imageData, coordinates?, x?, y?, options?)
 
 Updates the Custom Graphics background to an image passed as
 the imageData argument. If no coordinates are specified, the service will use the positioning from the last update.
 
 -   **Parameters:**
 
-    -   `serviceId` (number)
+    -   `serviceId` (`number`)
     -   `imageType` ([`ImageType`](#types-1))
-    -   `imageData` (Buffer)
-    -   `coordinates` ([`TCoordinates`](#types-1) | undefined)
-    -   `x` (number | undefined)
-    -   `y` (number | undefined)
-    -   `options` (`THttpRequestOptions` | undefined)
+    -   `imageData` (`Parameters<Client['post']>[0]['data']`)
+    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`)
+    -   `x` (`number`, optional, default = `0`)
+    -   `y` (`number`, optional, default = `0`)
+    -   `options` (`THttpRequestOptions`, optional)
 
 -   **Returns:** `Promise<void>`
 
