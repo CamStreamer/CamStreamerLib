@@ -34,7 +34,7 @@ export class VapixEvents extends EventEmitter {
     }
 
     disconnect() {
-        this.ws.close();
+        this.ws.destroy();
     }
 
     private createWsClient() {
