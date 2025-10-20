@@ -2,7 +2,7 @@ import EventEmitter from 'events';
 import WebSocket from 'ws';
 
 import { Digest } from './Digest';
-import { WsOptions } from '../internal/types';
+import { IWebsocket, WsOptions } from '../internal/types';
 
 export type WsClientOptions = WsOptions & {
     address: string;
@@ -23,7 +23,7 @@ export interface WsClient {
     emit(event: 'error', err: Error): boolean;
 }
 
-export class WsClient extends EventEmitter {
+export class WsClient extends EventEmitter implements IWebsocket<{ data: string }> {
     private user: string;
     private pass: string;
     private address: string;
@@ -112,7 +112,10 @@ export class WsClient extends EventEmitter {
             });
 
             this.ws.on('open', () => this.emit('open'));
-            this.ws.on('message', (data: Buffer) => this.emit('message', data));
+            this.ws.on('message', (data: Buffer) => {
+                this.onmessage({ data: data.toString() });
+                this.emit('message', data);
+            });
             this.ws.on('error', (error: Error) => {
                 this.emit('error', error);
                 this.closeWsConnection();
@@ -124,6 +127,8 @@ export class WsClient extends EventEmitter {
         }
     }
 
+    onmessage = (_: { data: string }) => {};
+
     send(data: Buffer | string): void {
         if (this.ws === undefined) {
             throw new Error("This websocket hasn't been opened yet.");
@@ -133,7 +138,7 @@ export class WsClient extends EventEmitter {
         }
     }
 
-    close() {
+    destroy() {
         if (this.isClosed) {
             return;
         }

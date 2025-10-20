@@ -1,6 +1,8 @@
+import { IWebsocket } from '../internal/types';
+
 const REFRESH_TIMEOUT = 5_000;
 
-export class WsClient {
+export class WsClient implements IWebsocket<MessageEvent> {
     isDestroyed = false;
     private ws: WebSocket | null = null;
     private restartTimeout: number | null = null;
