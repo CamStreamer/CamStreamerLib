@@ -17,8 +17,8 @@ export * from './types/CamStreamerAPI';
 export { CamSwitcherAPI } from './CamSwitcherAPI';
 export * from './types/CamSwitcherAPI';
 
-export { CamSwitcherEvents } from './CamSwitcherEvents';
-export * from './types/CamSwitcherEvents';
+export { CamSwitcherEvents } from './ws/CamSwitcherEvents';
+export * from './types/ws/CamSwitcherEvents';
 
 export { PlaneTrackerAPI } from './PlaneTrackerAPI';
 export * from './types/PlaneTrackerAPI';
