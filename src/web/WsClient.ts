@@ -7,7 +7,7 @@ export class WsClient implements IWebsocket<MessageEvent> {
     private ws: WebSocket | null = null;
     private restartTimeout: number | null = null;
 
-    constructor(private getUrl: () => string, private getAuthToken: () => Promise<string>) {}
+    constructor(private getUrl: () => string) {}
 
     init() {
         if (this.isDestroyed) {
@@ -18,14 +18,13 @@ export class WsClient implements IWebsocket<MessageEvent> {
         const ws = new WebSocket(this.getUrl(), 'events');
         ws.onopen = async () => {
             try {
-                const token = await this.getAuthToken();
-                ws.send(JSON.stringify({ authorization: token }));
+                await this.onOpen();
             } catch (error) {
-                console.error('Error sending auth token:', error);
+                console.error('Error on open:', error);
                 ws.close();
             }
         };
-        ws.onmessage = (e) => this.onmessage(e);
+        ws.onmessage = (e) => this.onMessage(e);
         ws.onclose = () => {
             this.restartTimeout = window.setTimeout(() => this.init(), REFRESH_TIMEOUT);
         };
@@ -36,7 +35,9 @@ export class WsClient implements IWebsocket<MessageEvent> {
         this.ws?.send(msg);
     };
 
-    onmessage = (_: MessageEvent) => {};
+    // set by WsEvents
+    onMessage = (_: MessageEvent) => {};
+    onOpen = () => Promise.resolve();
 
     destroy = () => {
         this.isDestroyed = true;

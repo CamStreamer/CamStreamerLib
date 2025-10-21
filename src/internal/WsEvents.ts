@@ -1,5 +1,4 @@
 import { IWebsocket } from './types';
-import { isNullish } from './utils';
 
 // Note: we cant use EventTarget (only in browser) or EventEmitter (only in nodejs) => our custom implementation
 type TEventType<T extends { type: string }> = T extends { type: infer Type } ? Type : never;
@@ -21,7 +20,7 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
     private listeners: TListenersList<T> = {};
 
     constructor(private zodSchema: TZodSchema<T>, public ws: IWebsocket<Event>) {
-        this.ws.onmessage = (e: Event) => this.onMessage(e);
+        this.ws.onMessage = (e: Event) => this.onMessage(e);
     }
 
     get isDestroyed() {
@@ -80,7 +79,8 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
 
     destroy() {
         this._isDestroyed = true;
-        this.ws.onmessage = () => {};
+        this.ws.onMessage = () => {};
+        this.ws.onOpen = () => Promise.reject(new Error('Websocket is destroyed'));
         this.ws.destroy();
         this.listeners = {};
     }

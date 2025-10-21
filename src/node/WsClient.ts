@@ -74,10 +74,10 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
             this.ws.binaryType = 'arraybuffer';
 
             this.isAlive = true;
-            this.pingTimer = setInterval(async () => {
+            this.pingTimer = setInterval(() => {
                 if ((this.ws && this.ws.readyState !== WebSocket.OPEN) || this.isAlive === false) {
                     this.emit('error', new Error('Connection timeout'));
-                    await this.closeWsConnection();
+                    this.closeWsConnection();
                 } else {
                     this.isAlive = false;
                     this.ws?.ping();
@@ -111,9 +111,12 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
                 }
             });
 
-            this.ws.on('open', () => this.emit('open'));
+            this.ws.on('open', () => {
+                void this.onOpen();
+                this.emit('open');
+            });
             this.ws.on('message', (data: Buffer) => {
-                this.onmessage({ data: data.toString() });
+                this.onMessage({ data: data.toString() });
                 this.emit('message', data);
             });
             this.ws.on('error', (error: Error) => {
@@ -127,7 +130,9 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
         }
     }
 
-    onmessage = (_: { data: string }) => {};
+    // set by WsEvents
+    onMessage = (_: { data: string }) => {};
+    onOpen = () => Promise.resolve();
 
     send(data: Buffer | string): void {
         if (this.ws === undefined) {
