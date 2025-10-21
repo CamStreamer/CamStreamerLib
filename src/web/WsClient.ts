@@ -31,6 +31,10 @@ export class WsClient implements IWebsocket<MessageEvent> {
     // set by WsEvents
     onMessage = (_: MessageEvent) => {};
     onOpen = () => {};
+    onClose = () => {};
+    onError = (error: Error) => {
+        console.error(error);
+    };
 
     reconnect = () => {
         this.ws?.close();

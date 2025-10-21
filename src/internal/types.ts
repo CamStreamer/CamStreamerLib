@@ -47,6 +47,8 @@ export type TBlobResponse<Client extends IClient<TResponse, any>> = Awaited<
 export interface IWebsocket<Event extends { readonly data: string }> {
     onMessage: null | ((event: Event) => void);
     onOpen: () => void;
+    onClose: () => void;
+    onError: (error: Error) => void;
     send: (data: string) => void;
     reconnect: () => void;
     destroy: () => void;

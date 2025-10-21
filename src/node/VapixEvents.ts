@@ -49,7 +49,7 @@ export class VapixEvents extends EventEmitter {
         };
         this.ws = new WsClient(options);
 
-        this.ws.on('open', () => {
+        this.ws.onOpen = () => {
             const topics = [];
             const eventNames = this.eventNames();
             for (const eventName of eventNames) {
@@ -69,9 +69,9 @@ export class VapixEvents extends EventEmitter {
                 },
             };
             this.ws.send(JSON.stringify(topicFilter));
-        });
-        this.ws.on('message', (data: Buffer) => {
-            const dataJSON = JSON.parse(data.toString());
+        };
+        this.ws.onMessage = (event) => {
+            const dataJSON = JSON.parse(event.data);
             if (dataJSON.method === 'events:configure') {
                 if (dataJSON.error === undefined) {
                     this.emit('open');
@@ -83,13 +83,13 @@ export class VapixEvents extends EventEmitter {
             }
             const eventName: string = dataJSON.params.notification.topic;
             this.emit(eventName, dataJSON as TVapixEventMessage);
-        });
-        this.ws.on('error', (error: Error) => {
+        };
+        this.ws.onError = (error: Error) => {
             this.emit('error', error);
-        });
-        this.ws.on('close', () => {
+        };
+        this.ws.onClose = () => {
             this.emit('close');
-        });
+        };
     }
 
     private isReservedEventName(eventName: string) {

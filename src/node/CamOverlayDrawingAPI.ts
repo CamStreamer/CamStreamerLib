@@ -59,7 +59,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
     }
 
     disconnect() {
-        this.ws.close();
+        this.ws.destroy();
         this.stopMsgsTimeoutCheck();
     }
 
@@ -132,24 +132,24 @@ export class CamOverlayDrawingAPI extends EventEmitter {
         };
         this.ws = new WsClient(options);
 
-        this.ws.on('open', () => {
+        this.ws.onOpen = () => {
             console.log('CamOverlay connection opened');
             this.wsConnected = true;
             this.emit('open');
-        });
-        this.ws.on('message', (msgData: Buffer) => this.incomingWsMessageHandler(msgData));
-        this.ws.on('error', (error: Error) => {
+        };
+        this.ws.onMessage = (event) => this.incomingWsMessageHandler(event.data);
+        this.ws.onError = (error: Error) => {
             this.reportError(error);
-        });
-        this.ws.on('close', () => {
+        };
+        this.ws.onClose = () => {
             console.log('CamOverlay connection closed');
             this.wsConnected = false;
             this.reportClose();
-        });
+        };
     }
 
-    private incomingWsMessageHandler(msgData: Buffer) {
-        const dataJSON = JSON.parse(msgData.toString()) as TCODResponse | TErrorResponse;
+    private incomingWsMessageHandler(msgData: string) {
+        const dataJSON = JSON.parse(msgData) as TCODResponse | TErrorResponse;
 
         let errorResponse: TErrorResponse | undefined;
         if ('error' in dataJSON) {

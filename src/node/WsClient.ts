@@ -1,4 +1,3 @@
-import EventEmitter from 'events';
 import WebSocket from 'ws';
 
 import { Digest } from './Digest';
@@ -11,19 +10,7 @@ export type WsClientOptions = WsOptions & {
     protocol?: string;
 };
 
-export interface WsClient {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'message', listener: (data: Buffer) => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'message', data: Buffer): boolean;
-    emit(event: 'error', err: Error): boolean;
-}
-
-export class WsClient extends EventEmitter implements IWebsocket<{ data: string }> {
+export class WsClient implements IWebsocket<{ data: string }> {
     private user: string;
     private pass: string;
     private address: string;
@@ -38,8 +25,6 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
     private isClosed = false;
 
     constructor(options: WsClientOptions) {
-        super();
-
         const tls = options.tls ?? false;
         const tlsInsecure = options.tlsInsecure ?? false;
         const ip = options.ip ?? '127.0.0.1';
@@ -71,12 +56,12 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
             } else {
                 this.ws = new WebSocket(this.address, this.protocol, this.wsOptions);
             }
-            this.ws.binaryType = 'arraybuffer';
+            this.ws.binaryType = 'nodebuffer';
 
             this.isAlive = true;
             this.pingTimer = setInterval(() => {
                 if ((this.ws && this.ws.readyState !== WebSocket.OPEN) || this.isAlive === false) {
-                    this.emit('error', new Error('Connection timeout'));
+                    this.onError(new Error('Connection timeout'));
                     this.closeWsConnection();
                 } else {
                     this.isAlive = false;
@@ -106,33 +91,32 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
                     this.ws = undefined;
                     this.open(res.headers['www-authenticate']);
                 } else {
-                    this.emit('error', new Error('Status code: ' + res.statusCode));
+                    this.onError(new Error('Status code: ' + res.statusCode));
                     this.closeWsConnection();
                 }
             });
 
-            this.ws.on('open', () => {
-                this.onOpen();
-                this.emit('open');
-            });
+            this.ws.on('open', () => this.onOpen());
             this.ws.on('message', (data: Buffer) => {
                 this.onMessage({ data: data.toString() });
-                this.emit('message', data);
             });
             this.ws.on('error', (error: Error) => {
-                this.emit('error', error);
+                this.onError(error);
                 this.closeWsConnection();
             });
             this.ws.on('close', () => this.closeWsConnection());
         } catch (error) {
-            this.emit('error', error instanceof Error ? error : new Error('Unknown error'));
+            this.onError(error instanceof Error ? error : new Error('Unknown error'));
             this.closeWsConnection();
         }
     }
 
-    // set by WsEvents
     onMessage = (_: { data: string }) => {};
     onOpen = () => {};
+    onClose = () => {};
+    onError = (error: Error) => {
+        console.error(error);
+    };
 
     send(data: Buffer | string): void {
         if (this.ws === undefined) {
@@ -181,7 +165,7 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
                 }
             }, 5000);
 
-            this.emit('close');
+            this.onClose();
         } catch (err) {
             console.error(err);
         } finally {
