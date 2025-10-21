@@ -9,7 +9,12 @@ export class CamSwitcherEvents<Event extends { data: string }> extends WsEvents<
     }
 
     private sendInitMsg = async () => {
-        const token = await this.getAuthToken();
-        this.ws.send(JSON.stringify({ authorization: token }));
+        try {
+            const token = await this.getAuthToken();
+            this.ws.send(JSON.stringify({ authorization: token }));
+        } catch (error) {
+            console.error('Error on open:', error);
+            this.ws.reconnect();
+        }
     };
 }

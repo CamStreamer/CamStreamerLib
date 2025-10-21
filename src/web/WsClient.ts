@@ -16,14 +16,7 @@ export class WsClient implements IWebsocket<MessageEvent> {
         this.destroyWebsocket();
 
         const ws = new WebSocket(this.getUrl(), 'events');
-        ws.onopen = async () => {
-            try {
-                await this.onOpen();
-            } catch (error) {
-                console.error('Error on open:', error);
-                ws.close();
-            }
-        };
+        ws.onopen = () => this.onOpen();
         ws.onmessage = (e) => this.onMessage(e);
         ws.onclose = () => {
             this.restartTimeout = window.setTimeout(() => this.init(), REFRESH_TIMEOUT);
@@ -37,7 +30,11 @@ export class WsClient implements IWebsocket<MessageEvent> {
 
     // set by WsEvents
     onMessage = (_: MessageEvent) => {};
-    onOpen = () => Promise.resolve();
+    onOpen = () => {};
+
+    reconnect = () => {
+        this.ws?.close();
+    };
 
     destroy = () => {
         this.isDestroyed = true;

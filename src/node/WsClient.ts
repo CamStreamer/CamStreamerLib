@@ -112,7 +112,7 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
             });
 
             this.ws.on('open', () => {
-                void this.onOpen();
+                this.onOpen();
                 this.emit('open');
             });
             this.ws.on('message', (data: Buffer) => {
@@ -132,7 +132,7 @@ export class WsClient extends EventEmitter implements IWebsocket<{ data: string 
 
     // set by WsEvents
     onMessage = (_: { data: string }) => {};
-    onOpen = () => Promise.resolve();
+    onOpen = () => {};
 
     send(data: Buffer | string): void {
         if (this.ws === undefined) {
