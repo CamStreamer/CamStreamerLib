@@ -44,7 +44,7 @@ export type TBlobResponse<Client extends IClient<TResponse, any>> = Awaited<
     ReturnType<Awaited<ReturnType<Client['get']>>['blob']>
 >;
 
-export interface IWebsocket<Event extends { readonly data: string }> {
+export interface IWsClient<Event extends { readonly data: string }> {
     onMessage: null | ((event: Event) => void);
     onOpen: () => void;
     onClose: () => void;

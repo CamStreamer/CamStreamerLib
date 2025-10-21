@@ -1,4 +1,4 @@
-import { IWebsocket } from './types';
+import { IWsClient } from './types';
 
 // Note: we cant use EventTarget (only in browser) or EventEmitter (only in nodejs) => our custom implementation
 type TEventType<T extends { type: string }> = T extends { type: infer Type } ? Type : never;
@@ -19,7 +19,7 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
     private _isDestroyed = false;
     private listeners: TListenersList<T> = {};
 
-    constructor(private zodSchema: TZodSchema<T>, public ws: IWebsocket<Event>) {
+    constructor(private zodSchema: TZodSchema<T>, public ws: IWsClient<Event>) {
         this.ws.onMessage = (e: Event) => this.onMessage(e);
     }
 

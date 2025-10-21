@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 
 import { Digest } from './Digest';
-import { IWebsocket, WsOptions } from '../internal/types';
+import { IWsClient, WsOptions } from '../internal/types';
 
 export type WsClientOptions = WsOptions & {
     address: string;
@@ -10,7 +10,7 @@ export type WsClientOptions = WsOptions & {
     protocol?: string;
 };
 
-export class WsClient implements IWebsocket<{ data: string }> {
+export class WsClient implements IWsClient<{ data: string }> {
     private user: string;
     private pass: string;
     private address: string;
