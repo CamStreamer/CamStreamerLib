@@ -5,16 +5,15 @@ export * from './internal/versionCompare';
 export * from './internal/ProxyClient';
 export * from './types/common';
 
+export { CamStreamerAPI } from './CamStreamerAPI';
+export * from './types/CamStreamerAPI';
+export { CamStreamerEvents } from './ws/CamStreamerEvents';
+export * from './types/ws/CamStreamerEvents';
+
 export { CamOverlayAPI } from './CamOverlayAPI';
 export * from './types/CamOverlayAPI';
 export { CamOverlayEvents } from './ws/CamOverlayEvents';
 export * from './types/ws/CamOverlayEvents';
-
-export { CamScripterAPI } from './CamScripterAPI';
-export * from './types/CamScripterAPI';
-
-export { CamStreamerAPI } from './CamStreamerAPI';
-export * from './types/CamStreamerAPI';
 
 export { CamSwitcherAPI } from './CamSwitcherAPI';
 export * from './types/CamSwitcherAPI';
@@ -25,6 +24,9 @@ export { PlaneTrackerAPI } from './PlaneTrackerAPI';
 export * from './types/PlaneTrackerAPI';
 export { PlaneTrackerEvents } from './ws/PlaneTrackerEvents';
 export * from './types/ws/PlaneTrackerEvents';
+
+export { CamScripterAPI } from './CamScripterAPI';
+export * from './types/CamScripterAPI';
 
 export { VapixAPI } from './VapixAPI';
 export * from './types/VapixAPI';
