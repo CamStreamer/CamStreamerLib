@@ -7,6 +7,8 @@ export * from './types/common';
 
 export { CamOverlayAPI } from './CamOverlayAPI';
 export * from './types/CamOverlayAPI';
+export { CamOverlayEvents } from './ws/CamOverlayEvents';
+export * from './types/ws/CamOverlayEvents';
 
 export { CamScripterAPI } from './CamScripterAPI';
 export * from './types/CamScripterAPI';
@@ -16,12 +18,13 @@ export * from './types/CamStreamerAPI';
 
 export { CamSwitcherAPI } from './CamSwitcherAPI';
 export * from './types/CamSwitcherAPI';
-
 export { CamSwitcherEvents } from './ws/CamSwitcherEvents';
 export * from './types/ws/CamSwitcherEvents';
 
 export { PlaneTrackerAPI } from './PlaneTrackerAPI';
 export * from './types/PlaneTrackerAPI';
+export { PlaneTrackerEvents } from './ws/PlaneTrackerEvents';
+export * from './types/ws/PlaneTrackerEvents';
 
 export { VapixAPI } from './VapixAPI';
 export * from './types/VapixAPI';
