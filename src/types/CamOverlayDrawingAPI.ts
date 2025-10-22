@@ -1,6 +1,6 @@
-import { WsOptions } from '../internal/types';
+import { Options } from '../internal/types';
 
-export type CamOverlayDrawingOptions = WsOptions & {
+export type CamOverlayDrawingOptions = Options & {
     camera?: number | number[];
     zIndex?: number;
 };

@@ -4,26 +4,62 @@ Every Api will now use client to comunicate with camera. Use default client (exp
 
 ## Default clients
 
--   DefaultClient - for http requests
--   WsEventClient - for websockets
+-   DefaultClient - for http requests (used in API)
+-   WsClient - for websockets (used in ws events)
 
 There are two implementations for nodejs and for web.
 
-### Nodejs
+```ts
+type Options = {
+    ip?: string; // camera ip address
+    port?: number; // camera port
+    user?: string; // camera username
+    pass?: string; // camera password
+    tls?: boolean; // secure (eg. http/https)
+    tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
+};
+
+type HttpOptions = Options & {
+    keepAlive?: boolean; // enables keep-alihe header => will use one tcp connection for more http requests
+};
+
+type WsClientOptions = Options & {
+    address: string; // url path to connect ws
+    headers?: Record<string, string>;
+    pingInterval?: number; // timeout for ping msg (to check if connection is still alive), defualt 30s
+    protocol?: string; // protocol used in ws, eg. 'events'
+};
+```
+
+### Nodejs - DefaultClient
 
 For nodejs we are using undicii (pure nodejs) library to be able use keep-alive ... use one tls connection for multiple requests, browsers have this natively supported
 
+Used for acap app api, eg: CamStreamerAPI, CamOverlayAPI
+
+**new DefaultClient(options: HttpOptions)**
+
 ```js
-import { DefaultClient, WsClient } from 'camstreamerlib/node';
+import { DefaultClient } from 'camstreamerlib/node';
 
 const client = new DefaultClient({
     tls: false,
     tlsInsecure: false,
     ip: '127.0.0.1',
     port: 80,
-    user: '',
-    pass: '',
+    user: 'root',
+    pass: 'pass',
 });
+```
+
+### Nodejs - WsClient
+
+Used for websocket events, eg: CamStreamerEvents, CamSwitcherEvents
+
+**new WsClient(options: WsClientOptions)**
+
+```js
+import { WsClient } from 'camstreamerlib/node';
 
 const wsClient = new WsClient({
     tls: false,
@@ -36,13 +72,27 @@ const wsClient = new WsClient({
 });
 ```
 
-### Web
+### Web - DefaultClient
+
+Used for acap app api, eg: CamStreamerAPI, CamOverlayAPI
+
+**new DefaultClient()**
 
 ```js
-import { DefaultClient, WsClient } from 'camstreamerlib/web';
-import { CamSwitcherAPI } from 'camstreamerlib';
+import { DefaultClient } from 'camstreamerlib/web';
 
 const client = new DefaultClient();
+```
+
+### Web - WsClient
+
+Used for websocket events, eg: CamStreamerEvents, CamSwitcherEvents
+
+**new WsClient(getUrl: () => string)**
+
+```js
+import { WsClient } from 'camstreamerlib/web';
+import { CamSwitcherAPI } from 'camstreamerlib';
 
 const createWsEventsUrl = () => {
     const path = CamSwitcherAPI.getWsEventsUrlPath();
@@ -55,7 +105,7 @@ const wsClient = new WsClient(createWsEventsUrl);
 
 ## Custom client
 
-Api expects to use native fetch (web or nodejs), just implement the interface imported from
+Api expects to use native fetch (web or nodejs), just implement the interface imported from and use it
 
 ```js
 import { IClient, IWsClient } from 'camstreamerlib';

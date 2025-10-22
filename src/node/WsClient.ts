@@ -1,9 +1,9 @@
 import WebSocket from 'ws';
 
 import { Digest } from './Digest';
-import { IWsClient, WsOptions } from '../internal/types';
+import { IWsClient, Options } from '../internal/types';
 
-export type WsClientOptions = WsOptions & {
+export type WsClientOptions = Options & {
     address: string;
     headers?: Record<string, string>;
     pingInterval?: number;

@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 
-import { WsOptions } from '../internal/types';
+import { Options } from '../internal/types';
 import { WsClient, WsClientOptions } from './WsClient';
 import {
     TAsyncMessage,
@@ -25,7 +25,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private wsConnected: boolean;
     private ws!: WsClient;
 
-    constructor(options?: WsOptions) {
+    constructor(options?: Options) {
         super();
 
         this.tls = options?.tls ?? false;

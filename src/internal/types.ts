@@ -6,9 +6,7 @@ export type Options = {
     tls?: boolean;
     tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
 };
-
 export type HttpOptions = Options & { keepAlive?: boolean };
-export type WsOptions = Options;
 
 export type TParameters = Record<string, string | number | boolean | null | undefined>;
 export type TResponse = {

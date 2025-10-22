@@ -1,6 +1,6 @@
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { WsOptions } from '../internal/types';
+import { Options } from '../internal/types';
 import { WsClient, WsClientOptions } from './WsClient';
 import { TVapixEventMessage } from '../types/VapixEvents';
 
@@ -14,7 +14,7 @@ export class VapixEvents extends EventEmitter {
 
     private ws!: WsClient;
 
-    constructor(options: WsOptions = {}) {
+    constructor(options: Options = {}) {
         super();
 
         this.tls = options.tls ?? false;
