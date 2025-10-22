@@ -137,7 +137,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             this.wsConnected = true;
             this.emit('open');
         };
-        this.ws.onMessage = (event) => this.incomingWsMessageHandler(event.data);
+        this.ws.onMessage = (data) => this.incomingWsMessageHandler(data.toString());
         this.ws.onError = (error: Error) => {
             this.reportError(error);
         };
@@ -211,7 +211,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
                 const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
 
-                this.ws.send(msgBuffer);
+                this.ws.send(msgBuffer.buffer);
                 this.sendMessages[this.callId] = { resolve, reject, sentTimestamp: Date.now() };
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'Unknown error';

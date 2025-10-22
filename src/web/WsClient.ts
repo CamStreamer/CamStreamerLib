@@ -2,7 +2,7 @@ import { IWsClient } from '../internal/types';
 
 const REFRESH_TIMEOUT = 5_000;
 
-export class WsClient implements IWsClient<MessageEvent> {
+export class WsClient implements IWsClient {
     isDestroyed = false;
     private ws: WebSocket | null = null;
     private restartTimeout: number | null = null;
@@ -16,20 +16,21 @@ export class WsClient implements IWsClient<MessageEvent> {
         this.destroyWebsocket();
 
         const ws = new WebSocket(this.getUrl(), 'events');
+        ws.binaryType = 'arraybuffer';
         ws.onopen = () => this.onOpen();
-        ws.onmessage = (e) => this.onMessage(e);
+        ws.onmessage = (e) => this.onMessage(e.data);
         ws.onclose = () => {
             this.restartTimeout = window.setTimeout(() => this.init(), REFRESH_TIMEOUT);
         };
         this.ws = ws;
     }
 
-    send = (msg: string) => {
+    send = (msg: string | ArrayBuffer) => {
         this.ws?.send(msg);
     };
 
     // set by WsEvents
-    onMessage = (_: MessageEvent) => {};
+    onMessage = (_: ArrayBuffer | string) => {};
     onOpen = () => {};
     onClose = () => {};
     onError = (error: Error) => {

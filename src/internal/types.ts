@@ -42,12 +42,12 @@ export type TBlobResponse<Client extends IClient<TResponse, any>> = Awaited<
     ReturnType<Awaited<ReturnType<Client['get']>>['blob']>
 >;
 
-export interface IWsClient<Event extends { readonly data: string }> {
-    onMessage: null | ((event: Event) => void);
+export interface IWsClient {
+    onMessage: null | ((data: ArrayBuffer | string) => void);
     onOpen: () => void;
     onClose: () => void;
     onError: (error: Error) => void;
-    send: (data: string) => void;
+    send: (data: ArrayBuffer | string) => void;
     reconnect: () => void;
     destroy: () => void;
 }

@@ -15,12 +15,12 @@ type TListenersList<T extends { type: string }> = Partial<{
     [K in TEventType<T>]: { [id: string]: TListenerFunction<T, K> };
 }>;
 
-export class WsEvents<T extends { type: string }, Event extends { data: string }> {
+export class WsEvents<T extends { type: string }> {
     private _isDestroyed = false;
     private listeners: TListenersList<T> = {};
 
-    constructor(private zodSchema: TZodSchema<T>, public ws: IWsClient<Event>) {
-        this.ws.onMessage = (e: Event) => this.onMessage(e);
+    constructor(private zodSchema: TZodSchema<T>, public ws: IWsClient) {
+        this.ws.onMessage = (e: ArrayBuffer | string) => this.onMessage(e);
     }
 
     get isDestroyed() {
@@ -53,13 +53,13 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
         }
     }
 
-    private onMessage(evt: { data: string }) {
+    private onMessage(incomeData: ArrayBuffer | string) {
         if (this.isDestroyed) {
             return;
         }
 
         try {
-            const eventData = JSON.parse(evt.data);
+            const eventData = JSON.parse(incomeData.toString());
             const data = this.zodSchema.parse(eventData);
             if (isInitEvent(data)) {
                 this.processMessage(data.data, true);
@@ -67,7 +67,7 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
             }
             this.processMessage(data, false);
         } catch (error) {
-            console.error('Error parsing event data:', evt.data, error);
+            console.error('Error parsing event data:', incomeData.toString(), error);
         }
     }
 

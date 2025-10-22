@@ -2,8 +2,8 @@ import { IWsClient } from '../internal/types';
 import { WsEvents } from '../internal/WsEvents';
 import { csEventsSchema, TCamStreamerEvent } from '../types/ws/CamStreamerEvents';
 
-export class CamStreamerEvents<Event extends { data: string }> extends WsEvents<TCamStreamerEvent, Event> {
-    constructor(ws: IWsClient<Event>, private getAuthToken: () => Promise<string>) {
+export class CamStreamerEvents extends WsEvents<TCamStreamerEvent> {
+    constructor(ws: IWsClient, private getAuthToken: () => Promise<string>) {
         super(csEventsSchema, ws);
         this.ws.onOpen = this.sendInitMsg;
     }

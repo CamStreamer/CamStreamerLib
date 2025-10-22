@@ -70,8 +70,8 @@ export class VapixEvents extends EventEmitter {
             };
             this.ws.send(JSON.stringify(topicFilter));
         };
-        this.ws.onMessage = (event) => {
-            const dataJSON = JSON.parse(event.data);
+        this.ws.onMessage = (data) => {
+            const dataJSON = JSON.parse(data.toString());
             if (dataJSON.method === 'events:configure') {
                 if (dataJSON.error === undefined) {
                     this.emit('open');

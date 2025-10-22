@@ -10,7 +10,7 @@ export type WsClientOptions = Options & {
     protocol?: string;
 };
 
-export class WsClient implements IWsClient<{ data: string }> {
+export class WsClient implements IWsClient {
     private user: string;
     private pass: string;
     private address: string;
@@ -56,7 +56,7 @@ export class WsClient implements IWsClient<{ data: string }> {
             } else {
                 this.ws = new WebSocket(this.address, this.protocol, this.wsOptions);
             }
-            this.ws.binaryType = 'nodebuffer';
+            this.ws.binaryType = 'arraybuffer';
 
             this.isAlive = true;
             this.pingTimer = setInterval(() => {
@@ -97,8 +97,9 @@ export class WsClient implements IWsClient<{ data: string }> {
             });
 
             this.ws.on('open', () => this.onOpen());
-            this.ws.on('message', (data: Buffer) => {
-                this.onMessage({ data: data.toString() });
+            this.ws.on('message', (data: ArrayBuffer, isBinary: boolean) => {
+                const message = isBinary ? data : data.toString();
+                this.onMessage(message);
             });
             this.ws.on('error', (error: Error) => {
                 this.onError(error);
@@ -111,14 +112,14 @@ export class WsClient implements IWsClient<{ data: string }> {
         }
     }
 
-    onMessage = (_: { data: string }) => {};
+    onMessage = (_: ArrayBuffer | string) => {};
     onOpen = () => {};
     onClose = () => {};
     onError = (error: Error) => {
         console.error(error);
     };
 
-    send(data: Buffer | string): void {
+    send(data: ArrayBuffer | string): void {
         if (this.ws === undefined) {
             throw new Error("This websocket hasn't been opened yet.");
         }

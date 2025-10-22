@@ -96,7 +96,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
             this.wsConnected = true;
             this.emit('open');
         };
-        this.ws.onMessage = (event) => this.incomingWsMessageHandler(event.data);
+        this.ws.onMessage = (data) => this.incomingWsMessageHandler(data.toString());
         this.ws.onError = (error: Error) => {
             this.reportErr(error);
         };
