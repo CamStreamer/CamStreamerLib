@@ -76,13 +76,16 @@ const wsClient = new WsClient({
 
 Used for acap app api, eg: CamStreamerAPI, CamOverlayAPI
 
-**new DefaultClient()**
+**new DefaultClient(domain?: string)**
 
 ```js
 import { DefaultClient } from 'camstreamerlib/web';
 
 const client = new DefaultClient();
 ```
+
+defaultly the requests are done to orgin (eg. `/path-to-cgi`)
+in constructor you can specifiy domain (eg. `http://111.111.111.111:5000` to do requests to `http://111.111.111.111:5000/path-to-cgi`)
 
 ### Web - WsClient
 
