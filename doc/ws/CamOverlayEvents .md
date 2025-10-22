@@ -21,7 +21,7 @@ const wsClient = new WsClient({
 const coEvents = new CamOverlayEvents(wsClient, () => coAgent.wsAuthorization());
 ```
 
--   for `coAgent` - Look as the [CamOvervlayAPI](./CamSwitcherAPI.md) docs.
+-   for `coAgent` - Look as the [CamOvervlayAPI](./CamOvervlayAPI.md) docs.
 -   for `wsClient` - Look at the [Client](./Client.md) docs.
 
 ## Attributes
