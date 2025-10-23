@@ -4,7 +4,7 @@ Module for access to the CamSwitcher HTTP interface.
 
 ## Constructor
 
--   **new CamSwitcherAPI(client)** - Look at the [Client](./Client.md) docs.
+**new CamSwitcherAPI(client)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';

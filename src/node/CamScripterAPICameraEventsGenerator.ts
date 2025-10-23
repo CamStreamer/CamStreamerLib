@@ -1,6 +1,6 @@
 import EventEmitter from 'events';
 
-import { WsOptions } from '../internal/types';
+import { Options } from '../internal/types';
 import { WsClient, WsClientOptions } from './WsClient';
 import {
     TAsyncMessage,
@@ -25,7 +25,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     private wsConnected: boolean;
     private ws!: WsClient;
 
-    constructor(options?: WsOptions) {
+    constructor(options?: Options) {
         super();
 
         this.tls = options?.tls ?? false;
@@ -50,7 +50,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
     }
 
     disconnect() {
-        this.ws.close();
+        this.ws.destroy();
         this.stopMsgsTimeoutCheck();
     }
 
@@ -92,22 +92,22 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
 
         this.ws = new WsClient(options);
 
-        this.ws.on('open', () => {
+        this.ws.onOpen = () => {
             this.wsConnected = true;
             this.emit('open');
-        });
-        this.ws.on('message', (msgData: Buffer) => this.incomingWsMessageHandler(msgData));
-        this.ws.on('error', (error: Error) => {
+        };
+        this.ws.onMessage = (data) => this.incomingWsMessageHandler(data.toString());
+        this.ws.onError = (error: Error) => {
             this.reportErr(error);
-        });
-        this.ws.on('close', () => {
+        };
+        this.ws.onClose = () => {
             this.wsConnected = false;
             this.reportClose();
-        });
+        };
     }
 
-    private incomingWsMessageHandler(msgData: Buffer) {
-        const dataJSON = JSON.parse(msgData.toString()) as TCamScripterResponse | TCamScripterErrorResponse;
+    private incomingWsMessageHandler(msgData: string) {
+        const dataJSON = JSON.parse(msgData) as TCamScripterResponse | TCamScripterErrorResponse;
 
         let errorResponse: TCamScripterErrorResponse | undefined;
         if ('error' in dataJSON) {

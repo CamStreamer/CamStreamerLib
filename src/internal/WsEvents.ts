@@ -1,5 +1,4 @@
-import { IWebsocket } from './types';
-import { isNullish } from './utils';
+import { IWsClient } from './types';
 
 // Note: we cant use EventTarget (only in browser) or EventEmitter (only in nodejs) => our custom implementation
 type TEventType<T extends { type: string }> = T extends { type: infer Type } ? Type : never;
@@ -16,12 +15,12 @@ type TListenersList<T extends { type: string }> = Partial<{
     [K in TEventType<T>]: { [id: string]: TListenerFunction<T, K> };
 }>;
 
-export class WsEvents<T extends { type: string }, Event extends { data: string }> {
+export class WsEvents<T extends { type: string }> {
     private _isDestroyed = false;
     private listeners: TListenersList<T> = {};
 
-    constructor(private zodSchema: TZodSchema<T>, public ws: IWebsocket<Event>) {
-        this.ws.onmessage = (e: Event) => this.onMessage(e);
+    constructor(private zodSchema: TZodSchema<T>, public ws: IWsClient) {
+        this.ws.onMessage = (e: ArrayBuffer | string) => this.onMessage(e);
     }
 
     get isDestroyed() {
@@ -54,13 +53,13 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
         }
     }
 
-    private onMessage(evt: { data: string }) {
+    private onMessage(incomeData: ArrayBuffer | string) {
         if (this.isDestroyed) {
             return;
         }
 
         try {
-            const eventData = JSON.parse(evt.data);
+            const eventData = JSON.parse(incomeData.toString());
             const data = this.zodSchema.parse(eventData);
             if (isInitEvent(data)) {
                 this.processMessage(data.data, true);
@@ -68,7 +67,7 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
             }
             this.processMessage(data, false);
         } catch (error) {
-            console.error('Error parsing event data:', evt.data, error);
+            console.error('Error parsing event data:', incomeData.toString(), error);
         }
     }
 
@@ -80,7 +79,8 @@ export class WsEvents<T extends { type: string }, Event extends { data: string }
 
     destroy() {
         this._isDestroyed = true;
-        this.ws.onmessage = () => {};
+        this.ws.onMessage = () => {};
+        this.ws.onOpen = () => Promise.reject(new Error('Websocket is destroyed'));
         this.ws.destroy();
         this.listeners = {};
     }

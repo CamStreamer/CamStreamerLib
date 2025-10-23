@@ -4,38 +4,33 @@ Module for receiving CamSwitcher events. Will set up ws connection to the camera
 
 ## Constructor
 
--   **new CamSwitcherEvents(wsClient)** - Look at the [Client](./Client.md) docs.
+**new CamSwitcherEvents(ws: IWsClient<Event>, getAuthToken: () => Promise<string>)**
 
 ```javascript
-import { WsEventClient } from 'camstreamerlib/node';
+import { WsClient } from 'camstreamerlib/node';
 import { CamSwitcherEvents } from 'camstreamerlib';
 
-const cswEvents = new CamSwitcherEvents();
-cswevents.setWebsocket(
-    new WsEventClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    })
-);
+const wsClient = new WsClient({
+    tls: false,
+    tlsInsecure: false,
+    ip: '127.0.0.1',
+    port: 80,
+    user: '',
+    pass: '',
+});
+const cswEvents = new CamSwitcherEvents(wsClient, () => cswAgent.wsAuthorization());
 ```
+
+-   for `cswAgent` - Look as the [CamSwitcherAPI](./CamSwitcherAPI.md) docs.
+-   for `wsClient` - Look at the [Client](./Client.md) docs.
+
+## Attributes
+
+### isDestroyed
+
+boolean if the destroy method was called
 
 ## Methods
-
-### setWebsocket(ws)
-
-Sets the websocket client for receiving events.
-
--   **Parameters:**
-    -   `ws` (`IWebsocket`): Websocket client instance.
--   **Returns:** `void`
-
-```javascript
-cswEvents.setWebsocket(wsClient);
-```
 
 ### resendInitData()
 

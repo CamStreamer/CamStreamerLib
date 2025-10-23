@@ -1,29 +1,16 @@
-import EventEmitter from 'events';
 import WebSocket from 'ws';
 
 import { Digest } from './Digest';
-import { WsOptions } from '../internal/types';
+import { IWsClient, Options } from '../internal/types';
 
-export type WsClientOptions = WsOptions & {
+export type WsClientOptions = Options & {
     address: string;
     headers?: Record<string, string>;
     pingInterval?: number;
     protocol?: string;
 };
 
-export interface WsClient {
-    on(event: 'open', listener: () => void): this;
-    on(event: 'close', listener: () => void): this;
-    on(event: 'message', listener: (data: Buffer) => void): this;
-    on(event: 'error', listener: (err: Error) => void): this;
-
-    emit(event: 'open'): boolean;
-    emit(event: 'close'): boolean;
-    emit(event: 'message', data: Buffer): boolean;
-    emit(event: 'error', err: Error): boolean;
-}
-
-export class WsClient extends EventEmitter {
+export class WsClient implements IWsClient {
     private user: string;
     private pass: string;
     private address: string;
@@ -38,8 +25,6 @@ export class WsClient extends EventEmitter {
     private isClosed = false;
 
     constructor(options: WsClientOptions) {
-        super();
-
         const tls = options.tls ?? false;
         const tlsInsecure = options.tlsInsecure ?? false;
         const ip = options.ip ?? '127.0.0.1';
@@ -74,10 +59,10 @@ export class WsClient extends EventEmitter {
             this.ws.binaryType = 'arraybuffer';
 
             this.isAlive = true;
-            this.pingTimer = setInterval(async () => {
+            this.pingTimer = setInterval(() => {
                 if ((this.ws && this.ws.readyState !== WebSocket.OPEN) || this.isAlive === false) {
-                    this.emit('error', new Error('Connection timeout'));
-                    await this.closeWsConnection();
+                    this.onError(new Error('Connection timeout'));
+                    this.closeWsConnection();
                 } else {
                     this.isAlive = false;
                     this.ws?.ping();
@@ -106,25 +91,35 @@ export class WsClient extends EventEmitter {
                     this.ws = undefined;
                     this.open(res.headers['www-authenticate']);
                 } else {
-                    this.emit('error', new Error('Status code: ' + res.statusCode));
+                    this.onError(new Error('Status code: ' + res.statusCode));
                     this.closeWsConnection();
                 }
             });
 
-            this.ws.on('open', () => this.emit('open'));
-            this.ws.on('message', (data: Buffer) => this.emit('message', data));
+            this.ws.on('open', () => this.onOpen());
+            this.ws.on('message', (data: ArrayBuffer, isBinary: boolean) => {
+                const message = isBinary ? data : data.toString();
+                this.onMessage(message);
+            });
             this.ws.on('error', (error: Error) => {
-                this.emit('error', error);
+                this.onError(error);
                 this.closeWsConnection();
             });
             this.ws.on('close', () => this.closeWsConnection());
         } catch (error) {
-            this.emit('error', error instanceof Error ? error : new Error('Unknown error'));
+            this.onError(error instanceof Error ? error : new Error('Unknown error'));
             this.closeWsConnection();
         }
     }
 
-    send(data: Buffer | string): void {
+    onMessage = (_: ArrayBuffer | string) => {};
+    onOpen = () => {};
+    onClose = () => {};
+    onError = (error: Error) => {
+        console.error(error);
+    };
+
+    send(data: ArrayBuffer | string): void {
         if (this.ws === undefined) {
             throw new Error("This websocket hasn't been opened yet.");
         }
@@ -133,7 +128,7 @@ export class WsClient extends EventEmitter {
         }
     }
 
-    close() {
+    destroy() {
         if (this.isClosed) {
             return;
         }
@@ -171,7 +166,7 @@ export class WsClient extends EventEmitter {
                 }
             }, 5000);
 
-            this.emit('close');
+            this.onClose();
         } catch (err) {
             console.error(err);
         } finally {

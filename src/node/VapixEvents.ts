@@ -1,6 +1,6 @@
 import { EventEmitter2 as EventEmitter } from 'eventemitter2';
 
-import { WsOptions } from '../internal/types';
+import { Options } from '../internal/types';
 import { WsClient, WsClientOptions } from './WsClient';
 import { TVapixEventMessage } from '../types/VapixEvents';
 
@@ -14,7 +14,7 @@ export class VapixEvents extends EventEmitter {
 
     private ws!: WsClient;
 
-    constructor(options: WsOptions = {}) {
+    constructor(options: Options = {}) {
         super();
 
         this.tls = options.tls ?? false;
@@ -34,7 +34,7 @@ export class VapixEvents extends EventEmitter {
     }
 
     disconnect() {
-        this.ws.close();
+        this.ws.destroy();
     }
 
     private createWsClient() {
@@ -49,7 +49,7 @@ export class VapixEvents extends EventEmitter {
         };
         this.ws = new WsClient(options);
 
-        this.ws.on('open', () => {
+        this.ws.onOpen = () => {
             const topics = [];
             const eventNames = this.eventNames();
             for (const eventName of eventNames) {
@@ -69,8 +69,8 @@ export class VapixEvents extends EventEmitter {
                 },
             };
             this.ws.send(JSON.stringify(topicFilter));
-        });
-        this.ws.on('message', (data: Buffer) => {
+        };
+        this.ws.onMessage = (data) => {
             const dataJSON = JSON.parse(data.toString());
             if (dataJSON.method === 'events:configure') {
                 if (dataJSON.error === undefined) {
@@ -83,13 +83,13 @@ export class VapixEvents extends EventEmitter {
             }
             const eventName: string = dataJSON.params.notification.topic;
             this.emit(eventName, dataJSON as TVapixEventMessage);
-        });
-        this.ws.on('error', (error: Error) => {
+        };
+        this.ws.onError = (error: Error) => {
             this.emit('error', error);
-        });
-        this.ws.on('close', () => {
+        };
+        this.ws.onClose = () => {
             this.emit('close');
-        });
+        };
     }
 
     private isReservedEventName(eventName: string) {

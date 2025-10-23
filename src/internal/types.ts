@@ -6,9 +6,7 @@ export type Options = {
     tls?: boolean;
     tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
 };
-
 export type HttpOptions = Options & { keepAlive?: boolean };
-export type WsOptions = Options;
 
 export type TParameters = Record<string, string | number | boolean | null | undefined>;
 export type TResponse = {
@@ -44,8 +42,12 @@ export type TBlobResponse<Client extends IClient<TResponse, any>> = Awaited<
     ReturnType<Awaited<ReturnType<Client['get']>>['blob']>
 >;
 
-export interface IWebsocket<Event extends { readonly data: string }> {
+export interface IWsClient {
+    onMessage: null | ((data: ArrayBuffer | string) => void);
+    onOpen: () => void;
+    onClose: () => void;
+    onError: (error: Error) => void;
+    send: (data: ArrayBuffer | string) => void;
+    reconnect: () => void;
     destroy: () => void;
-    onmessage: null | ((event: Event) => void);
-    send: (data: string) => void;
 }
