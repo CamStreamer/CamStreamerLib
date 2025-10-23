@@ -16,8 +16,8 @@ const agent = new GenetecAgent({
     port: 80,
     user: '',
     pass: '',
-    app_id: '',
-    base_uri: 'WebSdk',
+    appId: '',
+    baseUri: 'WebSdk',
     timeout: 10000,
 });
 ```

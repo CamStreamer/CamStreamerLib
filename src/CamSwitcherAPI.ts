@@ -46,8 +46,8 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
 
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
     static getWsEventsPath = () => `/local/camswitcher/events`;
-    static getClipPreviewPath = (id: string, storage: TStorageType) =>
-        `${BASE_PATH}/clip_preview.cgi?clip_name=${id}&storage=${storage}`;
+    static getClipPreviewPath = (clipId: string, storage: TStorageType) =>
+        `${BASE_PATH}/clip_preview.cgi?clip_name=${clipId}&storage=${storage}`;
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;

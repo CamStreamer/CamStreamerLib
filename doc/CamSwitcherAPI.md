@@ -63,13 +63,13 @@ Returns relative path for event websocket
 const path = CamSwitcherAPI.getWsEventsPath();
 ```
 
-### getClipPreviewPath(id, storage)
+### getClipPreviewPath(clipId, storage)
 
 Returns relative path for clip preview
 
 -   **Parameters:**
-    -   `id` (`string`)
-    -   `storage`: (`'SD_DISK'` | `'FLASH'`)
+    -   `clipId` (`string`): id/name of the clip.
+    -   `storage`: (`'SD_DISK'` | `'FLASH'`):
 -   **Returns:** `string`
 
 ```javascript
