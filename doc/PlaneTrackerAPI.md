@@ -47,7 +47,7 @@ type TResponse = {
 
 type TParameters = {
     [key: string]: string | number | boolean | null | undefined;
-}
+};
 ```
 
 > [!TIP]
@@ -478,6 +478,20 @@ Sets the tracking mode.
 
 ```javascript
 await ptrApi.setTrackingMode('AUTOMATIC');
+```
+
+### getIcao(by, value, options?)
+
+Get plane ICAO based on registration or callsign value.
+
+-   **Parameters:**
+    -   `by` (`'registration' | 'callsign'`)
+    -   `value` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+const icao = await ptrApi.getIcao('registration', 'OK-FHS');
 ```
 
 ### Methods - Lists

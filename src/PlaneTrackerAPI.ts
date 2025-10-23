@@ -5,6 +5,7 @@ import {
     blackListSchema,
     cameraSettingsSchema,
     flightInfoSchema,
+    getIcaoSchema,
     ICAO,
     mapInfoSchema,
     priorityListSchema,
@@ -13,6 +14,7 @@ import {
     TBlackList,
     TCameraSettings,
     TExportDataType,
+    TGetIcaoByOption,
     TImportDataType,
     TPriorityList,
     trackingModeSchema,
@@ -165,6 +167,11 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
             parameters: this.apiUser,
             timeout: options?.timeout,
         });
+    }
+
+    async getIcao(by: TGetIcaoByOption, value: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/package/getIcao.cgi`, { [by]: value }, options);
+        return getIcaoSchema.parse(res).icao;
     }
 
     //   ----------------------------------------

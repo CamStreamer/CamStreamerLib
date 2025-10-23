@@ -262,6 +262,11 @@ export type TServerSettings = z.infer<typeof serverSettingsSchema>;
 
 export type ICAO = string;
 
+export const getIcaoSchema = z.object({
+    icao: z.string(),
+});
+export type TGetIcaoByOption = 'registration' | 'callsign';
+
 export const trackingModeSchema = z.object({
     mode: z.union([z.literal('MANUAL'), z.literal('AUTOMATIC')]),
 });
