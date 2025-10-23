@@ -5,12 +5,11 @@ Access the Axis camera VAPIX interface.
 > [!TIP]
 > For more details, see the documentation for the [Axis camera VAPIX library](https://www.axis.com/vapix-library/).
 
-
 ## Constructor
 
 -   **new VapixAPI(client, CustomFormData)**
-- Look at the [Client](./Client.md) docs.
-- `CustomFormData` is an optional parameter which defaults to type of `FormData`
+-   Look at the [Client](./Client.md) docs.
+-   `CustomFormData` is an optional parameter which defaults to type of `FormData`
 
 The `options` parameter contains access to the camera and specifies which protocol should be used.
 
@@ -43,7 +42,7 @@ type TResponse = {
 
 type TParameters = {
     [key: string]: string | number | boolean | null | undefined;
-}
+};
 ```
 
 > [!TIP]
@@ -79,7 +78,13 @@ Returns VAPIX API client - can be used in custom VAPIX API calls.
     type TProxyParams =
         | {
               path: string;
-              target: TProxyTarget;
+              target: {
+                  ip: string;
+                  mdnsName: string;
+                  port: number;
+                  user: string;
+                  pass: string;
+              };
           }
         | undefined;
     ```
@@ -93,7 +98,7 @@ const client = vapix.getClient();
 ### postUrlEncoded(path, parameters?, headers?, options?)
 
 -   **Parameters:**
-    -   `path` (`string`)
+    -   `path` (`string`): Target path.
     -   `parameters` ([`TParameters`](#common-types), optional)
     -   `headers` (`Record<string, string>`, optional)
     -   `options` (`THttpRequestOptions`, optional)
@@ -110,7 +115,7 @@ await vapix.postUrlEncoded('/axis-cgi/param.cgi', 'action=update&camscripter.ena
 Universal method for HTTP POST requests to the camera VAPIX API.
 
 -   **Parameters:**
-    -   `path` (string)
+    -   `path` (string): Target path
     -   `jsonData` (`Record<string, any>`)
     -   `headers` (`Record<string, string>`, optional)
     -   `options` (`THttpRequestOptions`, optional)
@@ -224,7 +229,7 @@ await vapix.unmountSDCard();
 Returns SD Card progress number.
 
 -   **Parameters:**
-    -   `jobId` (number)
+    -   `jobId` (number): Id of the job progress.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<number>`
 
@@ -236,8 +241,7 @@ await vapix.fetchSDCardJobProgress(1);
 
 Generate and return a server report including product information, parameter settings, and system logs.
 
-> [!TIP]
-> [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
+> [!TIP] > [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
@@ -251,8 +255,7 @@ await vapix.downloadCameraReport();
 
 Generate and return a system log information.
 
-> [!TIP]
-> [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
+> [!TIP] > [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
@@ -413,7 +416,7 @@ await vapix.setHeaders(headers);
 Get parameters from the camera.
 
 -   **Parameters:**
-    -   `paramNames` (`string` | `string[]`)
+    -   `paramNames` (`string` | `string[]`): Searched param name or list of param names.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Record<string, string>>`
 
@@ -426,7 +429,7 @@ const params = await vapix.getParameter(['camscripter', 'camoverlay']);
 Set parameters to the camera.
 
 -   **Parameters:**
-    -   `params` (`Record<string, string | number | boolean>`)
+    -   `params` (`Record<string, string | number | boolean>`): Record of param name and its value.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -469,8 +472,8 @@ const guardList = await vapix.getGuardTourList();
 Enable or disable the guard tour.
 
 -   **Parameters:**
-    -   `guardTourId` (`string`)
-    -   `enable` (`boolean`)
+    -   `guardTourId` (`string`): Id of the guard tour.
+    -   `enable` (`boolean`): Turn the guard tour on or off.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -543,7 +546,7 @@ Move the camera channel to the PTZ preset.
 
 -   **Parameters:**
     -   `channel` (`number`)
-    -   `presetName` (`string`)
+    -   `presetName` (`string`): Name of the target preset.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** [`Promise<TResponse>`](#common-types)
 
@@ -633,8 +636,8 @@ await vapix.setPorts([
 Set a sequence of states for a specific port.
 
 -   **Parameters:**
-    -   `port` (`number`)
-    -   `sequence` (`TPortSequenceStateSchema[]`)
+    -   `port` (`number`): Port number.
+    -   `sequence` (`TPortSequenceStateSchema[]`): List of port configuration sequence - state, duration of that state.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -670,7 +673,15 @@ Get the list of installed Acap applications.
         Version: string;
         License: string;
         Status: string;
-        appId: "CamStreamer" | "CamSwitcher" | "CamOverlay" | "CamScripter" | "PlaneTracker" | "Ndihxplugin" | "SportTracker" | null;
+        appId:
+            | 'CamStreamer'
+            | 'CamSwitcher'
+            | 'CamOverlay'
+            | 'CamScripter'
+            | 'PlaneTracker'
+            | 'Ndihxplugin'
+            | 'SportTracker'
+            | null;
         ApplicationID: string | undefined;
         ConfigurationPage: string | undefined;
         VendorHomePage: string | undefined;
@@ -687,12 +698,12 @@ const appList = await vapix.getApplicationList();
 Start the application whose name is given by the parameter `applicationId`.
 
 -   **Parameters:**
-    -   `applicationId` (`string`)
+    -   `applicationId` (`string`): Id of the ACAP application.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await vapix.startApplication("CamStreamer");
+await vapix.startApplication('CamStreamer');
 ```
 
 ### restartApplication(applicationId, options?)
@@ -700,12 +711,12 @@ await vapix.startApplication("CamStreamer");
 Restart the application whose name is given by the parameter `applicationId`.
 
 -   **Parameters:**
-    -   `applicationId` (`string`)
+    -   `applicationId` (`string`): Id of the ACAP application.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await vapix.restartApplication("CamStreamer");
+await vapix.restartApplication('CamStreamer');
 ```
 
 ### stopApplication(applicationId, options?)
@@ -713,12 +724,12 @@ await vapix.restartApplication("CamStreamer");
 Stop the application whose name is given by the parameter `applicationId`.
 
 -   **Parameters:**
-    -   `applicationId` (`string`)
+    -   `applicationId` (`string`): Id of the ACAP application.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await vapix.stopApplication("CamStreamer");
+await vapix.stopApplication('CamStreamer');
 ```
 
 ### installApplication(data, fileName, options?)
@@ -726,8 +737,8 @@ await vapix.stopApplication("CamStreamer");
 Install ACAP application.
 
 -   **Parameters:**
-    -   `data` (`Parameters<typeof FormData.prototype.append>[1]`)
-    -   `fileName` (`string`)
+    -   `data` (`Parameters<typeof FormData.prototype.append>[1]`): ACAP application data.
+    -   `fileName` (`string`): Name of the installation file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 

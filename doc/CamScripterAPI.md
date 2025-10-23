@@ -67,7 +67,13 @@ Returns CamScripter client - can be used in custom CamScripter API calls.
     type TProxyParams =
         | {
               path: string;
-              target: TProxyTarget;
+              target: {
+                  ip: string;
+                  mdnsName: string;
+                  port: number;
+                  user: string;
+                  pass: string;
+              };
           }
         | undefined;
     ```
@@ -176,7 +182,7 @@ Install package.
 
 -   **Parameters:**
     -   `formData` (`Parameters<Client['post']>[0]['data']`)
-    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`)
+    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`): Where to install the pacakge.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -189,12 +195,12 @@ await cscApi.installPackages(data, 'SD_CARD');
 Remove package.
 
 -   **Parameters:**
-    -   `packageId` (`string`)
+    -   `packageId` (`string`): Name of the package.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await cscApi.uninstallPackage(id);
+await cscApi.uninstallPackage('video_checkpoint');
 ```
 
 ### importSettings(packageId, formData, options?)
@@ -202,13 +208,13 @@ await cscApi.uninstallPackage(id);
 Imports package settings.
 
 -   **Parameters:**
-    -   `packageId` (`string`)
-    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `packageId` (`string`): Name of the package
+    -   `formData` (`Parameters<Client['post']>[0]['data']`): Package data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await cscApi.importSettings(id, data);
+await cscApi.importSettings('video_checkpoint', data);
 ```
 
 ### exportSettings(packageId, formData, options?)
@@ -216,13 +222,13 @@ await cscApi.importSettings(id, data);
 Exports package settings.
 
 -   **Parameters:**
-    -   `packageId` (`string`)
-    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `packageId` (`string`): Name of the package.
+    -   `formData` (`Parameters<Client['post']>[0]['data']`): Package settings data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await cscApi.exportSettings(id, data);
+await cscApi.exportSettings('video_checkpoint', data);
 ```
 
 ## Methods - Node.js
@@ -255,7 +261,7 @@ const status = await cscApi.getNodejsStatus();
 Decompress bundled NodeJS gzip file into chosen location, which is then stored in NodejsLocation parameter.
 
 -   **Parameters:**
-    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`)
+    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`): Where to install NodeJS.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 

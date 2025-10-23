@@ -68,8 +68,8 @@ const path = CamSwitcherAPI.getWsEventsPath();
 Returns relative path for clip preview
 
 -   **Parameters:**
-    -   `clipId` (`string`): id/name of the clip.
-    -   `storage`: (`'SD_DISK'` | `'FLASH'`):
+    -   `clipId` (`string`): Id/name of the clip.
+    -   `storage` (`'SD_DISK'` | `'FLASH'`): Storage of the clip.
 -   **Returns:** `string`
 
 ```javascript
@@ -90,7 +90,13 @@ Returns CamSwitcher client - can be used in custom CamSwitcher API calls.
     type TProxyParams =
         | {
               path: string;
-              target: TProxyTarget;
+              target: {
+                  ip: string;
+                  mdnsName: string;
+                  port: number;
+                  user: string;
+                  pass: string;
+              };
           }
         | undefined;
     ```
@@ -106,7 +112,7 @@ const client = cswApi.getClient();
 Generates silence clip, used when there is no audio. Its mandatory to have silence clip generated to CSw work properly
 
 -   **Parameters:**
-    -   `sampleRate` (`number`): audio sample rate
+    -   `sampleRate` (`number`): Audio sample rate.
     -   `channels`: (`'mono'` | `'stereo'`)
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
@@ -274,7 +280,7 @@ const streams = await cswApi.getStreamSaveList();
 Sets the list of saved streams.
 
 -   **Parameters:**
-    -   `data` ([`TStreamSaveList`](#types))
+    -   `data` ([`TStreamSaveList`](#types)): Stream data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
@@ -347,7 +353,7 @@ const clips = await cswApi.getClipSaveList();
 Sets the list of saved clips.
 
 -   **Parameters:**
-    -   `data` ([`TClipSaveList`](#types-1))
+    -   `data` ([`TClipSaveList`](#types-1)): Clip data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
@@ -355,7 +361,7 @@ Sets the list of saved clips.
 await cswApi.setClipSaveList(clipData);
 ```
 
-### addNewClip(file, clipType, storage, id, fileName?, options?)
+### addNewClip(file, clipType, storage, clipId, fileName?, options?)
 
 Uploads a new clip (video or audio).
 
@@ -363,28 +369,28 @@ Uploads a new clip (video or audio).
     -   `file` (`Buffer` | `File`): The clip file data.
     -   `clipType` (`'video'` | `'audio'`): Type of the clip.
     -   `storage` ([`TStorageType`](#types-1)): Storage type, e.g. 'SD_DISK' or 'FLASH'.
-    -   `id` (`string`): Clip identifier.
+    -   `clipId` (`string`): Clip identifier.
     -   `fileName` (`string`, optional): Name of the file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
 const fileBuffer = fs.readFileSync('clip.mp4');
-await cswApi.addNewClip(fileBuffer, 'video', 'SD_DISK', 'clipId', 'clip.mp4');
+await cswApi.addNewClip(fileBuffer, 'video', 'SD_DISK', 'clip1', 'clip.mp4');
 ```
 
-### removeClip(id, storage, options?)
+### removeClip(clipId, storage, options?)
 
 Removes a clip by ID and storage type.
 
 -   **Parameters:**
-    -   `id` (string): Clip identifier.
+    -   `clipId` (string): Clip identifier.
     -   `storage` ([`TStorageType`](#types-1)): Storage type.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await cswApi.removeClip('clipId', 'SD_DISK');
+await cswApi.removeClip('clip1', 'SD_DISK');
 ```
 
 ### getClipList(options?)
@@ -457,7 +463,7 @@ const playlists = await cswApi.getPlaylistSaveList();
 Sets the list of saved playlists.
 
 -   **Parameters:**
-    -   `data` ([`TPlaylistSaveList`](#types-2))
+    -   `data` ([`TPlaylistSaveList`](#types-2)): Playlist data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
@@ -580,7 +586,7 @@ Sets the list of saved trackers.
 
 -   **Parameters:**
 
-    -   `data` ([`TrackerSaveList`](#types-3)):
+    -   `data` ([`TrackerSaveList`](#types-3)): Tracker data.
     -   `options` (`THttpRequestOptions`, optional)
 
 -   **Returns:** `Promise<boolean>`
@@ -638,7 +644,7 @@ type TSecondaryAudioSettings = {
 Sets camera switcher options.
 
 -   **Parameters:**
-    -   `data` ([`TCameraOptions`](#types-4))
+    -   `data` ([`TCameraOptions`](#types-4)): CamSwitcher settings.
     -   `cameraFWVersion` (string): Camera firmware version.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
@@ -652,7 +658,7 @@ await cswApi.setCamSwitchOptions(options, '10.0.0');
 Sets global audio settings.
 
 -   **Parameters:**
-    -   `settings` ([`TGlobalAudioSettings`](#types-4))
+    -   `settings` ([`TGlobalAudioSettings`](#types-4)): Global audio settings - type, storage, source.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
@@ -665,7 +671,7 @@ await cswApi.setGlobalAudioSettings(audioSettings);
 Sets secondary audio settings.
 
 -   **Parameters:**
-    -   `settings` ([`TSecondaryAudioSettings`](#types-4))
+    -   `settings` ([`TSecondaryAudioSettings`](#types-4)): Secondary audio settings - type, volume, name of source etc.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
@@ -673,17 +679,17 @@ Sets secondary audio settings.
 await cswApi.setSecondaryAudioSettings(secondaryAudioSettings);
 ```
 
-### setDefaultPlaylist(id, options?)
+### setDefaultPlaylist(playlistId, options?)
 
 Sets the default playlist.
 
 -   **Parameters:**
-    -   `id` (string): Playlist identifier.
+    -   `playlistId` (string): Playlist identifier.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
-await cswApi.setDefaultPlaylist('playlistId');
+await cswApi.setDefaultPlaylist('playlist123');
 ```
 
 ### setPermanentRtspUrlToken(token, options?)

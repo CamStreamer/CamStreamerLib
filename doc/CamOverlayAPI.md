@@ -27,7 +27,7 @@ const coApi = new CamOverlayAPI(
 
 ```typescript
 type THttpRequestOptions = {
-    timeout?: number;
+    timeout?: number; // in miliseconds
     proxyParams?: {
         path: string;
         target: {
@@ -660,7 +660,13 @@ Returns CamOverlay client - can be used in custom CamOverlay API calls.
     type TProxyParams =
         | {
               path: string;
-              target: TProxyTarget;
+              target: {
+                  ip: string;
+                  mdnsName: string;
+                  port: number;
+                  user: string;
+                  pass: string;
+              };
           }
         | undefined;
     ```
@@ -719,7 +725,7 @@ const token = await coApi.wsAuthorization();
 ### getMjpegStreamImage(mjpegUrl, options?)
 
 -   **Parameters:**
-    -   `mjpegUrl` (`string`)
+    -   `mjpegUrl` (`string`): Motion JPEG stream URL.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Blob>`
 
@@ -759,7 +765,7 @@ type TStorageDataList = {
 List all images or files uploaded to the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
+    -   `fileType` ([`TFileType`](#types)): Which file type to get.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TFile[]>` ([`TFile`](#types))
 
@@ -772,9 +778,9 @@ const images = await coApi.listFiles('image');
 Uploads a new file to the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
-    -   `formData` (FormData)
-    -   `storage` ([`TStorage`](#types))
+    -   `fileType` ([`TFileType`](#types)): Which file type to upload.
+    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `storage` ([`TStorage`](#types)): Where to upload the file data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -787,8 +793,8 @@ await coApi.uploadFile('image', data, 'url');
 Removes file from the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
-    -   `fileParams` ([`TFile`](#types))
+    -   `fileType` ([`TFileType`](#types)): Which file type to remove.
+    -   `fileParams` ([`TFile`](#types)): File information.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -801,7 +807,7 @@ await coApi.removeFile('font', fontData);
 Gets information about files storage.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types))
+    -   `fileType` ([`TFileType`](#types)): Which file type.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TStorageDataList>` ([`TStorageDataList`](#types))
 
@@ -812,7 +818,7 @@ const storage = await coApi.getFileStorage('font');
 ### getFilePreviewFromCamera(path, options?)
 
 -   **Parameters:**
-    -   `path` (`string`)
+    -   `path` (`string`): Path to the wanted file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Blob>`
 
@@ -829,13 +835,13 @@ See list of all available services: [`Services`](#services)
 Updates text in the [`Infoticker`](#infoticker) service, if any is running.
 
 -   **Parameters:**
-    -   `serviceId` (`number`)
-    -   `text` (`string`)
+    -   `serviceId` (`number`): Id of the service.
+    -   `text` (`string`): Text displayed in the service.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.updateInfoticker(id, text);
+await coApi.updateInfoticker(2, 'Hello');
 ```
 
 ### setEnabled(serviceId, enabled, options?)
@@ -843,13 +849,13 @@ await coApi.updateInfoticker(id, text);
 Enables/disables the bound CO service.
 
 -   **Parameters:**
-    -   `serviceId` (`number`)
-    -   `enabled` (`boolean`)
+    -   `serviceId` (`number`): Id of the service.
+    -   `enabled` (`boolean`): Start or stop the service.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.setEnabled(id, true);
+await coApi.setEnabled(2, true);
 ```
 
 ### isEnabled(serviceId, options?)
@@ -857,12 +863,12 @@ await coApi.setEnabled(id, true);
 Returns whether the bound CO service is enabled (true) or disabled (false).
 
 -   **Parameters:**
-    -   `serviceId` (`number`)
+    -   `serviceId` (`number`): Id of the service.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
-const isEnabled = await coApi.isEnabled(id);
+const isEnabled = await coApi.isEnabled(2);
 ```
 
 ### getSingleService(serviceId, options?)
@@ -870,12 +876,12 @@ const isEnabled = await coApi.isEnabled(id);
 Returns the complete settings of the given CamOverlay service.
 
 -   **Parameters:**
-    -   `serviceId` (`number`)
+    -   `serviceId` (`number`): Id of the service.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** [`Promise<TService>`](#services)
 
 ```javascript
-const service = await coApi.getSingleService(id);
+const service = await coApi.getSingleService(2);
 ```
 
 ### getServices(options?)
@@ -895,7 +901,7 @@ const services = await coApi.getServices();
 Changes the settings of the given CamOverlay service.
 
 -   **Parameters:**
-    -   `service` ([`TService`](#services))
+    -   `service` ([`TService`](#services)): Configuration of the service.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -908,7 +914,7 @@ await coApi.updateSingleService(service);
 Changes the settings of all CamOverlay services.
 
 -   **Parameters:**
-    -   `services` ([`TService[]`](#services))
+    -   `services` ([`TService[]`](#services)): List of services configurations.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -922,9 +928,9 @@ await coApi.updateServices(services);
 
 ```typescript
 type TField = {
-    text: string;
-    field_name: string;
-    color: string | undefined;
+    text: string; // text of the field
+    field_name: string; // name of the field
+    color: string | undefined; // color of the text
 };
 ```
 
@@ -954,13 +960,13 @@ enum ImageType {
 Updates text fields listed in the parameter fields.
 
 -   **Parameters:**
-    -   `serviceId` (`number`)
-    -   `fields` ([`TField[]`](#types-1))
+    -   `serviceId` (`number`): Id of the service.
+    -   `fields` ([`TField[]`](#types-1)): List of field configuration.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 
 ```javascript
-await coApi.updateCGText(id, fields);
+await coApi.updateCGText(6, [{ text: 'Hello', field_name: 'field1', color: 'red' }]);
 ```
 
 ### updateCGImagePos(serviceId, coordinates?, x?, y?, options?)
@@ -968,15 +974,15 @@ await coApi.updateCGText(id, fields);
 Changes the position of Custom Graphics.
 
 -   **Parameters:**
-    -   `serviceId` (`number`)
-    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`)
-    -   `x` (`number`, optional, default = `0`)
-    -   `y` (`number`, optional, default = `0`)
+    -   `serviceId` (`number`): Id of the service.
+    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`): Position of the image.
+    -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
+    -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.updateCGImagePos(id, 'top');
+await coApi.updateCGImagePos(4, 'top', 20, 5);
 ```
 
 ### updateCGImage(serviceId, path, coordinates?, x?, y?, options?)
@@ -986,17 +992,17 @@ If no coordinates are specified, the service will use the positioning from the l
 
 -   **Parameters:**
 
-    -   `serviceId` (`number`)
-    -   `path` (`string`)
-    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`)
-    -   `x` (`number`, optional, default = `0`)
-    -   `y` (`number`, optional, default = `0`)
+    -   `serviceId` (`number`): Id of the service.
+    -   `path` (`string`): Path to the image.
+    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`): Position of the image.
+    -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
+    -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis.
     -   `options` (`THttpRequestOptions`, optional)
 
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.updateCGImage(id, path, 'bottom_right');
+await coApi.updateCGImage(4, path, 'bottom_right');
 ```
 
 ### updateCGImageFromData(serviceId, imageType, imageData, coordinates?, x?, y?, options?)
@@ -1006,16 +1012,16 @@ the imageData argument. If no coordinates are specified, the service will use th
 
 -   **Parameters:**
 
-    -   `serviceId` (`number`)
-    -   `imageType` ([`ImageType`](#types-1))
+    -   `serviceId` (`number`): Id of the service.
+    -   `imageType` ([`ImageType`](#types-1)): jpeg or png.
     -   `imageData` (`Parameters<Client['post']>[0]['data']`)
-    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`)
-    -   `x` (`number`, optional, default = `0`)
-    -   `y` (`number`, optional, default = `0`)
+    -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`): Position of the image.
+    -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
+    -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis
     -   `options` (`THttpRequestOptions`, optional)
 
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.updateCGImageFromData(id, type, data, 'bottom', 0, 0);
+await coApi.updateCGImageFromData(9, 'PNG', data, 'bottom', 0, 0);
 ```
