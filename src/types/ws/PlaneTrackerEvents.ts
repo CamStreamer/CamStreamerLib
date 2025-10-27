@@ -78,8 +78,8 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
         type: z.literal('USER_ACTION'),
         ip: z.string(),
         params: apiStringUserSchema.extend({
-            lat: z.number().optional(),
-            lon: z.number().optional(),
+            lat: z.string().optional(),
+            lon: z.string().optional(),
             timeout: z.string().optional(),
         }),
         cgi: z.enum([
