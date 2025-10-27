@@ -25,7 +25,17 @@ const apiUserSchema = z.object({
     ip: z.string(),
 });
 
-export enum EUserActions {
+export enum PlaneTrackerWsEvents {
+    FLIGHT_LIST = 'FLIGHT_LIST',
+    CAMERA_POSITION = 'CAMERA_POSITION',
+    TRACKING_START = 'TRACKING_START',
+    TRACKING_STOP = 'TRACKING_STOP',
+    USER_ACTION = 'USER_ACTION',
+    CONNECTED_USERS = 'CONNECTED_USERS',
+    FORCE_TRACKING_STATUS = 'FORCE_TRACKING_STATUS',
+}
+
+export enum PlaneTrackerUserActions {
     TRACK_ICAO = 'trackIcao.cgi',
     RESET_ICAO = 'resetIcao.cgi',
     SET_PRIORITY_LIST = 'setPriorityList.cgi',
@@ -68,17 +78,17 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
             userPriority: z.string(),
         }),
         cgi: z.enum([
-            EUserActions.TRACK_ICAO,
-            EUserActions.RESET_ICAO,
-            EUserActions.SET_PRIORITY_LIST,
-            EUserActions.SET_BLACK_LIST,
-            EUserActions.SET_WHITE_LIST,
-            EUserActions.GO_TO_COORDINATES,
-            EUserActions.SET_TRACKING_MODE,
-            EUserActions.SET_ZONES,
-            EUserActions.RESET_PTZ_CALIBRATION,
-            EUserActions.LOCK_API,
-            EUserActions.UNLOCK_API,
+            PlaneTrackerUserActions.TRACK_ICAO,
+            PlaneTrackerUserActions.RESET_ICAO,
+            PlaneTrackerUserActions.SET_PRIORITY_LIST,
+            PlaneTrackerUserActions.SET_BLACK_LIST,
+            PlaneTrackerUserActions.SET_WHITE_LIST,
+            PlaneTrackerUserActions.GO_TO_COORDINATES,
+            PlaneTrackerUserActions.SET_TRACKING_MODE,
+            PlaneTrackerUserActions.SET_ZONES,
+            PlaneTrackerUserActions.RESET_PTZ_CALIBRATION,
+            PlaneTrackerUserActions.LOCK_API,
+            PlaneTrackerUserActions.UNLOCK_API,
         ]),
         postJsonBody: z.any(),
     }),
