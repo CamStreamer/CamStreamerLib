@@ -24,6 +24,12 @@ const apiUserSchema = z.object({
     userPriority: z.number(),
     ip: z.string(),
 });
+const apiStringUserSchema = z.object({
+    userId: z.string(),
+    userName: z.string(),
+    userPriority: z.string(),
+});
+export type TStringApiUser = z.infer<typeof apiStringUserSchema>;
 
 export enum PlaneTrackerWsEvents {
     FLIGHT_LIST = 'FLIGHT_LIST',
@@ -72,11 +78,7 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
     z.object({
         type: z.literal('USER_ACTION'),
         ip: z.string(),
-        params: z.object({
-            userId: z.string(),
-            userName: z.string(),
-            userPriority: z.string(),
-        }),
+        params: apiStringUserSchema,
         cgi: z.enum([
             PlaneTrackerUserActions.TRACK_ICAO,
             PlaneTrackerUserActions.RESET_ICAO,
