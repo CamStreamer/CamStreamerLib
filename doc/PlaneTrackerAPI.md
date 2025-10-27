@@ -85,6 +85,16 @@ Returns relative path to proxy.cgi
 const path = PlaneTrackerAPI.getProxyPath();
 ```
 
+### getWsEventsPath()
+
+Returns relative path for event websocket
+
+-   **Returns:** `string`
+
+```javascript
+const path = PlaneTrackerAPI.getWsEventsPath();
+```
+
 ## Methods - Common
 
 ### getClient(proxyParams?)

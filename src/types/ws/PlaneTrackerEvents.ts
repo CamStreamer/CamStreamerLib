@@ -21,9 +21,23 @@ const apiFlightDataSchema = z.object({
 const apiUserSchema = z.object({
     userId: z.string(),
     userName: z.string(),
-    userPriority: z.number(),
+    userPriority: z.string(),
     ip: z.string(),
 });
+
+export enum EUserActions {
+    TRACK_ICAO = 'trackIcao.cgi',
+    RESET_ICAO = 'resetIcao.cgi',
+    SET_PRIORITY_LIST = 'setPriorityList.cgi',
+    SET_BLACK_LIST = 'setBlackList.cgi',
+    SET_WHITE_LIST = 'setWhiteList.cgi',
+    GO_TO_COORDINATES = 'goToCoordinates.cgi',
+    SET_TRACKING_MODE = 'setTrackingMode.cgi',
+    SET_ZONES = 'setZones.cgi',
+    RESET_PTZ_CALIBRATION = 'resetPtzCalibration.cgi',
+    LOCK_API = 'lockApi.cgi',
+    UNLOCK_API = 'unlockApi.cgi',
+}
 
 const ptrEventsDataSchema = z.discriminatedUnion('type', [
     z.object({
@@ -53,7 +67,19 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
             userName: z.string(),
             userPriority: z.number(),
         }),
-        cgi: z.string(),
+        cgi: z.enum([
+            EUserActions.TRACK_ICAO,
+            EUserActions.RESET_ICAO,
+            EUserActions.SET_PRIORITY_LIST,
+            EUserActions.SET_BLACK_LIST,
+            EUserActions.SET_WHITE_LIST,
+            EUserActions.GO_TO_COORDINATES,
+            EUserActions.SET_TRACKING_MODE,
+            EUserActions.SET_ZONES,
+            EUserActions.RESET_PTZ_CALIBRATION,
+            EUserActions.LOCK_API,
+            EUserActions.UNLOCK_API,
+        ]),
         postJsonBody: z.any(),
     }),
     z.object({

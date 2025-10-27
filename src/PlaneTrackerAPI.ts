@@ -35,6 +35,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     constructor(private client: Client, private apiUser: TApiUser) {}
 
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
+    static getWsEventsPath = () => `${BASE_PATH}/package/ws`;
 
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
@@ -237,11 +238,11 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async goToCoordinates(lat: number, lon: number, alt?: number, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        return await agent.get({
+        return (await agent.get({
             path: `${BASE_PATH}/package/goToCoordinates.cgi`,
             parameters: { lat, lon, alt, ...this.apiUser },
             timeout: options?.timeout,
-        });
+        })) as ReturnType<Client['get']>;
     }
 
     //   ----------------------------------------
