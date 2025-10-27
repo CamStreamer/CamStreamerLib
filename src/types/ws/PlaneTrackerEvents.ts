@@ -21,7 +21,7 @@ const apiFlightDataSchema = z.object({
 const apiUserSchema = z.object({
     userId: z.string(),
     userName: z.string(),
-    userPriority: z.string(),
+    userPriority: z.number(),
     ip: z.string(),
 });
 
@@ -65,7 +65,7 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
         params: z.object({
             userId: z.string(),
             userName: z.string(),
-            userPriority: z.number(),
+            userPriority: z.string(),
         }),
         cgi: z.enum([
             EUserActions.TRACK_ICAO,
