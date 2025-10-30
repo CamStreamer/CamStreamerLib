@@ -76,8 +76,13 @@ export const cameraSettingsSchema = z.object({
         .object({
             nightSkyCalibrationEnabled: z.boolean(),
             scheduleNightSkyCalibrationTimestamp: z.number(), // Unixtime ms precision
+            focusCalibrationPoints: z.string().default(''),
         })
-        .default({ nightSkyCalibrationEnabled: false, scheduleNightSkyCalibrationTimestamp: 0 }),
+        .default({
+            nightSkyCalibrationEnabled: false,
+            scheduleNightSkyCalibrationTimestamp: 0,
+            focusCalibrationPoints: '',
+        }),
     cameraConfig: z
         .object({
             maxZoomLevel: z.number().optional(),
@@ -99,8 +104,9 @@ export const cameraSettingsSchema = z.object({
         .object({
             dayAperture: z.number().nonnegative().min(0).max(100),
             nightAperture: z.number().nonnegative().min(0).max(100),
+            maxGain: z.number().nonnegative().min(0).max(100).default(100),
         })
-        .default({ dayAperture: 50, nightAperture: 0 }),
+        .default({ dayAperture: 50, nightAperture: 0, maxGain: 100 }),
     airportConfig: z
         .object({
             icao: z.string().default(''),
@@ -121,7 +127,6 @@ export const cameraSettingsSchema = z.object({
             guardTourId: z.number().int().nonnegative().default(0),
         })
         .default({ prioritizeEmergency: true, guardTourEnabled: false, guardTourId: 0 }),
-
     overlayText: z
         .object({
             displayIcao: z.boolean().optional(),
