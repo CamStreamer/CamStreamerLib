@@ -20,4 +20,5 @@ export const ptzCompassSchema = serviceCommonSchema.extend({
     generalIframeWidth: z.number().optional(),
     generalIframeHeight: z.number().optional(),
     generalAddress: z.string().optional(),
+    showDegrees: z.boolean().default(false),
 });
