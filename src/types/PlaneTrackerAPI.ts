@@ -123,6 +123,7 @@ export const cameraSettingsSchema = z.object({
     trackingConfig: z
         .object({
             prioritizeEmergency: z.boolean(),
+            trackingZoneWeightIncrease: z.number().int().nonnegative().default(0), // Zone weight increase during aircraft tracking
             guardTourEnabled: z.boolean().default(false),
             guardTourId: z.number().int().nonnegative().default(0),
         })
@@ -358,6 +359,7 @@ export const zonesSchema = z.object({
                 maxAltitudeAmsl: z.number().optional(),
                 minSpeedKmph: z.number().optional(),
                 maxSpeedKmph: z.number().optional(),
+                flightDirection: z.enum(['all', 'arrival', 'departure']).default('all'),
                 weight: z.number(),
             })
         )
