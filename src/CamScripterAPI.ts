@@ -7,9 +7,8 @@ import {
     nodeStateSchema,
     packageInfoListSchema,
     cameraStorageSchema,
-    TCameraStorageType,
 } from './types/CamScripterAPI';
-import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './types/common';
+import { networkCameraListSchema, THttpRequestOptions, TProxyParams, TStorageType } from './types/common';
 
 const BASE_PATH = '/local/camscripter';
 export class CamScripterAPI<Client extends IClient<TResponse, any>> {
@@ -47,7 +46,7 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
 
     async installPackages(
         formData: Parameters<Client['post']>[0]['data'],
-        storage: TCameraStorageType,
+        storage: TStorageType,
         options?: THttpRequestOptions
     ) {
         await this._post(`${BASE_PATH}/package/install.cgi`, formData, { storage: storage }, options);
@@ -98,7 +97,7 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         return nodeStateSchema.parse(res);
     }
 
-    async installNodejs(storage: TCameraStorageType, options?: THttpRequestOptions) {
+    async installNodejs(storage: TStorageType, options?: THttpRequestOptions) {
         await this._getJson(`${BASE_PATH}/node_update.cgi`, { storage: storage }, options);
     }
 

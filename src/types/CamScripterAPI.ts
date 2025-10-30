@@ -1,6 +1,5 @@
 import { z } from 'zod';
-
-export type TCameraStorageType = 'INTERNAL' | 'SD_CARD';
+import { TStorageType } from './common';
 
 export const nodeStateSchema = z.object({
     node_state: z.union([z.literal('OK'), z.literal('NOT_INSTALLED'), z.literal('NOT_FOUND')]),
@@ -43,7 +42,7 @@ export const cameraStorageSchema = z.union([
 export type TCameraStorage = z.infer<typeof cameraStorageSchema>;
 export type TStorageParsedData = {
     size: number;
-    storageType: TCameraStorageType;
+    storageType: TStorageType;
 }[];
 
 export const camscripterApiResponseSchema = z.object({
