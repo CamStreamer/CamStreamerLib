@@ -73,7 +73,7 @@ export const serviceCommonSchema = z.object({
     cameraList: z.array(z.number()),
     camera: z.number().nonnegative().optional(), // Deprecated, may still exist in old versions of CO
     schedule: z.string().optional(),
-    customName: z.string(),
+    customName: z.string().default(''),
     zIndex: z.number().optional(),
     width: z.number().nonnegative(),
     height: z.number().nonnegative(),
