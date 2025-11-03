@@ -158,3 +158,34 @@ export class ImportSettingsError extends Error {
         this.name = 'ImportSettingsError';
     }
 }
+export class CannotSetCoordsInAutoModeError extends Error {
+    constructor() {
+        super("The automatic mode doesn't allow control of the camera.");
+        this.name = 'CannotSetCoordsInAutoModeError';
+    }
+}
+export class InvalidLatLngError extends Error {
+    constructor() {
+        super('The provided latitude or longitude parameters are invalid.');
+        this.name = 'InvalidLatLngError';
+    }
+}
+export class InvalidAltitudeError extends Error {
+    constructor() {
+        super('The provided altitude parameter is invalid.');
+        this.name = 'InvalidAltitudeError';
+    }
+}
+export class ServerError extends Error {
+    constructor() {
+        super('An internal server error occurred.');
+        this.name = 'ServerError';
+    }
+}
+
+export class UnknownError extends Error {
+    constructor(err: unknown) {
+        super('An unknown error occurred: ' + err);
+        this.name = 'UnknownError';
+    }
+}

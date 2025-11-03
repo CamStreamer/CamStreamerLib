@@ -25,7 +25,16 @@ import {
     wsAliasResponseSchema,
     zonesSchema,
 } from './types/PlaneTrackerAPI';
-import { ImportSettingsError, ParsingBlobError, ResetCalibrationError } from './errors/errors';
+import {
+    CannotSetCoordsInAutoModeError,
+    ImportSettingsError,
+    InvalidAltitudeError,
+    InvalidLatLngError,
+    ParsingBlobError,
+    ResetCalibrationError,
+    ServerError,
+    UnknownError,
+} from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
 import { cameraListSchema } from './types/GenetecAgent';
@@ -181,7 +190,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async getPriorityList(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getPriorityList.cgi`, undefined, options);
-        return priorityListSchema.parse(res);
+        return priorityListSchema.parse(res).priorityList;
     }
     async setPriorityList(priorityList: TPriorityList['priorityList'], options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -194,7 +203,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async getWhiteList(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getWhiteList.cgi`, undefined, options);
-        return whiteListSchema.parse(res);
+        return whiteListSchema.parse(res).whiteList;
     }
     async setWhiteList(whiteList: TWhiteList['whiteList'], options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -207,7 +216,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async getBlackList(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getBlackList.cgi`, undefined, options);
-        return blackListSchema.parse(res);
+        return blackListSchema.parse(res).blackList;
     }
     async setBlackList(blackList: TBlackList['blackList'], options?: THttpRequestOptions) {
         return await this._postJsonEncoded(
@@ -238,11 +247,33 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
 
     async goToCoordinates(lat: number, lon: number, alt?: number, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        return (await agent.get({
+        const res = await agent.get({
             path: `${BASE_PATH}/package/goToCoordinates.cgi`,
             parameters: { lat, lon, alt, ...this.apiUser },
             timeout: options?.timeout,
-        })) as ReturnType<Client['get']>;
+        });
+
+        if (!res.ok) {
+            const statusText = (await res.json()).statusText;
+
+            if (res.status === 400 && statusText === 'Cannot set coordinates in automatic mode') {
+                throw new CannotSetCoordsInAutoModeError();
+            }
+            if (res.status === 400 && statusText === 'Invalid lat/lon parameters') {
+                throw new InvalidLatLngError();
+            }
+            if (res.status === 400 && statusText === 'Invalid alt parameter') {
+                throw new InvalidAltitudeError();
+            }
+            if (res.status === 400) {
+                throw new UnknownError(await responseStringify(res));
+            }
+            if (res.status === 500) {
+                throw new ServerError();
+            }
+        }
+
+        return res as ReturnType<Client['get']>;
     }
 
     //   ----------------------------------------
