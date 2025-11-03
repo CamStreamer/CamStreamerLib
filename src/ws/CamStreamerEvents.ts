@@ -4,7 +4,7 @@ import { csEventsSchema, TCamStreamerEvent } from '../types/ws/CamStreamerEvents
 
 export class CamStreamerEvents extends WsEvents<TCamStreamerEvent> {
     constructor(ws: IWsClient, private getAuthToken: () => Promise<string>) {
-        super(csEventsSchema, ws);
+        super((data: any) => csEventsSchema.parse(data), ws);
         this.ws.onOpen = this.sendInitMsg;
     }
 

@@ -183,7 +183,7 @@ export class ServerError extends Error {
     }
 }
 
-export class UnknownError extends Error {
+export class BadRequestError extends Error {
     constructor(err: unknown) {
         super('An unknown error occurred: ' + err);
         this.name = 'UnknownError';

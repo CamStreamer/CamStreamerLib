@@ -33,7 +33,7 @@ import {
     ParsingBlobError,
     ResetCalibrationError,
     ServerError,
-    UnknownError,
+    BadRequestError,
 } from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
@@ -266,7 +266,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
                 throw new InvalidAltitudeError();
             }
             if (res.status === 400) {
-                throw new UnknownError(await responseStringify(res));
+                throw new BadRequestError(await responseStringify(res));
             }
             if (res.status === 500) {
                 throw new ServerError();

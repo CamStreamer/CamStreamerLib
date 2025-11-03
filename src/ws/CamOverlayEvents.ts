@@ -4,7 +4,7 @@ import { coEventsSchema, TCamOverlayEvent } from '../types/ws/CamOverlayEvents';
 
 export class CamOverlayEvents extends WsEvents<TCamOverlayEvent> {
     constructor(ws: IWsClient, private getAuthToken: () => Promise<string>) {
-        super(coEventsSchema, ws);
+        super((data: any) => coEventsSchema.parse(data), ws);
         this.ws.onOpen = this.sendInitMsg;
     }
 

@@ -4,7 +4,7 @@ import { cswEventsSchema, TCamSwitcherEvent } from '../types/ws/CamSwitcherEvent
 
 export class CamSwitcherEvents extends WsEvents<TCamSwitcherEvent> {
     constructor(ws: IWsClient, private getAuthToken: () => Promise<string>) {
-        super(cswEventsSchema, ws);
+        super((data: any) => cswEventsSchema.parse(data), ws);
         this.ws.onOpen = this.sendInitMsg;
     }
 

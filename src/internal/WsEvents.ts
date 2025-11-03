@@ -3,9 +3,9 @@ import { IWsClient } from './types';
 // Note: we cant use EventTarget (only in browser) or EventEmitter (only in nodejs) => our custom implementation
 type TEventType<T extends { type: string }> = T extends { type: infer Type } ? Type : never;
 type TEvent<T extends { type: string }, Type extends TEventType<T>> = T extends { type: Type } ? T : never;
-type TZodSchema<T extends { type: string }> = {
-    parse: (data: string) => { type: 'init'; data: TEvent<T, TEventType<T>> } | TEvent<T, TEventType<T>>;
-};
+type TValidate<T extends { type: string }> = (
+    data: string
+) => { type: 'init'; data: TEvent<T, TEventType<T>> } | TEvent<T, TEventType<T>>;
 
 type TListenerFunction<T extends { type: string }, Type extends TEventType<T>> = (
     data: TEvent<T, Type>,
@@ -19,7 +19,7 @@ export class WsEvents<T extends { type: string }> {
     private _isDestroyed = false;
     private listeners: TListenersList<T> = {};
 
-    constructor(private zodSchema: TZodSchema<T>, public ws: IWsClient) {
+    constructor(private validate: TValidate<T>, public ws: IWsClient) {
         this.ws.onMessage = (e: ArrayBuffer | string) => this.onMessage(e);
     }
 
@@ -60,7 +60,7 @@ export class WsEvents<T extends { type: string }> {
 
         try {
             const eventData = JSON.parse(incomeData.toString());
-            const data = this.zodSchema.parse(eventData);
+            const data = this.validate(eventData);
             if (isInitEvent(data)) {
                 this.processMessage(data.data, true);
                 return;
