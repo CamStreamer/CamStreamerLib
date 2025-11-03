@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { trackingModeSchema, zonesSchema } from '../PlaneTrackerAPI';
 
 const apiFlightDataSchema = z.object({
     icao: z.string(),
@@ -53,6 +54,82 @@ export enum PlaneTrackerUserActions {
     LOCK_API = 'lockApi.cgi',
     UNLOCK_API = 'unlockApi.cgi',
 }
+
+export const planeTrackerUserActionData = z.discriminatedUnion('cgi', [
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.TRACK_ICAO),
+        ip: z.string(),
+        params: apiStringUserSchema.extend({
+            icao: z.string(),
+        }),
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.RESET_ICAO),
+        ip: z.string(),
+        params: apiStringUserSchema,
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.SET_PRIORITY_LIST),
+        ip: z.string(),
+        params: apiStringUserSchema,
+        postJsonBody: z.object({
+            priorityList: z.array(z.string()), // ICAO[]
+        }),
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.SET_BLACK_LIST),
+        ip: z.string(),
+        params: apiStringUserSchema,
+        postJsonBody: z.object({
+            blackList: z.array(z.string()), // ICAO[]
+        }),
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.SET_WHITE_LIST),
+        ip: z.string(),
+        params: apiStringUserSchema,
+        postJsonBody: z.object({
+            whiteList: z.array(z.string()), // ICAO[]
+        }),
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.GO_TO_COORDINATES),
+        ip: z.string(),
+        params: apiStringUserSchema.extend({
+            lat: z.string(),
+            lon: z.string(),
+        }),
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.SET_TRACKING_MODE),
+        ip: z.string(),
+        params: apiStringUserSchema,
+        postJsonBody: trackingModeSchema,
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.SET_ZONES),
+        ip: z.string(),
+        params: apiStringUserSchema,
+        postJsonBody: zonesSchema,
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.RESET_PTZ_CALIBRATION),
+        ip: z.string(),
+        params: apiStringUserSchema,
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.LOCK_API),
+        ip: z.string(),
+        params: apiStringUserSchema.extend({
+            timeout: z.string(),
+        }),
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.UNLOCK_API),
+        ip: z.string(),
+        params: apiStringUserSchema,
+    }),
+]);
 
 const ptrEventsDataSchema = z.discriminatedUnion('type', [
     z.object({
@@ -125,3 +202,9 @@ export type TPlaneTrackerEventOfType<T extends TPlaneTrackerEventType> = Extract
 export type TPlaneTrackerApiFlightData = z.infer<typeof apiFlightDataSchema>;
 export type TPlaneTrackerApiUser = z.infer<typeof apiUserSchema>;
 export type TPlaneTrackerStringApiUser = z.infer<typeof apiStringUserSchema>;
+
+export type TPlaneTrackerUserActionData = z.infer<typeof planeTrackerUserActionData>;
+export type TPlaneTrackerUserActionDataOfCgi<T extends PlaneTrackerUserActions> = Extract<
+    TPlaneTrackerUserActionData,
+    { cgi: T }
+>;
