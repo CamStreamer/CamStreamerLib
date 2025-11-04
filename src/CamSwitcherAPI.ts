@@ -349,7 +349,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
             type: res.type ?? 'NONE',
             streamName: res.stream_name,
             clipName: res.clip_name,
-            storage: res.storage,
+            storage: res.storage ?? 'SD_DISK',
             secondaryAudioLevel: res.secondary_audio_level ?? 1,
             masterAudioLevel: res.master_audio_level ?? 1,
         };
