@@ -542,7 +542,7 @@ Get list of ICAOs in priority/white/black list.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TPriorityList>`, `Promise<TWhiteList>`, `Promise<TBlackList>`
+-   **Returns:** `Promise<TPriorityList['priorityList']>`, `Promise<TWhiteList['whiteList']>`, `Promise<TBlackList['blackList']>`
 
 ```javascript
 const priorityList = await ptrApi.getPriorityList();
@@ -648,7 +648,7 @@ Focus camera to specified coordinates.
     -   `lon` (`number`): Longitude of the target location.
     -   `alt` (`number`, optional): Altitude of the target location (meters). If not provided, it will be fetched from the elevation service.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.goToCoordinates();

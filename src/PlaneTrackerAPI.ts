@@ -254,15 +254,13 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         });
 
         if (!res.ok) {
-            const statusText = (await res.json()).statusText;
-
-            if (res.status === 400 && statusText === 'Cannot set coordinates in automatic mode') {
+            if (res.status === 400 && res.statusText === 'Cannot set coordinates in automatic mode') {
                 throw new CannotSetCoordsInAutoModeError();
             }
-            if (res.status === 400 && statusText === 'Invalid lat/lon parameters') {
+            if (res.status === 400 && res.statusText === 'Invalid lat/lon parameters') {
                 throw new InvalidLatLngError();
             }
-            if (res.status === 400 && statusText === 'Invalid alt parameter') {
+            if (res.status === 400 && res.statusText === 'Invalid alt parameter') {
                 throw new InvalidAltitudeError();
             }
             if (res.status === 400) {
@@ -272,8 +270,6 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
                 throw new ServerError();
             }
         }
-
-        return res as ReturnType<Client['get']>;
     }
 
     //   ----------------------------------------

@@ -15,6 +15,7 @@ export type TResponse = {
     blob: () => Promise<unknown>;
     status: number;
     ok: boolean;
+    statusText: string;
 };
 
 export type TGetParams = {
