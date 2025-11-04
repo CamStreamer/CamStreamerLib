@@ -9,7 +9,9 @@ export type TAudioChannelCount = z.infer<typeof audioChannelCountSchema>;
 export const h264ProfileSchema = z.union([z.literal('high'), z.literal('main'), z.literal('baseline')]);
 export type TH264Profile = z.infer<typeof h264ProfileSchema>;
 
-export const storageTypeSchema = z.union([z.literal('SD_DISK'), z.literal('FLASH')]);
+export const flashStorageTypeSchema = z.literal('FLASH');
+export const sdCardStorageTypeSchema = z.literal('SD_DISK');
+export const storageTypeSchema = z.union([sdCardStorageTypeSchema, flashStorageTypeSchema]);
 export type TStorageType = z.infer<typeof storageTypeSchema>;
 
 export const networkCameraListSchema = z.array(

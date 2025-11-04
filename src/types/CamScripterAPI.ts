@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TStorageType } from './common';
+import { flashStorageTypeSchema, sdCardStorageTypeSchema, TStorageType } from './common';
 
 export const nodeStateSchema = z.object({
     node_state: z.union([z.literal('OK'), z.literal('NOT_INSTALLED'), z.literal('NOT_FOUND')]),
@@ -34,10 +34,10 @@ export type TServerPackageData = {
 
 export const cameraStorageSchema = z.union([
     z.tuple([
-        z.object({ type: z.literal('INTERNAL'), capacity_mb: z.number() }),
-        z.object({ type: z.literal('SD_CARD'), capacity_mb: z.number() }),
+        z.object({ type: flashStorageTypeSchema, capacity_mb: z.number() }),
+        z.object({ type: sdCardStorageTypeSchema, capacity_mb: z.number() }),
     ]),
-    z.tuple([z.object({ type: z.literal('INTERNAL'), capacity_mb: z.number() })]),
+    z.tuple([z.object({ type: flashStorageTypeSchema, capacity_mb: z.number() })]),
 ]);
 export type TCameraStorage = z.infer<typeof cameraStorageSchema>;
 export type TStorageParsedData = {
