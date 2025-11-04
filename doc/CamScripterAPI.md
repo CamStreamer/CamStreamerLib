@@ -129,17 +129,17 @@ Get available storage and it's capacity in MB.
     type TCameraStorage =
         | [
               {
-                  type: 'INTERNAL';
+                  type: 'FLASH';
                   capacity_mb: number;
               },
               {
-                  type: 'SD_CARD';
+                  type: 'SD_DISK';
                   capacity_mb: number;
               }
           ]
         | [
               {
-                  type: 'INTERNAL';
+                  type: 'FLASH';
                   capacity_mb: number;
               }
           ];
@@ -159,7 +159,7 @@ List all installed packages.
 
     ```typescript
     type TPackageInfoList = {
-        storage: 'INTERNAL' | 'SD_CARD';
+        storage: 'FLASH' | 'SD_DISK';
         manifest: {
             package_name: string;
             package_menu_name: string;
@@ -182,12 +182,12 @@ Install package.
 
 -   **Parameters:**
     -   `formData` (`Parameters<Client['post']>[0]['data']`)
-    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`): Where to install the pacakge.
+    -   `storage`: (`'FLASH'` | `'SD_DISK'`): Where to install the pacakge.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await cscApi.installPackages(data, 'SD_CARD');
+await cscApi.installPackages(data, 'SD_DISK');
 ```
 
 ### uninstallPackage(packageId, options?)
@@ -261,10 +261,10 @@ const status = await cscApi.getNodejsStatus();
 Decompress bundled NodeJS gzip file into chosen location, which is then stored in NodejsLocation parameter.
 
 -   **Parameters:**
-    -   `storage`: (`'INTERNAL'` | `'SD_CARD'`): Where to install NodeJS.
+    -   `storage`: (`'FLASH'` | `'SD_DISK'`): Where to install NodeJS.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await cscApi.installNodejs('INTERNAL');
+await cscApi.installNodejs('FLASH');
 ```
