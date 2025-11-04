@@ -1,3 +1,4 @@
+export * from './errors/errors';
 export * from './internal/types';
 export * from './internal/constants';
 export * from './internal/utils';
