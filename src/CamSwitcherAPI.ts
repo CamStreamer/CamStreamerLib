@@ -135,19 +135,19 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     }
 
     async setStreamSaveList(data: TStreamSaveList, options?: THttpRequestOptions) {
-        await this._post(`${BASE_PATH}/streams.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/streams.cgi`, JSON.stringify(data), { action: 'set' }, options);
     }
 
     async setClipSaveList(data: TClipSaveList, options?: THttpRequestOptions) {
-        await this._post(`${BASE_PATH}/clips.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/clips.cgi`, JSON.stringify(data), { action: 'set' }, options);
     }
 
     async setPlaylistSaveList(data: TPlaylistSaveList, options?: THttpRequestOptions) {
-        await this._post(`${BASE_PATH}/playlists.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/playlists.cgi`, JSON.stringify(data), { action: 'set' }, options);
     }
 
     async setTrackerSaveList(data: TTrackerSaveList, options?: THttpRequestOptions) {
-        await this._post(`${BASE_PATH}/trackers.cgi`, data, { action: 'set' }, options);
+        await this._post(`${BASE_PATH}/trackers.cgi`, JSON.stringify(data), { action: 'set' }, options);
     }
 
     //   ----------------------------------------
