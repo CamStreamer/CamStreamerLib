@@ -29,6 +29,7 @@ import {
     MaxFPSError,
     NoDeviceInfoError,
     PtzNotSupportedError,
+    GeneralResponseNotOKError,
     SDCardActionError,
     SDCardJobError,
     SettingParameterError,
@@ -62,7 +63,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
         if (!res.ok) {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
         return res;
     }
@@ -81,7 +82,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
         if (!res.ok) {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
         return res;
     }
@@ -110,7 +111,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             headers: { 'Content-Type': 'application/soap+xml' },
         });
         if (!res.ok) {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
         return await res.text();
     }
@@ -294,7 +295,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             const resV2 = await agent.get({ path: '/config/rest/time/v2/timeZone', timeout: options?.timeout });
 
             if (!resV2.ok) {
-                throw new Error(await responseStringify(resV2));
+                throw new GeneralResponseNotOKError(await responseStringify(resV2));
             }
 
             const json = await resV2.json();
@@ -689,7 +690,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout ?? 120000,
         });
         if (!res.ok) {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
 
         const text = await res.text();

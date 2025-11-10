@@ -1,3 +1,4 @@
+import { GeneralResponseNotOKError } from './errors/errors';
 import { ProxyClient } from './internal/ProxyClient';
 import { IClient, TParameters, TResponse } from './internal/types';
 import { responseStringify } from './internal/utils';
@@ -112,7 +113,7 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
     private async _post(
@@ -128,7 +129,7 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
 }

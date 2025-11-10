@@ -1,3 +1,5 @@
+import { stringifiedResponseSchema } from '../internal/utils';
+
 export class ServiceUnavailableError extends Error {
     constructor() {
         super('Service is unavailable.');
@@ -187,5 +189,14 @@ export class BadRequestError extends Error {
     constructor(err: unknown) {
         super('An unknown error occurred: ' + err);
         this.name = 'UnknownError';
+    }
+}
+
+export class GeneralResponseNotOKError extends Error {
+    static messageSchema = stringifiedResponseSchema;
+
+    constructor(stringifiedRes: string) {
+        super(stringifiedRes);
+        this.name = 'GeneralResponseNotOKError';
     }
 }

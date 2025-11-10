@@ -1,3 +1,4 @@
+import z from 'zod';
 import { TPlaylistPlayType } from '../types/CamSwitcherAPI';
 import { TParameters, TResponse } from './types';
 
@@ -67,6 +68,10 @@ export async function responseStringify(res: TResponse): Promise<string> {
         body: await res.text(),
     });
 }
+export const stringifiedResponseSchema = z.object({
+    status: z.number(),
+    body: z.string(),
+});
 
 export function pad(num: number, size: number) {
     const sign = Math.sign(num) === -1 ? '-' : '';

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AddNewClipError, JsonParseError, ParameterNotFoundError } from './errors/errors';
+import { AddNewClipError, JsonParseError, ParameterNotFoundError, GeneralResponseNotOKError } from './errors/errors';
 import { IClient, TParameters, TResponse } from './internal/types';
 import { isClip, isNullish, responseStringify } from './internal/utils';
 import {
@@ -374,7 +374,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
 
@@ -391,7 +391,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
 

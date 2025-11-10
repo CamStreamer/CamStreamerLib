@@ -34,6 +34,7 @@ import {
     ResetCalibrationError,
     ServerError,
     BadRequestError,
+    GeneralResponseNotOKError,
 } from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
@@ -301,7 +302,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
 
@@ -312,7 +313,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await this.parseBlobResponse(res);
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
 
@@ -343,7 +344,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return res;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
 
@@ -360,7 +361,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return res;
         } else {
-            throw new Error(await responseStringify(res));
+            throw new GeneralResponseNotOKError(await responseStringify(res));
         }
     }
 }
