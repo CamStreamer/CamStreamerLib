@@ -12,8 +12,7 @@
         "strict": true,
         "typeRoots": ["typings", "node_modules/@types"],
         "noUncheckedIndexedAccess": true,
-        "declaration": true,
-        "declarationDir": "./dist/types"
+        "declaration": true
     },
     "include": ["src"],
     "exclude": ["node_modules"]
