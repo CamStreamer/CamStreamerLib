@@ -15,6 +15,8 @@ const apiFlightDataSchema = z.object({
     priorityListed: z.boolean(),
     autoSelectionIgnored: z.boolean(),
     signalQuality: z.number(),
+    emitterCategorySet: z.number().default(4), // Aircraft category set: 4 = set A, 3 = set B, 2 = set C, 1 = set D (see BDS08.ts)
+    emitterCategory: z.number().default(3), // Aircraft category (see BDS08.ts)
     emergencyState: z.boolean(),
     emergencyStatusMessage: z.string(), // Emergency description
 });
