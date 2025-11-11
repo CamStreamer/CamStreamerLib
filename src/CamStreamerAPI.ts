@@ -1,11 +1,10 @@
 import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
 import { IClient, TParameters, TResponse } from './internal/types';
-import { responseStringify } from './internal/utils';
 
 import { cameraStreamSchema, TCameraStream, TStream } from './types/CamStreamerAPI';
 import { THttpRequestOptions, TProxyParams } from './types/common';
-import { GeneralResponseNotOKError, UtcTimeFetchError, WsAuthorizationError } from './errors/errors';
+import { ErrorWithResponse, UtcTimeFetchError, WsAuthorizationError } from './errors/errors';
 
 const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
@@ -97,7 +96,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 }

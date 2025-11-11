@@ -1,4 +1,5 @@
-import { responseStringify, pad } from '../../internal/utils';
+import { ErrorWithResponse } from '../../errors/errors';
+import { pad } from '../../internal/utils';
 import {
     cameraDetailsResponseSchema,
     cameraGuidsResponseSchema,
@@ -36,7 +37,7 @@ export class GenetecAgent {
         const res = await this.fetchWithTimeout(new URL(this.baseUrl), requestOptions);
 
         if (!res.ok) {
-            throw new Error(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
         const responseBody = await res.text();
         const result = await successResponseSchema.safeParseAsync(JSON.parse(responseBody));
@@ -54,7 +55,7 @@ export class GenetecAgent {
         const res = await this.fetchWithTimeout(url, requestOptions);
 
         if (!res.ok) {
-            throw new Error(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
 
         const responseBody = await res.text();
@@ -82,7 +83,7 @@ export class GenetecAgent {
             const res = await this.fetchWithTimeout(url, requestOptions);
 
             if (!res.ok) {
-                throw new Error(await responseStringify(res));
+                throw new ErrorWithResponse(res);
             }
 
             const responseBody = await res.text();
@@ -114,7 +115,7 @@ export class GenetecAgent {
         const res = await this.fetchWithTimeout(url, requestOptions);
 
         if (!res.ok) {
-            throw new Error(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
 
         const responseBody = await res.text();

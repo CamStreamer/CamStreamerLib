@@ -1,5 +1,5 @@
 import { IClient, TParameters, TResponse } from './internal/types';
-import { arrayToUrl, isNullish, paramToUrl, responseStringify } from './internal/utils';
+import { arrayToUrl, isNullish, paramToUrl } from './internal/utils';
 
 import {
     TGuardTour,
@@ -29,7 +29,7 @@ import {
     MaxFPSError,
     NoDeviceInfoError,
     PtzNotSupportedError,
-    GeneralResponseNotOKError,
+    ErrorWithResponse,
     SDCardActionError,
     SDCardJobError,
     SettingParameterError,
@@ -63,7 +63,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
         if (!res.ok) {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
         return res;
     }
@@ -82,7 +82,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const agent = this.getClient(options?.proxyParams);
         const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
         if (!res.ok) {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
         return res;
     }
@@ -111,7 +111,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             headers: { 'Content-Type': 'application/soap+xml' },
         });
         if (!res.ok) {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
         return await res.text();
     }
@@ -219,7 +219,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const job = result.root.job;
 
         if (job.result !== 'OK') {
-            throw new SDCardActionError(action, await responseStringify(res));
+            throw new SDCardActionError(action, job.description);
         }
 
         return Number(job.jobid);
@@ -246,7 +246,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const job = parser.parse(textXml).root.job;
 
         if (job.result !== 'OK') {
-            throw new SDCardJobError();
+            throw new SDCardJobError(job.description);
         }
 
         return Number(job.progress);
@@ -295,7 +295,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             const resV2 = await agent.get({ path: '/config/rest/time/v2/timeZone', timeout: options?.timeout });
 
             if (!resV2.ok) {
-                throw new GeneralResponseNotOKError(await responseStringify(resV2));
+                throw new ErrorWithResponse(resV2);
             }
 
             const json = await resV2.json();
@@ -634,7 +634,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const text = (await res.text()).trim().toLowerCase();
 
         if (text !== 'ok' && !(text.startsWith('error:') && text.substring(7) === '6')) {
-            throw new ApplicationAPIError('START', await responseStringify(res));
+            throw new ApplicationAPIError('START', text);
         }
     }
 
@@ -651,7 +651,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const text = (await res.text()).trim().toLowerCase();
 
         if (text !== 'ok') {
-            throw new ApplicationAPIError('RESTART', await responseStringify(res));
+            throw new ApplicationAPIError('RESTART', text);
         }
     }
 
@@ -668,7 +668,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
         const text = (await res.text()).trim().toLowerCase();
 
         if (text !== 'ok' && !(text.startsWith('error:') && text.substring(7) === '6')) {
-            throw new ApplicationAPIError('STOP', await responseStringify(res));
+            throw new ApplicationAPIError('STOP', text);
         }
     }
 
@@ -690,7 +690,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout ?? 120000,
         });
         if (!res.ok) {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
 
         const text = await res.text();

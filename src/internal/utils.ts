@@ -1,6 +1,5 @@
-import z from 'zod';
 import { TPlaylistPlayType } from '../types/CamSwitcherAPI';
-import { TParameters, TResponse } from './types';
+import { TParameters } from './types';
 
 export const addParametersToPath = (path: string, params?: TParameters) => {
     if (params === undefined || Object.keys(params).length === 0) {
@@ -61,17 +60,6 @@ export const isTracker = (id?: string) => id?.charAt(0) === 't';
 export const isPlaylist = (id?: string) => id?.charAt(0) === 'p';
 
 export const isLoopPlayType = (playType: TPlaylistPlayType) => playType.includes('LOOP');
-
-export async function responseStringify(res: TResponse): Promise<string> {
-    return JSON.stringify({
-        status: res.status,
-        body: await res.text(),
-    });
-}
-export const stringifiedResponseSchema = z.object({
-    status: z.number(),
-    body: z.string(),
-});
 
 export function pad(num: number, size: number) {
     const sign = Math.sign(num) === -1 ? '-' : '';

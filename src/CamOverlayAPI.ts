@@ -1,12 +1,7 @@
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
-import { paramToUrl, responseStringify } from './internal/utils';
+import { paramToUrl } from './internal/utils';
 
-import {
-    ParsingBlobError,
-    GeneralResponseNotOKError,
-    ServiceNotFoundError,
-    StorageDataFetchError,
-} from './errors/errors';
+import { ParsingBlobError, ErrorWithResponse, ServiceNotFoundError, StorageDataFetchError } from './errors/errors';
 import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './types/common';
 import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
@@ -145,7 +140,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
             }
             throw new ServiceNotFoundError();
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
@@ -286,7 +281,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout,
         });
         if (!res.ok) {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
@@ -297,7 +292,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
     private async _post(
@@ -312,7 +307,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
@@ -322,7 +317,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await this.parseBlobResponse(res);
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 

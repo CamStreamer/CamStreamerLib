@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
-import { paramToUrl, responseStringify } from './internal/utils';
+import { paramToUrl } from './internal/utils';
 import {
     blackListSchema,
     cameraSettingsSchema,
@@ -34,7 +34,7 @@ import {
     ResetCalibrationError,
     ServerError,
     BadRequestError,
-    GeneralResponseNotOKError,
+    ErrorWithResponse,
 } from './errors/errors';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ProxyClient } from './internal/ProxyClient';
@@ -83,7 +83,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout,
         });
         if (!res.ok) {
-            throw new ResetCalibrationError('PTZ', await responseStringify(res));
+            throw new ResetCalibrationError('PTZ', res);
         }
     }
 
@@ -95,7 +95,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout,
         });
         if (!res.ok) {
-            throw new ResetCalibrationError('FOCUS', await responseStringify(res));
+            throw new ResetCalibrationError('FOCUS', res);
         }
     }
 
@@ -141,7 +141,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         });
 
         if (!res.ok) {
-            throw new ImportSettingsError(await responseStringify(res));
+            throw new ImportSettingsError(res);
         }
     }
 
@@ -265,7 +265,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
                 throw new InvalidAltitudeError();
             }
             if (res.status === 400) {
-                throw new BadRequestError(await responseStringify(res));
+                throw new BadRequestError(res);
             }
             if (res.status === 500) {
                 throw new ServerError();
@@ -302,7 +302,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
@@ -313,7 +313,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await this.parseBlobResponse(res);
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
@@ -344,7 +344,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return res;
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
@@ -361,7 +361,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return res;
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 }

@@ -1,4 +1,11 @@
-import { stringifiedResponseSchema } from '../internal/utils';
+import { TResponse } from '../internal/types';
+
+export class ErrorWithResponse<T extends TResponse> extends Error {
+    constructor(public res: T) {
+        super(res.statusText);
+        this.name = 'ErrorWithResponse';
+    }
+}
 
 export class ServiceUnavailableError extends Error {
     constructor() {
@@ -45,8 +52,8 @@ export class SettingParameterError extends Error {
 type TApplicationAPIAction = 'START' | 'RESTART' | 'STOP' | 'INSTALL';
 
 export class ApplicationAPIError extends Error {
-    constructor(action: TApplicationAPIAction, res: string) {
-        super(`[APP ${action}] Error: ` + res);
+    constructor(public action: TApplicationAPIAction, reason: string) {
+        super(`Error performing application action '${action}': ${reason}`);
         this.name = 'ApplicationAPIError';
     }
 }
@@ -54,15 +61,15 @@ export class ApplicationAPIError extends Error {
 type TSDCardAction = 'MOUNT' | 'UNMOUNT';
 
 export class SDCardActionError extends Error {
-    constructor(action: TSDCardAction, res: string) {
-        super(`[SD_CARD ${action}] Error: ` + res);
+    constructor(public action: TSDCardAction, reason: string) {
+        super(`Error performing SD card action '${action}': ${reason}`);
         this.name = 'SDCardActionError';
     }
 }
 
 export class SDCardJobError extends Error {
-    constructor() {
-        super('Error while fetching SD card job progress');
+    constructor(reason: string) {
+        super(`Error while fetching SD card job progress: ${reason}`);
         this.name = 'SDCardJobError';
     }
 }
@@ -148,15 +155,15 @@ export class TimezoneFetchError extends Error {
 
 type TCalibrationType = 'PTZ' | 'FOCUS';
 
-export class ResetCalibrationError extends Error {
-    constructor(type: TCalibrationType, err: unknown) {
-        super('Error resetting ' + type.toLowerCase() + ' calibration: ' + err);
+export class ResetCalibrationError<T extends TResponse> extends ErrorWithResponse<T> {
+    constructor(public type: TCalibrationType, res: T) {
+        super(res);
         this.name = 'ResetCalibrationError';
     }
 }
-export class ImportSettingsError extends Error {
-    constructor(err: unknown) {
-        super('Error importing settings: ' + err);
+export class ImportSettingsError<T extends TResponse> extends ErrorWithResponse<T> {
+    constructor(res: T) {
+        super(res);
         this.name = 'ImportSettingsError';
     }
 }
@@ -185,18 +192,9 @@ export class ServerError extends Error {
     }
 }
 
-export class BadRequestError extends Error {
-    constructor(err: unknown) {
-        super('An unknown error occurred: ' + err);
-        this.name = 'UnknownError';
-    }
-}
-
-export class GeneralResponseNotOKError extends Error {
-    static messageSchema = stringifiedResponseSchema;
-
-    constructor(stringifiedRes: string) {
-        super(stringifiedRes);
-        this.name = 'GeneralResponseNotOKError';
+export class BadRequestError<T extends TResponse> extends ErrorWithResponse<T> {
+    constructor(res: T) {
+        super(res);
+        this.name = 'BadRequestError';
     }
 }

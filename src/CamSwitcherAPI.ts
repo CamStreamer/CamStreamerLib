@@ -1,7 +1,7 @@
 import { z } from 'zod';
-import { AddNewClipError, JsonParseError, ParameterNotFoundError, GeneralResponseNotOKError } from './errors/errors';
+import { AddNewClipError, JsonParseError, ParameterNotFoundError, ErrorWithResponse } from './errors/errors';
 import { IClient, TParameters, TResponse } from './internal/types';
-import { isClip, isNullish, responseStringify } from './internal/utils';
+import { isClip, isNullish } from './internal/utils';
 import {
     storageInfoListSchema,
     outputInfoSchema,
@@ -374,7 +374,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
@@ -391,7 +391,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
         if (res.ok) {
             return await res.json();
         } else {
-            throw new GeneralResponseNotOKError(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 
