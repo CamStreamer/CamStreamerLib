@@ -40,6 +40,7 @@ npm install camstreamerlib
 | [CamOverlayPainter](doc/CamOverlayPainter.md)                                     | Contains three modules which makes easier to use CamOverlayDrawingAPI.                                                                                                                                                                                            |
 | [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) | Module which allows generating events on an Axis camera. These events can be used for triggers in the Axis camera rule engine (events/actions). It is also an easy way how to integrate events and metadata in VMS systems which support Axis camera events.      |
 | [GenetecAgent](doc/GenetecAgent.md)                                               | Module which allows receiving and sending data to Genetec VMS.                                                                                                                                                                                                    |
+| [TimeZoneDaemon](doc/TimeZoneDaemon.md)                                           | Module for periodically checking and updating the Node.js process timezone to match the system timezone.                                                                                                                                                          |
 
 </br>
 
