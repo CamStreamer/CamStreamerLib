@@ -75,7 +75,7 @@ export const cameraSettingsSchema = z.object({
     cameraCalibrationProcessConfig: z
         .object({
             nightSkyCalibrationEnabled: z.boolean(),
-            scheduleNightSkyCalibrationTimestamp: z.number(), // Unixtime ms precision
+            scheduleNightSkyCalibrationTimestamp: z.number(),
             focusCalibrationPoints: z.string().default(''),
         })
         .default({
@@ -112,7 +112,7 @@ export const cameraSettingsSchema = z.object({
             icao: z.string().default(''),
             centerLat: z.number(),
             centerLon: z.number(),
-            radius: z.number().nonnegative().default(10000), // Radius in meters around the airport
+            radius: z.number().nonnegative().default(10000),
         })
         .default({
             icao: '',
@@ -123,7 +123,7 @@ export const cameraSettingsSchema = z.object({
     trackingConfig: z
         .object({
             prioritizeEmergency: z.boolean(),
-            trackingZoneWeightIncrease: z.number().int().nonnegative().default(0), // Zone weight increase during aircraft tracking
+            trackingZoneWeightIncrease: z.number().int().nonnegative().default(0),
             guardTourEnabled: z.boolean().default(false),
             guardTourId: z.number().int().nonnegative().default(0),
         })
@@ -238,14 +238,14 @@ export const serverSettingsSchema = z.object({
         .object({
             posLat: z.number(),
             posLon: z.number(),
-            geoidHN: z.number(), // Meters, offset from Geoid (mean sea level) altitude at LKPR location
+            geoidHN: z.number(),
             altitudeAmsl: z.number(),
             rotationEast: z.number(),
             rotationNorth: z.number(),
             rotationUp: z.number(),
-            tiltTransformationCoefA: z.number(), // The Axis PTZ degrees are not precise, this factor is used to correct the tilt position. The parameter can be estimated using Genetic Algorithm optimization
-            tiltCameraKnownPoint: z.number(), // The point in the scene that is used to calculate the tilt correction. It is the point where the camera is looking at when the real tilt is tiltRealKnownPoint
-            tiltRealKnownPoint: z.number(), // See tiltCameraKnownPoint
+            tiltTransformationCoefA: z.number(),
+            tiltCameraKnownPoint: z.number(),
+            tiltRealKnownPoint: z.number(),
         })
         .default({
             posLat: 50,
