@@ -238,14 +238,14 @@ export const serverSettingsSchema = z.object({
         .object({
             posLat: z.number(),
             posLon: z.number(),
-            geoidHN: z.number(),
+            geoidHN: z.number(), // Meters, offset from Geoid (mean sea level) altitude at LKPR location
             altitudeAmsl: z.number(),
             rotationEast: z.number(),
             rotationNorth: z.number(),
             rotationUp: z.number(),
-            tiltTransformationCoefA: z.number(),
-            tiltCameraKnownPoint: z.number(),
-            tiltRealKnownPoint: z.number(),
+            tiltTransformationCoefA: z.number(), // The Axis PTZ degrees are not precise, this factor is used to correct the tilt position. The parameter can be estimated using Genetic Algorithm optimization
+            tiltCameraKnownPoint: z.number(), // The point in the scene that is used to calculate the tilt correction. It is the point where the camera is looking at when the real tilt is tiltRealKnownPoint
+            tiltRealKnownPoint: z.number(), // See tiltCameraKnownPoint
         })
         .default({
             posLat: 50,
