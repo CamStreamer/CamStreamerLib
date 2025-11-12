@@ -1,86 +1,128 @@
-import { IClient, isClient, HttpOptions, responseStringify } from './internal/common';
-import { DefaultAgent } from './DefaultAgent';
+import { z } from 'zod';
+import { ProxyClient } from './internal/ProxyClient';
+import { IClient, TParameters, TResponse } from './internal/types';
 
-export type CamStreamerAPIOptions = HttpOptions;
+import { cameraStreamSchema, TCameraStream, TStream } from './types/CamStreamerAPI';
+import { THttpRequestOptions, TProxyParams } from './types/common';
+import { ErrorWithResponse, UtcTimeFetchError, WsAuthorizationError } from './errors/errors';
 
-export type TStreamAttributes = {
-    enabled: string;
-    active: string;
-    audioSource: string;
-    avSyncMsec: string;
-    internalVapixParameters: string;
-    userVapixParameters: string;
-    outputParameters: string;
-    outputType: string;
-    mediaServerUrl: string;
-    inputType: string;
-    inputUrl: string;
-    forceStereo: string;
-    streamDelay: string;
-    statusLed: string;
-    statusPort: string;
-    callApi: string;
-    trigger: string;
-    schedule: string;
-    prepareAhead: string;
-    startTime: string;
-    stopTime: string;
-};
-export type TStreamList = Record<string, TStreamAttributes>;
+const BASE_PATH = '/local/camstreamer';
+export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
+    constructor(private client: Client) {}
 
-export class CamStreamerAPI {
-    private client: IClient;
+    getClient(proxyParams?: TProxyParams) {
+        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
+    }
 
-    constructor(options: CamStreamerAPIOptions | IClient = {}) {
-        if (isClient(options)) {
-            this.client = options;
-        } else {
-            this.client = new DefaultAgent(options);
+    async wsAuthorization(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
+        if (res.status !== 200) {
+            throw new WsAuthorizationError(res.message);
         }
+        return z.string().parse(res.data);
     }
 
-    async getStreamList(): Promise<TStreamList> {
-        const streamListRes = await this.get('/local/camstreamer/stream/list.cgi');
-        return streamListRes.data;
-    }
-    async getStream(streamID: string): Promise<TStreamAttributes> {
-        const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);
-        return stream.data;
-    }
-    async getStreamParameter(streamID: string, paramName: string): Promise<string> {
-        const stream = await this.get(`/local/camstreamer/stream/get.cgi?stream_id=${streamID}`);
-        return stream.data[paramName];
+    async getUtcTime(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/get_utc_time.cgi`, undefined, options);
+        if (res.status !== 200) {
+            throw new UtcTimeFetchError(res.message);
+        }
+        return z.number().parse(res.data);
     }
 
-    async setStream(streamID: string, params: TStreamAttributes): Promise<void> {
+    //   ----------------------------------------
+    //                   Streams
+    //   ----------------------------------------
+
+    async getStreamList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/stream/list.cgi`, undefined, options);
+
+        const list = z.record(z.string(), cameraStreamSchema).parse(res.data);
+        const streamList: Record<number, TStream> = {};
+
+        for (const [key, data] of Object.entries(list)) {
+            const streamId = parseInt(key);
+            streamList[streamId] = parseCameraStreamResponse(data);
+        }
+        return streamList;
+    }
+
+    async getStream(streamId: number, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi`, { stream_id: streamId }, options);
+        const cameraData = cameraStreamSchema.parse(res.data);
+        return parseCameraStreamResponse(cameraData);
+    }
+
+    async getStreamParameter(streamId: number, paramName: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/stream/get.cgi`, { stream_id: streamId }, options);
+        return z.string().parse(res.data[paramName]);
+    }
+
+    async setStream(streamId: number, params: Partial<TStream>, options?: THttpRequestOptions) {
         const { streamDelay, startTime, stopTime, ...rest } = params;
-        await this.get('/local/camstreamer/stream/set.cgi', {
-            stream_id: streamID,
-            streamDelay: streamDelay ?? '',
-            startTime: startTime ?? 'null',
-            stopTime: stopTime ?? 'null',
-            ...rest,
-        });
+        await this._getJson(
+            `${BASE_PATH}/stream/set.cgi`,
+            {
+                stream_id: streamId,
+                streamDelay: streamDelay ?? '',
+                startTime: startTime ?? null,
+                stopTime: stopTime ?? null,
+                ...rest,
+            },
+            options
+        );
     }
-    async setStreamParameter(streamID: string, paramName: string, value: string): Promise<void> {
-        await this.get(`/local/camstreamer/stream/set.cgi?stream_id=${streamID}&${paramName}=${value}`);
-    }
-
-    async isStreaming(streamID: string): Promise<boolean> {
-        const response = await this.get(`/local/camstreamer/get_streamstat.cgi?stream_id=${streamID}`);
-        return response.data.is_streaming === 1;
-    }
-    async deleteStream(streamID: string): Promise<void> {
-        await this.get('/local/camstreamer/stream/remove.cgi', { stream_id: streamID });
+    async setStreamParameter(streamId: number, paramName: string, value: string, options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/stream/set.cgi`, { stream_id: streamId, [paramName]: value }, options);
     }
 
-    private async get(path: string, parameters?: Record<string, string>): Promise<any> {
-        const res = await this.client.get(path, parameters);
+    async isStreaming(streamId: number, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/get_streamstat.cgi`, { stream_id: streamId }, options);
+        return res.data.is_streaming === 1;
+    }
+    async deleteStream(streamId: number, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
+        return res.data.status === 200;
+    }
+
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
+
+    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.get({ path, parameters, timeout: options?.timeout });
 
         if (res.ok) {
             return await res.json();
         } else {
-            throw new Error(await responseStringify(res));
+            throw new ErrorWithResponse(res);
         }
     }
 }
+
+export const parseCameraStreamResponse = (cameraStreamData: TCameraStream): TStream => {
+    return {
+        enabled: parseInt(cameraStreamData.enabled) as 0 | 1,
+        active: parseInt(cameraStreamData.active) as 0 | 1,
+        audioSource: cameraStreamData.audioSource,
+        avSyncMsec: parseInt(cameraStreamData.avSyncMsec),
+        internalVapixParameters: cameraStreamData.internalVapixParameters,
+        userVapixParameters: cameraStreamData.userVapixParameters,
+        outputParameters: cameraStreamData.outputParameters,
+        outputType: cameraStreamData.outputType as TStream['outputType'],
+        mediaServerUrl: cameraStreamData.mediaServerUrl,
+        inputType: cameraStreamData.inputType as TStream['inputType'],
+        inputUrl: cameraStreamData.inputUrl,
+        forceStereo: parseInt(cameraStreamData.forceStereo) as 0 | 1,
+        streamDelay: isNaN(parseInt(cameraStreamData.streamDelay)) ? null : parseInt(cameraStreamData.streamDelay),
+        statusLed: parseInt(cameraStreamData.statusLed),
+        statusPort: cameraStreamData.statusPort,
+        callApi: parseInt(cameraStreamData.callApi),
+        trigger: cameraStreamData.trigger,
+        schedule: cameraStreamData.schedule,
+        prepareAhead: parseInt(cameraStreamData.prepareAhead),
+        startTime: isNaN(parseInt(cameraStreamData.startTime)) ? null : parseInt(cameraStreamData.startTime),
+        stopTime: isNaN(parseInt(cameraStreamData.stopTime)) ? null : parseInt(cameraStreamData.stopTime),
+    };
+};

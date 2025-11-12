@@ -1,28 +1,29 @@
 {
     "name": "camstreamerlib",
-    "version": "3.5.1",
+    "version": "4.0.0-beta.64",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
-    "dependencies": {
-        "adm-zip": "^0.5.9",
-        "eventemitter2": "^5.0.1",
-        "prettify-xml": "^1.2.0",
-        "undici": "6.13.0",
-        "ws": "^8.18.0",
-        "xml2js": "^0.5.0",
-        "zod": "^3.24.3"
-    },
     "engine": {
         "node": ">=18.0.0"
     },
+    "dependencies": {
+        "adm-zip": "^0.5.9",
+        "eventemitter2": "^5.0.1",
+        "fast-xml-parser": "^5.2.5",
+        "lodash": "^4.17.21",
+        "type-fest": "^4.41.0",
+        "undici": "^6.21.3",
+        "ws": "^8.18.0",
+        "zod": "^3.25.76"
+    },
     "devDependencies": {
-        "@camstreamer/eslint-config": "^1.0.0",
+        "@camstreamer/eslint-config": "^1.0.2",
         "@camstreamer/prettier-config": "^2.0.4",
         "@types/adm-zip": "^0.5.5",
         "@types/jest": "^28.0.0",
-        "@types/node": "^18.19.39",
+        "@types/lodash": "^4.17.18",
+        "@types/node": "^18.19.127",
         "@types/ws": "^8.5.10",
-        "@types/xml2js": "^0.4.14",
         "@typescript-eslint/eslint-plugin": "^6.8.0",
         "@typescript-eslint/parser": "^6.8.0",
         "eslint": "^8.51.0",
@@ -37,19 +38,41 @@
     },
     "scripts": {
         "clean": "rimraf dist/*",
-        "build": "npm-run-all clean tsc copyPackage",
-        "tsc": "tsc",
+        "build": "npm-run-all clean build:cjs build:esm copyPackage",
+        "build:cjs": "tsc --project tsconfig.cjs.json",
+        "build:esm": "tsc --project tsconfig.esm.json",
         "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
         "lint": "eslint \"src/**/*.ts\"",
         "lint:fix": "eslint \"src/**/*.ts\" --fix",
         "pretty": "prettier --write \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
         "pretty:check": "prettier --check \"./{{src,doc}/**/*.{ts,tsx,md},README.md}\"",
-        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+        "audit": "npm audit --audit-level=high"
     },
     "files": [
         "/**/*.js",
         "/**/*.ts"
     ],
+    "main": "./cjs/index.js",
+    "module": "./esm/index.js",
+    "types": "types/index.d.ts",
+    "exports": {
+        ".": {
+            "import": "./esm/index.js",
+            "require": "./cjs/index.js",
+            "types": "./types/index.d.ts"
+        },
+        "./web": {
+            "import": "./esm/web/index.js",
+            "require": "./cjs/web/index.js",
+            "types": "./types/web/index.d.ts"
+        },
+        "./node": {
+            "import": "./esm/node/index.js",
+            "require": "./cjs/node/index.js",
+            "types": "./types/node/index.d.ts"
+        }
+    },
     "repository": {
         "type": "git",
         "url": "git+https://github.com/CamStreamer/CamStreamerLib.git"

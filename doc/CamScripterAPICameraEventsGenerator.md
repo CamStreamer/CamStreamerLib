@@ -2,96 +2,107 @@
 
 Module for Axis camera events generation.
 
+## Constructor
+
+-   **CamScripterAPICameraEventsGenerator(options)** - The options parameter contains access to the camera with CamScripter installed. Values mentioned in the example below are default.
+
+    ```javascript
+    const cscAPI = new CamScripterAPICameraEventsGenerator({
+        tls: false,
+        tlsInsecure: false,
+        ip: '127.0.0.1',
+        port: 80,
+        user: '',
+        pass: '',
+    });
+    ```
+
 ## Methods
 
--   **CamScripterAPICameraEventsGenerator(options)** - The options parameter contains access to the camera with CamScripter installed.
-    Values mentioned in the example below are default.
+### connect()
 
-        ```javascript
-        CamScripterAPICameraEventsGenerator({
-            tls: false,
-            tlsInsecure: false,
-            ip: '127.0.0.1',
-            port: 80,
-            user: '',
-            pass: '',
-        });
-        ```
+Connect to the CamScripter camera events WebSocket API. The WebSocket is reconnected in case of a connection error.
 
--   **connect()** - Connect to the CamScripter camera events WebSocket API. The WebSocket is reconnected in case of a connection error.
+```javascript
+cscAPI.connect();
+```
 
-    ```javascript
-    connect();
-    ```
+### disconnect()
 
--   **disconnect()** - Close the WebSocket connection.
+Close the WebSocket connection.
 
-    ```javascript
-    disconnect();
-    ```
+```javascript
+cscAPI.disconnect();
+```
 
--   **declareEvent()** - Declare an event in the camera. After declaration, the event is available in the Axis Event Rule engine and other applications can subscribe to the event. If the WebSocket is disconnected, all declared events are automatically removed from the camera.
+### declareEvent()
 
-    ```javascript
-    declareEvent({
-        declaration_id: 'Temper1fSensor',
-        stateless: false,
-        declaration: [
-            {
-                namespace: 'tnsaxis',
-                key: 'topic0',
-                value: 'CameraApplicationPlatform',
-                value_type: 'STRING',
-            },
-            {
-                namespace: 'tnsaxis',
-                key: 'topic1',
-                value: 'CamScripter',
-                value_type: 'STRING',
-            },
-            {
-                namespace: 'tnsaxis',
-                key: 'topic2',
-                value: 'Temper1fSensor',
-                value_type: 'STRING',
-                value_nice_name: 'CamScripter: Temper1fSensor',
-            },
-            {
-                type: 'DATA',
-                namespace: '',
-                key: 'condition_active',
-                value: false,
-                value_type: 'BOOL',
-                key_nice_name: 'React on active condition (settings in the script)',
-                value_nice_name: 'Condition is active',
-            },
-        ],
-    });
-    ```
+Declare an event in the camera. After declaration, the event is available in the Axis Event Rule engine and other applications can subscribe to the event. If the WebSocket is disconnected, all declared events are automatically removed from the camera.
 
--   **undeclareEvent()** - Remove the declaration from the camera.
+```javascript
+cscAPI.declareEvent({
+    declaration_id: 'Temper1fSensor',
+    stateless: false,
+    declaration: [
+        {
+            namespace: 'tnsaxis',
+            key: 'topic0',
+            value: 'CameraApplicationPlatform',
+            value_type: 'STRING',
+        },
+        {
+            namespace: 'tnsaxis',
+            key: 'topic1',
+            value: 'CamScripter',
+            value_type: 'STRING',
+        },
+        {
+            namespace: 'tnsaxis',
+            key: 'topic2',
+            value: 'Temper1fSensor',
+            value_type: 'STRING',
+            value_nice_name: 'CamScripter: Temper1fSensor',
+        },
+        {
+            type: 'DATA',
+            namespace: '',
+            key: 'condition_active',
+            value: false,
+            value_type: 'BOOL',
+            key_nice_name: 'React on active condition (settings in the script)',
+            value_nice_name: 'Condition is active',
+        },
+    ],
+});
+```
 
-    ```javascript
-    undeclareEvent({
-        declaration_id: 'Temper1fSensor',
-    });
-    ```
+### undeclareEvent()
 
--   **sendEvent()** - Send an event which is delivered to all event receivers.
+Remove the declaration from the camera.
 
-    ```javascript
-    sendEvent({
-        declaration_id: 'Temper1fSensor',
-        event_data: [
-            {
-                namespace: '',
-                key: 'condition_active',
-                value: active,
-                value_type: 'BOOL',
-            },
-        ],
-    });
-    ```
+```javascript
+cscAPI.undeclareEvent({
+    declaration_id: 'Temper1fSensor',
+});
+```
+
+### sendEvent()
+
+Send an event which is delivered to all event receivers.
+
+```javascript
+cscAPI.sendEvent({
+    declaration_id: 'Temper1fSensor',
+    event_data: [
+        {
+            namespace: '',
+            key: 'condition_active',
+            value: active,
+            value_type: 'BOOL',
+        },
+    ],
+});
+```
 
 ## Events
 
