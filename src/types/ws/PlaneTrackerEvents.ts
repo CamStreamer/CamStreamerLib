@@ -6,9 +6,9 @@ const apiFlightDataSchema = z.object({
     lat: z.number(),
     lon: z.number(),
     heading: z.number(),
-    groundSpeed: z.number(),
-    altitudeAMSL: z.number(),
-    cameraDistance: z.number(),
+    groundSpeed: z.number(), // [km/h]
+    altitudeAMSL: z.number(), // [m]
+    cameraDistance: z.number(), // [m]
     autoTrackingOrder: z.number(),
     whiteListed: z.boolean(),
     blackListed: z.boolean(),
