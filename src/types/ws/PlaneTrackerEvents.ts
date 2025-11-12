@@ -6,19 +6,19 @@ const apiFlightDataSchema = z.object({
     lat: z.number(),
     lon: z.number(),
     heading: z.number(),
-    groundSpeed: z.number(), // [km/h]
-    altitudeAMSL: z.number(), // [m]
-    cameraDistance: z.number(), // [m]
+    groundSpeed: z.number(),
+    altitudeAMSL: z.number(),
+    cameraDistance: z.number(),
     autoTrackingOrder: z.number(),
     whiteListed: z.boolean(),
     blackListed: z.boolean(),
     priorityListed: z.boolean(),
     autoSelectionIgnored: z.boolean(),
     signalQuality: z.number(),
-    emitterCategorySet: z.number().default(4), // Aircraft category set: 4 = set A, 3 = set B, 2 = set C, 1 = set D (see BDS08.ts)
-    emitterCategory: z.number().default(3), // Aircraft category (see BDS08.ts)
+    emitterCategorySet: z.number().default(4),
+    emitterCategory: z.number().default(3),
     emergencyState: z.boolean(),
-    emergencyStatusMessage: z.string(), // Emergency description
+    emergencyStatusMessage: z.string(),
 });
 
 const apiUserSchema = z.object({
