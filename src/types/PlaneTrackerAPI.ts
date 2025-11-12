@@ -311,6 +311,11 @@ export type TFlightInfo = z.infer<typeof flightInfoSchema>;
 //                    Lists
 //   ----------------------------------------
 
+export const typePriorityListSchema = z.object({
+    typePriorityList: z.array(z.string()).default([]),
+});
+export type TTypePriorityList = z.infer<typeof typePriorityListSchema>;
+
 export const priorityListSchema = z.object({
     priorityList: z.array(z.string()).default([]),
 });
