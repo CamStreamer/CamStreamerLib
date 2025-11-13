@@ -13,6 +13,7 @@ const apiFlightDataSchema = z.object({
     whiteListed: z.boolean(),
     blackListed: z.boolean(),
     priorityListed: z.boolean(),
+    typePriorityListed: z.boolean().default(false),
     autoSelectionIgnored: z.boolean(),
     signalQuality: z.number(),
     emitterCategorySet: z.number().default(4),
@@ -47,6 +48,7 @@ export enum PlaneTrackerUserActions {
     TRACK_ICAO = 'trackIcao.cgi',
     RESET_ICAO = 'resetIcao.cgi',
     SET_PRIORITY_LIST = 'setPriorityList.cgi',
+    SET_TYPE_PRIORITY_LIST = 'setTypePriorityList.cgi',
     SET_BLACK_LIST = 'setBlackList.cgi',
     SET_WHITE_LIST = 'setWhiteList.cgi',
     GO_TO_COORDINATES = 'goToCoordinates.cgi',
@@ -76,6 +78,14 @@ export const planeTrackerUserActionData = z.discriminatedUnion('cgi', [
         params: apiStringUserSchema,
         postJsonBody: z.object({
             priorityList: z.array(z.string()), // ICAO[]
+        }),
+    }),
+    z.object({
+        cgi: z.literal(PlaneTrackerUserActions.SET_TYPE_PRIORITY_LIST),
+        ip: z.string(),
+        params: apiStringUserSchema,
+        postJsonBody: z.object({
+            typePriorityList: z.array(z.string()), // ICAO[]
         }),
     }),
     z.object({
@@ -165,6 +175,7 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
             PlaneTrackerUserActions.TRACK_ICAO,
             PlaneTrackerUserActions.RESET_ICAO,
             PlaneTrackerUserActions.SET_PRIORITY_LIST,
+            PlaneTrackerUserActions.SET_TYPE_PRIORITY_LIST,
             PlaneTrackerUserActions.SET_BLACK_LIST,
             PlaneTrackerUserActions.SET_WHITE_LIST,
             PlaneTrackerUserActions.GO_TO_COORDINATES,
