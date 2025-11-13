@@ -1,7 +1,7 @@
 # HttpServer
 
-- HttpServer is a module for processing HTTP requests in your scripts.
-- It also automatically serves up the content from the html directory, or you can register paths which you can process on your own (e.g. `http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi`).
+-   HttpServer is a module for processing HTTP requests in your scripts.
+-   It also automatically serves up the content from the html directory, or you can register paths which you can process on your own (e.g. `http://$CAMERA_IP/local/camscripter/proxy/$MY_PACKAGE_NAME/control.cgi`).
 
 ## Constructor
 
@@ -12,6 +12,7 @@ import { HttpServer } from 'camstreamerlib/esm/node';
 
 const httpServer = new HttpServer({ port: 80 });
 ```
+
 > [!NOTE]
 > The `options` parameter contains the port which the created HttpServer listens on. Values mentioned in the example are default.
 

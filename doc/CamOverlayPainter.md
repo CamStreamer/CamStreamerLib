@@ -347,8 +347,7 @@ Sets which text will be displayed in this frame, its alignment, how to solve the
 frame.setText('Hello', 'A_CENTER', 'TFM_OVERFLOW', [0, 45 / 255, 106 / 255]);
 ```
 
-> [!IMPORTANT]
-> `fontColor` param is specified in numbers from 0 to 1
+> [!IMPORTANT] > `fontColor` param is specified in numbers from 0 to 1
 
 #### setFontColor(fontColor)
 

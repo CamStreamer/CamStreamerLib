@@ -1,4 +1,4 @@
-import WebSocket from 'ws';
+import { WebSocket } from 'ws';
 
 import { Digest } from './Digest';
 import { IWsClient, Options } from '../internal/types';

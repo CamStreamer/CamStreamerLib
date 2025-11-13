@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 
 import { Options } from '../internal/types';
 import { WsClient, WsClientOptions } from './WsClient';
