@@ -211,7 +211,8 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
                 const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
 
-                this.ws.send(msgBuffer.buffer);
+                const arrayBuffer = msgBuffer.buffer.slice(msgBuffer.byteOffset, msgBuffer.byteOffset + msgBuffer.byteLength);
+                this.ws.send(arrayBuffer);
                 this.sendMessages[this.callId] = { resolve, reject, sentTimestamp: Date.now() };
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'Unknown error';
