@@ -10,6 +10,8 @@ const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     constructor(private client: Client) {}
 
+    static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
+
     getClient(proxyParams?: TProxyParams) {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
