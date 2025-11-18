@@ -542,7 +542,7 @@ Get list of ICAOs in priority/typePriority/white/black list.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TPriorityList['priorityList']>`, `Promise<TPriorityList['priorityList']>`, `Promise<TWhiteList['whiteList']>`, `Promise<TBlackList['blackList']>`
+-   **Returns:** `Promise<TPriorityList['priorityList']>`, `Promise<TTypePriorityList['typePriorityList']>`, `Promise<TWhiteList['whiteList']>`, `Promise<TBlackList['blackList']>`
 
 ```javascript
 const priorityList = await ptrApi.getPriorityList();
