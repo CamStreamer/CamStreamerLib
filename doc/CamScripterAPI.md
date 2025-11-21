@@ -61,7 +61,7 @@ Returns CamScripter client - can be used in custom CamScripter API calls.
 
 -   **Parameters:**
 
-    -   `proxyParams` (`TProxyParams`, optional)
+    -   `proxyParams` (`TProxyParams`, optional): Optional proxy parameters for routing requests through a proxy
 
     ```typescript
     type TProxyParams =
@@ -182,7 +182,7 @@ Install package.
 
 -   **Parameters:**
     -   `formData` (`Parameters<Client['post']>[0]['data']`)
-    -   `storage`: (`'FLASH'` | `'SD_DISK'`): Where to install the pacakge.
+    -   `storage`: (`'FLASH'` | `'SD_DISK'`): The target storage location for the package/packages.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -231,11 +231,11 @@ Exports package settings.
 await cscApi.exportSettings('video_checkpoint', data);
 ```
 
-## Methods - Node.js
+## Methods - NodeJS
 
 ### getNodejsStatus(options?)
 
-Return diagnostics information.
+Get NodeJS diagnostics information.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
@@ -261,7 +261,7 @@ const status = await cscApi.getNodejsStatus();
 Decompress bundled NodeJS gzip file into chosen location, which is then stored in NodejsLocation parameter.
 
 -   **Parameters:**
-    -   `storage`: (`'FLASH'` | `'SD_DISK'`): Where to install NodeJS.
+    -   `storage`: (`'FLASH'` | `'SD_DISK'`): The target storage location for NodeJS.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
