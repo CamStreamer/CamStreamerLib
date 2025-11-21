@@ -1,6 +1,6 @@
 # Clients
 
-Every Api will now use client to comunicate with camera. Use default client (exported by out library) or you can implment your own one.
+Every API will now use client to communicate with camera. Use default client (exported by our library) or you can implement your own one.
 
 ## Default clients
 
@@ -20,13 +20,13 @@ type Options = {
 };
 
 type HttpOptions = Options & {
-    keepAlive?: boolean; // enables keep-alihe header => will use one tcp connection for more http requests
+    keepAlive?: boolean; // enables keep-alive header => will use one tcp connection for more http requests
 };
 
 type WsClientOptions = Options & {
     address: string; // url path to connect ws
     headers?: Record<string, string>;
-    pingInterval?: number; // timeout for ping msg (to check if connection is still alive), defualt 30s
+    pingInterval?: number; // timeout for ping msg (to check if connection is still alive), default 30s
     protocol?: string; // protocol used in ws, eg. 'events'
 };
 ```
@@ -84,8 +84,8 @@ import { DefaultClient } from 'camstreamerlib/web';
 const client = new DefaultClient();
 ```
 
-defaultly the requests are done to orgin (eg. `/path-to-cgi`)
-in constructor you can specifiy domain (eg. `http://111.111.111.111:5000` to do requests to `http://111.111.111.111:5000/path-to-cgi`)
+By default the requests are done to origin (eg. `/path-to-cgi`)
+in constructor you can specify domain (eg. `http://111.111.111.111:5000` to do requests to `http://111.111.111.111:5000/path-to-cgi`)
 
 ### Web - WsClient
 
@@ -108,7 +108,7 @@ const wsClient = new WsClient(createWsEventsUrl);
 
 ## Custom client
 
-Api expects to use native fetch (web or nodejs), just implement the interface imported from and use it
+API expects to use native fetch (web or nodejs), just implement the interface imported from and use it
 
 ```js
 import { IClient, IWsClient } from 'camstreamerlib';
