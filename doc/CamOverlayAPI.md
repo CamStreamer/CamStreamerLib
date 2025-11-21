@@ -616,7 +616,7 @@ type TScoreOverview = {
 
 ### getBasePath()
 
-Returns the base path of camoverlay API
+Returns the base path of CamOverlay API
 
 -   **Returns:** `string`
 
@@ -639,11 +639,11 @@ const proxyPath = CamOverlayAPI.getProxyPath();
 Returns path to a file.
 
 -   **Parameters:**
-    -   `path` (`string`)
+    -   `path` (`string`): Path to a file on the camera
 -   **Returns:** `string`
 
 ```javascript
-const preview = CamOverlayAPI.getFilePreviewPath(path);
+const preview = CamOverlayAPI.getFilePreviewPath('file:///path/to/image.png');
 ```
 
 ## Methods - Common
@@ -654,7 +654,7 @@ Returns CamOverlay client - can be used in custom CamOverlay API calls.
 
 -   **Parameters:**
 
-    -   `proxyParams` (`TProxyParams`, optional)
+    -   `proxyParams` (`TProxyParams`, optional): Optional proxy parameters for routing requests through a proxy
 
     ```typescript
     type TProxyParams =
@@ -724,13 +724,15 @@ const token = await coApi.wsAuthorization();
 
 ### getMjpegStreamImage(mjpegUrl, options?)
 
+Fetches a single frame image from an MJPEG stream.
+
 -   **Parameters:**
     -   `mjpegUrl` (`string`): Motion JPEG stream URL.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<Blob>`
 
 ```javascript
-const image = await coApi.getMjpegStreamImage(url);
+const image = await coApi.getMjpegStreamImage('http://example.com/mjpegstream');
 ```
 
 ## Methods - Files
@@ -742,35 +744,36 @@ type TFileType = 'image' | 'font';
 ```
 
 ```typescript
-type TStorage = 'url' | 'flash' | 'SD0' | 'ftp' | 'samba';
+type TFileStorageType = 'url' | 'flash' | 'SD0' | 'ftp' | 'samba';
 ```
 
 ```typescript
 type TFile = {
     path: string;
     name: string;
-    storage: TStorage;
+    storage: TFileStorageType;
 };
 ```
 
 ```typescript
 type TStorageDataList = {
-    type: TStorage;
+    type: TFileStorageType;
     state: string;
 }[];
 ```
 
 ### listFiles(fileType, options?)
 
-List all images or files uploaded to the camera.
+List all images or fonts uploaded to the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types)): Which file type to get.
+    -   `fileType` ([`TFileType`](#types)): The type of files to list (`'image'` or `'font'`).
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TFile[]>` ([`TFile`](#types))
 
 ```javascript
 const images = await coApi.listFiles('image');
+const fonts = await coApi.listFiles('font');
 ```
 
 ### uploadFile(fileType, formData, storage, options?)
@@ -778,9 +781,9 @@ const images = await coApi.listFiles('image');
 Uploads a new file to the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types)): Which file type to upload.
-    -   `formData` (`Parameters<Client['post']>[0]['data']`)
-    -   `storage` ([`TStorage`](#types)): Where to upload the file data.
+    -   `fileType` ([`TFileType`](#types)): The type of file to upload (`'image'` or `'font'`).
+    -   `formData` (`Parameters<Client['post']>[0]['data']`): File data.
+    -   `storage` ([`TFileStorageType`](#types)): The target storage location for the file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -793,7 +796,7 @@ await coApi.uploadFile('image', data, 'url');
 Removes file from the camera.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types)): Which file type to remove.
+    -   `fileType` ([`TFileType`](#types)): The type of file to remove (`'image'` or `'font'`).
     -   `fileParams` ([`TFile`](#types)): File information.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
@@ -807,7 +810,7 @@ await coApi.removeFile('font', fontData);
 Gets information about files storage.
 
 -   **Parameters:**
-    -   `fileType` ([`TFileType`](#types)): Which file type.
+    -   `fileType` ([`TFileType`](#types)): The type of file storage to query (`'image'` or `'font'`).
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TStorageDataList>` ([`TStorageDataList`](#types))
 
@@ -850,7 +853,7 @@ Enables/disables the bound CO service.
 
 -   **Parameters:**
     -   `serviceId` (`number`): Id of the service.
-    -   `enabled` (`boolean`): Start or stop the service.
+    -   `enabled` (`boolean`): True to enable the service, false to disable it.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -957,7 +960,7 @@ enum ImageType {
 
 ### updateCGText(serviceId, fields, options?)
 
-Updates text fields listed in the parameter fields.
+Updates text fields listed in the parameter `fields`.
 
 -   **Parameters:**
     -   `serviceId` (`number`): Id of the service.
@@ -1002,7 +1005,7 @@ If no coordinates are specified, the service will use the positioning from the l
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await coApi.updateCGImage(4, path, 'bottom_right');
+await coApi.updateCGImage(4, 'file:///path/to/image.png', 'bottom_right');
 ```
 
 ### updateCGImageFromData(serviceId, imageType, imageData, coordinates?, x?, y?, options?)
@@ -1013,8 +1016,8 @@ the imageData argument. If no coordinates are specified, the service will use th
 -   **Parameters:**
 
     -   `serviceId` (`number`): Id of the service.
-    -   `imageType` ([`ImageType`](#types-1)): jpeg or png.
-    -   `imageData` (`Parameters<Client['post']>[0]['data']`)
+    -   `imageType` ([`ImageType`](#types-1)): JPEG or PNG.
+    -   `imageData` (`Parameters<Client['post']>[0]['data']`): The raw image data to upload.
     -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`): Position of the image.
     -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
     -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis
