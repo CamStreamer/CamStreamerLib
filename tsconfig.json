@@ -4,7 +4,7 @@
         "target": "ES2022",
         "lib": ["dom", "DOM.Iterable", "ES2022"],
         "module": "esnext",
-        "removeComments": true,
+        "removeComments": false,
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
