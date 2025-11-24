@@ -1,6 +1,6 @@
 import z from 'zod';
-import { STREAM_TYPES, streamCommonSchema } from './streamCommonTypes';
+import { streamCommonSchema } from './streamCommonTypes';
 
 export const mpegDvbSchema = streamCommonSchema.extend({
-    type: z.literal(STREAM_TYPES.mpegDvb),
+    type: z.literal('mpeg_dvb'),
 });

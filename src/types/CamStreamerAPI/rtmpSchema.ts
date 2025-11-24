@@ -1,6 +1,6 @@
 import z from 'zod';
-import { STREAM_TYPES, streamCommonSchema } from './streamCommonTypes';
+import { streamCommonSchema } from './streamCommonTypes';
 
 export const rtmpSchema = streamCommonSchema.extend({
-    type: z.literal(STREAM_TYPES.rtmp),
+    type: z.literal('rtmp'),
 });
