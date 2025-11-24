@@ -1,0 +1,26 @@
+import { z } from 'zod';
+
+export const oldStreamSchema = z.object({
+    enabled: z.union([z.literal(0), z.literal(1)]),
+    active: z.union([z.literal(0), z.literal(1)]),
+    audioSource: z.string(),
+    avSyncMsec: z.number().int(),
+    internalVapixParameters: z.string(),
+    userVapixParameters: z.string(),
+    outputParameters: z.string(),
+    outputType: z.union([z.literal('video'), z.literal('images'), z.literal('none')]),
+    mediaServerUrl: z.string(),
+    inputType: z.union([z.literal('CSw'), z.literal('CRS'), z.literal('RTSP_URL')]),
+    inputUrl: z.string(),
+    forceStereo: z.union([z.literal(0), z.literal(1)]),
+    streamDelay: z.number().nullable(),
+    statusLed: z.number(),
+    statusPort: z.string(),
+    callApi: z.number().int(),
+    trigger: z.string(),
+    schedule: z.string(),
+    prepareAhead: z.number().int(),
+    startTime: z.number().nullable(),
+    stopTime: z.number().nullable(),
+});
+export type TOldStream = z.infer<typeof oldStreamSchema>;
