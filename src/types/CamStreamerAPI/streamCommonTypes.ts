@@ -15,5 +15,6 @@ export const streamCommonSchema = z.object({
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
+    order: z.number(),
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
