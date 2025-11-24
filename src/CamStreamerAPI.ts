@@ -5,7 +5,7 @@ import { IClient, TParameters, TResponse } from './internal/types';
 import { streamSchema, TStream } from './types/CamStreamerAPI/CamStreamerAPI';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ErrorWithResponse, UtcTimeFetchError, WsAuthorizationError, MigrationError } from './errors/errors';
-import { oldStreamSchema, TOldStream } from './types/CamStreamerAPI/oldStreamSchema';
+import { oldStringStreamSchema, TOldStream, TOldStringStream } from './types/CamStreamerAPI/oldStreamSchema';
 
 const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
@@ -52,8 +52,9 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
                 const parsed = streamSchema.parse(value);
                 streamList[id] = parsed;
             } catch (err) {
-                const oldStream = oldStreamSchema.parse(value);
-                invalidList[id] = oldStream;
+                const oldStream = oldStringStreamSchema.parse(value);
+                const parsedOldStream = parseCameraStreamResponse(oldStream);
+                invalidList[id] = parsedOldStream;
             }
         }
 
@@ -72,8 +73,9 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         try {
             return streamSchema.parse(res.data);
         } catch (err) {
-            const oldStream = oldStreamSchema.parse(res.data);
-            throw new MigrationError({}, { [streamId]: oldStream });
+            const oldStream = oldStringStreamSchema.parse(res.data);
+            const parsedOldStream = parseCameraStreamResponse(oldStream);
+            throw new MigrationError({}, { [streamId]: parsedOldStream });
         }
     }
 
@@ -113,3 +115,29 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         }
     }
 }
+
+export const parseCameraStreamResponse = (cameraStreamData: TOldStringStream): TOldStream => {
+    return {
+        enabled: parseInt(cameraStreamData.enabled) as 0 | 1,
+        active: parseInt(cameraStreamData.active) as 0 | 1,
+        audioSource: cameraStreamData.audioSource,
+        avSyncMsec: parseInt(cameraStreamData.avSyncMsec),
+        internalVapixParameters: cameraStreamData.internalVapixParameters,
+        userVapixParameters: cameraStreamData.userVapixParameters,
+        outputParameters: cameraStreamData.outputParameters,
+        outputType: cameraStreamData.outputType as TOldStream['outputType'],
+        mediaServerUrl: cameraStreamData.mediaServerUrl,
+        inputType: cameraStreamData.inputType as TOldStream['inputType'],
+        inputUrl: cameraStreamData.inputUrl,
+        forceStereo: parseInt(cameraStreamData.forceStereo) as 0 | 1,
+        streamDelay: isNaN(parseInt(cameraStreamData.streamDelay)) ? null : parseInt(cameraStreamData.streamDelay),
+        statusLed: parseInt(cameraStreamData.statusLed),
+        statusPort: cameraStreamData.statusPort,
+        callApi: parseInt(cameraStreamData.callApi),
+        trigger: cameraStreamData.trigger,
+        schedule: cameraStreamData.schedule,
+        prepareAhead: parseInt(cameraStreamData.prepareAhead),
+        startTime: isNaN(parseInt(cameraStreamData.startTime)) ? null : parseInt(cameraStreamData.startTime),
+        stopTime: isNaN(parseInt(cameraStreamData.stopTime)) ? null : parseInt(cameraStreamData.stopTime),
+    };
+};
