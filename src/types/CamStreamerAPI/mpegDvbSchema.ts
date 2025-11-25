@@ -18,6 +18,6 @@ export const mpegDvbSchema = streamCommonSchema.extend({
     serviceName: z.string(),
     triggerType: z.enum(['manual', 'onetime', 'recurrent', 'io', 'nonstop']),
     statusCameraLed: z.boolean(),
-    statusCameraOutput: z.number(),
+    statusCameraOutput: z.string(),
     saveToSdCard: z.boolean(),
 });
