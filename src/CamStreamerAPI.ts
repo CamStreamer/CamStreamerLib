@@ -83,7 +83,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         const agent = this.getClient(options?.proxyParams);
         await agent.post({
             path: `${BASE_PATH}/stream/set.cgi`,
-            data: streamData,
+            data: JSON.stringify(streamData),
             parameters: {
                 stream_id: streamId,
             },
