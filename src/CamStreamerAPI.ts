@@ -46,13 +46,14 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         const res = await this._getJson(`${BASE_PATH}/stream_list.cgi`, { action: 'get' }, options);
 
         // Do we have the old record format?
-        const oldStreamListRecord = z.record(z.number(), oldStringStreamSchema).safeParse(res.data);
+        const oldStreamListRecord = z.record(z.string(), oldStringStreamSchema).safeParse(res.data);
         if (oldStreamListRecord.success) {
             // Yes, we do. Convert to array
-            return Object.entries(oldStreamListRecord.data).map(([id, streamData]) => ({
+            const data = Object.entries(oldStreamListRecord.data).map(([id, streamData]) => ({
                 id: parseInt(id),
                 ...parseCameraStreamResponse(streamData),
             }));
+            throw new MigrationError([], data);
         }
 
         // No, we have the new array format, possibly with some old settings mixed in
@@ -131,10 +132,6 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     async isStreaming(streamId: number, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/get_streamstat.cgi`, { stream_id: streamId }, options);
         return res.data.is_streaming === 1;
-    }
-    async deleteStream(streamId: number, options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/stream/remove.cgi`, { stream_id: streamId }, options);
-        return res.data.status === 200;
     }
 
     //   ----------------------------------------
