@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const cameraStreamSchema = z.object({
+export const oldStringStreamSchema = z.object({
     enabled: z.string(),
     active: z.string(),
     audioSource: z.string(),
@@ -23,9 +23,9 @@ export const cameraStreamSchema = z.object({
     startTime: z.string(),
     stopTime: z.string(),
 });
-export type TCameraStream = z.infer<typeof cameraStreamSchema>;
+export type TOldStringStream = z.infer<typeof oldStringStreamSchema>;
 
-export const streamSchema = z.object({
+export const oldStreamSchema = z.object({
     enabled: z.union([z.literal(0), z.literal(1)]),
     active: z.union([z.literal(0), z.literal(1)]),
     audioSource: z.string(),
@@ -48,17 +48,4 @@ export const streamSchema = z.object({
     startTime: z.number().nullable(),
     stopTime: z.number().nullable(),
 });
-export type TStream = z.infer<typeof streamSchema>;
-
-export const cameraStreamResponseSchema = z.object({
-    data: cameraStreamSchema,
-    code: z.number(),
-    message: z.string(),
-});
-export type TStreamCameraDataResponse = z.infer<typeof cameraStreamResponseSchema>;
-
-export const camstreamerServerResponseSchema = z.object({
-    code: z.number(),
-    message: z.string(),
-});
-export type TCamstreamerServerResponse = z.infer<typeof camstreamerServerResponseSchema>;
+export type TOldStream = z.infer<typeof oldStreamSchema>;
