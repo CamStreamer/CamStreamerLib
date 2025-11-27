@@ -2,7 +2,15 @@ import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
 import { IClient, TParameters, TResponse } from './internal/types';
 
-import { streamSchema, TStream, TStreamList } from './types/CamStreamerAPI/CamStreamerAPI';
+import {
+    audioFileListSchema,
+    storageListSchema,
+    streamSchema,
+    TAudioFile,
+    TAudioFileStorageType,
+    TStream,
+    TStreamList,
+} from './types/CamStreamerAPI/CamStreamerAPI';
 import { THttpRequestOptions, TProxyParams } from './types/common';
 import { ErrorWithResponse, UtcTimeFetchError, WsAuthorizationError, MigrationError } from './errors/errors';
 import {
@@ -135,6 +143,47 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     }
 
     //   ----------------------------------------
+    //                 Audio Files
+    //   ----------------------------------------
+
+    async listFiles(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/upload_audio.cgi`, { action: 'list' }, options);
+        return audioFileListSchema.parse(res.data);
+    }
+
+    async uploadFile(
+        formData: Parameters<Client['post']>[0]['data'],
+        storage: TAudioFileStorageType,
+        options?: THttpRequestOptions
+    ) {
+        await this._post(
+            `${BASE_PATH}/upload_audio.cgi`,
+            formData,
+            {
+                action: 'upload',
+                storage: storage,
+            },
+            options
+        );
+    }
+
+    async removeFile(fileParams: TAudioFile, options?: THttpRequestOptions) {
+        await this._getJson(
+            `${BASE_PATH}/upload_audio.cgi`,
+            {
+                action: 'remove',
+                ...fileParams,
+            },
+            options
+        );
+    }
+
+    async getFileStorage(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/upload_audio.cgi`, { action: 'get_storage' }, options);
+        return storageListSchema.parse(res.data);
+    }
+
+    //   ----------------------------------------
     //                   Private
     //   ----------------------------------------
 
@@ -165,6 +214,22 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout,
             headers: { ...baseHeaders, ...headers },
         });
+    }
+
+    private async _post(
+        path: string,
+        data: string | Parameters<Client['post']>[0]['data'],
+        parameters?: TParameters,
+        options?: THttpRequestOptions,
+        headers?: Record<string, string>
+    ) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.post({ path, data, parameters, headers, timeout: options?.timeout });
+        if (res.ok) {
+            return await res.json();
+        } else {
+            throw new ErrorWithResponse(res);
+        }
     }
 }
 
