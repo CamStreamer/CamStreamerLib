@@ -18,6 +18,9 @@ export const streamSchema = z.discriminatedUnion('type', [
 ]);
 export type TStream = z.infer<typeof streamSchema>;
 
+export const streamListSchema = z.object({ streamList: z.array(streamSchema) });
+export type TStreamList = z.infer<typeof streamListSchema>;
+
 export type TFacebookStream = z.infer<typeof facebookSchema>;
 export const isFacebookStream = (stream: TStream): stream is TFacebookStream => {
     return stream.type === 'facebook';
