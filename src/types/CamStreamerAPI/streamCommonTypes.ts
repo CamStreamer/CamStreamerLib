@@ -11,10 +11,34 @@ export const streamTypeSchema = z.union([
 ]);
 export type TStreamType = z.infer<typeof streamTypeSchema>;
 
+export const streamTriggerSchema = z.discriminatedUnion('type', [
+    z.object({ type: z.literal('manual') }),
+    z.object({ type: z.literal('onetime'), startTime: z.number(), stopTime: z.number() }),
+    z.object({
+        type: z.literal('recurrent'),
+        schedule: z.array(
+            z.object({
+                day: z.number().int().min(0).max(6),
+                startTimeS: z.number().int().min(0).max(86400),
+                stopTimeS: z.number().int().min(0).max(86400),
+                isActive: z.boolean(),
+            })
+        ),
+    }),
+    z.object({
+        type: z.literal('io'),
+        ioPort: z.string(),
+        triggerOn: z.union([z.literal('open'), z.literal('closed')]),
+    }),
+]);
+export type TStreamTrigger = z.infer<typeof streamTriggerSchema>;
+export type TStreamTriggerType = TStreamTrigger['type'];
+
 export const streamCommonSchema = z.object({
     id: z.number(),
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
+    trigger: streamTriggerSchema,
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
