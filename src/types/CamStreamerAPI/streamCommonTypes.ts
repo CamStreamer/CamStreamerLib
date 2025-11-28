@@ -12,7 +12,10 @@ export const streamTypeSchema = z.union([
 export type TStreamType = z.infer<typeof streamTypeSchema>;
 
 export const streamTriggerSchema = z.discriminatedUnion('type', [
-    z.object({ type: z.literal('manual') }),
+    z.object({
+        type: z.literal('manual'),
+        ioPort: z.string().nullable(),
+    }),
     z.object({ type: z.literal('onetime'), startTime: z.number(), stopTime: z.number() }),
     z.object({
         type: z.literal('recurrent'),
@@ -24,11 +27,6 @@ export const streamTriggerSchema = z.discriminatedUnion('type', [
                 isActive: z.boolean(),
             })
         ),
-    }),
-    z.object({
-        type: z.literal('io'),
-        ioPort: z.string(),
-        triggerOn: z.union([z.literal('open'), z.literal('closed')]),
     }),
 ]);
 export type TStreamTrigger = z.infer<typeof streamTriggerSchema>;
