@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
-import { IClient, TParameters, TResponse } from './internal/types';
+import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
 
 import {
     audioFileListSchema,
@@ -12,13 +12,20 @@ import {
     TStreamList,
 } from './types/CamStreamerAPI/CamStreamerAPI';
 import { THttpRequestOptions, TProxyParams } from './types/common';
-import { ErrorWithResponse, UtcTimeFetchError, WsAuthorizationError, MigrationError } from './errors/errors';
+import {
+    ErrorWithResponse,
+    UtcTimeFetchError,
+    WsAuthorizationError,
+    MigrationError,
+    ParsingBlobError,
+} from './errors/errors';
 import {
     oldStringStreamSchema,
     oldStringStreamSchemaWithId,
     TOldStream,
     TOldStringStream,
 } from './types/CamStreamerAPI/oldStreamSchema';
+import { paramToUrl } from './internal/utils';
 
 const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
@@ -168,19 +175,21 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async removeFile(fileParams: TAudioFile, options?: THttpRequestOptions) {
-        await this._getJson(
+        await this._postUrlEncoded(
             `${BASE_PATH}/upload_audio.cgi`,
-            {
-                action: 'remove',
-                ...fileParams,
-            },
-            options
+            { action: 'remove', ...fileParams },
+            options,
+            undefined
         );
     }
 
     async getFileStorage(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/upload_audio.cgi`, { action: 'get_storage' }, options);
         return storageListSchema.parse(res.data);
+    }
+
+    async getFileFromCamera(path: string, options?: THttpRequestOptions) {
+        return await this._getBlob(`${BASE_PATH}/audio.cgi`, { path }, options);
     }
 
     //   ----------------------------------------
@@ -196,6 +205,35 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         } else {
             throw new ErrorWithResponse(res);
         }
+    }
+
+    private async _getBlob(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.get({ path, parameters, timeout: options?.timeout });
+        if (res.ok) {
+            return await this.parseBlobResponse(res);
+        } else {
+            throw new ErrorWithResponse(res);
+        }
+    }
+
+    private async parseBlobResponse(response: TResponse) {
+        try {
+            return (await response.blob()) as TBlobResponse<Client>;
+        } catch (err) {
+            throw new ParsingBlobError(err);
+        }
+    }
+
+    private async _postUrlEncoded(
+        path: string,
+        parameters: TParameters,
+        options?: THttpRequestOptions,
+        headers?: Record<string, string>
+    ) {
+        const data = paramToUrl(parameters);
+        const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        return this._post(path, data, undefined, options, { ...baseHeaders, ...headers });
     }
 
     private async _postJsonEncoded(
