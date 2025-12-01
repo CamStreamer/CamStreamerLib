@@ -71,7 +71,7 @@ export enum AudioType {
 
 export const audioFileStorageTypeSchema = z.union([z.literal('flash'), z.literal('SD0'), z.literal('url')]);
 export type TAudioFileStorageType = z.infer<typeof audioFileStorageTypeSchema>;
-export type TLocalStorageType = 'local' | 'url';
+export type TSourceType = 'local' | 'url';
 
 export const storageListSchema = z.array(
     z.discriminatedUnion('type', [
