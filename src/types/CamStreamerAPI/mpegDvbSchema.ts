@@ -16,7 +16,6 @@ export const mpegDvbSchema = streamCommonSchema.extend({
     pcrPeriodMs: z.number(),
     providerName: z.string(),
     serviceName: z.string(),
-    triggerType: z.enum(['manual', 'onetime', 'recurrent', 'io', 'nonstop']),
     statusCameraLed: z.boolean(),
     statusCameraOutput: z.string(),
     saveToSdCard: z.boolean(),
