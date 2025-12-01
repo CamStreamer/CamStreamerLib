@@ -19,6 +19,7 @@ import {
     TOldStream,
     TOldStringStream,
 } from './types/CamStreamerAPI/oldStreamSchema';
+import { paramToUrl } from './internal/utils';
 
 const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
@@ -168,13 +169,11 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async removeFile(fileParams: TAudioFile, options?: THttpRequestOptions) {
-        await this._getJson(
+        await this._postUrlEncoded(
             `${BASE_PATH}/upload_audio.cgi`,
-            {
-                action: 'remove',
-                ...fileParams,
-            },
-            options
+            { action: 'remove', ...fileParams },
+            options,
+            undefined
         );
     }
 
@@ -196,6 +195,17 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         } else {
             throw new ErrorWithResponse(res);
         }
+    }
+
+    private async _postUrlEncoded(
+        path: string,
+        parameters: TParameters,
+        options?: THttpRequestOptions,
+        headers?: Record<string, string>
+    ) {
+        const data = paramToUrl(parameters);
+        const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
+        return this._post(path, data, undefined, options, { ...baseHeaders, ...headers });
     }
 
     private async _postJsonEncoded(
