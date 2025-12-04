@@ -1,11 +1,22 @@
 import { z } from 'zod';
 import { facebookSchema } from './facebookSchema';
-import { hlsSchema } from './hlsSchema';
 import { mpegDvbSchema } from './mpegDvbSchema';
 import { rtmpSchema } from './rtmpSchema';
 import { sdCardSchema } from './sdCardSchema';
 import { windySchema } from './windySchema';
 import { youtubeSchema } from './youtubeSchema';
+import { vimeoSchema } from './vimeoSchema';
+import { twitchSchema } from './twitchSchema';
+import { churchSchema } from './churchSchema';
+import { srtSchema } from './srtSchema';
+import { daCastSchema } from './daCastSchema';
+import { hlsPullSchema } from './hlsPullSchema';
+import { hlsPushSchema } from './hlsPushSchema';
+import { wowzaSchema } from './wowzaSchema';
+import { dailymotionSchema } from './dailymotionSchema';
+import { ibmSchema } from './ibmSchema';
+import { microsoftAzureSchema } from './microsoftAzureSchema';
+import { microsoftStreamSchema } from './microsoftStreamSchema';
 
 //   ----------------------------------------
 //                    Streams
@@ -13,12 +24,23 @@ import { youtubeSchema } from './youtubeSchema';
 
 export const streamSchema = z.discriminatedUnion('type', [
     facebookSchema,
-    hlsSchema,
     mpegDvbSchema,
     rtmpSchema,
     sdCardSchema,
     windySchema,
     youtubeSchema,
+    vimeoSchema,
+    twitchSchema,
+    churchSchema,
+    srtSchema,
+    daCastSchema,
+    hlsPullSchema,
+    hlsPushSchema,
+    wowzaSchema,
+    dailymotionSchema,
+    ibmSchema,
+    microsoftAzureSchema,
+    microsoftStreamSchema,
 ]);
 export type TStream = z.infer<typeof streamSchema>;
 
@@ -28,11 +50,6 @@ export type TStreamList = z.infer<typeof streamListSchema>;
 export type TFacebookStream = z.infer<typeof facebookSchema>;
 export const isFacebookStream = (stream: TStream): stream is TFacebookStream => {
     return stream.type === 'facebook';
-};
-
-export type THlsStream = z.infer<typeof hlsSchema>;
-export const isHlsStream = (stream: TStream): stream is THlsStream => {
-    return stream.type === 'hls';
 };
 
 export type TMpegDvbStream = z.infer<typeof mpegDvbSchema>;
