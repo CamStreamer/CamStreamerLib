@@ -97,8 +97,22 @@ export type TAudioFile = z.infer<typeof audioFileSchema>;
 export const audioFileListSchema = z.array(audioFileSchema);
 export type TAudioFileList = z.infer<typeof audioFileListSchema>;
 
-export const audioFileDataSchema = z.object({
-    code: z.number(),
-    list: audioFileListSchema,
+export type TFileToUpload = {
+    storage: TAudioFileStorageType;
+    name: string;
+    file: File | string | null;
+};
+
+export const audioUrlSchema = z.object({
+    fileUrl: z.string(),
+    name: z.string(),
+    storage: z.literal('url'),
 });
-export type TAudioFileData = z.infer<typeof audioFileDataSchema>;
+export type TAudioUrlType = z.infer<typeof audioUrlSchema>;
+
+export const audioLocalSchema = z.object({
+    file: z.instanceof(File),
+    name: z.string(),
+    storage: z.enum(['flash', 'SD0']),
+});
+export type TAudioLocalType = z.infer<typeof audioLocalSchema>;
