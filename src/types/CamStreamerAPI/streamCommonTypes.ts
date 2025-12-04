@@ -19,6 +19,7 @@ export const streamTypeSchema = z.union([
     z.literal('church'),
     z.literal('srt'),
     z.literal('da_cast'),
+    z.literal('game_changer'),
 ]);
 export type TStreamType = z.infer<typeof streamTypeSchema>;
 

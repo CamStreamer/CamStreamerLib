@@ -17,6 +17,7 @@ import { dailymotionSchema } from './dailymotionSchema';
 import { ibmSchema } from './ibmSchema';
 import { microsoftAzureSchema } from './microsoftAzureSchema';
 import { microsoftStreamSchema } from './microsoftStreamSchema';
+import { gameChangerSchema } from './gameChangerSchema';
 
 //   ----------------------------------------
 //                    Streams
@@ -41,6 +42,7 @@ export const streamSchema = z.discriminatedUnion('type', [
     ibmSchema,
     microsoftAzureSchema,
     microsoftStreamSchema,
+    gameChangerSchema,
 ]);
 export type TStream = z.infer<typeof streamSchema>;
 
@@ -135,6 +137,11 @@ export const isMicrosoftAzureStream = (stream: TStream): stream is TMicrosoftAzu
 export type TMicrosoftStream = z.infer<typeof microsoftStreamSchema>;
 export const isMicrosoftStream = (stream: TStream): stream is TMicrosoftStream => {
     return stream.type === 'microsoft_stream';
+};
+
+export type TGameChangerStream = z.infer<typeof gameChangerSchema>;
+export const isGameChangerStream = (stream: TStream): stream is TGameChangerStream => {
+    return stream.type === 'game_changer';
 };
 
 //   ----------------------------------------
