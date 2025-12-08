@@ -5,22 +5,19 @@ const csEventsDataSchema = z.discriminatedUnion('type', [
     z.object({
         type: z.literal('StreamState'),
         streamID: z.number(),
-        enabled: z.union([z.literal(0), z.literal(1)]),
-        active: z.union([z.literal(0), z.literal(1)]),
-        automationState: z.union([z.literal(0), z.literal(1)]),
-        isStreaming: z.union([z.literal(0), z.literal(1)]),
+        isStreaming: z.boolean(),
     }),
     z.object({
         type: z.literal('CS_API_SUCCESS'),
         apiCall: z.string(),
         message: z.string(),
-        streamID: z.string(),
+        streamID: z.number(),
     }),
     z.object({
         type: z.literal('CS_API_ERROR'),
         apiCall: z.string(),
         message: z.string(),
-        streamID: z.string(),
+        streamID: z.number(),
         code: z.string(),
     }),
 ]);

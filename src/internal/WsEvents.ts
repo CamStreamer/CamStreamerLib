@@ -53,6 +53,12 @@ export class WsEvents<T extends { type: string }> {
         }
     }
 
+    removeAllListenersForId(id: string): void {
+        for (const type in this.listeners) {
+            this.removeListener(type as TEventType<T>, id);
+        }
+    }
+
     private onMessage(incomeData: ArrayBuffer | string) {
         if (this.isDestroyed) {
             return;
