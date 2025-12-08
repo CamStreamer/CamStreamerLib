@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { booleanSchema } from '../common';
 
 export const streamTypeSchema = z.union([
     z.literal('youtube'),
@@ -6,8 +7,20 @@ export const streamTypeSchema = z.union([
     z.literal('sd_card'),
     z.literal('windy'),
     z.literal('mpeg_dvb'),
-    z.literal('hls'),
     z.literal('rtmp'),
+    z.literal('dailymotion'),
+    z.literal('ibm'),
+    z.literal('hls_pull'),
+    z.literal('hls_push'),
+    z.literal('wowza'),
+    z.literal('microsoft_stream'),
+    z.literal('microsoft_azure'),
+    z.literal('vimeo'),
+    z.literal('twitch'),
+    z.literal('church'),
+    z.literal('srt'),
+    z.literal('da_cast'),
+    z.literal('game_changer'),
 ]);
 export type TStreamType = z.infer<typeof streamTypeSchema>;
 
@@ -37,11 +50,27 @@ export type TStreamTrigger = z.infer<typeof streamTriggerSchema>;
 export type TStreamTriggerType = TStreamTrigger['type'];
 export type TTriggerSchedule = z.infer<typeof scheduleSchema>;
 
+export const streamInputTypeSchema = z.union([z.literal('CSw'), z.literal('CRS'), z.literal('RTSP_URL')]);
+export type TStreamInputType = z.infer<typeof streamInputTypeSchema>;
+
+export const internalVapixParametersSchema = z.object({
+    camera: z.string(),
+    resolution: z.string().optional(),
+    compression: z.number().optional(),
+    fps: z.number().int().optional(),
+    videobitrate: z.number().int().optional(),
+    videomaxbitrate: z.number().int().optional(),
+    audio: booleanSchema.optional(),
+});
+export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
+
 export const streamCommonSchema = z.object({
     id: z.number(),
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
     trigger: streamTriggerSchema,
+    inputType: streamInputTypeSchema,
+    internalVapixParameters: internalVapixParametersSchema,
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
