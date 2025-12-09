@@ -64,6 +64,29 @@ export const internalVapixParametersSchema = z.object({
 });
 export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
 
+export const streamAudioSchema = z.discriminatedUnion('source', [
+    z.object({
+        source: z.literal('none'),
+    }),
+    z.object({ source: z.literal('microphone'), audioChannelNbr: z.union([z.literal(0), z.literal(1)]) }),
+    z.object({
+        source: z.literal('file'),
+        fileName: z.string(),
+        filePath: z.string(),
+    }),
+    z.object({
+        source: z.literal('url'),
+        fileName: z.string(),
+        fileUrl: z.string(),
+        avSyncMsec: z.number().int().nonnegative(),
+    }),
+]);
+export type TStreamAudioSchema = z.infer<typeof streamAudioSchema>;
+export type TStreamAudioSource = TStreamAudioSchema['source'];
+export type TAudioOfSource<T extends TStreamAudioSource> = {
+    audio: Extract<TStreamAudioSchema, { source: T }>;
+};
+
 export const streamCommonSchema = z.object({
     id: z.number(),
     enabled: z.boolean(),
@@ -72,5 +95,6 @@ export const streamCommonSchema = z.object({
     trigger: streamTriggerSchema,
     inputType: streamInputTypeSchema,
     internalVapixParameters: internalVapixParametersSchema,
+    audio: streamAudioSchema,
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
