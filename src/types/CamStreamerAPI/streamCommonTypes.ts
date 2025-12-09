@@ -63,6 +63,33 @@ export const internalVapixParametersSchema = z.object({
     audio: booleanSchema.optional(),
 });
 export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
+/**
+ * source: "none" | "microphone" | "file" | "url"
+ * none: 'none'
+ * microphone: 'default'
+ * file: 'file: /usr/local/packages/camstreamer/localdata/user_audio/Coldplay - Magic (Official Video).mp3'
+ * url: 'url: https://music.youtube.com/watch?v=eiA5mP2ssmo&list=RDAMVM8D0ybTfYmCE'
+ */
+
+export const streamAudioSchema = z.discriminatedUnion('source', [
+    z.object({
+        source: z.literal('none'),
+    }),
+    z.object({ source: z.literal('microphone'), channel: z.number().int().min(0) }),
+    z.object({
+        source: z.literal('file'),
+        fileName: z.string(),
+        filePath: z.string(),
+    }),
+    z.object({
+        source: z.literal('url'),
+        fileName: z.string(),
+        fileUrl: z.string(),
+        avSyncMsec: z.number().int().nonnegative(),
+    }),
+]);
+export type TStreamAudioSchema = z.infer<typeof streamAudioSchema>;
+export type TStreamAudioSource = TStreamAudioSchema['source'];
 
 export const streamCommonSchema = z.object({
     id: z.number(),
@@ -72,5 +99,6 @@ export const streamCommonSchema = z.object({
     trigger: streamTriggerSchema,
     inputType: streamInputTypeSchema,
     internalVapixParameters: internalVapixParametersSchema,
+    audio: streamAudioSchema,
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
