@@ -75,7 +75,7 @@ export const streamAudioSchema = z.discriminatedUnion('source', [
     z.object({
         source: z.literal('none'),
     }),
-    z.object({ source: z.literal('microphone'), channel: z.number().int().min(0) }),
+    z.object({ source: z.literal('microphone'), audioChannelNbr: z.union([z.literal(0), z.literal(1)]) }),
     z.object({
         source: z.literal('file'),
         fileName: z.string(),
@@ -90,6 +90,9 @@ export const streamAudioSchema = z.discriminatedUnion('source', [
 ]);
 export type TStreamAudioSchema = z.infer<typeof streamAudioSchema>;
 export type TStreamAudioSource = TStreamAudioSchema['source'];
+export type TAudioOfSource<T extends TStreamAudioSource> = {
+    audio: Extract<TStreamAudioSchema, { source: T }>;
+};
 
 export const streamCommonSchema = z.object({
     id: z.number(),
