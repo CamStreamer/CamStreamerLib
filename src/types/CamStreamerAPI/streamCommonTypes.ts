@@ -82,7 +82,7 @@ export const streamDelaySchema = z.object({
 export type TStreamDelay = z.infer<typeof streamDelaySchema>;
 export type TStreamDelayUnit = TStreamDelay['unit'];
 
-export const streamVideoSchema = bitrateVapixParamsSchema.extend({
+export const internalVapixParametersSchema = bitrateVapixParamsSchema.extend({
     camera: z.string(),
     resolution: z.string(),
     fps: z.number().int(),
@@ -104,7 +104,7 @@ export const streamVideoSchema = bitrateVapixParamsSchema.extend({
         ])
         .optional(), // IMPORTANT - used only for FW > 10.6
 });
-export type TStreamVideo = z.infer<typeof streamVideoSchema>;
+export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
 
 export const streamAudioSchema = z.discriminatedUnion('source', [
     z.object({
