@@ -61,6 +61,8 @@ export const isPlaylist = (id?: string) => id?.charAt(0) === 'p';
 
 export const isLoopPlayType = (playType: TPlaylistPlayType) => playType.includes('LOOP');
 
+export const isString = (value: unknown): value is string => typeof value === 'string';
+
 export function pad(num: number, size: number) {
     const sign = Math.sign(num) === -1 ? '-' : '';
     return (

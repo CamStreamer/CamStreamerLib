@@ -18,6 +18,7 @@ import {
     WsAuthorizationError,
     MigrationError,
     ParsingBlobError,
+    IncorrectVapixParamsError,
 } from './errors/errors';
 import {
     oldStringStreamSchema,
@@ -25,7 +26,8 @@ import {
     TOldStream,
     TOldStringStream,
 } from './types/CamStreamerAPI/oldStreamSchema';
-import { paramToUrl } from './internal/utils';
+import { isString, paramToUrl } from './internal/utils';
+import { parseVapixParamsToVideoOptions, parseVideoOptionsToVapixParams } from './internal/convertors';
 
 const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
@@ -77,10 +79,21 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         const oldStreamData: (TOldStream & { id: number })[] = [];
         const invalidStreamData: any[] = [];
         for (const streamData of res.data.streamList) {
-            const newStreamParse = streamSchema.safeParse(streamData);
-            if (newStreamParse.success) {
-                newStreamData.push(newStreamParse.data);
-                continue;
+            if (streamData.internalVapixParameters !== undefined && !isString(streamData.internalVapixParameters)) {
+                // internalVapixParameters is in incorrect format -> should not happen
+                throw new IncorrectVapixParamsError();
+            }
+
+            if (streamData.internalVapixParameters !== undefined && isString(streamData.internalVapixParameters)) {
+                const newStreamParse = streamSchema.safeParse(streamData);
+
+                if (newStreamParse.success) {
+                    const internalVapixParameters = streamData.internalVapixParameters;
+                    const videoOptions = parseVapixParamsToVideoOptions(internalVapixParameters);
+
+                    newStreamData.push({ ...streamData, internalVapixParameters: { ...videoOptions } });
+                    continue;
+                }
             }
 
             const oldStreamParse = oldStringStreamSchemaWithId.safeParse(streamData);
@@ -102,10 +115,18 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return newStreamData;
     }
 
-    async setStreamList(streamList: TStreamList['streamList'], options?: THttpRequestOptions) {
+    async setStreamList(streamList: TStreamList['streamList'], firmwareVersion: string, options?: THttpRequestOptions) {
+        const convertedStreamList = streamList.map((stream) => {
+            if (isString(stream.internalVapixParameters)) {
+                return stream;
+            }
+            const videoOptionsParams = parseVideoOptionsToVapixParams(firmwareVersion, stream.internalVapixParameters);
+            return { ...stream, internalVapixParameters: videoOptionsParams };
+        });
+
         await this._postJsonEncoded(
             `${BASE_PATH}/stream_list.cgi`,
-            JSON.stringify({ streamList }),
+            JSON.stringify({ streamList: convertedStreamList }),
             {
                 action: 'set',
             },
@@ -123,9 +144,21 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
             options
         );
 
-        const newStream = streamSchema.safeParse(res.data);
-        if (newStream.success) {
-            return newStream.data;
+        const streamData = res.data;
+        if (streamData.internalVapixParameters !== undefined && !isString(streamData.internalVapixParameters)) {
+            // internalVapixParameters is in incorrect format -> should not happen
+            throw new IncorrectVapixParamsError();
+        }
+
+        if (streamData.internalVapixParameters !== undefined && isString(streamData.internalVapixParameters)) {
+            const newStream = streamSchema.safeParse(streamData);
+
+            if (newStream.success) {
+                const internalVapixParameters = streamData.internalVapixParameters;
+                const videoOptions = parseVapixParamsToVideoOptions(internalVapixParameters);
+
+                return { ...newStream.data, internalVapixParameters: { ...videoOptions } };
+            }
         }
 
         // May or may not have id inside -> passthrough to keep it if present
@@ -133,10 +166,21 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         throw new MigrationError([], [{ id: streamId, ...parseCameraStreamResponse(oldStream) }]);
     }
 
-    async setStream(streamId: number, streamData: Partial<TStream>, options?: THttpRequestOptions) {
+    async setStream(streamId: number, streamData: TStream, firmwareVersion: string, options?: THttpRequestOptions) {
+        let convertedStream;
+        if (isString(streamData.internalVapixParameters)) {
+            convertedStream = { ...streamData };
+        } else {
+            const videoOptionsParams = parseVideoOptionsToVapixParams(
+                firmwareVersion,
+                streamData.internalVapixParameters
+            );
+            convertedStream = { ...streamData, internalVapixParameters: videoOptionsParams };
+        }
+
         await this._postJsonEncoded(
             `${BASE_PATH}/stream_list.cgi`,
-            JSON.stringify(streamData),
+            JSON.stringify(convertedStream),
             {
                 action: 'set',
                 stream_id: streamId,
