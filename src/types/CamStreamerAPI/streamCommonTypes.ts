@@ -137,7 +137,7 @@ export const streamCommonSchema = z.object({
     title: z.string(),
     trigger: streamTriggerSchema,
     inputType: streamInputTypeSchema,
-    internalVapixParameters: z.union([z.string(), streamVideoSchema]),
+    internalVapixParameters: z.string(),
     userVapixParameters: z.string(),
     streamingProtocol: streamingProtocolTypeSchema,
     streamDelay: streamDelaySchema,
