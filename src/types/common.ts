@@ -55,3 +55,14 @@ export type TCameraImageConfig = {
     overlays?: string;
     [key: string]: string | number | undefined; // Allows additional properties
 };
+
+export const bitrateModeSchema = z.union([z.literal('VBR'), z.literal('MBR'), z.literal('ABR')]);
+export type TBitrateMode = z.infer<typeof bitrateModeSchema>;
+
+export const bitrateVapixParamsSchema = z.object({
+    bitrateMode: bitrateModeSchema,
+    maximumBitRate: z.number(),
+    retentionTime: z.number(),
+    bitRateLimit: z.number(),
+});
+export type TBitrateVapixParams = z.infer<typeof bitrateVapixParamsSchema>;

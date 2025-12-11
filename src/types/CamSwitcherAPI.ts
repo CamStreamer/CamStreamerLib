@@ -6,6 +6,7 @@ import {
     h264ProfileSchema,
     audioChannelCountSchema,
     keyboardShortcutSchema,
+    bitrateVapixParamsSchema,
 } from './common';
 
 const channelTypeSchema = z.union([z.literal('audio'), z.literal('video'), z.literal('av')]);
@@ -195,17 +196,6 @@ export type TClipList = z.infer<typeof clipListSchema>['clip_list'];
 //   ----------------------------------------
 //                   Config
 //   ----------------------------------------
-
-export const bitrateModeSchema = z.union([z.literal('VBR'), z.literal('MBR'), z.literal('ABR')]);
-export type TBitrateMode = z.infer<typeof bitrateModeSchema>;
-
-export const bitrateVapixParamsSchema = z.object({
-    bitrateMode: bitrateModeSchema,
-    maximumBitRate: z.number(),
-    retentionTime: z.number(),
-    bitRateLimit: z.number(),
-});
-export type TBitrateVapixParams = z.infer<typeof bitrateVapixParamsSchema>;
 
 export const cameraOptionsSchema = bitrateVapixParamsSchema
     .extend({
