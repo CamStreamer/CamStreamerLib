@@ -54,6 +54,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return z.number().parse(res.data);
     }
 
+    async getMaxFps(source = 0, options?: THttpRequestOptions) {
+        return await this._getJson(`${BASE_PATH}/get_max_framerate.cgi`, { video_source: source.toString() }, options);
+    }
+
     //   ----------------------------------------
     //                   Streams
     //   ----------------------------------------
@@ -78,6 +82,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         const invalidStreamData: any[] = [];
         for (const streamData of res.data.streamList) {
             const newStreamParse = streamSchema.safeParse(streamData);
+
             if (newStreamParse.success) {
                 newStreamData.push(newStreamParse.data);
                 continue;
@@ -133,7 +138,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         throw new MigrationError([], [{ id: streamId, ...parseCameraStreamResponse(oldStream) }]);
     }
 
-    async setStream(streamId: number, streamData: Partial<TStream>, options?: THttpRequestOptions) {
+    async setStream(streamId: number, streamData: TStream, options?: THttpRequestOptions) {
         await this._postJsonEncoded(
             `${BASE_PATH}/stream_list.cgi`,
             JSON.stringify(streamData),

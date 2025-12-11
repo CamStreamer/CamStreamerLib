@@ -1,6 +1,7 @@
 export * from './errors/errors';
 export * from './internal/types';
 export * from './internal/constants';
+export * from './internal/convertors';
 export * from './internal/utils';
 export * from './internal/versionCompare';
 export * from './internal/ProxyClient';

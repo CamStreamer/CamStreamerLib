@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { booleanSchema } from '../common';
+import { bitrateVapixParamsSchema, booleanSchema, h264ProfileSchema } from '../common';
 
 export const streamTypeSchema = z.union([
     z.literal('youtube'),
@@ -53,14 +53,56 @@ export type TTriggerSchedule = z.infer<typeof scheduleSchema>;
 export const streamInputTypeSchema = z.union([z.literal('CSw'), z.literal('CRS'), z.literal('RTSP_URL')]);
 export type TStreamInputType = z.infer<typeof streamInputTypeSchema>;
 
-export const internalVapixParametersSchema = z.object({
+export const streamingProtocolTypeSchema = z.union([
+    z.literal('RTSP'),
+    z.literal('RTMP'),
+    z.literal('RTMPS'),
+    z.literal('HLS'),
+]);
+export type TStreamingProtocolType = z.infer<typeof streamingProtocolTypeSchema>;
+
+export const videoCodecSchema = z.union([z.literal('h264'), z.literal('h265'), z.literal('av1')]);
+export type TVideoCodec = z.infer<typeof videoCodecSchema>;
+
+export const overlaysSchema = z.union([
+    z.literal('all'),
+    z.literal('text'),
+    z.literal('image'),
+    z.literal('application'),
+    z.literal(''), // = camera settings
+    z.literal('off'),
+]);
+export type TOverlays = z.infer<typeof overlaysSchema>;
+
+export const streamDelaySchema = z.object({
+    enabled: z.boolean(),
+    timeS: z.number().int(),
+    unit: z.union([z.literal('seconds'), z.literal('minutes'), z.literal('hours')]),
+});
+export type TStreamDelay = z.infer<typeof streamDelaySchema>;
+export type TStreamDelayUnit = TStreamDelay['unit'];
+
+export const internalVapixParametersSchema = bitrateVapixParamsSchema.extend({
     camera: z.string(),
-    resolution: z.string().optional(),
-    compression: z.number().optional(),
-    fps: z.number().int().optional(),
-    videobitrate: z.number().int().optional(),
-    videomaxbitrate: z.number().int().optional(),
-    audio: booleanSchema.optional(),
+    resolution: z.string(),
+    fps: z.number().int(),
+    compression: z.number().int(),
+    govLength: z.number().int(), // =  videokeyframeinterval
+    videoCodec: videoCodecSchema,
+    h264Profile: h264ProfileSchema.optional(),
+
+    audio: booleanSchema,
+    nbrOfChannels: z.union([z.literal(1), z.literal(2)]).optional(), // 1 = mono, 2 = stereo
+    overlays: z
+        .union([
+            z.literal('all'),
+            z.literal('text'),
+            z.literal('image'),
+            z.literal('application'),
+            z.literal(''), // = camera settings
+            z.literal('off'),
+        ])
+        .optional(), // IMPORTANT - used only for FW > 10.6
 });
 export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
 
@@ -87,6 +129,7 @@ export type TAudioOfSource<T extends TStreamAudioSource> = {
     audio: Extract<TStreamAudioSchema, { source: T }>;
 };
 
+// this will be saved to camera
 export const streamCommonSchema = z.object({
     id: z.number(),
     enabled: z.boolean(),
@@ -94,7 +137,10 @@ export const streamCommonSchema = z.object({
     title: z.string(),
     trigger: streamTriggerSchema,
     inputType: streamInputTypeSchema,
-    internalVapixParameters: internalVapixParametersSchema,
+    internalVapixParameters: z.string(),
+    userVapixParameters: z.string(),
+    streamingProtocol: streamingProtocolTypeSchema,
+    streamDelay: streamDelaySchema,
     audio: streamAudioSchema,
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
