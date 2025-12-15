@@ -124,19 +124,20 @@ export type TAudioOfSource<T extends TStreamAudioSource> = {
     audio: Extract<TStreamAudioSchema, { source: T }>;
 };
 
-// this will be saved to camera
 export const streamCommonSchema = z.object({
     id: z.number(),
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
     trigger: streamTriggerSchema,
-    inputType: streamInputTypeSchema,
-    inputUrl: z.string(),
-    internalVapixParameters: z.string(),
-    userVapixParameters: z.string(),
-    streamingProtocol: streamingProtocolTypeSchema,
-    streamDelay: streamDelaySchema,
+    video: z.object({
+        inputType: streamInputTypeSchema,
+        sourceUrl: z.string().optional(),
+        internalVapixParameters: z.string(),
+        userVapixParameters: z.string(),
+        streamingProtocol: streamingProtocolTypeSchema,
+        streamDelay: streamDelaySchema,
+    }),
     audio: streamAudioSchema,
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
