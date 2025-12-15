@@ -13,7 +13,7 @@ export const youtubeSchema = streamCommonSchema.extend({
     dvr: z.boolean(),
     saveToSdCard: z.boolean(),
     statusCameraLed: z.boolean(),
-    statusCameraOutput: z.string(),
+    statusCameraOutput: z.string().nullable(),
     hasWatchdogs: z.boolean(),
     countdown: z.boolean(),
     enableManualControl: z.boolean(),
