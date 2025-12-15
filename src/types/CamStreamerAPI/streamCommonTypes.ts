@@ -24,6 +24,10 @@ export const streamTypeSchema = z.union([
 ]);
 export type TStreamType = z.infer<typeof streamTypeSchema>;
 
+//   ----------------------------------------
+//                  Triggering
+//   ----------------------------------------
+
 const scheduleSchema = z.object({
     start: z.object({
         day: z.number().int().min(0).max(6),
@@ -49,6 +53,10 @@ export const streamTriggerSchema = z.discriminatedUnion('type', [
 export type TStreamTrigger = z.infer<typeof streamTriggerSchema>;
 export type TStreamTriggerType = TStreamTrigger['type'];
 export type TTriggerSchedule = z.infer<typeof scheduleSchema>;
+
+//   ----------------------------------------
+//                 Video Settings
+//   ----------------------------------------
 
 export const streamInputTypeSchema = z.union([z.literal('CSw'), z.literal('CRS'), z.literal('RTSP_URL')]);
 export type TStreamInputType = z.infer<typeof streamInputTypeSchema>;
@@ -101,6 +109,20 @@ export const internalVapixParametersSchema = bitrateVapixParamsSchema.extend({
 });
 export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
 
+export const streamVideoSchema = z.object({
+    inputType: streamInputTypeSchema,
+    sourceUrl: z.string().optional(),
+    internalVapixParameters: z.string(),
+    userVapixParameters: z.string(),
+    streamingProtocol: streamingProtocolTypeSchema,
+    streamDelay: streamDelaySchema,
+});
+export type TStreamVideo = z.infer<typeof streamVideoSchema>;
+
+//   ----------------------------------------
+//                Audio Settings
+//   ----------------------------------------
+
 export const streamAudioSchema = z.discriminatedUnion('source', [
     z.object({
         source: z.literal('none'),
@@ -124,20 +146,17 @@ export type TAudioOfSource<T extends TStreamAudioSource> = {
     audio: Extract<TStreamAudioSchema, { source: T }>;
 };
 
+//   ----------------------------------------
+//                Common schema
+//   ----------------------------------------
+
 export const streamCommonSchema = z.object({
     id: z.number(),
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
     trigger: streamTriggerSchema,
-    video: z.object({
-        inputType: streamInputTypeSchema,
-        sourceUrl: z.string().optional(),
-        internalVapixParameters: z.string(),
-        userVapixParameters: z.string(),
-        streamingProtocol: streamingProtocolTypeSchema,
-        streamDelay: streamDelaySchema,
-    }),
+    video: streamVideoSchema,
     audio: streamAudioSchema,
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
