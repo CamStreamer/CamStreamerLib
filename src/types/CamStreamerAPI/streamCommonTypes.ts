@@ -140,10 +140,10 @@ export const streamAudioSchema = z.discriminatedUnion('source', [
         avSyncMsec: z.number().int().nonnegative(),
     }),
 ]);
-export type TStreamAudioSchema = z.infer<typeof streamAudioSchema>;
-export type TStreamAudioSource = TStreamAudioSchema['source'];
+export type TStreamAudio = z.infer<typeof streamAudioSchema>;
+export type TStreamAudioSource = TStreamAudio['source'];
 export type TAudioOfSource<T extends TStreamAudioSource> = {
-    audio: Extract<TStreamAudioSchema, { source: T }>;
+    audio: Extract<TStreamAudio, { source: T }>;
 };
 
 //   ----------------------------------------
