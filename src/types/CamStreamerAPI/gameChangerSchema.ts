@@ -1,6 +1,6 @@
 import z from 'zod';
-import { streamCommonSchema } from './streamCommonTypes';
+import { commonRtmpSchema } from './rtmpSchema';
 
-export const gameChangerSchema = streamCommonSchema.extend({
+export const gameChangerSchema = commonRtmpSchema.extend({
     type: z.literal('game_changer'),
 });
