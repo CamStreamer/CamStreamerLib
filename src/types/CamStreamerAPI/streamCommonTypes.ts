@@ -78,8 +78,7 @@ export const overlaysSchema = z.union([
 export type TOverlays = z.infer<typeof overlaysSchema>;
 
 export const streamDelaySchema = z.object({
-    enabled: z.boolean(),
-    timeS: z.number().int(),
+    value: z.number().int(),
     unit: z.union([z.literal('seconds'), z.literal('minutes'), z.literal('hours')]),
 });
 export type TStreamDelay = z.infer<typeof streamDelaySchema>;
@@ -115,7 +114,7 @@ export const streamVideoSchema = z.object({
     internalVapixParameters: z.string(),
     userVapixParameters: z.string(),
     streamingProtocol: streamingProtocolTypeSchema,
-    streamDelay: streamDelaySchema,
+    streamDelay: streamDelaySchema.optional(),
 });
 export type TStreamVideo = z.infer<typeof streamVideoSchema>;
 
