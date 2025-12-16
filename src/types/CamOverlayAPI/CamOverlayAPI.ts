@@ -99,43 +99,94 @@ export enum ImageType {
     JPEG,
 }
 
-export const fileStorageTypeSchema = z.union([
+export const imageFileStorageTypeSchema = z.union([
     z.literal('flash'),
     z.literal('SD0'),
     z.literal('ftp'),
     z.literal('samba'),
     z.literal('url'),
 ]);
-export type TFileStorageType = z.infer<typeof fileStorageTypeSchema>;
+export const fontFileStorageTypeSchema = z.union([z.literal('flash'), z.literal('SD0')]);
 
-export const storageDataListSchema = z.array(
+export type TImageFileStorageType = z.infer<typeof imageFileStorageTypeSchema>;
+export type TFontFileStorageType = z.infer<typeof fontFileStorageTypeSchema>;
+export type TFileStorageType<T extends TFileType> = T extends 'image' ? TImageFileStorageType : TFontFileStorageType;
+
+export const imageFilestorageDataListSchema = z.array(
     z.object({
-        type: fileStorageTypeSchema,
+        type: imageFileStorageTypeSchema,
         state: z.string(),
     })
 );
-export type TStorageDataList = z.infer<typeof storageDataListSchema>;
+export const fontStorageDataListSchema = z.array(
+    z.object({
+        type: fontFileStorageTypeSchema,
+        state: z.string(),
+    })
+);
+export const getStorageDataListSchema = (fileType: TFileType) => {
+    return fileType === 'image' ? imageFilestorageDataListSchema : fontStorageDataListSchema;
+};
 
-export const storageResponseSchema = z.object({
+export type TImageStorageDataList = z.infer<typeof imageFilestorageDataListSchema>;
+export type TFontStorageDataList = z.infer<typeof fontStorageDataListSchema>;
+export type TStorageDataList<T extends TFileType> = T extends 'image' ? TImageStorageDataList : TFontStorageDataList;
+
+export const imageStorageResponseSchema = z.object({
     code: z.number(),
-    list: storageDataListSchema,
+    list: imageFilestorageDataListSchema,
 });
-export type TStorageResponse = z.infer<typeof storageResponseSchema>;
+export const fontStorageResponseSchema = z.object({
+    code: z.number(),
+    list: fontStorageDataListSchema,
+});
+export const getStorageResponseSchema = (fileType: TFileType) => {
+    return fileType === 'image' ? imageStorageResponseSchema : fontStorageResponseSchema;
+};
 
-export const fileSchema = z.object({
+export type TImageStorageResponse = z.infer<typeof imageStorageResponseSchema>;
+export type TFontStorageResponse = z.infer<typeof fontStorageResponseSchema>;
+export type TStorageResponse<T extends TFileType> = T extends 'image' ? TImageStorageResponse : TFontStorageResponse;
+
+export const imageFileSchema = z.object({
     name: z.string(),
     path: z.string().url(),
-    storage: fileStorageTypeSchema,
+    storage: imageFileStorageTypeSchema,
 });
-export type TFile = z.infer<typeof fileSchema>;
+export const fontFileSchema = z.object({
+    name: z.string(),
+    path: z.string().url(),
+    storage: fontFileStorageTypeSchema,
+});
+export const getFileSchema = (fileType: TFileType) => {
+    return fileType === 'image' ? imageFileSchema : fontFileSchema;
+};
+export type TImageFile = z.infer<typeof imageFileSchema>;
+export type TFontFile = z.infer<typeof fontFileSchema>;
+export type TFile<T extends TFileType> = T extends 'image' ? TImageFile : TFontFile;
 
-export const fileListSchema = z.array(fileSchema);
-export type TFileList = z.infer<typeof fileListSchema>;
+export const imageFileListSchema = z.array(imageFileSchema);
+export const fontFileListSchema = z.array(fontFileSchema);
+export const getFileListSchema = (fileType: TFileType) => {
+    return fileType === 'image' ? imageFileListSchema : fontFileListSchema;
+};
+export type TImageFileList = z.infer<typeof imageFileListSchema>;
+export type TFontFileList = z.infer<typeof fontFileListSchema>;
+export type TFileList<T extends TFileType> = T extends 'image' ? TImageFileList : TFontFileList;
 
-export const fileDataSchema = z.object({
+export const imageFileDataSchema = z.object({
     code: z.number(),
-    list: fileListSchema,
+    list: imageFileListSchema,
 });
-export type TFileData = z.infer<typeof fileDataSchema>;
+export const fontFileDataSchema = z.object({
+    code: z.number(),
+    list: fontFileListSchema,
+});
+export const getFileDataSchema = (fileType: TFileType) => {
+    return fileType === 'image' ? imageFileDataSchema : fontFileDataSchema;
+};
+export type TImageFileData = z.infer<typeof imageFileDataSchema>;
+export type TFontFileData = z.infer<typeof fontFileDataSchema>;
+export type TFileData<T extends TFileType> = T extends 'image' ? TImageFileData : TFontFileData;
 
 export type TOverlayListItem = z.infer<typeof overlaySchema>;
