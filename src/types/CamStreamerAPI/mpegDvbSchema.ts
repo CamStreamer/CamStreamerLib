@@ -17,6 +17,6 @@ export const mpegDvbSchema = streamCommonSchema.extend({
     providerName: z.string(),
     serviceName: z.string(),
     statusCameraLed: z.boolean(),
-    statusCameraOutput: z.string(),
+    statusCameraOutput: z.string().nullable(),
     saveToSdCard: z.boolean(),
 });
