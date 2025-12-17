@@ -20,6 +20,10 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 
+    async checkAPIAvailable(options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
+    }
+
     async checkCameraTime(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
         return cameraTimeResponseSchema.parse(res).state;
