@@ -66,3 +66,12 @@ export const bitrateVapixParamsSchema = z.object({
     bitRateLimit: z.number(),
 });
 export type TBitrateVapixParams = z.infer<typeof bitrateVapixParamsSchema>;
+
+// Cross-platform file-like type
+export type FileLike = typeof File extends { prototype: infer T } ? T : { name: string; size: number; type: string };
+export const fileSchema =
+    typeof File !== 'undefined'
+        ? z.instanceof(File)
+        : z.custom<FileLike>((val) => {
+              return val !== null && typeof val === 'object' && 'name' in val && 'size' in val && 'type' in val;
+          });
