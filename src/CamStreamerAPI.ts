@@ -38,6 +38,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
     }
 
+    async checkAPIAvailable(options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
+    }
+
     async wsAuthorization(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
         if (res.status !== 200) {
