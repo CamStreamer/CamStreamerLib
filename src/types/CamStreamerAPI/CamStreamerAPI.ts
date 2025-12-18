@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { facebookSchema } from './facebookSchema';
+import { facebookSchema, facebookStreamPrivacySchema } from './facebookSchema';
 import { mpegDvbSchema } from './mpegDvbSchema';
 import { rtmpSchema } from './rtmpSchema';
 import { sdCardSchema } from './sdCardSchema';
@@ -54,6 +54,7 @@ export type TFacebookStream = z.infer<typeof facebookSchema>;
 export const isFacebookStream = (stream: TStream): stream is TFacebookStream => {
     return stream.type === 'facebook';
 };
+export type TFacebookStreamPrivacy = z.infer<typeof facebookStreamPrivacySchema>;
 
 export type TMpegDvbStream = z.infer<typeof mpegDvbSchema>;
 export const isMpegDvbStream = (stream: TStream): stream is TMpegDvbStream => {
