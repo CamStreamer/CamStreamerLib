@@ -104,7 +104,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
             invalidStreamData.push(streamData);
         }
 
-        if (oldStreamData.length > 0) {
+        if (oldStreamData.length > 0 || invalidStreamData.length > 0) {
             throw new MigrationError(newStreamData, oldStreamData, invalidStreamData);
         }
 
