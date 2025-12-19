@@ -1,29 +1,6 @@
 import { z } from 'zod';
 import { bitrateVapixParamsSchema, booleanSchema, h264ProfileSchema } from '../common';
 
-export const streamTypeSchema = z.union([
-    z.literal('youtube'),
-    z.literal('facebook'),
-    z.literal('sd_card'),
-    z.literal('windy'),
-    z.literal('mpeg_dvb'),
-    z.literal('rtmp'),
-    z.literal('dailymotion'),
-    z.literal('ibm'),
-    z.literal('hls_pull'),
-    z.literal('hls_push'),
-    z.literal('wowza'),
-    z.literal('microsoft_stream'),
-    z.literal('microsoft_azure'),
-    z.literal('vimeo'),
-    z.literal('twitch'),
-    z.literal('church'),
-    z.literal('srt'),
-    z.literal('da_cast'),
-    z.literal('game_changer'),
-]);
-export type TStreamType = z.infer<typeof streamTypeSchema>;
-
 //   ----------------------------------------
 //                  Triggering
 //   ----------------------------------------

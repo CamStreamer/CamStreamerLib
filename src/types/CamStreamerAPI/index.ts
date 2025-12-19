@@ -8,3 +8,4 @@ export * from './gameChangerSchema';
 export * from './sdCardSchema';
 export * from './windySchema';
 export * from './youtubeSchema';
+export * from './youtubeRtmpSchema';
