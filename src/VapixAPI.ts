@@ -594,6 +594,51 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     //  -------------------------------
+    //             pwdgrp.cgi
+    //  -------------------------------
+
+    async addCameraUser(username: string, pass: string, sgrp: string, comment?: string, options?: THttpRequestOptions) {
+        return await this.postUrlEncoded(
+            '/axis-cgi/pwdgrp.cgi',
+            {
+                action: 'add',
+                user: username,
+                pwd: pass,
+                grp: 'users',
+                sgrp,
+                comment,
+            },
+            undefined,
+            options
+        );
+    }
+
+    async getCameraUsers(options?: THttpRequestOptions) {
+        const res = await this.postUrlEncoded(
+            '/axis-cgi/pwdgrp.cgi',
+            {
+                action: 'get',
+            },
+            undefined,
+            options
+        );
+        return await res.text();
+    }
+
+    async editCameraUser(username: string, pass: string, options?: THttpRequestOptions) {
+        return await this.postUrlEncoded(
+            '/axis-cgi/pwdgrp.cgi',
+            {
+                action: 'update',
+                user: username,
+                pwd: pass,
+            },
+            undefined,
+            options
+        );
+    }
+
+    //  -------------------------------
     //          application API
     //  -------------------------------
 
