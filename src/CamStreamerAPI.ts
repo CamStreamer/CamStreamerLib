@@ -67,6 +67,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return res.data === '1';
     }
 
+    async getCamStreamerAppLog(options?: THttpRequestOptions) {
+        return await this._getText(`${BASE_PATH}/view_log.cgi`, undefined, options);
+    }
+
     //   ----------------------------------------
     //                   Streams
     //   ----------------------------------------
@@ -233,6 +237,17 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
 
         if (res.ok) {
             return await res.json();
+        } else {
+            throw new ErrorWithResponse(res);
+        }
+    }
+
+    private async _getText(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.get({ path, parameters, timeout: options?.timeout });
+
+        if (res.ok) {
+            return await res.text();
         } else {
             throw new ErrorWithResponse(res);
         }
