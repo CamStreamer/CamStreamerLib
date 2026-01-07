@@ -1,25 +1,23 @@
 import z from 'zod';
 import { streamCommonSchema } from './streamCommonTypes';
 
-export const facebookStreamPrivacySchema = z.union([z.literal('public'), z.literal('friends'), z.literal('only_me')]);
-
-const timelinePost = z.object({
+const timelinePostSchema = z.object({
     postLocation: z.literal('timeline'),
-    streamPrivacy: facebookStreamPrivacySchema,
+    streamPrivacy: z.union([z.literal('public'), z.literal('friends'), z.literal('only_me')]),
 });
+export type TTimeLinePost = z.infer<typeof timelinePostSchema>;
+export type TFacebookStreamPrivacy = TTimeLinePost['streamPrivacy'];
 
-const pagePost = z.object({
+const pagePostSchema = z.object({
     postLocation: z.literal('page'),
     page: z.string(),
 });
+export type TPagePost = z.infer<typeof pagePostSchema>;
 
 export const facebookSchema = streamCommonSchema.extend({
     type: z.literal('facebook'),
     description: z.string().optional(),
     deleteAfterEnd: z.boolean(),
-    saveToSdCard: z.boolean(),
-    statusCameraLed: z.boolean(),
-    statusCameraOutput: z.string().nullable(),
     countdown: z.boolean(),
-    post: z.discriminatedUnion('postLocation', [timelinePost, pagePost]),
+    post: z.discriminatedUnion('postLocation', [timelinePostSchema, pagePostSchema]),
 });

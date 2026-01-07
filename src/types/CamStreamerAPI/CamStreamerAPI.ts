@@ -1,25 +1,29 @@
 import { z } from 'zod';
-import { facebookSchema, facebookStreamPrivacySchema } from './facebookSchema';
-import { mpegDvbSchema } from './mpegDvbSchema';
-import { rtmpSchema } from './rtmpSchema';
-import { sdCardSchema } from './sdCardSchema';
+
+import { facebookSchema } from './facebookSchema';
 import { windySchema } from './windySchema';
 import { youtubeSchema } from './youtubeSchema';
-import { vimeoSchema } from './vimeoSchema';
-import { twitchSchema } from './twitchSchema';
-import { churchSchema } from './churchSchema';
-import { srtSchema } from './srtSchema';
-import { daCastSchema } from './daCastSchema';
-import { hlsPullSchema } from './hlsPullSchema';
-import { hlsPushSchema } from './hlsPushSchema';
-import { wowzaSchema } from './wowzaSchema';
-import { dailymotionSchema } from './dailymotionSchema';
-import { ibmSchema } from './ibmSchema';
-import { microsoftAzureSchema } from './microsoftAzureSchema';
-import { microsoftStreamSchema } from './microsoftStreamSchema';
-import { gameChangerSchema } from './gameChangerSchema';
+import {
+    churchSchema,
+    daCastSchema,
+    dailymotionSchema,
+    gameChangerSchema,
+    hlsPullSchema,
+    hlsPushSchema,
+    ibmSchema,
+    microsoftAzureSchema,
+    microsoftStreamSchema,
+    mpegDvbSchema,
+    rtmpSchema,
+    sdCardSchema,
+    srtSchema,
+    twitchSchema,
+    vimeoSchema,
+    wowzaSchema,
+    youtubeRtmpSchema,
+} from './streamsSchema';
+
 import { FileLike, fileSchema } from '../common';
-import { youtubeRtmpSchema } from './youtubeRtmpSchema';
 
 //   ----------------------------------------
 //                    Streams
@@ -57,7 +61,6 @@ export type TFacebookStream = z.infer<typeof facebookSchema>;
 export const isFacebookStream = (stream: TStream): stream is TFacebookStream => {
     return stream.type === 'facebook';
 };
-export type TFacebookStreamPrivacy = z.infer<typeof facebookStreamPrivacySchema>;
 
 export type TMpegDvbStream = z.infer<typeof mpegDvbSchema>;
 export const isMpegDvbStream = (stream: TStream): stream is TMpegDvbStream => {
