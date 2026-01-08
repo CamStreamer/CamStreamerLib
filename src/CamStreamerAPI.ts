@@ -82,8 +82,8 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         const oldStreamListRecord = z.record(z.string(), oldStringStreamSchema).safeParse(res.data);
         if (oldStreamListRecord.success) {
             // Yes, we do. Convert to array
-            const data = Object.entries(oldStreamListRecord.data).map(([id, streamData]) => ({
-                id: parseInt(id),
+            const data = Object.entries(oldStreamListRecord.data).map(([streamId, streamData]) => ({
+                streamId,
                 ...parseCameraStreamResponse(streamData),
             }));
             throw new MigrationError([], data);
@@ -91,7 +91,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
 
         // No, we have the new array format, possibly with some old settings mixed in
         const newStreamData: TStream[] = [];
-        const oldStreamData: (TOldStream & { id: number })[] = [];
+        const oldStreamData: (TOldStream & { streamId: string })[] = [];
         const invalidStreamData: any[] = [];
         for (const streamData of res.data.streamList) {
             const newStreamParse = streamSchema.safeParse(streamData);
@@ -104,7 +104,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
             const oldStreamParse = oldStringStreamSchemaWithId.safeParse(streamData);
             if (oldStreamParse.success) {
                 oldStreamData.push({
-                    id: parseInt(oldStreamParse.data.id),
+                    streamId: oldStreamParse.data.streamId,
                     ...parseCameraStreamResponse(oldStreamParse.data),
                 });
                 continue;
@@ -134,7 +134,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     /**
      * @throws {MigrationError} If some stream entries failed to parse.
      */
-    async getStream(streamId: number, options?: THttpRequestOptions) {
+    async getStream(streamId: string, options?: THttpRequestOptions) {
         const res = await this._getJson(
             `${BASE_PATH}/stream_list.cgi`,
             { action: 'get', stream_id: streamId },
@@ -148,10 +148,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
 
         // May or may not have id inside -> passthrough to keep it if present
         const oldStream = oldStringStreamSchema.passthrough().parse(res.data);
-        throw new MigrationError([], [{ id: streamId, ...parseCameraStreamResponse(oldStream) }]);
+        throw new MigrationError([], [{ streamId, ...parseCameraStreamResponse(oldStream) }]);
     }
 
-    async setStream(streamId: number, streamData: TStream, options?: THttpRequestOptions) {
+    async setStream(streamId: string, streamData: TStream, options?: THttpRequestOptions) {
         await this._postJsonEncoded(
             `${BASE_PATH}/stream_list.cgi`,
             JSON.stringify(streamData),
@@ -163,12 +163,12 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         );
     }
 
-    async isStreaming(streamId: number, options?: THttpRequestOptions) {
+    async isStreaming(streamId: string, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/get_streamstat.cgi`, { stream_id: streamId }, options);
         return res.data.is_streaming === 1;
     }
 
-    async setStreamEnabled(streamId: number, enabled: boolean, options?: THttpRequestOptions) {
+    async setStreamEnabled(streamId: string, enabled: boolean, options?: THttpRequestOptions) {
         await this._postUrlEncoded(
             `${BASE_PATH}/set_stream_enabled.cgi`,
             { stream_id: streamId, enabled: enabled ? 1 : 0 },
@@ -176,7 +176,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         );
     }
 
-    async setStreamActive(streamId: number, active: boolean, options?: THttpRequestOptions) {
+    async setStreamActive(streamId: string, active: boolean, options?: THttpRequestOptions) {
         await this._postUrlEncoded(
             `${BASE_PATH}/set_stream_active.cgi`,
             { stream_id: streamId, active: active ? 1 : 0 },

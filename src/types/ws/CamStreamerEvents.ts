@@ -4,7 +4,7 @@ const csEventsDataSchema = z.discriminatedUnion('type', [
     z.object({ type: z.literal('authorization'), state: z.string() }),
     z.object({
         type: z.literal('StreamState'),
-        streamID: z.number(),
+        streamId: z.string(),
         isStreaming: z.boolean(),
         active: z.boolean(),
         enabled: z.boolean(),
@@ -13,13 +13,13 @@ const csEventsDataSchema = z.discriminatedUnion('type', [
         type: z.literal('CS_API_SUCCESS'),
         apiCall: z.string(),
         message: z.string(),
-        streamID: z.number(),
+        streamId: z.string(),
     }),
     z.object({
         type: z.literal('CS_API_ERROR'),
         apiCall: z.string(),
         message: z.string(),
-        streamID: z.number(),
+        streamId: z.string(),
         code: z.string(),
     }),
     z.object({
