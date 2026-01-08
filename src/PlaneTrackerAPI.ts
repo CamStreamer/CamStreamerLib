@@ -291,6 +291,10 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
     //                   Genetec
     //   ----------------------------------------
 
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
+
     async checkGenetecConnection(params: TParameters, options?: THttpRequestOptions) {
         return await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, params, options);
     }

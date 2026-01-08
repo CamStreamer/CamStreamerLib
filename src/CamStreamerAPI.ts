@@ -207,6 +207,14 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
     async getFileFromCamera(path: string, options?: THttpRequestOptions) {
         return await this._getBlob(`${BASE_PATH}/audio.cgi`, { path }, options);
     }
+
+    //   ----------------------------------------
+    //                   Genetec
+    //   ----------------------------------------
+
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
 }
 
 export const parseCameraStreamResponse = (cameraStreamData: TOldStringStream): TOldStream => {

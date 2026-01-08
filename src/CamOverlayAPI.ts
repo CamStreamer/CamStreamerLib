@@ -246,6 +246,14 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> extends Basic
     }
 
     //   ----------------------------------------
+    //                   Genetec
+    //   ----------------------------------------
+
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
+
+    //   ----------------------------------------
     //                   Private
     //   ----------------------------------------
 

@@ -368,6 +368,14 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
     }
 
     //   ----------------------------------------
+    //                   Genetec
+    //   ----------------------------------------
+
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
+
+    //   ----------------------------------------
     //                   Private
     //   ----------------------------------------
 
