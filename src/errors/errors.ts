@@ -203,10 +203,10 @@ export class BadRequestError<T extends TResponse> extends ErrorWithResponse<T> {
 
 export class MigrationError extends Error {
     readonly valid: TStream[];
-    readonly old: (TOldStream & { id: string })[];
+    readonly old: (TOldStream & { streamId: string })[];
     readonly invalid: any[];
 
-    constructor(valid: TStream[], old: (TOldStream & { id: string })[], invalid: any[] = []) {
+    constructor(valid: TStream[], old: (TOldStream & { streamId: string })[], invalid: any[] = []) {
         super('Migration to newer version is needed: some stream entries failed to parse.');
         this.name = 'MigrationError';
 

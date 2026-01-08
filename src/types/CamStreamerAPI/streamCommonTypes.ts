@@ -14,13 +14,13 @@ export const streamCommonSchema = z.object({
     trigger: z.discriminatedUnion('type', [
         z.object({
             type: z.literal('manual'),
-            ioPort: z.string().nullable(),
+            ioPort: z.number().nullable(),
         }),
         z.object({
             type: z.literal('onetime'),
             startTime: z.number(),
             stopTime: z.number(),
-            ioPort: z.string().nullable(),
+            // ioPort: z.string().nullable(),
         }),
         z.object({
             type: z.literal('recurrent'),

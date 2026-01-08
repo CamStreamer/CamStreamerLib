@@ -24,7 +24,7 @@ export const oldStringStreamSchema = z.object({
     stopTime: z.string(),
 });
 export const oldStringStreamSchemaWithId = oldStringStreamSchema.extend({
-    id: z.string(),
+    streamId: z.string(),
 });
 export type TOldStringStream = z.infer<typeof oldStringStreamSchema>;
 
