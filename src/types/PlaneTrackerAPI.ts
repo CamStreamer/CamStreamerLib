@@ -296,7 +296,7 @@ export const getIcaoSchema = z.object({
 export type TGetIcaoByOption = 'registration' | 'callsign';
 
 export const trackingModeSchema = z.object({
-    mode: z.union([z.literal('MANUAL'), z.literal('AUTOMATIC')]),
+    mode: z.union([z.literal('MANUAL'), z.literal('AUTOMATIC')]).default('AUTOMATIC'),
 });
 export type TTrackingMode = z.infer<typeof trackingModeSchema>;
 
