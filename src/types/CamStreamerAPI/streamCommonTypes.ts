@@ -59,7 +59,10 @@ export const streamCommonSchema = z.object({
                 url: z.string(),
             }),
             z.object({
-                type: z.union([z.literal('CSw'), z.literal('CRS')]),
+                type: z.literal('CSw'),
+            }),
+            z.object({
+                type: z.literal('CRS'),
             }),
         ]),
         streamingProtocol: z.union([z.literal('RTMP'), z.literal('RTMPS'), z.literal('HLS_PUSH')]),
