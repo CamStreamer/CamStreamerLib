@@ -53,6 +53,9 @@ export const streamCommonSchema = z.object({
                 url: z.string(),
                 imageIntervalS: z.number(),
             }),
+              z.object({
+                type: z.literal('none'),
+            }),
         ]),
         input: z.discriminatedUnion('type', [
             z.object({
