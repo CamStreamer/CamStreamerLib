@@ -208,7 +208,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     }
 
     downloadCameraReport(options?: THttpRequestOptions) {
-        return this._postUrlEncoded('/axis-cgi/serverreport.cgi', { mode: 'text' }, options);
+        return this._getText('/axis-cgi/serverreport.cgi', { mode: 'text' }, options);
     }
 
     getSystemLog(options?: THttpRequestOptions) {
