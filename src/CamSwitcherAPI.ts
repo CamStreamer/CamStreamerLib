@@ -368,7 +368,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
     }
 
     //   ----------------------------------------
-    //                   Genetec
+    //                   Report
     //   ----------------------------------------
 
     downloadReport(options?: THttpRequestOptions) {

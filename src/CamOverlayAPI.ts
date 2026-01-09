@@ -246,7 +246,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> extends Basic
     }
 
     //   ----------------------------------------
-    //                   Genetec
+    //                   Report
     //   ----------------------------------------
 
     downloadReport(options?: THttpRequestOptions) {
