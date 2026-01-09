@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { AddNewClipError, JsonParseError, ParameterNotFoundError, ErrorWithResponse } from './errors/errors';
-import { IClient, TParameters, TResponse } from './internal/types';
+import { AddNewClipError, JsonParseError, ParameterNotFoundError } from './errors/errors';
+import { IClient, TResponse } from './internal/types';
 import { parseBitrateOptionsToVapixParams, parseVapixParamsToBitrateOptions } from './internal/convertors';
 import { isClip, isNullish } from './internal/utils';
 import {
@@ -27,18 +27,18 @@ import {
     networkCameraListSchema,
     TAudioChannel,
     THttpRequestOptions,
-    TProxyParams,
     TStorageType,
     TBitrateVapixParams,
 } from './types/common';
 import { VapixAPI } from './VapixAPI';
-import { ProxyClient } from './internal/ProxyClient';
+import { BasicAPI } from './internal/BasicAPI';
 
 const BASE_PATH = '/local/camswitcher/api';
-export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
+export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
     private vapixAgent: VapixAPI<Client>;
 
-    constructor(private client: Client, private CustomFormData = FormData) {
+    constructor(client: Client, private CustomFormData = FormData) {
+        super(client);
         this.vapixAgent = new VapixAPI(client);
     }
 
@@ -46,10 +46,6 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     static getWsEventsPath = () => `/local/camswitcher/events`;
     static getClipPreviewPath = (clipId: string, storage: TStorageType) =>
         `${BASE_PATH}/clip_preview.cgi?clip_name=${clipId}&storage=${storage}`;
-
-    getClient(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
-    }
 
     async checkAPIAvailable(options?: THttpRequestOptions) {
         await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
@@ -372,36 +368,16 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> {
     }
 
     //   ----------------------------------------
-    //                   Private
+    //                   Report
     //   ----------------------------------------
 
-    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
     }
 
-    private async _post(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, parameters, timeout: options?.timeout, headers });
-
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
 
     private setParamFromCameraJSON(paramName: string, data: any, options?: THttpRequestOptions) {
         const params: Record<string, string> = {};

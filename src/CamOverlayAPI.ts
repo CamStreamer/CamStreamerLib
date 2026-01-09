@@ -1,10 +1,7 @@
-import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
-import { paramToUrl } from './internal/utils';
-
-import { ParsingBlobError, ErrorWithResponse, ServiceNotFoundError, StorageDataFetchError } from './errors/errors';
-import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './types/common';
+import { IClient, TParameters, TResponse } from './internal/types';
+import { ErrorWithResponse, ServiceNotFoundError, StorageDataFetchError } from './errors/errors';
+import { networkCameraListSchema, THttpRequestOptions } from './types/common';
 import { z } from 'zod';
-import { ProxyClient } from './internal/ProxyClient';
 import {
     ImageType,
     TCoordinates,
@@ -23,18 +20,13 @@ import {
     TFileList,
     TStorageDataList,
 } from './types/CamOverlayAPI';
+import { BasicAPI } from './internal/BasicAPI';
 
 const BASE_PATH = '/local/camoverlay/api';
-export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
-    constructor(private client: Client) {}
-
+export class CamOverlayAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
     static getBasePath = () => BASE_PATH;
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
     static getFilePreviewPath = (path: string) => `${BASE_PATH}/image.cgi?path=${encodeURIComponent(path)}`;
-
-    getClient(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
-    }
 
     async checkAPIAvailable(options?: THttpRequestOptions) {
         await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
@@ -96,8 +88,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
                 action: 'remove',
                 ...fileParams,
             },
-            options,
-            undefined
+            options
         );
     }
 
@@ -171,25 +162,23 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     async updateSingleService(service: TService, options?: THttpRequestOptions) {
         await this._postJsonEncoded(
             `${BASE_PATH}/services.cgi`,
-            JSON.stringify(service),
+            service,
             {
                 action: 'set',
                 service_id: service.id,
             },
-            options,
-            undefined
+            options
         );
     }
 
     async updateServices(services: TService[], options?: THttpRequestOptions) {
         await this._postJsonEncoded(
             `${BASE_PATH}/services.cgi`,
-            JSON.stringify({ services: services }),
+            { services: services },
             {
                 action: 'set',
             },
-            options,
-            undefined
+            options
         );
     }
 
@@ -257,6 +246,14 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     }
 
     //   ----------------------------------------
+    //                   Report
+    //   ----------------------------------------
+
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
+
+    //   ----------------------------------------
     //                   Private
     //   ----------------------------------------
 
@@ -289,71 +286,5 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         if (!res.ok) {
             throw new ErrorWithResponse(res);
         }
-    }
-
-    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-    private async _post(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, parameters, headers, timeout: options?.timeout });
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async _getBlob(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-        if (res.ok) {
-            return await this.parseBlobResponse(res);
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async parseBlobResponse(response: TResponse) {
-        try {
-            return (await response.blob()) as TBlobResponse<Client>;
-        } catch (err) {
-            throw new ParsingBlobError(err);
-        }
-    }
-
-    private async _postUrlEncoded(
-        path: string,
-        parameters: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const data = paramToUrl(parameters);
-        const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
-        return this._post(path, data, undefined, options, { ...baseHeaders, ...headers });
-    }
-
-    private async _postJsonEncoded(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-        return this._post(path, data, parameters, options, { ...baseHeaders, ...headers });
     }
 }

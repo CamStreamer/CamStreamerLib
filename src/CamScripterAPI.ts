@@ -1,6 +1,5 @@
-import { ErrorWithResponse } from './errors/errors';
-import { ProxyClient } from './internal/ProxyClient';
-import { IClient, TParameters, TResponse } from './internal/types';
+import { BasicAPI } from './internal/BasicAPI';
+import { IClient, TResponse } from './internal/types';
 
 import {
     cameraTimeResponseSchema,
@@ -8,17 +7,11 @@ import {
     packageInfoListSchema,
     cameraStorageSchema,
 } from './types/CamScripterAPI';
-import { networkCameraListSchema, THttpRequestOptions, TProxyParams, TStorageType } from './types/common';
+import { networkCameraListSchema, THttpRequestOptions, TStorageType } from './types/common';
 
 const BASE_PATH = '/local/camscripter';
-export class CamScripterAPI<Client extends IClient<TResponse, any>> {
-    constructor(private client: Client) {}
-
+export class CamScripterAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
-
-    getClient(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
-    }
 
     async checkAPIAvailable(options?: THttpRequestOptions) {
         await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
@@ -106,33 +99,10 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> {
     }
 
     //   ----------------------------------------
-    //                   Private
+    //                   Report
     //   ----------------------------------------
 
-    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-    private async _post(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, parameters, headers, timeout: options?.timeout });
-
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
     }
 }

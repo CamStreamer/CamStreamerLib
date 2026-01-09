@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
-import { paramToUrl } from './internal/utils';
+import { IClient, TParameters, TResponse } from './internal/types';
 import {
     blackListSchema,
     cameraSettingsSchema,
@@ -32,26 +31,22 @@ import {
     ImportSettingsError,
     InvalidAltitudeError,
     InvalidLatLngError,
-    ParsingBlobError,
     ResetCalibrationError,
     ServerError,
     BadRequestError,
-    ErrorWithResponse,
 } from './errors/errors';
-import { THttpRequestOptions, TProxyParams } from './types/common';
-import { ProxyClient } from './internal/ProxyClient';
+import { THttpRequestOptions } from './types/common';
 import { cameraListSchema } from './types/GenetecAgent';
+import { BasicAPI } from './internal/BasicAPI';
 
 const BASE_PATH = '/local/planetracker';
-export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
-    constructor(private client: Client, private apiUser: TApiUser) {}
+export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
+    constructor(client: Client, private apiUser: TApiUser) {
+        super(client);
+    }
 
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
     static getWsEventsPath = () => `${BASE_PATH}/package/ws`;
-
-    getClient(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
-    }
 
     async checkAPIAvailable(options?: THttpRequestOptions) {
         await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
@@ -293,6 +288,14 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     }
 
     //   ----------------------------------------
+    //                   Report
+    //   ----------------------------------------
+
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
+
+    //   ----------------------------------------
     //                   Genetec
     //   ----------------------------------------
 
@@ -303,84 +306,5 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
     async getGenetecCameraList(params: TParameters, options?: THttpRequestOptions) {
         const res = await this._postUrlEncoded(`${BASE_PATH}/package/getGenetecCameraList.cgi`, params, options);
         return cameraListSchema.parse(await res.json());
-    }
-
-    //   ----------------------------------------
-    //                   Private
-    //   ----------------------------------------
-
-    private async _getJson(
-        path: string,
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout, headers });
-
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async _getBlob(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-
-        if (res.ok) {
-            return await this.parseBlobResponse(res);
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async parseBlobResponse(response: TResponse) {
-        try {
-            return (await response.blob()) as TBlobResponse<Client>;
-        } catch (err) {
-            throw new ParsingBlobError(err);
-        }
-    }
-
-    private async _postJsonEncoded(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const jsonData = JSON.stringify(data);
-        const res = await agent.post({
-            path,
-            data: jsonData,
-            parameters,
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-            timeout: options?.timeout,
-        });
-
-        if (res.ok) {
-            return res;
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async _postUrlEncoded(path: string, params: TParameters, options?: THttpRequestOptions) {
-        const data = paramToUrl(params);
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({
-            path,
-            data,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            timeout: options?.timeout,
-        });
-
-        if (res.ok) {
-            return res;
-        } else {
-            throw new ErrorWithResponse(res);
-        }
     }
 }

@@ -1,7 +1,5 @@
 import { z } from 'zod';
-import { ProxyClient } from './internal/ProxyClient';
-import { IClient, TBlobResponse, TParameters, TResponse } from './internal/types';
-
+import { IClient, TResponse } from './internal/types';
 import {
     audioFileListSchema,
     storageListSchema,
@@ -11,32 +9,20 @@ import {
     TStream,
     TStreamList,
 } from './types/CamStreamerAPI/CamStreamerAPI';
-import { THttpRequestOptions, TProxyParams } from './types/common';
-import {
-    ErrorWithResponse,
-    UtcTimeFetchError,
-    WsAuthorizationError,
-    MigrationError,
-    ParsingBlobError,
-} from './errors/errors';
+import { THttpRequestOptions } from './types/common';
+import { UtcTimeFetchError, WsAuthorizationError, MigrationError } from './errors/errors';
 import {
     oldStringStreamSchema,
     oldStringStreamSchemaWithId,
     TOldStream,
     TOldStringStream,
 } from './types/CamStreamerAPI/oldStreamSchema';
-import { paramToUrl } from './internal/utils';
+import { BasicAPI } from './internal/BasicAPI';
 
 const BASE_PATH = '/local/camstreamer';
-export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
-    constructor(private client: Client) {}
-
+export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
     static getWsEventsPath = () => `${BASE_PATH}/events`;
-
-    getClient(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
-    }
 
     async checkAPIAvailable(options?: THttpRequestOptions) {
         await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
@@ -123,7 +109,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     async setStreamList(streamList: TStreamList['streamList'], options?: THttpRequestOptions) {
         await this._postJsonEncoded(
             `${BASE_PATH}/stream_list.cgi`,
-            JSON.stringify({ streamList }),
+            { streamList },
             {
                 action: 'set',
             },
@@ -154,7 +140,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     async setStream(streamId: string, streamData: TStream, options?: THttpRequestOptions) {
         await this._postJsonEncoded(
             `${BASE_PATH}/stream_list.cgi`,
-            JSON.stringify(streamData),
+            streamData,
             {
                 action: 'set',
                 stream_id: streamId,
@@ -210,12 +196,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     }
 
     async removeFile(fileParams: TAudioFile, options?: THttpRequestOptions) {
-        await this._postUrlEncoded(
-            `${BASE_PATH}/upload_audio.cgi`,
-            { action: 'remove', ...fileParams },
-            options,
-            undefined
-        );
+        await this._postUrlEncoded(`${BASE_PATH}/upload_audio.cgi`, { action: 'remove', ...fileParams }, options);
     }
 
     async getFileStorage(options?: THttpRequestOptions) {
@@ -228,92 +209,11 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
     }
 
     //   ----------------------------------------
-    //                   Private
+    //                   Report
     //   ----------------------------------------
 
-    private async _getJson(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async _getText(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-
-        if (res.ok) {
-            return await res.text();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async _getBlob(path: string, parameters?: TParameters, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.get({ path, parameters, timeout: options?.timeout });
-        if (res.ok) {
-            return await this.parseBlobResponse(res);
-        } else {
-            throw new ErrorWithResponse(res);
-        }
-    }
-
-    private async parseBlobResponse(response: TResponse) {
-        try {
-            return (await response.blob()) as TBlobResponse<Client>;
-        } catch (err) {
-            throw new ParsingBlobError(err);
-        }
-    }
-
-    private async _postUrlEncoded(
-        path: string,
-        parameters: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const data = paramToUrl(parameters);
-        const baseHeaders = { 'Content-Type': 'application/x-www-form-urlencoded' };
-        return this._post(path, data, undefined, options, { ...baseHeaders, ...headers });
-    }
-
-    private async _postJsonEncoded(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const baseHeaders = { 'Accept': 'application/json', 'Content-Type': 'application/json' };
-        return agent.post({
-            path,
-            data,
-            parameters,
-            timeout: options?.timeout,
-            headers: { ...baseHeaders, ...headers },
-        });
-    }
-
-    private async _post(
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions,
-        headers?: Record<string, string>
-    ) {
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, parameters, headers, timeout: options?.timeout });
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new ErrorWithResponse(res);
-        }
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
     }
 }
 
