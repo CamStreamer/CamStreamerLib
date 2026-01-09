@@ -42,11 +42,18 @@ export const streamCommonSchema = z.object({
     ]),
 
     video: z.object({
-        output: z.object({
-            type: z.union([z.literal('video'), z.literal('images')]),
-            url: z.string().nullable(),
-            parameters: z.string(),
-        }),
+        output: z.discriminatedUnion('type', [
+            z.object({
+                type: z.literal('video'),
+                url: z.string(),
+                parameters: z.string(),
+            }),
+            z.object({
+                type: z.literal('images'),
+                url: z.string(),
+                imageIntervalS: z.number(),
+            }),
+        ]),
         input: z.discriminatedUnion('type', [
             z.object({
                 type: z.literal('RTSP_URL'),
