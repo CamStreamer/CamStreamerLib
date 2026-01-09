@@ -4,6 +4,7 @@ import {
     audioFileListSchema,
     storageListSchema,
     streamSchema,
+    streamStatsSchema,
     TAudioFile,
     TAudioFileStorageType,
     TStream,
@@ -149,9 +150,9 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
         );
     }
 
-    async isStreaming(streamId: string, options?: THttpRequestOptions) {
+    async getStreamStats(streamId: number, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/get_streamstat.cgi`, { stream_id: streamId }, options);
-        return res.data.is_streaming === 1;
+        return streamStatsSchema.parse(res.data);
     }
 
     async setStreamEnabled(streamId: string, enabled: boolean, options?: THttpRequestOptions) {
