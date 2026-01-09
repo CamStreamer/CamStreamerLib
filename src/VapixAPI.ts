@@ -1,5 +1,5 @@
-import { IClient, TParameters, TResponse } from './internal/types';
-import { arrayToUrl, isNullish, paramToUrl } from './internal/utils';
+import { IClient, TResponse } from './internal/types';
+import { arrayToUrl, isNullish } from './internal/utils';
 
 import {
     TGuardTour,
@@ -36,55 +36,14 @@ import {
     TimezoneFetchError,
     TimezoneNotSetupError,
 } from './errors/errors';
-import { ProxyClient } from './internal/ProxyClient';
-import { TCameraImageConfig, THttpRequestOptions, TProxyParams } from './types/common';
+import { TCameraImageConfig, THttpRequestOptions } from './types/common';
 import { z } from 'zod';
 import { XMLParser } from 'fast-xml-parser';
+import { BasicAPI } from './internal/BasicAPI';
 
-export class VapixAPI<Client extends IClient<TResponse, any>> {
-    constructor(private client: Client, private CustomFormData = FormData) {}
-
-    getClient(proxyParams?: TProxyParams) {
-        return proxyParams ? new ProxyClient(this.client, proxyParams) : this.client;
-    }
-
-    /**
-     * url encoded post request
-     * there is a problem on some routers with the url size limit
-     */
-    async postUrlEncoded(
-        path: string,
-        parameters?: TParameters,
-        headers?: Record<string, string>,
-        options?: THttpRequestOptions
-    ) {
-        const data = paramToUrl(parameters);
-        const head = { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' };
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
-        if (!res.ok) {
-            throw new ErrorWithResponse(res);
-        }
-        return res;
-    }
-
-    /**
-     * sends data as JSON
-     */
-    async postJson(
-        path: string,
-        jsonData: Record<string, any>,
-        headers?: Record<string, string>,
-        options?: THttpRequestOptions
-    ) {
-        const data = JSON.stringify(jsonData);
-        const head = { ...headers, 'Content-Type': 'application/json' };
-        const agent = this.getClient(options?.proxyParams);
-        const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
-        if (!res.ok) {
-            throw new ErrorWithResponse(res);
-        }
-        return res;
+export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
+    constructor(client: Client, private CustomFormData = FormData) {
+        super(client);
     }
 
     async getCameraImage(parameters: TCameraImageConfig, options?: THttpRequestOptions) {
@@ -119,7 +78,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     async getSupportedAudioSampleRate(options?: THttpRequestOptions) {
         const path = '/axis-cgi/audio/streamingcapabilities.cgi';
         const jsonData = { apiVersion: '1.0', method: 'list' };
-        const res = await this.postJson(path, jsonData, undefined, options);
+        const res = await this._postJsonEncoded(path, jsonData, undefined, options);
 
         const encoders = audioSampleRatesResponseSchema.parse(await res.json()).data.encoders;
         const data = encoders.aac ?? encoders.AAC ?? [];
@@ -146,28 +105,26 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
                 },
             };
 
-            await this.postJson('/axis-cgi/opticscontrol.cgi', data, undefined, options);
+            await this._postJsonEncoded('/axis-cgi/opticscontrol.cgi', data, undefined, options);
         } catch (err) {
             // lets try the old api
-            await this.postUrlEncoded(
+            await this._postUrlEncoded(
                 '/axis-cgi/opticssetup.cgi',
                 {
                     autofocus: 'perform',
                     source: '1',
                 },
-                undefined,
                 options
             );
         }
     }
 
     async checkSDCard(options?: THttpRequestOptions) {
-        const res = await this.postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/disks/list.cgi',
             {
                 diskid: 'SD_DISK',
             },
-            undefined,
             options
         );
 
@@ -198,13 +155,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     private async _doSDCardMountAction(action: 'MOUNT' | 'UNMOUNT', options?: THttpRequestOptions) {
-        const res = await this.postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/disks/mount.cgi',
             {
                 action: action,
                 diskid: 'SD_DISK',
             },
-            undefined,
             options
         );
 
@@ -227,13 +183,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
 
     // This is supposed to be called in interval in client code until progress is 100
     async fetchSDCardJobProgress(jobId: number, options?: THttpRequestOptions) {
-        const res = await this.postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/disks/job.cgi',
             {
                 jobid: String(jobId),
                 diskid: 'SD_DISK',
             },
-            undefined,
             options
         );
 
@@ -253,16 +208,16 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     downloadCameraReport(options?: THttpRequestOptions) {
-        return this.postUrlEncoded('/axis-cgi/serverreport.cgi', { mode: 'text' }, undefined, options);
+        return this._postUrlEncoded('/axis-cgi/serverreport.cgi', { mode: 'text' }, options);
     }
 
     getSystemLog(options?: THttpRequestOptions) {
-        return this.postUrlEncoded('/axis-cgi/admin/systemlog.cgi', undefined, undefined, options);
+        return this._postUrlEncoded('/axis-cgi/admin/systemlog.cgi', {}, options);
     }
 
     async getMaxFps(channel: number, options?: THttpRequestOptions) {
         const data = { apiVersion: '1.0', method: 'getCaptureModes' };
-        const res = await this.postJson('/axis-cgi/capturemode.cgi', data, undefined, options);
+        const res = await this._postJsonEncoded('/axis-cgi/capturemode.cgi', data, undefined, options);
         const response = maxFpsResponseSchema.parse(await res.json());
 
         const channels = response.data;
@@ -322,13 +277,13 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
 
     async getDateTimeInfo(options?: THttpRequestOptions) {
         const data = { apiVersion: '1.0', method: 'getDateTimeInfo' };
-        const res = await this.postJson('/axis-cgi/time.cgi', data, undefined, options);
+        const res = await this._postJsonEncoded('/axis-cgi/time.cgi', data, undefined, options);
         return dateTimeinfoSchema.parse(await res.json());
     }
 
     async getDevicesSettings(options?: THttpRequestOptions): Promise<TAudioDevice[]> {
         const data = { apiVersion: '1.0', method: 'getDevicesSettings' };
-        const res = await this.postJson('/axis-cgi/audiodevicecontrol.cgi', data, undefined, options);
+        const res = await this._postJsonEncoded('/axis-cgi/audiodevicecontrol.cgi', data, undefined, options);
 
         const result = audioDeviceRequestSchema.parse(await res.json());
         return result.data.devices.map((device: TAudioDeviceFromRequest) => ({
@@ -339,7 +294,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     async fetchRemoteDeviceInfo<T extends Record<string, any>>(payload: T, options?: THttpRequestOptions) {
-        const res = await this.postJson('/axis-cgi/basicdeviceinfo.cgi', payload, undefined, options);
+        const res = await this._postJsonEncoded('/axis-cgi/basicdeviceinfo.cgi', payload, undefined, options);
         const json = await res.json();
         if (isNullish(json.data)) {
             throw new NoDeviceInfoError();
@@ -349,14 +304,14 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
 
     async getHeaders(options?: THttpRequestOptions) {
         const data = { apiVersion: '1.0', method: 'list' };
-        const res = await this.postJson('/axis-cgi/customhttpheader.cgi', data, undefined, options);
+        const res = await this._postJsonEncoded('/axis-cgi/customhttpheader.cgi', data, undefined, options);
 
         return z.object({ data: z.record(z.string()) }).parse(await res.json()).data;
     }
 
     async setHeaders(headers: Record<string, string>, options?: THttpRequestOptions) {
         const data = { apiVersion: '1.0', method: 'set', params: headers };
-        return this.postJson('/axis-cgi/customhttpheader.cgi', data, undefined, options);
+        return this._postJsonEncoded('/axis-cgi/customhttpheader.cgi', data, undefined, options);
     }
 
     //  -------------------------------
@@ -364,26 +319,24 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     //  -------------------------------
 
     async getParameter(paramNames: string | string[], options?: THttpRequestOptions) {
-        const response = await this.postUrlEncoded(
+        const response = await this._postUrlEncoded(
             '/axis-cgi/param.cgi',
             {
                 action: 'list',
                 group: arrayToUrl(paramNames),
             },
-            undefined,
             options
         );
         return VapixAPI.parseParameters(await response.text());
     }
 
     async setParameter(params: Record<string, string | number | boolean>, options?: THttpRequestOptions) {
-        const res = await this.postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/param.cgi',
             {
                 ...params,
                 action: 'update',
             },
-            undefined,
             options
         );
         const responseText = await res.text();
@@ -439,13 +392,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     //  -------------------------------
 
     async getPTZPresetList(channel: number, options?: THttpRequestOptions) {
-        const res = await this.postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/com/ptz.cgi',
             {
                 query: 'presetposcam',
                 camera: channel,
             },
-            undefined,
             options
         );
         const text = await res.text();
@@ -465,14 +417,13 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
 
     async listPTZ(camera: number, options?: THttpRequestOptions) {
         const url = `/axis-cgi/com/ptz.cgi`;
-        const response = await this.postUrlEncoded(
+        const response = await this._postUrlEncoded(
             url,
             {
                 camera,
                 query: 'presetposcamdata',
                 format: 'json',
             },
-            undefined,
             options
         );
 
@@ -484,13 +435,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     async listPtzVideoSourceOverview(options?: THttpRequestOptions) {
-        const response = await this.postUrlEncoded(
+        const response = await this._postUrlEncoded(
             '/axis-cgi/com/ptz.cgi',
             {
                 query: 'presetposall',
                 format: 'json',
             },
-            undefined,
             options
         );
 
@@ -514,25 +464,23 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     goToPreset(channel: number, presetName: string, options?: THttpRequestOptions) {
-        return this.postUrlEncoded(
+        return this._postUrlEncoded(
             '/axis-cgi/com/ptz.cgi',
             {
                 camera: channel.toString(),
                 gotoserverpresetname: presetName,
             },
-            undefined,
             options
         );
     }
 
     async getPtzPosition(camera: number, options?: THttpRequestOptions) {
-        const res = await this.postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/com/ptz.cgi',
             {
                 query: 'position',
                 camera: camera.toString(),
             },
-            undefined,
             options
         );
 
@@ -550,7 +498,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     //  -------------------------------
 
     async getPorts(options?: THttpRequestOptions) {
-        const res = await this.postJson(
+        const res = await this._postJsonEncoded(
             '/axis-cgi/io/portmanagement.cgi',
             {
                 apiVersion: '1.0',
@@ -566,7 +514,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     async setPorts(ports: TPortSetSchema[], options?: THttpRequestOptions) {
-        await this.postJson(
+        await this._postJsonEncoded(
             '/axis-cgi/io/portmanagement.cgi',
             {
                 apiVersion: '1.0',
@@ -580,7 +528,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     }
 
     async setPortStateSequence(port: number, sequence: TPortSequenceStateSchema[], options?: THttpRequestOptions) {
-        await this.postJson(
+        await this._postJsonEncoded(
             '/axis-cgi/io/portmanagement.cgi',
             {
                 apiVersion: '1.0',
@@ -598,7 +546,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
     //  -------------------------------
 
     async addCameraUser(username: string, pass: string, sgrp: string, comment?: string, options?: THttpRequestOptions) {
-        return await this.postUrlEncoded(
+        return await this._postUrlEncoded(
             '/axis-cgi/pwdgrp.cgi',
             {
                 action: 'add',
@@ -608,32 +556,29 @@ export class VapixAPI<Client extends IClient<TResponse, any>> {
                 sgrp,
                 comment,
             },
-            undefined,
             options
         );
     }
 
     async getCameraUsers(options?: THttpRequestOptions) {
-        const res = await this.postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/pwdgrp.cgi',
             {
                 action: 'get',
             },
-            undefined,
             options
         );
         return await res.text();
     }
 
     async editCameraUser(username: string, pass: string, options?: THttpRequestOptions) {
-        return await this.postUrlEncoded(
+        return await this._postUrlEncoded(
             '/axis-cgi/pwdgrp.cgi',
             {
                 action: 'update',
                 user: username,
                 pwd: pass,
             },
-            undefined,
             options
         );
     }

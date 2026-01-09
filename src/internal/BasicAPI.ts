@@ -81,7 +81,7 @@ export class BasicAPI<Client extends IClient<TResponse, any>> {
             path,
             data: jsonData,
             parameters,
-            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json' },
             timeout: options?.timeout,
         });
 
