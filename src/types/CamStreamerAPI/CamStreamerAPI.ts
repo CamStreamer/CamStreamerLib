@@ -213,3 +213,12 @@ export const audioLocalSchema = z.object({
     storage: z.enum(['flash', 'SD0']),
 });
 export type TAudioLocalType = z.infer<typeof audioLocalSchema>;
+
+export const streamStatsSchema = z.object({
+    net_stats: z.string(),
+    stream_bytes_time_ms: z.number(),
+    stream_bytes: z.number(),
+    start_count: z.number(),
+    is_streaming: z.number(),
+});
+export type TStreamStats = z.infer<typeof streamStatsSchema>;
