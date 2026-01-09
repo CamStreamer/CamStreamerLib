@@ -14,12 +14,13 @@ export const streamCommonSchema = z.object({
     trigger: z.discriminatedUnion('type', [
         z.object({
             type: z.literal('manual'),
-            ioPort: z.number().nullable(),
+            port: z.number().optional(),
         }),
         z.object({
             type: z.literal('onetime'),
             startTime: z.number(),
             stopTime: z.number(),
+            prepareAheadS: z.number().int().optional(),
         }),
         z.object({
             type: z.literal('recurrent'),
@@ -36,23 +37,16 @@ export const streamCommonSchema = z.object({
                     isActive: z.boolean(),
                 })
             ),
+            prepareAheadS: z.number().int().optional(),
         }),
     ]),
 
     video: z.object({
-        output: z.discriminatedUnion('callApi', [
-            z.object({
-                type: z.union([z.literal('video'), z.literal('images')]),
-                callApi: z.literal(false),
-                url: z.string(),
-            }),
-            z.object({
-                type: z.literal('video'),
-                callApi: z.literal(true),
-                prepareAheadS: z.number(),
-            }),
-        ]),
-        outputParameters: z.string(),
+        output: z.object({
+            type: z.union([z.literal('video'), z.literal('images')]),
+            url: z.string().nullable(),
+            parameters: z.string(),
+        }),
         input: z.discriminatedUnion('type', [
             z.object({
                 type: z.literal('RTSP_URL'),
@@ -63,45 +57,41 @@ export const streamCommonSchema = z.object({
             }),
             z.object({
                 type: z.literal('CRS'),
+                streamingProtocol: z.union([z.literal('RTMP'), z.literal('RTMPS'), z.literal('HLS_PUSH')]),
+                internalVapixParameters: z.string(),
+                userVapixParameters: z.string(),
             }),
         ]),
-        streamingProtocol: z.union([z.literal('RTMP'), z.literal('RTMPS'), z.literal('HLS_PUSH')]),
-        internalVapixParameters: z.string(),
-        userVapixParameters: z.string(),
-        streamDelay: z
-            .object({
-                value: z.number().int(),
-                unit: z.union([z.literal('seconds'), z.literal('minutes'), z.literal('hours')]),
-            })
-            .optional(),
+        delayS: z.number().int().nonnegative().optional(),
     }),
 
-    audio: z
-        .discriminatedUnion('source', [
-            z.object({
-                source: z.literal('microphone'),
-                audioChannelNbr: z.union([z.literal(1), z.literal(2)]),
-                forceStereo: z.boolean(),
-            }),
-            z.object({
-                source: z.literal('file'),
-                fileName: z.string(),
-                filePath: z.string(),
-                forceStereo: z.boolean(),
-            }),
-            z.object({
-                source: z.literal('url'),
-                fileName: z.string(),
-                fileUrl: z.string(),
-                avSyncMsec: z.number().int().nonnegative(),
-                forceStereo: z.boolean(),
-            }),
-        ])
-        .nullable(),
+    audio: z.discriminatedUnion('source', [
+        z.object({
+            source: z.literal('none'),
+        }),
+        z.object({
+            source: z.literal('microphone'),
+            audioChannelNbr: z.union([z.literal(1), z.literal(2)]),
+            forceStereo: z.boolean(),
+        }),
+        z.object({
+            source: z.literal('file'),
+            name: z.string(),
+            path: z.string(),
+            forceStereo: z.boolean(),
+        }),
+        z.object({
+            source: z.literal('url'),
+            name: z.string(),
+            url: z.string(),
+            avSyncMsec: z.number().int().nonnegative(),
+            forceStereo: z.boolean(),
+        }),
+    ]),
 
     status: z.object({
         led: z.boolean(),
-        port: z.number().nullable(),
+        port: z.number().optional(),
     }),
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
@@ -131,11 +121,10 @@ export type TTriggerSchedule = Extract<TStreamTrigger, { type: 'recurrent' }>['s
 export type TStreamVideo = TCommonStream['video'];
 
 export type TStreamInputType = TStreamVideo['input']['type'];
+export type TStreamingProtocolType = Extract<TStreamVideo['input'], { type: 'CRS' }>['streamingProtocol'];
 export type TStreamOutputType = TStreamVideo['output']['type'];
-export type TStreamingProtocolType = TStreamVideo['streamingProtocol'];
 
-export type TStreamDelay = TStreamVideo['streamDelay'];
-export type TStreamDelayUnit = NonNullable<TStreamDelay>['unit'];
+export type TStreamDelay = TStreamVideo['delayS'];
 
 export const internalVapixParametersSchema = bitrateVapixParamsSchema.extend({
     camera: z.string(),
