@@ -1,5 +1,5 @@
-import { IClient, TResponse } from './internal/types';
-import { arrayToUrl, isNullish } from './internal/utils';
+import { IClient, TParameters, TResponse } from './internal/types';
+import { arrayToUrl, isNullish, paramToUrl } from './internal/utils';
 
 import {
     TGuardTour,
@@ -44,6 +44,22 @@ import { BasicAPI } from './internal/BasicAPI';
 export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
     constructor(client: Client, private CustomFormData = FormData) {
         super(client);
+    }
+
+    async postUrlEncoded(
+        path: string,
+        parameters?: TParameters,
+        headers?: Record<string, string>,
+        options?: THttpRequestOptions
+    ) {
+        const data = paramToUrl(parameters);
+        const head = { ...headers, 'Content-Type': 'application/x-www-form-urlencoded' };
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.post({ path, data, headers: head, timeout: options?.timeout });
+        if (!res.ok) {
+            throw new ErrorWithResponse(res);
+        }
+        return res;
     }
 
     postJson = async (
