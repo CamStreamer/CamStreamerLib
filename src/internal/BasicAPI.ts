@@ -85,11 +85,10 @@ export class BasicAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout,
         });
 
-        if (res.ok) {
-            return res;
-        } else {
+        if (!res.ok) {
             throw new ErrorWithResponse(res);
         }
+        return res;
     }
 
     protected async _postUrlEncoded(path: string, data: TParameters, options?: THttpRequestOptions) {
@@ -102,10 +101,9 @@ export class BasicAPI<Client extends IClient<TResponse, any>> {
             timeout: options?.timeout,
         });
 
-        if (res.ok) {
-            return res;
-        } else {
+        if (!res.ok) {
             throw new ErrorWithResponse(res);
         }
+        return res;
     }
 }
