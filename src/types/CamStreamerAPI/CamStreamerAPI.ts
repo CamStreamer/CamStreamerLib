@@ -4,9 +4,9 @@ import { facebookSchema } from './facebookSchema';
 import { windySchema } from './windySchema';
 import { youtubeSchema } from './youtubeSchema';
 import {
-    churchSchema,
     daCastSchema,
     dailymotionSchema,
+    facebookRtmpSchema,
     gameChangerSchema,
     hlsPullSchema,
     hlsPushSchema,
@@ -31,6 +31,7 @@ import { FileLike, fileSchema } from '../common';
 
 export const streamSchema = z.discriminatedUnion('platform', [
     facebookSchema,
+    facebookRtmpSchema,
     mpegDvbSchema,
     rtmpSchema,
     sdCardSchema,
@@ -38,7 +39,6 @@ export const streamSchema = z.discriminatedUnion('platform', [
     youtubeSchema,
     vimeoSchema,
     twitchSchema,
-    churchSchema,
     srtSchema,
     daCastSchema,
     hlsPullSchema,
@@ -60,6 +60,11 @@ export type TStreamList = z.infer<typeof streamListSchema>;
 export type TFacebookStream = z.infer<typeof facebookSchema>;
 export const isFacebookStream = (stream: TStream): stream is TFacebookStream => {
     return stream.platform === 'facebook';
+};
+
+export type TFacebookRtmpStream = z.infer<typeof facebookRtmpSchema>;
+export const isFacebookRtmpStream = (stream: TStream): stream is TFacebookRtmpStream => {
+    return stream.platform === 'facebook_rtmp';
 };
 
 export type TMpegDvbStream = z.infer<typeof mpegDvbSchema>;
@@ -95,11 +100,6 @@ export const isVimeoStream = (stream: TStream): stream is TVimeoStream => {
 export type TTwitchStream = z.infer<typeof twitchSchema>;
 export const isTwitchStream = (stream: TStream): stream is TTwitchStream => {
     return stream.platform === 'twitch';
-};
-
-export type TChurchStream = z.infer<typeof churchSchema>;
-export const isChurchStream = (stream: TStream): stream is TChurchStream => {
-    return stream.platform === 'church';
 };
 
 export type TSrtStream = z.infer<typeof srtSchema>;

@@ -1,21 +1,16 @@
 import z from 'zod';
 import { streamCommonSchema } from './streamCommonTypes';
 
-export const commonRtmpSchema = streamCommonSchema.extend({
-    streamKey: z.string(),
-    streamIdentifier: z.string().optional(),
-});
-
-export const churchSchema = streamCommonSchema.extend({
-    platform: z.literal('church'),
-});
 export const daCastSchema = streamCommonSchema.extend({
     platform: z.literal('da_cast'),
 });
 export const dailymotionSchema = streamCommonSchema.extend({
     platform: z.literal('dailymotion'),
 });
-export const gameChangerSchema = commonRtmpSchema.extend({
+export const facebookRtmpSchema = streamCommonSchema.extend({
+    platform: z.literal('facebook_rtmp'),
+});
+export const gameChangerSchema = streamCommonSchema.extend({
     platform: z.literal('game_changer'),
 });
 export const hlsPullSchema = streamCommonSchema.extend({
@@ -36,7 +31,7 @@ export const microsoftAzureSchema = streamCommonSchema.extend({
 export const microsoftStreamSchema = streamCommonSchema.extend({
     platform: z.literal('microsoft_stream'),
 });
-export const rtmpSchema = commonRtmpSchema.extend({
+export const rtmpSchema = streamCommonSchema.extend({
     platform: z.literal('rtmp'),
 });
 export const sdCardSchema = streamCommonSchema.extend({
@@ -54,6 +49,6 @@ export const vimeoSchema = streamCommonSchema.extend({
 export const wowzaSchema = streamCommonSchema.extend({
     platform: z.literal('wowza'),
 });
-export const youtubeRtmpSchema = commonRtmpSchema.extend({
+export const youtubeRtmpSchema = streamCommonSchema.extend({
     platform: z.literal('youtube_rtmp'),
 });
