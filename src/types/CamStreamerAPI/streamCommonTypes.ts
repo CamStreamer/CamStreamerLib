@@ -53,7 +53,7 @@ export const streamCommonSchema = z.object({
                 url: z.string(),
                 imageIntervalS: z.number(),
             }),
-              z.object({
+            z.object({
                 type: z.literal('none'),
             }),
         ]),
@@ -81,7 +81,7 @@ export const streamCommonSchema = z.object({
         }),
         z.object({
             source: z.literal('microphone'),
-            audioChannelNbr: z.union([z.literal(1), z.literal(2)]),
+            audioChannelNbr: z.number().int(),
             forceStereo: z.boolean(),
         }),
         z.object({
