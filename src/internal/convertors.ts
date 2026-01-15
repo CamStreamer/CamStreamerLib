@@ -1,4 +1,4 @@
-import { TInternalVapixParameters, TVideoCodec } from '../types/CamStreamerAPI';
+import { TInternalVapixParameters, TOverlays, TVideoCodec } from '../types/CamStreamerAPI';
 import { TBitrateMode, TBitrateVapixParams, TH264Profile } from '../types/common';
 import { FIRMWARE_WITH_BITRATE_MODES_SUPPORT, FIRMWARE_WITH_OVERLAYS_SUPPORT } from './constants';
 import { isFirmwareVersionAtLeast } from './versionCompare';
@@ -90,7 +90,7 @@ export const parseVideoOptionsToVapixParams = (firmWareVersion: string, video: T
     });
 
     let overlaysParams = '';
-    if (isFirmwareVersionAtLeast(firmWareVersion, FIRMWARE_WITH_OVERLAYS_SUPPORT)) {
+    if (isFirmwareVersionAtLeast(firmWareVersion, FIRMWARE_WITH_OVERLAYS_SUPPORT) && video.overlays !== undefined) {
         overlaysParams = `&overlays=${video.overlays}`;
     }
 
@@ -138,6 +138,6 @@ export const parseVapixParamsToVideoOptions = (internalVapixParams: string): TIn
         h264Profile,
         audio: parseInt(params['audio'] ?? '0') as 0 | 1,
         nbrOfChannels,
-        overlays: params['overlays'] as TInternalVapixParameters['overlays'],
+        overlays: params['overlays'] as TOverlays,
     };
 };

@@ -146,15 +146,8 @@ export const internalVapixParametersSchema = bitrateVapixParamsSchema.extend({
     audio: booleanSchema,
     nbrOfChannels: z.union([z.literal(1), z.literal(2)]).optional(), // 1 = mono, 2 = stereo
     overlays: z
-        .union([
-            z.literal('all'),
-            z.literal('text'),
-            z.literal('image'),
-            z.literal('application'),
-            z.literal(''), // = camera settings
-            z.literal('off'),
-        ])
-        .optional(), // IMPORTANT - used only for FW > 10.6
+        .union([z.literal('all'), z.literal('text'), z.literal('image'), z.literal('application'), z.literal('off')])
+        .optional(), // IMPORTANT - used only for FW > 10.6 --- OR camera settings selected -> should not be added to vapix params
 });
 export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
 export type TVideoCodec = TInternalVapixParameters['videoCodec'];
