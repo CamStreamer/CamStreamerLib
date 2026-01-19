@@ -45,12 +45,12 @@ export const streamCommonSchema = z.object({
         output: z.discriminatedUnion('type', [
             z.object({
                 type: z.literal('video'),
-                url: z.string(),
+                url: z.string().nullable(),
                 parameters: z.string(),
             }),
             z.object({
                 type: z.literal('images'),
-                url: z.string(),
+                url: z.string().nullable(),
                 imageIntervalS: z.number(),
             }),
             z.object({
