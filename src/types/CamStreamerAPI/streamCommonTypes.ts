@@ -67,7 +67,6 @@ export const streamCommonSchema = z.object({
             }),
             z.object({
                 type: z.literal('CRS'),
-                streamingProtocol: z.union([z.literal('RTMP'), z.literal('RTMPS'), z.literal('HLS_PUSH')]),
                 internalVapixParameters: z.string(),
                 userVapixParameters: z.string(),
             }),
@@ -131,7 +130,6 @@ export type TTriggerSchedule = Extract<TStreamTrigger, { type: 'recurrent' }>['s
 export type TStreamVideo = TCommonStream['video'];
 
 export type TStreamInputType = TStreamVideo['input']['type'];
-export type TStreamingProtocolType = Extract<TStreamVideo['input'], { type: 'CRS' }>['streamingProtocol'];
 export type TStreamOutputType = TStreamVideo['output']['type'];
 
 export const internalVapixParametersSchema = bitrateVapixParamsSchema.extend({

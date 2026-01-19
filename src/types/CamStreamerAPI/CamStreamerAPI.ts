@@ -214,6 +214,10 @@ export const audioLocalSchema = z.object({
 });
 export type TAudioLocalType = z.infer<typeof audioLocalSchema>;
 
+//   ----------------------------------------
+//                Statistics
+//   ----------------------------------------
+
 export const streamStatsSchema = z.object({
     net_stats: z.string(),
     stream_bytes_time_ms: z.number().nonnegative(),
