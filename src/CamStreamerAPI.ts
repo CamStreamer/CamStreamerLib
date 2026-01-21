@@ -2,12 +2,14 @@ import { z } from 'zod';
 import { IClient, TResponse } from './internal/types';
 import {
     audioFileListSchema,
+    diagnosticsSchema,
     srtStreamStatisticsSchema,
     storageListSchema,
     streamSchema,
     streamStatsSchema,
     TAudioFile,
     TAudioFileStorageType,
+    TDiagnosticsParams,
     TStream,
     TStreamList,
 } from './types/CamStreamerAPI/CamStreamerAPI';
@@ -221,6 +223,23 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
 
     downloadReport(options?: THttpRequestOptions) {
         return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
+
+    //   ----------------------------------------
+    //                   Diagnostics
+    //   ----------------------------------------
+    async getDiagnostics(params: TDiagnosticsParams, options?: THttpRequestOptions) {
+        const convertedParams: Record<keyof TDiagnosticsParams, string | undefined> = {
+            camerainfo: params.camerainfo ? '1' : '0',
+            checkserver: params.checkserver ? '1' : '0',
+            checkservertime: params.checkservertime ? '1' : '0',
+            speedtest: params.speedtest ? '1' : '0',
+            pingtest: params.pingtest ? '1' : '0',
+            videoHostPort: params.videoHostPort,
+            audioHostPort: params.audioHostPort,
+        };
+        const res = await this._getJson(`${BASE_PATH}/diagnostics.cgi`, convertedParams, options);
+        return diagnosticsSchema.parse(res);
     }
 }
 
