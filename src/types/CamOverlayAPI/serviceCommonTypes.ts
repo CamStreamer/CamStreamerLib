@@ -14,6 +14,7 @@ export const serviceNames = {
     baseballScoreBoard: 'baseballScoreBoard',
     myBallBaseballWidgets: 'myBallBaseballWidgets',
     scoreOverview: 'scoreOverview',
+    htmlOverlay: 'htmlOverlay',
 } as const;
 
 export const coordinateSystemSchema = z.union([
