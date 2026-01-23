@@ -73,7 +73,7 @@ export const serviceCommonSchema = z.object({
         ])
         .default('manual'),
     invertInput: z.boolean().optional(),
-    cameraList: z.array(z.number()).optional(),
+    cameraList: z.array(z.number()).default([0]),
     camera: z.number().nonnegative().optional(), // Deprecated, may still exist in old versions of CO
     schedule: z.string().optional(),
     customName: z.string().default(''),
