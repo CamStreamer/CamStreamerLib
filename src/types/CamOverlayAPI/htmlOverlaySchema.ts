@@ -6,7 +6,7 @@ export const htmlOverlaySchema = serviceCommonSchema.extend({
     pos_x: z.number().nonnegative(),
     pos_y: z.number().nonnegative(),
     coordSystem: coordinateSystemSchema,
-    url: z.string().url(),
+    url: z.string().url().or(z.literal('')).default(''),
     pageWidth: z.number().nonnegative(),
     pageHeight: z.number().nonnegative(),
     fps: z.number().nonnegative(),
