@@ -91,6 +91,9 @@ export const isBaseballScoreBoardAutomatic = (service: TService): service is TBa
 export type TScoreOverview = z.infer<typeof scoreOverviewSchema>;
 export const isScoreOverview = (service: TService): service is TScoreOverview => service.name === 'scoreOverview';
 
+export type THtmlOverlay = z.infer<typeof htmlOverlaySchema>;
+export const isHtmlOverlay = (service: TService): service is THtmlOverlay => service.name === 'htmlOverlay';
+
 //   ----------------------------------------
 //               Storage & Files
 //   ----------------------------------------
