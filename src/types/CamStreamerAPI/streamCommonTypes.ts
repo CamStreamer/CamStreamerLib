@@ -101,6 +101,7 @@ export const streamCommonSchema = z.object({
     status: z.object({
         led: z.boolean(),
         port: z.number().optional(),
+        saveToSdCard: z.boolean(),
     }),
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
