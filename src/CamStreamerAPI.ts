@@ -22,6 +22,7 @@ import {
     TOldStringStream,
 } from './types/CamStreamerAPI/oldStreamSchema';
 import { BasicAPI } from './internal/BasicAPI';
+import { streamPlatforms } from './types/CamStreamerAPI';
 
 const BASE_PATH = '/local/camstreamer';
 export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
@@ -84,6 +85,12 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
         const oldStreamData: (TOldStream & { streamId: string })[] = [];
         const invalidStreamData: any[] = [];
         for (const streamData of res.data.streamList) {
+            // Skip validation for unknown platforms
+            if (streamData.platform !== undefined && !Object.values(streamPlatforms).includes(streamData.platform)) {
+                newStreamData.push(streamData);
+                continue;
+            }
+
             const newStreamParse = streamSchema.safeParse(streamData);
 
             if (newStreamParse.success) {
