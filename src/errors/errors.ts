@@ -205,13 +205,20 @@ export class MigrationError extends Error {
     readonly valid: TStream[];
     readonly old: (TOldStream & { streamId: string })[];
     readonly invalid: any[];
+    readonly unknown: { platform: string }[];
 
-    constructor(valid: TStream[], old: (TOldStream & { streamId: string })[], invalid: any[] = []) {
+    constructor(
+        valid: TStream[],
+        old: (TOldStream & { streamId: string })[],
+        invalid: any[] = [],
+        unknown: { platform: string }[] = []
+    ) {
         super('Migration to newer version is needed: some stream entries failed to parse.');
         this.name = 'MigrationError';
 
         this.valid = valid;
         this.old = old;
         this.invalid = invalid;
+        this.unknown = unknown;
     }
 }

@@ -11,7 +11,6 @@ import {
     TAudioFileStorageType,
     TDiagnosticsParams,
     TStream,
-    TStreamList,
 } from './types/CamStreamerAPI/CamStreamerAPI';
 import { THttpRequestOptions } from './types/common';
 import { UtcTimeFetchError, WsAuthorizationError, MigrationError } from './errors/errors';
@@ -66,7 +65,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
     //                   Streams
     //   ----------------------------------------
 
-    async getStreamList(options?: THttpRequestOptions) {
+    async getStreamList<TUnknownStream extends { platform: string }>(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/stream_list.cgi`, { action: 'get' }, options);
 
         // Do we have the old record format?
@@ -77,17 +76,20 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
                 streamId,
                 ...parseCameraStreamResponse(streamData),
             }));
-            throw new MigrationError([], data);
+            throw new MigrationError([], data, [], []);
         }
 
         // No, we have the new array format, possibly with some old settings mixed in
         const newStreamData: TStream[] = [];
+        // and possibly with some unknown platforms as well
+        const unknownStreamData: TUnknownStream[] = [];
+
         const oldStreamData: (TOldStream & { streamId: string })[] = [];
         const invalidStreamData: any[] = [];
         for (const streamData of res.data.streamList) {
             // Skip validation for unknown platforms
             if (streamData.platform !== undefined && !Object.values(streamPlatforms).includes(streamData.platform)) {
-                newStreamData.push(streamData);
+                unknownStreamData.push(streamData);
                 continue;
             }
 
@@ -111,13 +113,17 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
         }
 
         if (oldStreamData.length > 0 || invalidStreamData.length > 0) {
-            throw new MigrationError(newStreamData, oldStreamData, invalidStreamData);
+            throw new MigrationError(newStreamData, oldStreamData, invalidStreamData, unknownStreamData);
         }
 
-        return newStreamData;
+        return [...newStreamData, ...unknownStreamData];
     }
 
-    async setStreamList(streamList: TStreamList['streamList'], options?: THttpRequestOptions) {
+    // Allow unknown streams in the list
+    async setStreamList<TUnknownStream extends { platform: string }>(
+        streamList: (TStream | TUnknownStream)[],
+        options?: THttpRequestOptions
+    ) {
         await this._postJsonEncoded(
             `${BASE_PATH}/stream_list.cgi`,
             { streamList },
@@ -138,6 +144,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
             options
         );
 
+        // No unknown stream here, do not allow it
         const newStream = streamSchema.safeParse(res.data);
         if (newStream.success) {
             return newStream.data;
@@ -145,7 +152,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
 
         // May or may not have id inside -> passthrough to keep it if present
         const oldStream = oldStringStreamSchema.passthrough().parse(res.data);
-        throw new MigrationError([], [{ streamId, ...parseCameraStreamResponse(oldStream) }]);
+        throw new MigrationError([], [{ streamId, ...parseCameraStreamResponse(oldStream) }], [], []);
     }
 
     async setStream(streamId: string, streamData: TStream, options?: THttpRequestOptions) {
