@@ -9,3 +9,4 @@ export * from './ptzCompassSchema';
 export * from './ptzSchema';
 export * from './screenSharingSchema';
 export * from './webCameraSharingSchema';
+export * from './htmlOverlaySchema';

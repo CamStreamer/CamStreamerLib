@@ -15,6 +15,7 @@ import {
     scoreBoardSchema,
     scoreOverviewSchema,
 } from './scoreBoardSchema';
+import { htmlOverlaySchema } from './htmlOverlaySchema';
 
 export const wsResponseSchema = z.object({
     status: z.number(),
@@ -40,6 +41,7 @@ export const servicesSchema = z.discriminatedUnion('name', [
     baseballScoreBoardSchema,
     baseballScoreBoardAutomaticSchema,
     scoreOverviewSchema,
+    htmlOverlaySchema,
 ]);
 export type TService = z.infer<typeof servicesSchema>;
 
@@ -88,6 +90,9 @@ export const isBaseballScoreBoardAutomatic = (service: TService): service is TBa
 
 export type TScoreOverview = z.infer<typeof scoreOverviewSchema>;
 export const isScoreOverview = (service: TService): service is TScoreOverview => service.name === 'scoreOverview';
+
+export type THtmlOverlay = z.infer<typeof htmlOverlaySchema>;
+export const isHtmlOverlay = (service: TService): service is THtmlOverlay => service.name === 'htmlOverlay';
 
 //   ----------------------------------------
 //               Storage & Files

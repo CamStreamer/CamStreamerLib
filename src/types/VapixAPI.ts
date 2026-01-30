@@ -24,6 +24,7 @@ export const applicationListSchema = z.array(
                 z.literal('PlaneTracker'),
                 z.literal('Ndihxplugin'),
                 z.literal('SportTracker'),
+                z.literal('CamOverlayHtmlplugin'),
             ])
             .nullable(),
     })
@@ -37,6 +38,7 @@ export const APP_IDS = [
     'PlaneTracker',
     'Ndihxplugin',
     'SportTracker',
+    'CamOverlayHtmlplugin',
 ] as const;
 export type TApplicationId = (typeof APP_IDS)[number];
 export type TApplicationList = z.infer<typeof applicationListSchema>;
