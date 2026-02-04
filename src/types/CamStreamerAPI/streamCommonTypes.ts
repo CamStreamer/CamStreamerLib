@@ -47,7 +47,13 @@ export const streamCommonSchema = z.object({
                 type: z.literal('video'),
                 url: z.string().nullable(),
                 parameters: z.string(),
-                saveToSdCard: z.boolean(),
+                saveToSdCard: z
+                    .object({
+                        enabled: z.boolean(),
+                        ruleId: z.string(),
+                        configurationId: z.string(),
+                    })
+                    .optional(),
             }),
             z.object({
                 type: z.literal('images'),
@@ -56,6 +62,8 @@ export const streamCommonSchema = z.object({
             }),
             z.object({
                 type: z.literal('none'),
+                ruleId: z.string(),
+                configurationId: z.string(),
             }),
         ]),
         input: z.discriminatedUnion('type', [
