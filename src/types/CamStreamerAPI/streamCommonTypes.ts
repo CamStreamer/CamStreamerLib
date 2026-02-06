@@ -20,6 +20,7 @@ export const streamCommonSchema = z.object({
             type: z.literal('onetime'),
             startTime: z.number(),
             stopTime: z.number(),
+            everActivated: z.boolean(),
             prepareAheadS: z.number().int().optional(),
         }),
         z.object({
