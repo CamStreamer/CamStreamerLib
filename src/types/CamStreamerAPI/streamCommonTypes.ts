@@ -50,7 +50,6 @@ export const streamCommonSchema = z.object({
                 parameters: z.string(),
                 saveToSdCard: z
                     .object({
-                        enabled: z.boolean(),
                         ruleId: z.string(),
                         configurationId: z.string(),
                     })
@@ -63,8 +62,10 @@ export const streamCommonSchema = z.object({
             }),
             z.object({
                 type: z.literal('none'),
-                ruleId: z.string(),
-                configurationId: z.string(),
+                saveToSdCard: z.object({
+                    ruleId: z.string(),
+                    configurationId: z.string(),
+                }),
             }),
         ]),
         input: z.discriminatedUnion('type', [
