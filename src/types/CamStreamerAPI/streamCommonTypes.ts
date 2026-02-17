@@ -72,6 +72,7 @@ export const streamCommonSchema = z.object({
             z.object({
                 type: z.literal('RTSP_URL'),
                 url: z.string(),
+                internalVapixParameters: z.string(),
             }),
             z.object({
                 type: z.literal('CSw'),
