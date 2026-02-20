@@ -13,11 +13,11 @@ const pagePostSchema = z.object({
     page: z.string(),
 });
 export type TPagePost = z.infer<typeof pagePostSchema>;
-
+export const postSchema = z.discriminatedUnion('postLocation', [timelinePostSchema, pagePostSchema]);
 export const facebookSchema = streamCommonSchema.extend({
     platform: z.literal('facebook'),
     description: z.string().optional(),
     deleteAfterEnd: z.boolean(),
     countdown: z.boolean(),
-    post: z.discriminatedUnion('postLocation', [timelinePostSchema, pagePostSchema]),
+    post: postSchema,
 });
