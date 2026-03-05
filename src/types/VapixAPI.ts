@@ -37,12 +37,15 @@ export const APP_IDS = [
     'CamScripter',
     'PlaneTracker',
     'Ndihxplugin',
-    'SportTracker',
-    'CamOverlayHtmlplugin',
 ] as const;
+
+export const ALL_APP_IDS = [...APP_IDS, 'SportTracker', 'CamOverlayHtmlplugin'] as const;
+
 export type TApplicationId = (typeof APP_IDS)[number];
+
 export type TApplicationList = z.infer<typeof applicationListSchema>;
 export type TApplication = z.infer<typeof applicationListSchema>[number];
+export type TAllApplicationId = (typeof ALL_APP_IDS)[number];
 
 export const guardTourSchema = z.object({
     id: z.string(),
