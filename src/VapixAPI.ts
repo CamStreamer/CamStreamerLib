@@ -221,7 +221,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     // This is supposed to be called in interval in client code until progress is 100
     async fetchSDCardJobProgress(jobId: number, options?: THttpRequestOptions) {
         const res = await this._postUrlEncoded(
-            '/disks/job.cgi',
+            '/axis-cgi/disks/job.cgi',
             {
                 jobid: String(jobId),
                 diskid: 'SD_DISK',
