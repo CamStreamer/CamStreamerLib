@@ -22,6 +22,7 @@ import {
     TSecondaryAudioSettings,
     secondaryAudioSettingsSchema,
     globalAudioSettingsSchema,
+    clipFilesListSchema,
 } from './types/CamSwitcherAPI';
 import {
     networkCameraListSchema,
@@ -401,6 +402,29 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
         }
 
         throw new ParameterNotFoundError(paramName);
+    }
+
+    //   ----------------------------------------
+    //                   Data backup
+    //   ----------------------------------------
+
+    async getUploadedFileList(clipName: string, storage: TStorageType, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/clip_files.cgi`, { clip_name: clipName, storage }, options);
+        return clipFilesListSchema.parse(res).data.files;
+    }
+
+    async downloadClipFile(fileName: string, storage: TStorageType, options?: THttpRequestOptions) {
+        return await this._getBlob(`${BASE_PATH}/clip_download_file.cgi`, { file_name: fileName, storage }, options);
+    }
+
+    async uploadClipFiles(files: File[], storage: TStorageType, options?: THttpRequestOptions) {
+        const formData = new FormData();
+
+        for (const file of files) {
+            formData.append(file.name, file);
+        }
+
+        await this._post(`${BASE_PATH}/clip_upload_file.cgi`, formData, { storage }, options);
     }
 }
 

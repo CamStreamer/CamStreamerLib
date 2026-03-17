@@ -235,3 +235,12 @@ export const secondaryAudioSettingsSchema = z.object({
     masterAudioLevel: z.number(),
 });
 export type TSecondaryAudioSettings = z.infer<typeof secondaryAudioSettingsSchema>;
+
+export const clipFilesListSchema = z.object({
+    status: z.number(),
+    message: z.string(),
+    data: z.object({
+        files: z.array(z.string()),
+    }),
+});
+export type TClipFilesList = z.infer<typeof clipFilesListSchema>;
