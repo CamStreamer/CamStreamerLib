@@ -215,7 +215,7 @@ export const getPortsResponseSchema = z.object({
     method: z.literal('getPorts'),
     data: z.object({
         numberOfPorts: z.number(),
-        items: z.array(portStatusSchema),
+        items: z.array(portStatusSchema).optional(),
     }),
 });
 
