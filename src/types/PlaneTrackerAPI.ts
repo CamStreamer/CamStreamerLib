@@ -58,6 +58,7 @@ const identificationLabelSchema = z.object({
 });
 
 export const cameraSettingsSchema = z.object({
+    trackingDomain: z.union([z.literal('adsb'), z.literal('dronetag')]).default('adsb'),
     units: z.union([z.literal('metric'), z.literal('imperial')]).default('imperial'),
     adsbSource: z
         .object({
