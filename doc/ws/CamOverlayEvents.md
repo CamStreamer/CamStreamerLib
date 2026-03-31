@@ -21,7 +21,7 @@ const wsClient = new WsClient({
 const coEvents = new CamOverlayEvents(wsClient, () => coAgent.wsAuthorization());
 ```
 
--   for `coAgent` - Look as the [CamOvervlayAPI](./CamOvervlayAPI.md) docs.
+-   for `coAgent` - Look as the [CamOverlayAPI](./CamOverlayAPI.md) docs.
 -   for `wsClient` - Look at the [Client](./Client.md) docs.
 
 ## Attributes
@@ -73,6 +73,18 @@ Removes a listener for a specific event type and ID.
 
 ```javascript
 coEvents.removeListener('ServiceStart', 'myListenerId');
+```
+
+### removeAllListenersForId(id)
+
+Removes all listeners registered under the given ID across all event types.
+
+-   **Parameters:**
+    -   `id` (`string`): Listener ID.
+-   **Returns:** `void`
+
+```javascript
+coEvents.removeAllListenersForId('myListenerId');
 ```
 
 ### destroy()

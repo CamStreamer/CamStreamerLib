@@ -37,9 +37,9 @@ type WsClientOptions = Options & {
 
 ### Nodejs - DefaultClient
 
-For nodejs we are using undicii (pure nodejs) library to be able use keep-alive ... use one tls connection for multiple requests, browsers have this natively supported
+For nodejs we are using `undici` (pure nodejs) library to be able use `keep-alive` ... use one tls connection for multiple requests, browsers have this natively supported.
 
-Used for acap app api, eg: CamStreamerAPI, CamOverlayAPI
+Used for ACAP app API, e.g.: CamStreamerAPI, CamOverlayAPI
 
 **new DefaultClient(options: HttpOptions)**
 
@@ -106,7 +106,7 @@ import { WsClient } from 'camstreamerlib/web';
 import { CamSwitcherAPI } from 'camstreamerlib';
 
 const createWsEventsUrl = () => {
-    const path = CamSwitcherAPI.getWsEventsUrlPath();
+    const path = CamSwitcherAPI.getWsEventsPath();
     const url = new URL(path, window.location.href);
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     return url.toString();

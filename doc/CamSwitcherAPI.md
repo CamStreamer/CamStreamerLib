@@ -14,6 +14,7 @@ Module for access to the CamSwitcher HTTP interface.
     -   [Tracker Management](#playlist-management-methods): Manage trackers.
     -   [App Configuration](#configuration-methods): Manage app configuration.
     -   [App Report](#report-methods): Get app report data.
+    -   [Data Backup Methods](#data-backup-methods): Manage app data backup.
 
 <br/>
 
@@ -192,7 +193,6 @@ const maxFps = await cswApi.getMaxFps(1);
 Gets the list of network cameras.
 
 -   **Parameters:**
-    -   `source` (`number`): Video source index.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TNetworkCamera[]>`
 
@@ -306,7 +306,7 @@ Sets the list of saved streams.
 -   **Parameters:**
     -   `data` ([`TStreamSaveList`](#types)): Stream data.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setStreamSaveList(streamData);
@@ -381,7 +381,7 @@ Sets the list of saved clips.
 -   **Parameters:**
     -   `data` ([`TClipSaveList`](#types-1)): Clip data.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setClipSaveList(clipData);
@@ -493,7 +493,7 @@ Sets the list of saved playlists.
 -   **Parameters:**
     -   `data` ([`TPlaylistSaveList`](#types-2)): Playlist data.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setPlaylistSaveList(playlistData);
@@ -616,10 +616,10 @@ Sets the list of saved trackers.
 
 -   **Parameters:**
 
-    -   `data` ([`TrackerSaveList`](#types-3)): Tracker data.
+    -   `data` ([`TTrackerSaveList`](#types-3)): Tracker data.
     -   `options` (`THttpRequestOptions`, optional)
 
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setTrackerSaveList(trackerData);
@@ -679,7 +679,7 @@ Sets camera switcher options.
     -   `data` ([`TCameraOptions`](#types-4)): CamSwitcher settings.
     -   `cameraFWVersion` (string): Camera firmware version.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setCamSwitchOptions(options, '10.0.0');
@@ -692,7 +692,7 @@ Sets global audio settings.
 -   **Parameters:**
     -   `settings` ([`TGlobalAudioSettings`](#types-4)): Global audio settings - type, storage, source.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setGlobalAudioSettings(audioSettings);
@@ -705,7 +705,7 @@ Sets secondary audio settings.
 -   **Parameters:**
     -   `settings` ([`TSecondaryAudioSettings`](#types-4)): Secondary audio settings - type, volume, name of source etc.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setSecondaryAudioSettings(secondaryAudioSettings);
@@ -718,7 +718,7 @@ Sets the default playlist.
 -   **Parameters:**
     -   `playlistId` (string): Playlist identifier.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setDefaultPlaylist('playlist123');
@@ -731,7 +731,7 @@ Sets a permanent RTSP URL token.
 -   **Parameters:**
     -   `token` (string): RTSP token string.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await cswApi.setPermanentRtspUrlToken('token123');
@@ -799,4 +799,50 @@ Get application report data.
 
 ```javascript
 await cswApi.downloadReport();
+```
+
+<br/>
+
+## Data Backup Methods
+
+### getUploadedFileList(clipName, storage, options?)
+
+Gets the list of uploaded files associated with a clip.
+
+-   **Parameters:**
+    -   `clipName` (`string`): Clip name.
+    -   `storage` ([`TStorageType`](#types-1)): Storage type.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string[]>`
+
+```javascript
+const files = await cswApi.getUploadedFileList('clip1', 'SD_DISK');
+```
+
+### downloadClipFile(fileName, storage, options?)
+
+Downloads a clip file as a Blob.
+
+-   **Parameters:**
+    -   `fileName` (`string`): Name of the file to download.
+    -   `storage` ([`TStorageType`](#types-1)): Storage type.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<Blob>`
+
+```javascript
+const fileBlob = await cswApi.downloadClipFile('clip.mp4', 'SD_DISK');
+```
+
+### uploadClipFiles(files, storage, options?)
+
+Uploads one or more clip files.
+
+-   **Parameters:**
+    -   `files` (`File[]`): Array of files to upload.
+    -   `storage` ([`TStorageType`](#types-1)): Storage type.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cswApi.uploadClipFiles([file1, file2], 'SD_DISK');
 ```

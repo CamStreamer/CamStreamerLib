@@ -147,7 +147,7 @@ coApi.removeImage();
 
 -   **open** - WebSocket opened or reopened
 
--   **msg(msg)** - WebSocket message received
+-   **message(msg)** - WebSocket message received
 
 -   **error(err)** - An error occurred
 

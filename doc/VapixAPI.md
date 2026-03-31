@@ -261,10 +261,9 @@ const timezone = await vapix.getTimezone();
 
 ### getDateTimeInfo(options?)
 
-Return the maximum supported FPS on the given channel.
+Return the current date/time information from the camera.
 
 -   **Parameters:**
-    -   `channel` (`number`)
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:**
 
@@ -379,7 +378,7 @@ await vapix.setHeaders(headers);
 
 ## SD Card Management Methods
 
-### checkSdCard(options?)
+### checkSDCard(options?)
 
 Return info about the camera's SD card.
 
@@ -396,7 +395,7 @@ Return info about the camera's SD card.
     ```
 
 ```javascript
-await vapix.checkSdCard();
+await vapix.checkSDCard();
 ```
 
 ### mountSDCard(options?) / unmountSDCard(options?)

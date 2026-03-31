@@ -75,6 +75,18 @@ Removes a listener for a specific event type and ID.
 csEvents.removeListener('StreamState', 'myListenerId');
 ```
 
+### removeAllListenersForId(id)
+
+Removes all listeners registered under the given ID across all event types.
+
+-   **Parameters:**
+    -   `id` (`string`): Listener ID.
+-   **Returns:** `void`
+
+```javascript
+csEvents.removeAllListenersForId('myListenerId');
+```
+
 ### destroy()
 
 Destroys the event handler, closes websocket and removes all listeners.

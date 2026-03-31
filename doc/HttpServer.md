@@ -8,7 +8,7 @@
 -   **new HttpServer(options)**
 
 ```javascript
-import { HttpServer } from 'camstreamerlib/esm/node';
+import { HttpServer } from 'camstreamerlib/node';
 
 const httpServer = new HttpServer({ port: 80 });
 ```
@@ -33,6 +33,16 @@ httpServer.onRequest('/settings.cgi', function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.end('{"enabled": true}');
 });
+```
+
+### getServer()
+
+Returns the underlying `http.Server` instance.
+
+-   **Returns:** `http.Server`
+
+```javascript
+const server = httpServer.getServer();
 ```
 
 ### close()

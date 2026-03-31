@@ -290,6 +290,11 @@ type TStream = {
         port: number | undefined;
     };
 };
+
+type TUnknownStream = {
+    platform: string;
+    [key: string]: unknown; // other custom params
+};
 ```
 
 ### getStreamList(options?)
@@ -298,10 +303,10 @@ List all stream configurations.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TStream[]>` ([`TStream`](#types))
+-   **Returns:** `Promise<(TStream | TUnknownStream)[]>` ([`TStream`](#types))
 
 ```javascript
-const streamList = csApi.getStreamList();
+const streamList = await csApi.getStreamList();
 ```
 
 ### setStreamList(streamList, options?)
@@ -327,7 +332,7 @@ Get stream settings/config.
 -   **Returns:** `Promise<TStream>` ([`TStream`](#types))
 
 ```javascript
-const stream = csApi.getStream('5874');
+const stream = await csApi.getStream('5874');
 ```
 
 ### setStream(streamId, streamData, options?)
