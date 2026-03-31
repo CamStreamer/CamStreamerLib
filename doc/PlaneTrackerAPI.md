@@ -2,6 +2,21 @@
 
 Module for access to the CamOverlay HTTP interface.
 
+## Overview
+
+-   [Constructor](#constructor)
+-   [Common types](#common-types)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Calibration](#calibration-methods): Manage camera calibration.
+    -   [Settings](#settings-methods): Manage settings.
+    -   [Planes & Tracking](#planes--tracking-management-methods): Manage Planes and Tracking mode.
+    -   [Map & Zones](#map--zones-management-methods): Manage Map and Zones.
+    -   [Genetec](#genetec-management-methods): Manage connection to Genetec.
+
+<br/>
+
 ## Constructor
 
 -   **new PlaneTrackerAPI(client, apiUser)** - Look at the [Client](./Client.md) docs.
@@ -30,18 +45,6 @@ type TApiUser = {
     userPriority: number;
 };
 ```
-
-## Overview
-
--   [Common types](#common-types)
--   [Methods](#static-methods)
-    -   [Static](#static-methods)
-    -   [Common](#common-methods)
-    -   [Calibration](#calibration-methods): Manage camera calibration.
-    -   [Settings](#settings-methods): Manage settings.
-    -   [Planes & Tracking](#planes--tracking-management-methods): Manage Planes and Tracking mode.
-    -   [Map & Zones](#map--zones-management-methods): Manage Map and Zones.
-    -   [Genetec](#genetec-management-methods): Manage connection to Genetec.
 
 <br/>
 

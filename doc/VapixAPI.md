@@ -5,6 +5,23 @@ Access the Axis camera VAPIX interface.
 > [!TIP]
 > For more details, see the documentation for the [Axis camera VAPIX library](https://www.axis.com/vapix-library/).
 
+## Overview
+
+-   [Constructor](#constructor)
+-   [Common types](#common-types)
+-   [Methods](#common-methods)
+    -   [Common](#common-methods)
+    -   [SD Card Management](#sd-card-management-methods): Manage SD card mounting etc.
+    -   [Camera Parameters](#camera-parameters-methods): Manage camera parameters.
+    -   [Guard Tour Management](#guard-tour-management-methods): Manage guard tours on camera.
+    -   [PTZ Management](#camera-ptz-management-methods): Manage camera PTZ positions.
+    -   [Port Management](#camera-port-management-methods): Manage camera ports.
+    -   [Users/Account Management](#camera-users-management-methods): Manage camera users/accounts.
+    -   [Recording Rules Management](#camera-recording-rules-management-methods): Manage camera recording rules.
+    -   [Application Management](#application-api): Manage starting/stopping/restarting camera applications.
+
+<br/>
+
 ## Constructor
 
 -   **new VapixAPI(client, CustomFormData)**
@@ -19,20 +36,6 @@ import { VapixAPI } from 'camstreamerlib';
 
 const vapix = new VapixAPI(new DefaultClient());
 ```
-
-## Overview
-
--   [Common types](#common-types)
--   [Methods](#common-methods)
-    -   [Common](#common-methods)
-    -   [SD Card Management](#sd-card-management-methods): Manage SD card mounting etc.
-    -   [Camera Parameters](#camera-parameters-methods): Manage camera parameters.
-    -   [Guard Tour Management](#guard-tour-management-methods): Manage guard tours on camera.
-    -   [PTZ Management](#camera-ptz-management-methods): Manage camera PTZ positions.
-    -   [Port Management](#camera-port-management-methods): Manage camera ports.
-    -   [Users/Account Management](#camera-users-management-methods): Manage camera users/accounts.
-    -   [Recording Rules Management](#camera-recording-rules-management-methods): Manage camera recording rules.
-    -   [Application Management](#application-api): Manage starting/stopping/restarting camera applications.
 
 <br/>
 
@@ -204,8 +207,7 @@ await vapix.performAutofocus();
 
 Generate and return a server report including product information, parameter settings, and system logs.
 
-> [!TIP]
-> [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
+> [!TIP] > [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
@@ -219,8 +221,7 @@ await vapix.downloadCameraReport();
 
 Generate and return a system log information.
 
-> [!TIP]
-> [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
+> [!TIP] > [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
@@ -428,8 +429,7 @@ await vapix.fetchSDCardJobProgress(1);
 
 ## Camera Parameters Methods
 
-> [!TIP]
-> [Param API - Axis docummentation](https://developer.axis.com/vapix/device-configuration/param-api/)
+> [!TIP] > [Param API - Axis docummentation](https://developer.axis.com/vapix/device-configuration/param-api/)
 
 ### getParameter(paramNames, options?)
 
@@ -509,8 +509,7 @@ await vapix.setGuardTourEnabled('root.GuardTour.G0', true);
 
 ## Camera PTZ Management Methods
 
-> [!TIP]
-> [PTZ API - Axis docummentation](https://developer.axis.com/vapix/network-video/pantiltzoom-api/)
+> [!TIP] > [PTZ API - Axis docummentation](https://developer.axis.com/vapix/network-video/pantiltzoom-api/)
 
 ### getPTZPresetList(channel, options?)
 
@@ -608,8 +607,7 @@ await vapix.goToPreset(2);
 
 ## Camera Port Management Methods
 
-> [!TIP]
-> [Input and outpus - Axis docummentation](https://developer.axis.com/vapix/network-video/input-and-outputs/)
+> [!TIP] > [Input and outpus - Axis docummentation](https://developer.axis.com/vapix/network-video/input-and-outputs/)
 
 ### getPorts(options?)
 
@@ -739,8 +737,7 @@ await vapix.editCameraUser('user1', '4568');
 
 ## Camera Recording Rules Management Methods
 
-> [!TIP]
-> [Edge storage API - Axis docummentation](https://developer.axis.com/vapix/network-video/edge-storage-api/)
+> [!TIP] > [Edge storage API - Axis docummentation](https://developer.axis.com/vapix/network-video/edge-storage-api/)
 
 ### getRecordingRuleList(options?)
 

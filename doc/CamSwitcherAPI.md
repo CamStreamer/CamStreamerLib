@@ -2,6 +2,21 @@
 
 Module for access to the CamSwitcher HTTP interface.
 
+## Overview
+
+-   [Constructor](#constructor)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Websocket](#websocket-methods)
+    -   [Stream Management](#stream-management-methods): Manage streams.
+    -   [Clip Management](#clip-management-methods): Manage clips.
+    -   [Playlist Management](#playlist-management-methods): Manage playlists.
+    -   [Tracker Management](#playlist-management-methods): Manage trackers.
+    -   [App Configuration](#configuration-methods): Manage app configuration.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
 ## Constructor
 
 **new CamSwitcherAPI(client)** - Look at the [Client](./Client.md) docs.
@@ -31,18 +46,6 @@ type THttpRequestOptions = {
     };
 };
 ```
-
-## Overview
-
--   [Methods](#static-methods)
-    -   [Static](#static-methods)
-    -   [Websocket](#websocket-methods)
-    -   [Stream Management](#stream-management-methods): Manage streams.
-    -   [Clip Management](#clip-management-methods): Manage clips.
-    -   [Playlist Management](#playlist-management-methods): Manage playlists.
-    -   [Tracker Management](#playlist-management-methods): Manage trackers.
-    -   [App Configuration](#configuration-methods): Manage app configuration.
-    -   [App Report](#report-methods): Get app report data.
 
 <br/>
 
