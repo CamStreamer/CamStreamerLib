@@ -17,19 +17,26 @@ The `options` parameter contains access to the camera and specifies which protoc
 import { DefaultClient } from 'camstreamerlib/web';
 import { VapixAPI } from 'camstreamerlib';
 
-const vapix = new VapixAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    })
-);
+const vapix = new VapixAPI(new DefaultClient());
 ```
 
-### Common types
+## Overview
+
+-   [Common types](#common-types)
+-   [Methods](#common-methods)
+    -   [Common](#common-methods)
+    -   [SD Card Management](#sd-card-management-methods): Manage SD card mounting etc.
+    -   [Camera Parameters](#camera-parameters-methods): Manage camera parameters.
+    -   [Guard Tour Management](#guard-tour-management-methods): Manage guard tours on camera.
+    -   [PTZ Management](#camera-ptz-management-methods): Manage camera PTZ positions.
+    -   [Port Management](#camera-port-management-methods): Manage camera ports.
+    -   [Users/Account Management](#camera-users-management-methods): Manage camera users/accounts.
+    -   [Recording Rules Management](#camera-recording-rules-management-methods): Manage camera recording rules.
+    -   [Application Management](#application-api): Manage starting/stopping/restarting camera applications.
+
+<br/>
+
+## Common types
 
 ```typescript
 type TResponse = {
@@ -64,7 +71,9 @@ type THttpRequestOptions = {
 };
 ```
 
-## Methods - Common
+<br/>
+
+## Common Methods
 
 ### getClient(proxyParams?)
 
@@ -140,7 +149,7 @@ Get an image of the camera using the specified compression and resolution.
         resolution?: string; //img resolution
         compression?: number;
         overlays?: string;
-        [key: string]: string | number | undefined;
+        [key: string]: string | number | undefined; // other custom params
     };
     ```
 
@@ -189,52 +198,6 @@ await vapix.getSupportedAudioSampleRate();
 
 ```javascript
 await vapix.performAutofocus();
-```
-
-### checkSdCard(options?)
-
-Return info about the camera's SD card.
-
--   **Parameters:**
-    -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TSDCardInfo>`
-
-    ```typescript
-    type TSDCardInfo = {
-        status: 'OK' | 'connected' | 'disconnected';
-        totalSize: number;
-        freeSize: number;
-    };
-    ```
-
-```javascript
-await vapix.checkSdCard();
-```
-
-### mountSDCard(options?) / unmountSDCard(options?)
-
-Mount/unmount SD Card.
-
--   **Parameters:**
-    -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<number>`
-
-```javascript
-await vapix.mountSDCard();
-await vapix.unmountSDCard();
-```
-
-### fetchSDCardJobProgress(jobId, options?)
-
-Returns SD Card progress number.
-
--   **Parameters:**
-    -   `jobId` (number): Id of the job progress.
-    -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<number>`
-
-```javascript
-await vapix.fetchSDCardJobProgress(1);
 ```
 
 ### downloadCameraReport(options?)
@@ -409,7 +372,59 @@ Add custom HTTP headers to the camera.
 await vapix.setHeaders(headers);
 ```
 
-## param.cgi
+<br/>
+
+## SD Card Management Methods
+
+### checkSdCard(options?)
+
+Return info about the camera's SD card.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TSDCardInfo>`
+
+    ```typescript
+    type TSDCardInfo = {
+        status: 'OK' | 'connected' | 'disconnected';
+        totalSize: number;
+        freeSize: number;
+    };
+    ```
+
+```javascript
+await vapix.checkSdCard();
+```
+
+### mountSDCard(options?) / unmountSDCard(options?)
+
+Mount/unmount SD Card.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<number>`
+
+```javascript
+await vapix.mountSDCard();
+await vapix.unmountSDCard();
+```
+
+### fetchSDCardJobProgress(jobId, options?)
+
+Returns SD Card progress number.
+
+-   **Parameters:**
+    -   `jobId` (number): Id of the job progress.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<number>`
+
+```javascript
+await vapix.fetchSDCardJobProgress(1);
+```
+
+<br/>
+
+## Camera Parameters Methods
 
 ### getParameter(paramNames, options?)
 
@@ -436,6 +451,10 @@ Set parameters to the camera.
 ```javascript
 const params = await vapix.setParameter({ 'root.camscripter.Enabled': '1' });
 ```
+
+<br/>
+
+## Guard Tour Management Methods
 
 ### getGuardTourList(options?)
 
@@ -481,7 +500,9 @@ Enable or disable the guard tour.
 await vapix.setGuardTourEnabled('root.GuardTour.G0', true);
 ```
 
-## ptz.cgi
+<br/>
+
+## Camera PTZ Management Methods
 
 ### getPTZPresetList(channel, options?)
 
@@ -575,7 +596,9 @@ Return values of pan, tilt, and zoom for the current position.
 await vapix.goToPreset(2);
 ```
 
-## portmanagement.cgi
+<br/>
+
+## Camera Port Management Methods
 
 ### getPorts(options?)
 
@@ -654,6 +677,109 @@ await vapix.setPortStateSequence(1, [
     { state: 'closed', duration: 2000 },
 ]);
 ```
+
+<br/>
+
+## Camera Users Management Methods
+
+### getCameraUsers(options?)
+
+Get list of accounts/users on camera as string.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+const users = await vapix.getCameraUsers('CamStreamer');
+```
+
+### addCameraUser(username, pass, sgrp, comment?, options?)
+
+Add new camera account/user.
+
+-   **Parameters:**
+    -   `username` (`string`): User name.
+    -   `pass` (`string`): User password.
+    -   `sgrp` (`string`): User group (e.g. 'viewer', 'operator', 'administator' ).
+    -   `comment` (`string`, optional): Optional comment added to the user.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TResponse>`
+
+```javascript
+await vapix.addCameraUser('user1', '1234', 'viewer', 'important user');
+```
+
+### editCameraUser(username, pass, options?)
+
+Edit existing camera account/user password.
+
+-   **Parameters:**
+    -   `username` (`string`): User name.
+    -   `pass` (`string`): User password.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TResponse>`
+
+```javascript
+await vapix.editCameraUser('user1', '4568');
+```
+
+<br/>
+
+## Camera Recording Rules Management Methods
+
+### getRecordingRuleList(options?)
+
+Get all existing recording rules on camera.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<Element | undefined>`: Returns parsed xml response from camera.
+
+```javascript
+const rules = await vapix.getRecordingRuleList();
+```
+
+### addRecordingRule(params, options?)
+
+Add new recording rule to camera.
+
+-   **Parameters:**
+    -   `params` (`Record<string, string>`): Query string specifying when the rule should be active.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<Element | undefined>`: Returns parsed xml response from camera.
+
+```javascript
+await vapix.addRecordingRule('someparam=1&otherparam=2');
+```
+
+### removeRecordingRule(profileId, options?)
+
+Remove recording rule which matches specified `profileId`.
+
+-   **Parameters:**
+    -   `profileId` (`string`): Id of the rule.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<Element | undefined>`: Returns parsed xml response from camera.
+
+```javascript
+await vapix.removeRecordingRule('1');
+```
+
+### getDiskInfo(diskId?, options?)
+
+Get status information about camera disks.
+
+-   **Parameters:**
+    -   `diskId` (`string`, optional, default = `'all'`): Specify disk type (e.g. 'SD_DISK', 'NetworkShare')
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<Element | undefined>`: Returns parsed xml response from camera.
+
+```javascript
+const info = await vapix.getDiskInfo();
+```
+
+<br/>
 
 ## Application API
 
