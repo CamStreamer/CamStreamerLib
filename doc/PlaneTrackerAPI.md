@@ -4,21 +4,14 @@ Module for access to the CamOverlay HTTP interface.
 
 ## Constructor
 
--   **new PlaneTrackerAPI(client)** - Look at the [Client](./Client.md) docs.
+-   **new PlaneTrackerAPI(client, apiUser)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
 import { PlaneTrackerAPI } from 'camstreamerlib';
 
 const ptrApi = new PlaneTrackerAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    }),
+    new DefaultClient(),
     {
         userId: 'asd',
         userName: 'Asd'.
@@ -126,6 +119,18 @@ Returns CamOverlay client - can be used in custom CamOverlay API calls.
 const client = ptrApi.getClient();
 ```
 
+### checkAPIAvailable(options?)
+
+Dummy endpoint to check if API is available.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.checkAPIAvailable();
+```
+
 ### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
@@ -136,32 +141,6 @@ Check camera time against CamStreamer server.
 
 ```javascript
 const isValid = await ptrApi.checkCameraTime();
-```
-
-### resetPtzCalibration(options?)
-
--   Resets the PTZ calibration data and restarts the script.
--   The calibration process is started again after the script starts.
-
--   **Parameters:**
-    -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<void>`
-
-```javascript
-await ptrApi.resetPtzCalibration();
-```
-
-### resetFocusCalibration(options?)
-
--   Resets the Focus calibration data and restarts the script.
--   The calibration process is started again after the script starts.
-
--   **Parameters:**
-    -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<void>`
-
-```javascript
-await ptrApi.resetFocusCalibration();
 ```
 
 ### serverRunCheck(options?)
@@ -195,6 +174,34 @@ await ptrApi.serverRunCheck();
 const data = await ptrApi.getLiveViewAlias(url);
 ```
 
+## Methods - Calibration
+
+### resetPtzCalibration(options?)
+
+-   Resets the PTZ calibration data and restarts the script.
+-   The calibration process is started again after the script starts.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.resetPtzCalibration();
+```
+
+### resetFocusCalibration(options?)
+
+-   Resets the Focus calibration data and restarts the script.
+-   The calibration process is started again after the script starts.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.resetFocusCalibration();
+```
+
 ## Methods - Settings
 
 ### fetchCameraSettings(options?)
@@ -219,6 +226,7 @@ type TCameraSettings = {
     cameraCalibrationProcessConfig: {
         nightSkyCalibrationEnabled: boolean;
         scheduleNightSkyCalibrationTimestamp: number;
+        focusCalibrationPoints: string;
     };
     cameraConfig: {
         defaultCaptureSizeMeters: number;
@@ -232,6 +240,7 @@ type TCameraSettings = {
     imageConfig: {
         dayAperture: number;
         nightAperture: number;
+        maxGain: number;
     };
     airportConfig: {
         icao: string;
@@ -241,6 +250,7 @@ type TCameraSettings = {
     };
     trackingConfig: {
         prioritizeEmergency: boolean;
+        trackingZoneWeightIncrease: number;
         guardTourEnabled: boolean;
         guardTourId: number;
     };
@@ -361,6 +371,10 @@ type TServerSettings = {
         tiltTransformationCoefA: number;
         tiltCameraKnownPoint: number;
         tiltRealKnownPoint: number;
+        panErrorCorrection: {
+            cameraPan: number;
+            realPan: number;
+        }[];
     };
 };
 ```
@@ -615,6 +629,7 @@ Gets zones config.
                     lon: number;
                 }[]
             ];
+            flightDirection: 'all' | 'arrival' | 'departure';
             weight: number;
             name?: string | undefined;
             minAltitudeAmsl?: number | undefined;

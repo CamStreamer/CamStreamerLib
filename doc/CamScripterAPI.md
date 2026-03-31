@@ -10,16 +10,7 @@ Module for access to the CamScripter HTTP interface.
 import { DefaultClient } from 'camstreamerlib/web';
 import { CamScripterAPI } from 'camstreamerlib';
 
-const cscApi = new CamScripterAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    })
-);
+const cscApi = new CamScripterAPI(new DefaultClient());
 ```
 
 > [!TIP]
@@ -82,6 +73,18 @@ Returns CamScripter client - can be used in custom CamScripter API calls.
 
 ```javascript
 const client = cscApi.getClient();
+```
+
+### checkAPIAvailable(options?)
+
+Dummy endpoint to check if API is available.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cscApi.checkAPIAvailable();
 ```
 
 ### checkCameraTime(options?)
@@ -267,4 +270,18 @@ Decompress bundled NodeJS gzip file into chosen location, which is then stored i
 
 ```javascript
 await cscApi.installNodejs('FLASH');
+```
+
+### Methods - Report
+
+### downloadReport(options?)
+
+Get application report data.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+await cscApi.downloadReport();
 ```

@@ -10,16 +10,7 @@ Module for access to the CamSwitcher HTTP interface.
 import { DefaultClient } from 'camstreamerlib/web';
 import { CamSwitcherAPI } from 'camstreamerlib';
 
-const cswApi = new CamSwitcherAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    })
-);
+const cswApi = new CamSwitcherAPI(new DefaultClient());
 ```
 
 > [!TIP]
@@ -105,6 +96,18 @@ Returns CamSwitcher client - can be used in custom CamSwitcher API calls.
 
 ```javascript
 const client = cswApi.getClient();
+```
+
+### checkAPIAvailable(options?)
+
+Dummy endpoint to check if API is available.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cswApi.checkAPIAvailable();
 ```
 
 ### generateSilence(sampleRate, channels, options?)
@@ -751,4 +754,18 @@ Gets the permanent RTSP URL token.
 
 ```javascript
 const token = await cswApi.getPermanentRtspUrlToken();
+```
+
+### Methods - Report
+
+### downloadReport(options?)
+
+Get application report data.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+await cswApi.downloadReport();
 ```
