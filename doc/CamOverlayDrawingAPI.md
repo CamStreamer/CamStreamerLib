@@ -3,7 +3,7 @@
 Module for easy control of the CamOverlay drawing API.
 
 > [!TIP]
-> For more details on supported drawing functions see https://camstreamer.com/camoverlay-api1
+> For more details on <b>supported drawing functions</b> see https://camstreamer.com/camoverlay-api1
 
 ## Constructor
 
@@ -143,7 +143,7 @@ Remove the image from the camera stream.
 coApi.removeImage();
 ```
 
-## Events
+## Websocket Events
 
 -   **open** - WebSocket opened or reopened
 

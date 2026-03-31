@@ -32,6 +32,19 @@ type THttpRequestOptions = {
 };
 ```
 
+## Overview
+
+-   [List of CamOverlay Services](#services)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Files Management](#files-management-methods): Manage images and fonts.
+    -   [CamOverlay Services](#camoverlay-services-methods): Manage CamOverlay widgets.
+    -   [Custom Graphics](#custom-graphics-methods): Manage Custom Graphics widget.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
 ## Services
 
 > [!IMPORTANT] > <b>Not all listed services are available</b> through CamOverlay ACAP.
@@ -525,15 +538,9 @@ type TScoreOverview = {
 };
 ```
 
-# Methods
+<br/>
 
--   [Static](#static)
--   [Common](#common-methods)
--   [Files managements](#files-management): Manage images and fonts.
--   [CamOverlay services](#camoverlay-services): Manage CamOverlay widgets.
--   [Custom Graphics](#custom-graphics-1): Manage Custom Graphics widget.
-
-## Static
+## Static Methods
 
 ### getBasePath()
 
@@ -567,7 +574,7 @@ Returns path to a file.
 const preview = CamOverlayAPI.getFilePreviewPath('file://path-to-img/image.jpg');
 ```
 
-## Common methods
+## Common Methods
 
 ### getClient(proxyParams?)
 
@@ -664,7 +671,9 @@ const token = await coApi.wsAuthorization();
 const image = await coApi.getMjpegStreamImage(url);
 ```
 
-## Files management
+<br/>
+
+## Files Management Methods
 
 ### types
 
@@ -757,7 +766,9 @@ const storage = await coApi.getFileStorage('font');
 const preview = await coApi.getFilePreviewFromCamera('file://path-to-img/image.jpg');
 ```
 
-## CamOverlay services
+<br/>
+
+## CamOverlay Services Methods
 
 See list of all available services: [`Services`](#services)
 
@@ -853,7 +864,9 @@ Changes the settings of all CamOverlay services.
 await coApi.updateServices(services);
 ```
 
-## Custom Graphics
+<br/>
+
+## Custom Graphics Methods
 
 ### types
 
@@ -953,7 +966,9 @@ the imageData argument. If no coordinates are specified, the service will use th
 await coApi.updateCGImageFromData(9, 'PNG', data, 'bottom', 0, 0);
 ```
 
-### Methods - Report
+<br/>
+
+## Report Methods
 
 ### downloadReport(options?)
 

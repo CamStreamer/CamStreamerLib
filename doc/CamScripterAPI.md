@@ -32,7 +32,18 @@ type THttpRequestOptions = {
 };
 ```
 
-## Static
+## Overview
+
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Package Management](#package-management-methods): Manage package installations.
+    -   [Node.js Management](#nodejs-management-methods): Manage Node.js on camera.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
+## Static Methods
 
 ### getProxyPath()
 
@@ -44,7 +55,9 @@ Returns relative path to proxy.cgi
 const path = CamScripterAPI.getProxyPath();
 ```
 
-## Methods - Common
+<br/>
+
+## Common Methods
 
 ### getClient(proxyParams?)
 
@@ -118,7 +131,9 @@ Find cameras on local network using mDNS protocol.
 const list = await cscApi.getNetworkCameraList();
 ```
 
-## Methods - Packages
+<br/>
+
+## Package Management Methods
 
 ### getStorageInfo(options?)
 
@@ -184,7 +199,7 @@ const packages = await cscApi.getPackageList();
 Install package.
 
 -   **Parameters:**
-    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `formData` (`Parameters<Client['post']>[0]['data']`): Package data.
     -   `storage`: (`'FLASH'` | `'SD_DISK'`): Where to install the pacakge.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
@@ -234,7 +249,9 @@ Exports package settings.
 await cscApi.exportSettings('video_checkpoint', data);
 ```
 
-## Methods - Node.js
+<br/>
+
+## Node.js Management Methods
 
 ### getNodejsStatus(options?)
 
@@ -272,7 +289,9 @@ Decompress bundled NodeJS gzip file into chosen location, which is then stored i
 await cscApi.installNodejs('FLASH');
 ```
 
-### Methods - Report
+<br/>
+
+## Report Methods
 
 ### downloadReport(options?)
 

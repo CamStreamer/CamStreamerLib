@@ -32,7 +32,18 @@ type THttpRequestOptions = {
 };
 ```
 
-## Static
+## Overview
+
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Stream Management](#stream-management-methods): Manage streams.
+    -   [Stream Statistics](#stream-statistics-methods): Get stream statistics data.
+    -   [Audio Files Management](#audio-files-management-methods): Manage audio files.
+
+<br/>
+
+## Static methods
 
 ### getProxyPath()
 
@@ -54,7 +65,9 @@ Returns relative path for event websocket
 const path = CamStreamerAPI.getWsEventsPath();
 ```
 
-## Methods - Common
+<br />
+
+## Common Methods
 
 ### getClient(proxyParams?)
 
@@ -126,7 +139,7 @@ const utcTime = await csApi.getUtcTime();
 Get maximum available frame rate of given video source.
 
 > [!IMPORTANT]
-> Use this method only for cameras with FW lower that 8.50
+> Use this method only for cameras with <b>FW lower that 8.50</b>
 
 -   **Parameters:**
     -   `source` (`number`, optional, default = `0`): Video source number.
@@ -174,7 +187,9 @@ Get application report data.
 await csApi.downloadReport();
 ```
 
-## Methods - Streams
+<br />
+
+## Stream Management Methods
 
 ### types
 
@@ -354,7 +369,9 @@ Update stream active parameter.
 await csApi.setStreamActive('5874', true);
 ```
 
-## Methods - Stream statistics
+<br />
+
+## Stream Statistics Methods
 
 ### getStreamNetworkStatistics(streamId, options?)
 
@@ -491,7 +508,9 @@ Get application report data.
 const diagnostics = await csApi.getDiagnostics();
 ```
 
-## Methods - Audio Files
+<br />
+
+## Audio Files Management Methods
 
 ### types
 

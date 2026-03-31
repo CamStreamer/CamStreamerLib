@@ -14,7 +14,7 @@ const httpServer = new HttpServer({ port: 80 });
 ```
 
 > [!NOTE]
-> The `options` parameter contains the port which the created HttpServer listens on. Values mentioned in the example are default.
+> The `options` parameter contains the <b>port which the created HttpServer listens on</b>. Values mentioned in the example are default.
 
 ## Methods
 
@@ -43,7 +43,7 @@ Closes the httpServer service and frees up the occupied port.
 httpServer.close();
 ```
 
-## Events
+## Websocket Events
 
 -   **access(msg)** - The event is emitted for all HTTP requests to this server.
 
