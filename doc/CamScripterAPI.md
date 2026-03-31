@@ -2,6 +2,9 @@
 
 Module for access to the CamScripter HTTP interface.
 
+> [!TIP]
+> Examples of CamScripter packages can be found at https://github.com/CamStreamer/CamScripterApp_examples.
+
 ## Constructor
 
 -   **new CamScripterAPI(client)** - Look at the [Client](./Client.md) docs.
