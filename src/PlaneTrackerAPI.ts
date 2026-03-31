@@ -59,7 +59,11 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
 
     async serverRunCheck(options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        return await agent.get({ path: `${BASE_PATH}/package/serverRunCheck.cgi`, timeout: options?.timeout });
+        const res = await agent.get({
+            path: `${BASE_PATH}/package/serverRunCheck.cgi`,
+            timeout: options?.timeout,
+        });
+        return res.status === 200;
     }
 
     async getLiveViewAlias(rtspUrl: string, options?: THttpRequestOptions) {
@@ -109,7 +113,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         return cameraSettingsSchema.parse(res);
     }
     async setCameraSettings(settings: TCameraSettings, options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(
+        await this._postJsonEncoded(
             `${BASE_PATH}/package_camera_settings.cgi`,
             settings,
             {
@@ -195,7 +199,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         return priorityListSchema.parse(res).priorityList;
     }
     async setPriorityList(priorityList: TPriorityList['priorityList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(
+        await this._postJsonEncoded(
             `${BASE_PATH}/package/setPriorityList.cgi`,
             { priorityList },
             this.apiUser,
@@ -208,7 +212,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         return typePriorityListSchema.parse(res).typePriorityList;
     }
     async setTypePriorityList(typePriorityList: TTypePriorityList['typePriorityList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(
+        await this._postJsonEncoded(
             `${BASE_PATH}/package/setTypePriorityList.cgi`,
             { typePriorityList },
             this.apiUser,
@@ -221,12 +225,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         return whiteListSchema.parse(res).whiteList;
     }
     async setWhiteList(whiteList: TWhiteList['whiteList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(
-            `${BASE_PATH}/package/setWhiteList.cgi`,
-            { whiteList },
-            this.apiUser,
-            options
-        );
+        await this._postJsonEncoded(`${BASE_PATH}/package/setWhiteList.cgi`, { whiteList }, this.apiUser, options);
     }
 
     async getBlackList(options?: THttpRequestOptions) {
@@ -234,12 +233,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         return blackListSchema.parse(res).blackList;
     }
     async setBlackList(blackList: TBlackList['blackList'], options?: THttpRequestOptions) {
-        return await this._postJsonEncoded(
-            `${BASE_PATH}/package/setBlackList.cgi`,
-            { blackList },
-            this.apiUser,
-            options
-        );
+        await this._postJsonEncoded(`${BASE_PATH}/package/setBlackList.cgi`, { blackList }, this.apiUser, options);
     }
 
     //   ----------------------------------------
@@ -300,7 +294,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
     //   ----------------------------------------
 
     async checkGenetecConnection(params: TParameters, options?: THttpRequestOptions) {
-        return await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, params, options);
+        const res = await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, params, options);
+        return res.status === 200;
     }
 
     async getGenetecCameraList(params: TParameters, options?: THttpRequestOptions) {
