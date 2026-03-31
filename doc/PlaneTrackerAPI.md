@@ -5,7 +5,6 @@ Module for access to the PlaneTracker HTTP interface.
 ## Overview
 
 -   [Constructor](#constructor)
--   [Common types](#common-types)
 -   [Methods](#static-methods)
     -   [Static](#static-methods)
     -   [Common](#common-methods)
@@ -47,22 +46,6 @@ type TApiUser = {
 ```
 
 <br/>
-
-## Common types
-
-```typescript
-type TResponse = {
-    json: () => Promise<any>;
-    text: () => Promise<string>;
-    blob: () => Promise<unknown>;
-    status: number;
-    ok: boolean;
-};
-
-type TParameters = {
-    [key: string]: string | number | boolean | null | undefined;
-};
-```
 
 > [!TIP]
 > The majority of PlaneTrackerAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
@@ -170,7 +153,7 @@ Checks if the http server is running.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** [`Promise<boolean>`](#common-types)
 
 ```javascript
 await ptrApi.serverRunCheck();
@@ -369,7 +352,7 @@ Set the camera settings.
 -   **Parameters:**
     -   `settings` (`TCameraSettings`): Camera settings configuration.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.setCameraSettings(settings);
@@ -602,7 +585,7 @@ Add ICAO to priority/typePriority/white/black list.
     -   `whiteList` (`TWhiteList['whiteList']`): List of planes in white list.
     -   `blackList` (`TBlackList['blackList']`): List of planes in black list.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.setWhiteList(['4BAA66']);
@@ -708,6 +691,12 @@ await ptrApi.goToCoordinates();
 > [!TIP]
 > for more information see [GenetecAgent](GenetecAgent.md)
 
+```typescript
+type TParameters = {
+    [key: string]: string | number | boolean | null | undefined;
+};
+```
+
 ### checkGenetecConnection(params, options?)
 
 Check the connection to Genetec.
@@ -730,7 +719,7 @@ Check the connection to Genetec.
 
     -   `options` (`THttpRequestOptions`, optional)
 
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<boolean>`
 
 ```javascript
 await ptrApi.checkGenetecConnection();
