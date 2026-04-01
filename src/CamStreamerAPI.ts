@@ -32,6 +32,11 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
         await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
     }
 
+    async checkCameraTime(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
+        return z.boolean().parse(res.data?.state);
+    }
+
     async wsAuthorization(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
         if (res.status !== 200) {

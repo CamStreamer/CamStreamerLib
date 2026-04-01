@@ -1,12 +1,8 @@
+import z from 'zod';
 import { BasicAPI } from './internal/BasicAPI';
 import { IClient, TResponse } from './internal/types';
 
-import {
-    cameraTimeResponseSchema,
-    nodeStateSchema,
-    packageInfoListSchema,
-    cameraStorageSchema,
-} from './types/CamScripterAPI';
+import { nodeStateSchema, packageInfoListSchema, cameraStorageSchema } from './types/CamScripterAPI';
 import { networkCameraListSchema, THttpRequestOptions, TStorageType } from './types/common';
 
 const BASE_PATH = '/local/camscripter';
@@ -19,7 +15,7 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> extends Basi
 
     async checkCameraTime(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
-        return cameraTimeResponseSchema.parse(res).state;
+        return z.boolean().parse(res.state);
     }
 
     async getNetworkCameraList(options?: THttpRequestOptions) {
