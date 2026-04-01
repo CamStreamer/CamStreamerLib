@@ -50,9 +50,3 @@ export const camscripterApiResponseSchema = z.object({
     message: z.string(),
 });
 export type TCamscripterApiResponse = z.infer<typeof camscripterApiResponseSchema>;
-
-export const cameraTimeResponseSchema = z.object({
-    state: z.boolean(),
-    code: z.number(),
-});
-export type TCameraTimeResponse = z.infer<typeof cameraTimeResponseSchema>;
