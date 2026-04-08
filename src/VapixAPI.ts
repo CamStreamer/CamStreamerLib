@@ -23,6 +23,7 @@ import {
     applicationListSchema,
     sdCardInfoSchema,
     ALL_APP_IDS,
+    TRecordingConfigItem,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -596,7 +597,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             },
             options
         );
-        return res.text();
+        await VapixAPI.checkTextResponseForError(res);
     }
 
     async getCameraUsers(options?: THttpRequestOptions) {
@@ -607,7 +608,11 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             },
             options
         );
-        return await res.text();
+
+        const responseText = await VapixAPI.checkTextResponseForError(res);
+
+        const viewersString = responseText.match(/^viewer="([a-z0-9,]*)"/im)?.[1] ?? '';
+        return viewersString.split(',');
     }
 
     async editCameraUser(username: string, pass: string, options?: THttpRequestOptions) {
@@ -620,7 +625,8 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             },
             options
         );
-        return res.text();
+
+        await VapixAPI.checkTextResponseForError(res);
     }
 
     //  -------------------------------
@@ -629,12 +635,36 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
 
     async getRecordingRuleList(options?: THttpRequestOptions) {
         const res = await this._getText('/axis-cgi/record/continuous/listconfiguration.cgi', undefined, options);
-        return VapixAPI.parseXmlResponse(res, 'continuousrecordingconfigurations');
+        const resultNode = VapixAPI.parseXmlResponse(res, 'continuousrecordingconfigurations');
+
+        const configurationNodes = resultNode.getElementsByTagName('continuousrecordingconfiguration');
+        const configs: TRecordingConfigItem[] = [];
+
+        for (const node of configurationNodes) {
+            if (isNullish(node)) {
+                continue;
+            }
+
+            configs.push({
+                profile: node.getAttribute('profile') ?? '',
+                diskid: node.getAttribute('diskid') ?? '',
+                options: VapixAPI.parseQueryString(node.getAttribute('options')),
+                eventid: node.getAttribute('eventid') ?? '',
+            });
+        }
+        return configs;
     }
 
     async addRecordingRule(params: Record<string, string>, options?: THttpRequestOptions) {
         const res = await this._getText('/axis-cgi/record/continuous/addconfiguration.cgi', params, options);
-        return VapixAPI.parseXmlResponse(res, 'configure');
+        const resultNode = VapixAPI.parseXmlResponse(res, 'configure');
+
+        const result = resultNode.getAttribute('result');
+        if (result !== 'OK') {
+            throw new Error(resultNode.getAttribute('errormsg') ?? result ?? 'Unknown error');
+        }
+
+        return resultNode.getAttribute('profile');
     }
 
     async removeRecordingRule(profileId: string, options?: THttpRequestOptions) {
@@ -645,7 +675,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             },
             options
         );
-        return VapixAPI.parseXmlResponse(res, 'remove');
+        const resultNode = VapixAPI.parseXmlResponse(res, 'remove');
+
+        const result = resultNode.getAttribute('result');
+        if (result !== 'OK') {
+            throw new Error(resultNode.getAttribute('errormsg') ?? result ?? 'Unknown error');
+        }
     }
 
     async getDiskInfo(diskId = 'all', options?: THttpRequestOptions) {
@@ -656,7 +691,31 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             },
             options
         );
-        return VapixAPI.parseXmlResponse(res, 'disks');
+        const resultNode = VapixAPI.parseXmlResponse(res, 'disks');
+
+        const disks = resultNode.getElementsByTagName('disk');
+        if (isNullish(disks) || disks.length === 0) {
+            return false;
+        }
+
+        const requiredReadyProps: Record<string, string> = {
+            status: 'OK',
+            locked: 'no',
+            readonly: 'no',
+        };
+
+        for (const disk of disks) {
+            let isReady = true;
+            for (const name in requiredReadyProps) {
+                const value = disk.getAttribute(name);
+                isReady = isReady && requiredReadyProps[name] === value;
+            }
+            if (isReady) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     //  -------------------------------
@@ -769,6 +828,25 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     //                   Private
     //   ----------------------------------------
 
+    private static parseQueryString = (queryString: string | null): Record<string, string> => {
+        const entries = queryString
+            ?.split('&')
+            .filter((x) => x !== '')
+            .map((x) => x.split('=', 2));
+        return !isNullish(entries) ? Object.fromEntries(entries) : {};
+    };
+
+    private static checkTextResponseForError = async <T extends TResponse>(response: T) => {
+        const responseText = await response.text();
+
+        const isError = responseText.match(/Error:([^<]*)/);
+        if (!isNullish(isError)) {
+            throw new ErrorWithResponse(response);
+        }
+
+        return responseText;
+    };
+
     private static parseParameters = (response: string) => {
         const params: Record<string, string> = {};
         const lines = response.split(/[\r\n]/);
@@ -850,7 +928,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         const doc = new DOMParser().parseFromString(xml, 'text/xml');
         const node = doc.getElementsByTagName(nodeName);
 
-        if (node.length !== 1) {
+        if (node.length !== 1 || isNullish(node[0])) {
             throw new Error('Invalid XML from camera');
         }
 
