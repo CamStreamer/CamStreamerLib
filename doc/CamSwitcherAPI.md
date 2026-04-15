@@ -139,7 +139,7 @@ Generates silence clip, used when there is no audio. Its mandatory to have silen
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await cswApi.generateSilence(41500, 'mono');
+await cswApi.generateSilence(44100, 'mono');
 ```
 
 ### checkCameraTime(options?)

@@ -21,7 +21,7 @@ const wsClient = new WsClient({
 const csEvents = new CamStreamerEvents(wsClient, () => csAgent.wsAuthorization());
 ```
 
--   for `csAgent` - Look as the [CamStreamerAPI](./CamStreamerAPI.md) docs.
+-   for `csAgent` - Look at the [CamStreamerAPI](./CamStreamerAPI.md) docs.
 -   for `wsClient` - Look at the [Client](./Client.md) docs.
 
 ## Attributes

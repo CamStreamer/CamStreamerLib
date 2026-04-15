@@ -96,7 +96,7 @@ const path = PlaneTrackerAPI.getWsEventsPath();
 
 ### getClient(proxyParams?)
 
-Returns CamOverlay client - can be used in custom CamOverlay API calls.
+Returns PlaneTracker client - can be used in custom PlaneTracker API calls.
 
 -   **Parameters:**
 
