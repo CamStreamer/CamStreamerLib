@@ -1,24 +1,31 @@
 # PlaneTrackerAPI
 
-Module for access to the CamOverlay HTTP interface.
+Module for access to the PlaneTracker HTTP interface.
+
+## Overview
+
+-   [Constructor](#constructor)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Calibration](#calibration-methods): Manage camera calibration.
+    -   [Settings](#settings-methods): Manage settings.
+    -   [Planes & Tracking](#planes--tracking-management-methods): Manage Planes and Tracking mode.
+    -   [Map & Zones](#map--zones-management-methods): Manage Map and Zones.
+    -   [Genetec](#genetec-management-methods): Manage connection to Genetec.
+
+<br/>
 
 ## Constructor
 
--   **new PlaneTrackerAPI(client)** - Look at the [Client](./Client.md) docs.
+-   **new PlaneTrackerAPI(client, apiUser)** - Look at the [Client](./Client.md) docs.
 
 ```javascript
 import { DefaultClient } from 'camstreamerlib/web';
 import { PlaneTrackerAPI } from 'camstreamerlib';
 
 const ptrApi = new PlaneTrackerAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    }),
+    new DefaultClient(),
     {
         userId: 'asd',
         userName: 'Asd'.
@@ -38,21 +45,7 @@ type TApiUser = {
 };
 ```
 
-### Common types
-
-```typescript
-type TResponse = {
-    json: () => Promise<any>;
-    text: () => Promise<string>;
-    blob: () => Promise<unknown>;
-    status: number;
-    ok: boolean;
-};
-
-type TParameters = {
-    [key: string]: string | number | boolean | null | undefined;
-};
-```
+<br/>
 
 > [!TIP]
 > The majority of PlaneTrackerAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
@@ -73,7 +66,9 @@ type THttpRequestOptions = {
 };
 ```
 
-## Static
+<br/>
+
+## Static Methods
 
 ### getProxyPath()
 
@@ -95,11 +90,13 @@ Returns relative path for event websocket
 const path = PlaneTrackerAPI.getWsEventsPath();
 ```
 
-## Methods - Common
+<br/>
+
+## Common Methods
 
 ### getClient(proxyParams?)
 
-Returns CamOverlay client - can be used in custom CamOverlay API calls.
+Returns PlaneTracker client - can be used in custom PlaneTracker API calls.
 
 -   **Parameters:**
 
@@ -126,6 +123,18 @@ Returns CamOverlay client - can be used in custom CamOverlay API calls.
 const client = ptrApi.getClient();
 ```
 
+### checkAPIAvailable(options?)
+
+Dummy endpoint to check if API is available.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.checkAPIAvailable();
+```
+
 ### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
@@ -137,6 +146,41 @@ Check camera time against CamStreamer server.
 ```javascript
 const isValid = await ptrApi.checkCameraTime();
 ```
+
+### serverRunCheck(options?)
+
+Checks if the http server is running.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** [`Promise<boolean>`](#common-types)
+
+```javascript
+await ptrApi.serverRunCheck();
+```
+
+### getLiveViewAlias(rtspUrl, options?)
+
+-   **Parameters:**
+    -   `rtspUrl` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:**
+
+    ```typescript
+    Promise<{
+        alias: string;
+        ws: string;
+        ws_initial_message: string;
+    }>;
+    ```
+
+```javascript
+const data = await ptrApi.getLiveViewAlias(url);
+```
+
+<br/>
+
+## Calibration Methods
 
 ### resetPtzCalibration(options?)
 
@@ -164,38 +208,9 @@ await ptrApi.resetPtzCalibration();
 await ptrApi.resetFocusCalibration();
 ```
 
-### serverRunCheck(options?)
+<br/>
 
-Checks if the http server is running.
-
--   **Parameters:**
-    -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
-
-```javascript
-await ptrApi.serverRunCheck();
-```
-
-### getLiveViewAlias(rtspUrl, options?)
-
--   **Parameters:**
-    -   `rtspUrl` (`string`)
-    -   `options` (`THttpRequestOptions`, optional)
--   **Returns:**
-
-    ```typescript
-    Promise<{
-        alias: string;
-        ws: string;
-        ws_initial_message: string;
-    }>;
-    ```
-
-```javascript
-const data = await ptrApi.getLiveViewAlias(url);
-```
-
-## Methods - Settings
+## Settings Methods
 
 ### fetchCameraSettings(options?)
 
@@ -219,6 +234,7 @@ type TCameraSettings = {
     cameraCalibrationProcessConfig: {
         nightSkyCalibrationEnabled: boolean;
         scheduleNightSkyCalibrationTimestamp: number;
+        focusCalibrationPoints: string;
     };
     cameraConfig: {
         defaultCaptureSizeMeters: number;
@@ -232,6 +248,7 @@ type TCameraSettings = {
     imageConfig: {
         dayAperture: number;
         nightAperture: number;
+        maxGain: number;
     };
     airportConfig: {
         icao: string;
@@ -241,6 +258,7 @@ type TCameraSettings = {
     };
     trackingConfig: {
         prioritizeEmergency: boolean;
+        trackingZoneWeightIncrease: number;
         guardTourEnabled: boolean;
         guardTourId: number;
     };
@@ -334,7 +352,7 @@ Set the camera settings.
 -   **Parameters:**
     -   `settings` (`TCameraSettings`): Camera settings configuration.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.setCameraSettings(settings);
@@ -361,6 +379,10 @@ type TServerSettings = {
         tiltTransformationCoefA: number;
         tiltCameraKnownPoint: number;
         tiltRealKnownPoint: number;
+        panErrorCorrection: {
+            cameraPan: number;
+            realPan: number;
+        }[];
     };
 };
 ```
@@ -392,7 +414,9 @@ Import all settings in a `.zip` file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
-### Methods - Planes & Tracking
+<br/>
+
+## Planes & Tracking Management Methods
 
 ### types
 
@@ -561,7 +585,7 @@ Add ICAO to priority/typePriority/white/black list.
     -   `whiteList` (`TWhiteList['whiteList']`): List of planes in white list.
     -   `blackList` (`TBlackList['blackList']`): List of planes in black list.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await ptrApi.setWhiteList(['4BAA66']);
@@ -570,7 +594,9 @@ await ptrApi.setPriorityList(['4BAA66', '4BCI62', '4B5288']);
 await ptrApi.setTypePriorityList(['4BAA66', '4BCI62', '4B5288']);
 ```
 
-### Methods - Map & Zones
+<br/>
+
+## Map & Zones Management Methods
 
 ### fetchMapInfo(options?)
 
@@ -615,6 +641,7 @@ Gets zones config.
                     lon: number;
                 }[]
             ];
+            flightDirection: 'all' | 'arrival' | 'departure';
             weight: number;
             name?: string | undefined;
             minAltitudeAmsl?: number | undefined;
@@ -657,10 +684,18 @@ Focus camera to specified coordinates.
 await ptrApi.goToCoordinates();
 ```
 
-### Methods - Genetec
+<br/>
+
+## Genetec Management Methods
 
 > [!TIP]
 > for more information see [GenetecAgent](GenetecAgent.md)
+
+```typescript
+type TParameters = {
+    [key: string]: string | number | boolean | null | undefined;
+};
+```
 
 ### checkGenetecConnection(params, options?)
 
@@ -684,7 +719,7 @@ Check the connection to Genetec.
 
     -   `options` (`THttpRequestOptions`, optional)
 
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<boolean>`
 
 ```javascript
 await ptrApi.checkGenetecConnection();

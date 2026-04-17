@@ -2,6 +2,20 @@
 
 Module for access to the CamOverlay HTTP interface.
 
+## Overview
+
+-   [Constructor](#constructor)
+-   [List of CamOverlay Services](#services)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Files Management](#files-management-methods): Manage images and fonts.
+    -   [CamOverlay Services](#camoverlay-services-methods): Manage CamOverlay widgets.
+    -   [Custom Graphics](#custom-graphics-methods): Manage Custom Graphics widget.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
 ## Constructor
 
 -   **new CamOverlayAPI(client)** - Look at the [Client](./Client.md) docs.
@@ -10,20 +24,11 @@ Module for access to the CamOverlay HTTP interface.
 import { DefaultClient } from 'camstreamerlib/web';
 import { CamOverlayAPI } from 'camstreamerlib';
 
-const coApi = new CamOverlayAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    })
-);
+const coApi = new CamOverlayAPI(new DefaultClient());
 ```
 
 > [!TIP]
-> The majority of CamOverlayAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
+> The <b>majority of CamOverlayAPI</b> methods accept <b>optional `options` parameter</b> of type `THttpRequestOptions`:
 
 ```typescript
 type THttpRequestOptions = {
@@ -41,26 +46,28 @@ type THttpRequestOptions = {
 };
 ```
 
+<br/>
+
 ## Services
 
 > [!IMPORTANT]
-> Not all listed services are available through CamOverlay ACAP.
+> <b>Not all listed services are available</b> through CamOverlay ACAP.
 
 ```typescript
 // Common CamOverlay Service type
 // (this type is not separately exported from cslib)
 type TCommonService = {
     id: number;
-    enabled: 0 | 1;
-    automationType: 'time' | 'manual' | 'schedule' | `input${number}`;
-    cameraList: number[];
+    enabled: 0 | 1; // state of widget (on/off)
+    automationType: 'time' | 'manual' | 'schedule' | `input${number}`; // when is widget displayed
+    cameraList: number[]; // list of camera view areas for which the widget is used
     customName: string;
-    width: number;
-    height: number;
-    schedule: string | undefined;
+    width: number; // resolution
+    height: number; // resolution
+    schedule: string | undefined; // widget display time schedule
     invertInput: boolean | undefined;
-    camera: number | undefined;
-    zIndex: number | undefined;
+    camera: number | undefined; // depracated, could be used in older versions
+    zIndex: number | undefined; // widget layer position, higher number is on top
 };
 ```
 
@@ -89,20 +96,13 @@ Display weather data in specified location as overlay.
 type TAccuweather = TCommonService & {
     name: 'accuweather';
     clockType: '12h' | '24h';
-    coordSystem:
-        | 'top'
-        | 'bottom'
-        | 'top_left'
-        | 'top_right'
-        | 'left'
-        | 'center'
-        | 'right'
-        | 'bottom_left'
-        | 'bottom_right';
-    pos_y: number;
-    font: string;
-    location: string;
-    locationName: string;
+    coordSystem: // position of the widget
+    'top' | 'bottom' | 'top_left' | 'top_right' | 'left' | 'center' | 'right' | 'bottom_left' | 'bottom_right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
+    font: string; // used font
+    location: string; // geographical location
+    locationName: string; // geographical location name, e.g. Prague
     title: string;
     bgStartColor: '237,143,73,0.93' | '0,0,0,0.75' | '31,32,73,0.9' | '76,94,127,0.95';
     bgEndColor: '0,0,0,0.75' | '234,181,89,0.93' | '73,96,213,0.9' | '140,150,168,0.95';
@@ -121,9 +121,8 @@ type TAccuweather = TCommonService & {
         | 'ru-ru'
         | 'sv-se';
     units: 'Metric' | 'Imperial';
-    pos_x: number;
-    layout: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | '13';
-    scale: number;
+    layout: '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12' | '13'; // id of widget preset layout
+    scale: number; // percent, e.g. 0.5 (= 50%)
 };
 ```
 
@@ -134,12 +133,12 @@ Display dynamic text overlays with variables like time, weather, or sunrise, upd
 ```typescript
 type TInfoticker = TCommonService & {
     name: 'infoticker';
-    showClock: 0 | 1;
+    showClock: 0 | 1; // show time in widget
     clockType: '12h' | '24h';
     textColor: string;
     bgColor: string;
-    weatherLocation: string;
-    weatherLocationName: string;
+    weatherLocation: string; // geographical location
+    weatherLocationName: string; // geographical location name, e.g. Prague
     weatherLang:
         | 'en-us'
         | 'fr-fr'
@@ -155,16 +154,16 @@ type TInfoticker = TCommonService & {
         | 'ru-ru'
         | 'sv-se';
     weatherUnits: 'Metric' | 'Imperial';
-    numberOfLines: number;
+    numberOfLines: number; // multiline text
     switchingTime: number;
-    crawlLeft: boolean;
-    crawlSpeed: number;
+    crawlLeft: boolean; // text animation, moving to the left
+    crawlSpeed: number; // text animation speed
     coordSystem: 'top' | 'bottom';
-    pos_y: number;
+    pos_y: number; // vertical offset
     font: string;
     fontSize: number;
-    sourceType: 'text' | 'url';
-    source: string;
+    sourceType: 'text' | 'url'; // source of the text used in widget
+    source: string; // path to the source text
 };
 ```
 
@@ -175,25 +174,18 @@ Display and manage images or ads directly on your live video stream.
 ```typescript
 type TImages = TCommonService & {
     name: 'images';
+    // list of images used in widget
     overlayList: {
-        pos_x: number;
-        pos_y: number;
-        coordSystem:
-            | 'top_left'
-            | 'top'
-            | 'top_right'
-            | 'left'
-            | 'center'
-            | 'right'
-            | 'bottom_left'
-            | 'bottom'
-            | 'bottom_right';
-        active: boolean;
+        pos_y: number; // vertical offset
+        pos_x: number; // horizontal offset
+        coordSystem: // image position
+        'top_left' | 'top' | 'top_right' | 'left' | 'center' | 'right' | 'bottom_left' | 'bottom' | 'bottom_right';
+        active: boolean; // is currently used
         imgPath: string;
         imgName: string;
-        duration: number;
-        scale: number;
-        fps: number | undefined;
+        duration: number; // for how long should image be used/visible
+        scale: number; // percent, e.g. 0.5 (= 50%)
+        fps: number | undefined; // frames per second
     }[];
 };
 ```
@@ -206,19 +198,11 @@ Display a compass or map overlay to show your PTZ camera’s viewing direction a
 type TPtzCompass = TCommonService & {
     name: 'ptzCompass';
     type: 'map' | 'compass' | 'image';
-    pos_x: number;
-    pos_y: number;
-    coordSystem:
-        | 'top_left'
-        | 'top'
-        | 'top_right'
-        | 'left'
-        | 'center'
-        | 'right'
-        | 'bottom_left'
-        | 'bottom'
-        | 'bottom_right';
-    scale: number;
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
+    coordSystem: // position of the widget
+    'top_left' | 'top' | 'top_right' | 'left' | 'center' | 'right' | 'bottom_left' | 'bottom' | 'bottom_right';
+    scale: number; // percent, e.g. 0.5 (= 50%)
     image: string;
     northPan: number;
     cameraPosX: number;
@@ -244,11 +228,12 @@ type TPtz = TCommonService & {
     ptz_positions: Record<
         string,
         {
+            // list of images used in widget
             overlayList: {
-                pos_x: number;
-                pos_y: number;
-                coordSystem:
-                    | 'top_left'
+                pos_y: number; // vertical offset
+                pos_x: number; // horizontal offset
+                coordSystem: // position of the image
+                | 'top_left'
                     | 'top'
                     | 'top_right'
                     | 'left'
@@ -259,8 +244,8 @@ type TPtz = TCommonService & {
                     | 'bottom_right';
                 imgPath: string;
                 imgName: string;
-                duration: number;
-                scale: number;
+                duration: number; // for how long should image be used/visible
+                scale: number; // percent, e.g. 0.5 (= 50%)
             }[];
             loop: boolean;
         }
@@ -275,18 +260,10 @@ Display dynamic text in the background graphics within your video stream.
 ```typescript
 type TCustomGraphics = TCommonService & {
     name: 'customGraphics';
-    pos_x: number;
-    pos_y: number;
-    coordSystem:
-        | 'top_left'
-        | 'top'
-        | 'top_right'
-        | 'left'
-        | 'center'
-        | 'right'
-        | 'bottom_left'
-        | 'bottom'
-        | 'bottom_right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
+    coordSystem: // position of the widget
+    'top_left' | 'top' | 'top_right' | 'left' | 'center' | 'right' | 'bottom_left' | 'bottom' | 'bottom_right';
     image: string;
     clockFormat: '12h' | '24h';
     background: 'custom' | 'image';
@@ -359,23 +336,20 @@ Insert the picture from another camera on the same network into your live stream
 type TPip = TCommonService & {
     name: 'pip';
     compression: number;
-    coordSystem:
-        | 'top'
-        | 'bottom'
-        | 'top_left'
-        | 'top_right'
-        | 'left'
-        | 'center'
-        | 'right'
-        | 'bottom_left'
-        | 'bottom_right';
-    pos_y: number;
-    pos_x: number;
-    scale: number;
+    coordSystem: // position of the widget
+    'top' | 'bottom' | 'top_left' | 'top_right' | 'left' | 'center' | 'right' | 'bottom_left' | 'bottom_right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
+    scale: number; // percent, e.g. 0.5 (= 50%)
     fps: number;
     screenSize: number;
     source_type: 'axis_camera' | 'mjpeg_url';
-    mjpeg_url: string;
+    mjpeg_url: string; // url picture source (picture source === 'mjpeg_url')
+    rotate: 0 | 90 | 180 | 270;
+    dewarping: { enabled: boolean; rectangle: [number, number][]; aspectRatioCorrection: number };
+    borderColor: string;
+    borderWidth: number;
+    // remote camera information (picture source === 'axis_camera')
     camera_ip: string;
     camera_port: number;
     camera_user: string;
@@ -389,10 +363,6 @@ type TPip = TCommonService & {
         | 'overlays=text'
         | 'overlays=image'
         | 'overlays=application';
-    rotate: 0 | 90 | 180 | 270;
-    dewarping: { enabled: boolean; rectangle: [number, number][]; aspectRatioCorrection: number };
-    borderColor: string;
-    borderWidth: number;
 };
 ```
 
@@ -403,18 +373,10 @@ Share your screen, application window, or browser tab as a PiP in the video feed
 ```typescript
 type TScreenSharing = TCommonService & {
     name: 'screenSharing';
-    coordSystem:
-        | 'top'
-        | 'bottom'
-        | 'top_left'
-        | 'top_right'
-        | 'left'
-        | 'center'
-        | 'right'
-        | 'bottom_left'
-        | 'bottom_right';
-    pos_y: number;
-    pos_x: number;
+    coordSystem: // position of the widget
+    'top' | 'bottom' | 'top_left' | 'top_right' | 'left' | 'center' | 'right' | 'bottom_left' | 'bottom_right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
     fps: number;
     screenSize: number;
 };
@@ -427,18 +389,10 @@ Share any camera available on your computer. This service only works when connec
 ```typescript
 type TWebCameraSharing = TCommonService & {
     name: 'web_camera';
-    coordSystem:
-        | 'top'
-        | 'bottom'
-        | 'top_left'
-        | 'top_right'
-        | 'left'
-        | 'center'
-        | 'right'
-        | 'bottom_left'
-        | 'bottom_right';
-    pos_y: number;
-    pos_x: number;
+    coordSystem: // position of the widget
+    'top' | 'bottom' | 'top_left' | 'top_right' | 'left' | 'center' | 'right' | 'bottom_left' | 'bottom_right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
     fps: number;
     screenSize: number;
 };
@@ -448,27 +402,19 @@ type TWebCameraSharing = TCommonService & {
 
 ```typescript
 type TScoreBoard = {
-    enabled: 0 | 1;
+    enabled: 0 | 1; // state of widget (on/off)
     scale: number;
     width: number;
     height: number;
-    cameraList: number[];
+    cameraList: number[]; // list of camera view areas for which the widget is used
     name: 'scoreBoard';
     font: string;
     id: number;
-    zIndex: number;
-    coordSystem:
-        | 'top_left'
-        | 'top_right'
-        | 'bottom_left'
-        | 'bottom_right'
-        | 'top'
-        | 'bottom'
-        | 'left'
-        | 'center'
-        | 'right';
-    pos_y: number;
-    pos_x: number;
+    zIndex: number; // widget layer position, higher number is on top
+    coordSystem: // position of the widget
+    'top_left' | 'top_right' | 'bottom_left' | 'bottom_right' | 'top' | 'bottom' | 'left' | 'center' | 'right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
     teamHomeShortname: string;
     teamGuestShortname: string;
     teamHomeBackgroundColor: string;
@@ -493,27 +439,19 @@ type TScoreBoard = {
 
 ```typescript
 type TBaseballScoreBoard = {
-    enabled: 0 | 1;
+    enabled: 0 | 1; // state of widget (on/off)
     scale: number;
     width: number;
     height: number;
-    cameraList: number[];
+    cameraList: number[]; // list of camera view areas for which the widget is used
     name: 'baseballScoreBoard';
     font: string;
     id: number;
-    zIndex: number;
-    coordSystem:
-        | 'top_left'
-        | 'top_right'
-        | 'bottom_left'
-        | 'bottom_right'
-        | 'top'
-        | 'bottom'
-        | 'left'
-        | 'center'
-        | 'right';
-    pos_y: number;
-    pos_x: number;
+    zIndex: number; // widget layer position, higher number is on top
+    coordSystem: // position of the widget
+    'top_left' | 'top_right' | 'bottom_left' | 'bottom_right' | 'top' | 'bottom' | 'left' | 'center' | 'right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
     teamHomeShortname: string;
     teamGuestShortname: string;
     teamHomeBackgroundColor: string;
@@ -544,15 +482,15 @@ type TBaseballScoreBoard = {
 
 ```typescript
 type TBaseballScoreBoardAutomatic = {
-    enabled: 0 | 1;
+    enabled: 0 | 1; // state of widget (on/off)
     scale: number;
     width: number;
     height: number;
-    cameraList: number[];
+    cameraList: number[]; // list of camera view areas for which the widget is used
     name: 'myBallBaseballWidgets';
     font: string;
     id: number;
-    zIndex: number;
+    zIndex: number; // widget layer position, higher number is on top
     teamHomeBackgroundColor: string;
     teamGuestBackgroundColor: string;
     teamHomeTextColor: string;
@@ -575,26 +513,18 @@ type TBaseballScoreBoardAutomatic = {
 
 ```typescript
 type TScoreOverview = {
-    enabled: 0 | 1;
+    enabled: 0 | 1; // state of widget (on/off)
     scale: number;
     width: number;
     height: number;
-    cameraList: number[];
+    cameraList: number[]; // list of camera view areas for which the widget is used
     name: 'scoreOverview';
     id: number;
-    zIndex: number;
-    coordSystem:
-        | 'top_left'
-        | 'top_right'
-        | 'bottom_left'
-        | 'bottom_right'
-        | 'top'
-        | 'bottom'
-        | 'left'
-        | 'center'
-        | 'right';
-    pos_y: number;
-    pos_x: number;
+    zIndex: number; // widget layer position, higher number is on top
+    coordSystem: // position of the widget
+    'top_left' | 'top_right' | 'bottom_left' | 'bottom_right' | 'top' | 'bottom' | 'left' | 'center' | 'right';
+    pos_y: number; // vertical offset
+    pos_x: number; // horizontal offset
     teamHomeBackgroundColor: string;
     teamGuestBackgroundColor: string;
     teamHomeTextColor: string;
@@ -612,7 +542,9 @@ type TScoreOverview = {
 };
 ```
 
-## Static
+<br/>
+
+## Static Methods
 
 ### getBasePath()
 
@@ -643,10 +575,10 @@ Returns path to a file.
 -   **Returns:** `string`
 
 ```javascript
-const preview = CamOverlayAPI.getFilePreviewPath(path);
+const preview = CamOverlayAPI.getFilePreviewPath('file://path-to-img/image.jpg');
 ```
 
-## Methods - Common
+## Common Methods
 
 ### getClient(proxyParams?)
 
@@ -677,6 +609,18 @@ Returns CamOverlay client - can be used in custom CamOverlay API calls.
 const client = coApi.getClient();
 ```
 
+### checkAPIAvailable(options?)
+
+Dummy endpoint to check if API is available.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await coApi.checkAPIAvailable();
+```
+
 ### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
@@ -694,9 +638,7 @@ const isValid = await coApi.checkCameraTime();
 Find cameras on local network using mDNS protocol.
 
 -   **Parameters:**
-
     -   `options` (`THttpRequestOptions`, optional)
-
 -   **Returns:** `Promise<TNetworkCameraList>`:
 
     ```typescript
@@ -733,7 +675,9 @@ const token = await coApi.wsAuthorization();
 const image = await coApi.getMjpegStreamImage(url);
 ```
 
-## Methods - Files
+<br/>
+
+## Files Management Methods
 
 ### types
 
@@ -742,22 +686,38 @@ type TFileType = 'image' | 'font';
 ```
 
 ```typescript
-type TStorage = 'url' | 'flash' | 'SD0' | 'ftp' | 'samba';
+type TImageFileStorageType = 'flash' | 'SD0' | 'ftp' | 'samba' | 'url';
+type TFontFileStorageType = 'flash' | 'SD0';
+
+type TFileStorageType<T extends TFileType> = T extends 'image' ? TImageFileStorageType : TFontFileStorageType;
 ```
 
 ```typescript
-type TFile = {
+type TImageFile = {
     path: string;
     name: string;
-    storage: TStorage;
+    storage: TImageFileStorageType;
 };
+type TFontFile = {
+    path: string;
+    name: string;
+    storage: TFontFileStorageType;
+};
+
+type TFile<T extends TFileType> = T extends 'image' ? TImageFile : TFontFile;
 ```
 
 ```typescript
-type TStorageDataList = {
-    type: TStorage;
+type TImageStorageDataList = {
+    type: TImageFileStorageType;
     state: string;
 }[];
+type TFontStorageDataList = {
+    type: TFontFileStorageType;
+    state: string;
+}[];
+
+type TStorageDataList<T extends TFileType> = T extends 'image' ? TImageStorageDataList : TFontStorageDataList;
 ```
 
 ### listFiles(fileType, options?)
@@ -779,8 +739,8 @@ Uploads a new file to the camera.
 
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types)): Which file type to upload.
-    -   `formData` (`Parameters<Client['post']>[0]['data']`)
-    -   `storage` ([`TStorage`](#types)): Where to upload the file data.
+    -   `formData` (`Parameters<Client['post']>[0]['data']`): File data (e.g. Blob, ArrayBuffer).
+    -   `storage` ([`TFileStorageType<T extends TFileType>`](#types)): Where to upload the file data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -794,7 +754,7 @@ Removes file from the camera.
 
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types)): Which file type to remove.
-    -   `fileParams` ([`TFile`](#types)): File information.
+    -   `fileParams` ([`TFile<T extends TFileType>`](#types)): File information.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -809,7 +769,7 @@ Gets information about files storage.
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types)): Which file type.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TStorageDataList>` ([`TStorageDataList`](#types))
+-   **Returns:** [`Promise<TStorageDataList<T extends TFileType>>`](#types)
 
 ```javascript
 const storage = await coApi.getFileStorage('font');
@@ -823,10 +783,12 @@ const storage = await coApi.getFileStorage('font');
 -   **Returns:** `Promise<Blob>`
 
 ```javascript
-const preview = await coApi.getFilePreviewFromCamera(path);
+const preview = await coApi.getFilePreviewFromCamera('file://path-to-img/image.jpg');
 ```
 
-### Methods - CamOverlay services
+<br/>
+
+## CamOverlay Services Methods
 
 See list of all available services: [`Services`](#services)
 
@@ -922,13 +884,15 @@ Changes the settings of all CamOverlay services.
 await coApi.updateServices(services);
 ```
 
-### Methods - Custom Graphics
+<br/>
+
+## Custom Graphics Methods
 
 ### types
 
 ```typescript
 type TField = {
-    text: string; // text of the field
+    text: string; // text displayed in the field
     field_name: string; // name of the field
     color: string | undefined; // color of the text
 };
@@ -963,7 +927,7 @@ Updates text fields listed in the parameter fields.
     -   `serviceId` (`number`): Id of the service.
     -   `fields` ([`TField[]`](#types-1)): List of field configuration.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await coApi.updateCGText(6, [{ text: 'Hello', field_name: 'field1', color: 'red' }]);
@@ -991,14 +955,12 @@ Updates the Custom Graphics background to an image with the specified path on th
 If no coordinates are specified, the service will use the positioning from the last update.
 
 -   **Parameters:**
-
     -   `serviceId` (`number`): Id of the service.
     -   `path` (`string`): Path to the image.
     -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`): Position of the image.
     -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
     -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis.
     -   `options` (`THttpRequestOptions`, optional)
-
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -1011,17 +973,31 @@ Updates the Custom Graphics background to an image passed as
 the imageData argument. If no coordinates are specified, the service will use the positioning from the last update.
 
 -   **Parameters:**
-
     -   `serviceId` (`number`): Id of the service.
     -   `imageType` ([`ImageType`](#types-1)): jpeg or png.
-    -   `imageData` (`Parameters<Client['post']>[0]['data']`)
+    -   `imageData` (`Parameters<Client['post']>[0]['data']`): Image data (e.g. Blob, ArrayBuffer)
     -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`): Position of the image.
     -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
     -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis
     -   `options` (`THttpRequestOptions`, optional)
-
 -   **Returns:** `Promise<void>`
 
 ```javascript
 await coApi.updateCGImageFromData(9, 'PNG', data, 'bottom', 0, 0);
+```
+
+<br/>
+
+## Report Methods
+
+### downloadReport(options?)
+
+Get application report data.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+await coApi.downloadReport();
 ```

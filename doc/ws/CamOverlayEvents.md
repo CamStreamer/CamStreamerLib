@@ -1,14 +1,14 @@
-# CamStreamerEvents
+# CamOverlayEvents
 
-Module for receiving CamStreamer events. Will set up ws connection to the camera.
+Module for receiving CamOverlay events. Will set up ws connection to the camera.
 
 ## Constructor
 
-**new CamStreamerEvents(ws: IWsClient<Event>, getAuthToken: () => Promise<string>)**
+**new CamOverlayEvents(ws: IWsClient<Event>, getAuthToken: () => Promise<string>)**
 
 ```javascript
 import { WsClient } from 'camstreamerlib/node';
-import { CamStreamerEvents } from 'camstreamerlib';
+import { CamOverlayEvents } from 'camstreamerlib';
 
 const wsClient = new WsClient({
     tls: false,
@@ -18,10 +18,10 @@ const wsClient = new WsClient({
     user: '',
     pass: '',
 });
-const csEvents = new CamStreamerEvents(wsClient, () => csAgent.wsAuthorization());
+const coEvents = new CamOverlayEvents(wsClient, () => coAgent.wsAuthorization());
 ```
 
--   for `csAgent` - Look as the [CamStreamerAPI](./CamStreamerAPI.md) docs.
+-   for `coAgent` - Look at the [CamOverlayAPI](./CamOverlayAPI.md) docs.
 -   for `wsClient` - Look at the [Client](./Client.md) docs.
 
 ## Attributes
@@ -39,7 +39,7 @@ Requests the camera to resend initial event data.
 -   **Returns:** `void`
 
 ```javascript
-csEvents.resendInitData();
+coEvents.resendInitData();
 ```
 
 ### addListener(type, listener, id)
@@ -47,14 +47,14 @@ csEvents.resendInitData();
 Adds a listener for a specific event type.
 
 -   **Parameters:**
-    -   `type` (`string`): Event type (e.g. 'StreamState', ...)
+    -   `type` (`string`): Event type (e.g. 'ServiceStart', ...)
     -   `listener` (`function`): `(data, isInit) => void` where `data` is the event object and `isInit` is a boolean.
     -   `id` (`string`): Unique listener ID.
 -   **Returns:** `void`
 
 ```javascript
-csEvents.addListener(
-    'StreamState',
+coEvents.addListener(
+    'ServiceStart',
     (data, isInit) => {
         // handle event
     },
@@ -72,7 +72,19 @@ Removes a listener for a specific event type and ID.
 -   **Returns:** `void`
 
 ```javascript
-csEvents.removeListener('StreamState', 'myListenerId');
+coEvents.removeListener('ServiceStart', 'myListenerId');
+```
+
+### removeAllListenersForId(id)
+
+Removes all listeners registered under the given ID across all event types.
+
+-   **Parameters:**
+    -   `id` (`string`): Listener ID.
+-   **Returns:** `void`
+
+```javascript
+coEvents.removeAllListenersForId('myListenerId');
 ```
 
 ### destroy()
@@ -82,7 +94,7 @@ Destroys the event handler, closes websocket and removes all listeners.
 -   **Returns:** `void`
 
 ```javascript
-csEvents.destroy();
+coEvents.destroy();
 ```
 
 ## Event Types
@@ -96,33 +108,17 @@ Supported event types and their data:
         state: string
     }
     ```
--   **StreamState**
+-   **ServiceStart**
     ```js
     {
-        type: 'StreamState',
-        streamID: number,
-        enabled: 0 | 1,
-        active: 0 | 1,
-        automationState: 0 | 1,
-        isStreaming: 0 | 1,
+        type: 'ServiceStart',
+        serviceId: number
     }
     ```
--   **CS_API_SUCCESS**
+-   **ServiceStop**
     ```js
     {
-        type: 'CS_API_SUCCESS',
-        apiCall: string,
-        message: string,
-        streamID: string,
-    }
-    ```
--   **CS_API_ERROR**
-    ```js
-    {
-        type: 'CS_API_ERROR',
-        apiCall: string,
-        message: string,
-        streamID: string,
-        code: string,
+        type: 'ServiceStop',
+        serviceId: number
     }
     ```

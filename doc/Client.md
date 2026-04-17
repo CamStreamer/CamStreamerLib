@@ -4,8 +4,8 @@ Every Api will now use client to comunicate with camera. Use default client (exp
 
 ## Default clients
 
--   DefaultClient - for http requests (used in API)
--   WsClient - for websockets (used in ws events)
+-   <b>DefaultClient</b> - for http requests (used in API)
+-   <b>WsClient</b> - for websockets (used in ws events)
 
 There are two implementations for nodejs and for web.
 
@@ -31,11 +31,15 @@ type WsClientOptions = Options & {
 };
 ```
 
+<br/>
+
+## Nodejs
+
 ### Nodejs - DefaultClient
 
-For nodejs we are using undicii (pure nodejs) library to be able use keep-alive ... use one tls connection for multiple requests, browsers have this natively supported
+For nodejs we are using `undici` (pure nodejs) library to be able use `keep-alive` ... use one tls connection for multiple requests, browsers have this natively supported.
 
-Used for acap app api, eg: CamStreamerAPI, CamOverlayAPI
+Used for ACAP app API, e.g.: CamStreamerAPI, CamOverlayAPI
 
 **new DefaultClient(options: HttpOptions)**
 
@@ -72,6 +76,10 @@ const wsClient = new WsClient({
 });
 ```
 
+<br/>
+
+## Web
+
 ### Web - DefaultClient
 
 Used for acap app api, eg: CamStreamerAPI, CamOverlayAPI
@@ -98,13 +106,15 @@ import { WsClient } from 'camstreamerlib/web';
 import { CamSwitcherAPI } from 'camstreamerlib';
 
 const createWsEventsUrl = () => {
-    const path = CamSwitcherAPI.getWsEventsUrlPath();
+    const path = CamSwitcherAPI.getWsEventsPath();
     const url = new URL(path, window.location.href);
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     return url.toString();
 };
 const wsClient = new WsClient(createWsEventsUrl);
 ```
+
+<br/>
 
 ## Custom client
 

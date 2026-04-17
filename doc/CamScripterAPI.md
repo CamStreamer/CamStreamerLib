@@ -2,6 +2,21 @@
 
 Module for access to the CamScripter HTTP interface.
 
+> [!TIP]
+> Examples of CamScripter packages can be found at https://github.com/CamStreamer/CamScripterApp_examples.
+
+## Overview
+
+-   [Constructor](#constructor)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Package Management](#package-management-methods): Manage package installations.
+    -   [Node.js Management](#nodejs-management-methods): Manage Node.js on camera.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
 ## Constructor
 
 -   **new CamScripterAPI(client)** - Look at the [Client](./Client.md) docs.
@@ -10,16 +25,7 @@ Module for access to the CamScripter HTTP interface.
 import { DefaultClient } from 'camstreamerlib/web';
 import { CamScripterAPI } from 'camstreamerlib';
 
-const cscApi = new CamScripterAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    })
-);
+const cscApi = new CamScripterAPI(new DefaultClient());
 ```
 
 > [!TIP]
@@ -41,7 +47,9 @@ type THttpRequestOptions = {
 };
 ```
 
-## Static
+<br/>
+
+## Static Methods
 
 ### getProxyPath()
 
@@ -53,7 +61,9 @@ Returns relative path to proxy.cgi
 const path = CamScripterAPI.getProxyPath();
 ```
 
-## Methods - Common
+<br/>
+
+## Common Methods
 
 ### getClient(proxyParams?)
 
@@ -82,6 +92,18 @@ Returns CamScripter client - can be used in custom CamScripter API calls.
 
 ```javascript
 const client = cscApi.getClient();
+```
+
+### checkAPIAvailable(options?)
+
+Dummy endpoint to check if API is available.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await cscApi.checkAPIAvailable();
 ```
 
 ### checkCameraTime(options?)
@@ -115,7 +137,9 @@ Find cameras on local network using mDNS protocol.
 const list = await cscApi.getNetworkCameraList();
 ```
 
-## Methods - Packages
+<br/>
+
+## Package Management Methods
 
 ### getStorageInfo(options?)
 
@@ -181,7 +205,7 @@ const packages = await cscApi.getPackageList();
 Install package.
 
 -   **Parameters:**
-    -   `formData` (`Parameters<Client['post']>[0]['data']`)
+    -   `formData` (`Parameters<Client['post']>[0]['data']`): Package data.
     -   `storage`: (`'FLASH'` | `'SD_DISK'`): Where to install the pacakge.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
@@ -231,7 +255,9 @@ Exports package settings.
 await cscApi.exportSettings('video_checkpoint', data);
 ```
 
-## Methods - Node.js
+<br/>
+
+## Node.js Management Methods
 
 ### getNodejsStatus(options?)
 
@@ -267,4 +293,20 @@ Decompress bundled NodeJS gzip file into chosen location, which is then stored i
 
 ```javascript
 await cscApi.installNodejs('FLASH');
+```
+
+<br/>
+
+## Report Methods
+
+### downloadReport(options?)
+
+Get application report data.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+await cscApi.downloadReport();
 ```
