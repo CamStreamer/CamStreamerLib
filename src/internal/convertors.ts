@@ -94,7 +94,7 @@ export const parseVideoOptionsToVapixParams = (firmWareVersion: string, video: T
         overlaysParams = `&overlays=${video.overlays}`;
     }
 
-    const nbrOfChannels = video.audio === 1 ? `&nbrOfChannels=${video.nbrOfChannels}` : '';
+    const nbrOfChannels = video.nbrOfChannels ? (video.audio === 1 ? `&nbrOfChannels=${video.nbrOfChannels}` : '') : '';
     const audioParams = `audio=${video.audio}${nbrOfChannels}`;
 
     const videoCodecParams =
