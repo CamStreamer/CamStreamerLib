@@ -157,94 +157,6 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         }
     }
 
-    async checkSDCard(options?: THttpRequestOptions) {
-        const res = await this._postUrlEncoded(
-            '/axis-cgi/disks/list.cgi',
-            {
-                diskid: 'SD_DISK',
-            },
-            options
-        );
-
-        const xmlText = await res.text();
-
-        const parser = new XMLParser({
-            ignoreAttributes: false,
-            attributeNamePrefix: '',
-            allowBooleanAttributes: true,
-        });
-        const result = parser.parse(xmlText);
-
-        const data = result.root.disks.disk;
-
-        return sdCardInfoSchema.parse({
-            totalSize: parseInt(data.totalsize),
-            freeSize: parseInt(data.freesize),
-            status: sdCardWatchedStatuses.includes(data.status) ? data.status : 'disconnected',
-        });
-    }
-
-    mountSDCard(options?: THttpRequestOptions) {
-        return this._doSDCardMountAction('MOUNT', options);
-    }
-
-    unmountSDCard(options?: THttpRequestOptions) {
-        return this._doSDCardMountAction('UNMOUNT', options);
-    }
-
-    private async _doSDCardMountAction(action: 'MOUNT' | 'UNMOUNT', options?: THttpRequestOptions) {
-        const res = await this._postUrlEncoded(
-            '/axis-cgi/disks/mount.cgi',
-            {
-                action: action,
-                diskid: 'SD_DISK',
-            },
-            options
-        );
-
-        const textXml = await res.text();
-        const parser = new XMLParser({
-            ignoreAttributes: false,
-            attributeNamePrefix: '',
-            allowBooleanAttributes: true,
-        });
-        const result = parser.parse(textXml);
-
-        const job = result.root.job;
-
-        if (job.result !== 'OK') {
-            throw new SDCardActionError(action, job.description);
-        }
-
-        return Number(job.jobid);
-    }
-
-    // This is supposed to be called in interval in client code until progress is 100
-    async fetchSDCardJobProgress(jobId: number, options?: THttpRequestOptions) {
-        const res = await this._postUrlEncoded(
-            '/axis-cgi/disks/job.cgi',
-            {
-                jobid: String(jobId),
-                diskid: 'SD_DISK',
-            },
-            options
-        );
-
-        const textXml = await res.text();
-        const parser = new XMLParser({
-            ignoreAttributes: false,
-            attributeNamePrefix: '',
-            allowBooleanAttributes: true,
-        });
-        const job = parser.parse(textXml).root.job;
-
-        if (job.result !== 'OK') {
-            throw new SDCardJobError(job.description);
-        }
-
-        return Number(job.progress);
-    }
-
     downloadCameraReport(options?: THttpRequestOptions) {
         return this._getText('/axis-cgi/serverreport.cgi', { mode: 'text' }, options);
     }
@@ -354,6 +266,98 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     }
 
     //  -------------------------------
+    //         SD card management
+    //  -------------------------------
+
+    async checkSDCard(options?: THttpRequestOptions) {
+        const res = await this._postUrlEncoded(
+            '/axis-cgi/disks/list.cgi',
+            {
+                diskid: 'SD_DISK',
+            },
+            options
+        );
+
+        const xmlText = await res.text();
+
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
+        });
+        const result = parser.parse(xmlText);
+
+        const data = result.root.disks.disk;
+
+        return sdCardInfoSchema.parse({
+            totalSize: parseInt(data.totalsize),
+            freeSize: parseInt(data.freesize),
+            status: sdCardWatchedStatuses.includes(data.status) ? data.status : 'disconnected',
+        });
+    }
+
+    mountSDCard(options?: THttpRequestOptions) {
+        return this._doSDCardMountAction('MOUNT', options);
+    }
+
+    unmountSDCard(options?: THttpRequestOptions) {
+        return this._doSDCardMountAction('UNMOUNT', options);
+    }
+
+    private async _doSDCardMountAction(action: 'MOUNT' | 'UNMOUNT', options?: THttpRequestOptions) {
+        const res = await this._postUrlEncoded(
+            '/axis-cgi/disks/mount.cgi',
+            {
+                action: action,
+                diskid: 'SD_DISK',
+            },
+            options
+        );
+
+        const textXml = await res.text();
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
+        });
+        const result = parser.parse(textXml);
+
+        const job = result.root.job;
+
+        if (job.result !== 'OK') {
+            throw new SDCardActionError(action, job.description);
+        }
+
+        return Number(job.jobid);
+    }
+
+    // This is supposed to be called in interval in client code until progress is 100
+    async fetchSDCardJobProgress(jobId: number, options?: THttpRequestOptions) {
+        const res = await this._postUrlEncoded(
+            '/disks/job.cgi',
+            {
+                jobid: String(jobId),
+                diskid: 'SD_DISK',
+            },
+            options
+        );
+
+        const textXml = await res.text();
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
+        });
+        const job = parser.parse(textXml).root.job;
+
+        if (job.result !== 'OK') {
+            throw new SDCardJobError(job.description);
+        }
+
+        return Number(job.progress);
+    }
+
+    //  -------------------------------
     //            param.cgi
     //  -------------------------------
 
@@ -383,6 +387,10 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             throw new SettingParameterError(responseText);
         }
     }
+
+    //  -------------------------------
+    //           Guard Tours
+    //  -------------------------------
 
     async getGuardTourList(options?: THttpRequestOptions) {
         const gTourList = new Array<TGuardTour>();
@@ -630,7 +638,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     }
 
     //  -------------------------------
-    //       continuous recording
+    //        Continuous recording
     //  -------------------------------
 
     async getRecordingRuleList(options?: THttpRequestOptions) {
