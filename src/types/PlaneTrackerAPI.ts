@@ -140,15 +140,17 @@ export const cameraSettingsSchema = z.object({
             displayPTError: z.boolean().optional(),
             displayPTZSpeed: z.boolean().optional(),
             displayVelocityData: z.boolean().optional(),
+            displayAdsbVelocityData: z.boolean().optional(),
             displaySignalQuality: z.boolean().optional(),
             displayAutoTrackingInfo: z.boolean().optional(),
             displayGPSCoords: z.boolean().optional(),
             displayVapixQuery: z.boolean().optional(),
             displayFocus: z.boolean().optional(),
             displayAperture: z.boolean().optional(),
+            displayAircraftInfo: z.boolean().optional(),
             displaySunDistance: z.boolean().optional(),
             displayTickTime: z.boolean().optional(),
-            displayAircraftInfo: z.boolean().optional(),
+            displaySystemInfo: z.boolean().optional(),
         })
         .optional(),
     widget: widgetSchema.default({
