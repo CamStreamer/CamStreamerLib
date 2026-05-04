@@ -1,4 +1,4 @@
-# CamStreamerLib
+# CamStreamerLib - BETA
 
 Web and Node.js helper library for CamStreamer ACAP applications.
 
