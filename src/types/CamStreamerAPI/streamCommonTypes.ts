@@ -76,6 +76,7 @@ export const streamCommonSchema = z.object({
             }),
             z.object({
                 type: z.literal('CSw'),
+                internalVapixParameters: z.string(),
             }),
             z.object({
                 type: z.literal('CRS'),
