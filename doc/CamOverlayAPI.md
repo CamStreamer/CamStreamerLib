@@ -10,16 +10,7 @@ Module for access to the CamOverlay HTTP interface.
 import { DefaultClient } from 'camstreamerlib/web';
 import { CamOverlayAPI } from 'camstreamerlib';
 
-const coApi = new CamOverlayAPI(
-    new DefaultClient({
-        tls: false,
-        tlsInsecure: false,
-        ip: '127.0.0.1',
-        port: 80,
-        user: '',
-        pass: '',
-    })
-);
+const coApi = new CamOverlayAPI(new DefaultClient());
 ```
 
 > [!TIP]
@@ -643,7 +634,7 @@ Returns path to a file.
 -   **Returns:** `string`
 
 ```javascript
-const preview = CamOverlayAPI.getFilePreviewPath(path);
+const preview = CamOverlayAPI.getFilePreviewPath('file://path-to-img/image.jpg');
 ```
 
 ## Methods - Common
@@ -677,6 +668,18 @@ Returns CamOverlay client - can be used in custom CamOverlay API calls.
 const client = coApi.getClient();
 ```
 
+### checkAPIAvailable(options?)
+
+Dummy endpoint to check if API is available.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await coApi.checkAPIAvailable();
+```
+
 ### checkCameraTime(options?)
 
 Check camera time against CamStreamer server.
@@ -694,9 +697,7 @@ const isValid = await coApi.checkCameraTime();
 Find cameras on local network using mDNS protocol.
 
 -   **Parameters:**
-
     -   `options` (`THttpRequestOptions`, optional)
-
 -   **Returns:** `Promise<TNetworkCameraList>`:
 
     ```typescript
@@ -823,7 +824,7 @@ const storage = await coApi.getFileStorage('font');
 -   **Returns:** `Promise<Blob>`
 
 ```javascript
-const preview = await coApi.getFilePreviewFromCamera(path);
+const preview = await coApi.getFilePreviewFromCamera('file://path-to-img/image.jpg');
 ```
 
 ### Methods - CamOverlay services
@@ -991,14 +992,12 @@ Updates the Custom Graphics background to an image with the specified path on th
 If no coordinates are specified, the service will use the positioning from the last update.
 
 -   **Parameters:**
-
     -   `serviceId` (`number`): Id of the service.
     -   `path` (`string`): Path to the image.
     -   `coordinates` ([`TCoordinates`](#types-1), optional, default = `''`): Position of the image.
     -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
     -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis.
     -   `options` (`THttpRequestOptions`, optional)
-
 -   **Returns:** `Promise<void>`
 
 ```javascript
@@ -1011,7 +1010,6 @@ Updates the Custom Graphics background to an image passed as
 the imageData argument. If no coordinates are specified, the service will use the positioning from the last update.
 
 -   **Parameters:**
-
     -   `serviceId` (`number`): Id of the service.
     -   `imageType` ([`ImageType`](#types-1)): jpeg or png.
     -   `imageData` (`Parameters<Client['post']>[0]['data']`)
@@ -1019,9 +1017,22 @@ the imageData argument. If no coordinates are specified, the service will use th
     -   `x` (`number`, optional, default = `0`): Offset of the image on X axis.
     -   `y` (`number`, optional, default = `0`): Offset of the image on Y axis
     -   `options` (`THttpRequestOptions`, optional)
-
 -   **Returns:** `Promise<void>`
 
 ```javascript
 await coApi.updateCGImageFromData(9, 'PNG', data, 'bottom', 0, 0);
+```
+
+### Methods - Report
+
+### downloadReport(options?)
+
+Get application report data.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+await coApi.downloadReport();
 ```
