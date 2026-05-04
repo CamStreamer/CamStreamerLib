@@ -31,7 +31,21 @@ type TApiUser = {
 };
 ```
 
-### Common types
+## Overview
+
+-   [Common types](#common-types)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Calibration](#calibration-methods): Manage camera calibration.
+    -   [Settings](#settings-methods): Manage settings.
+    -   [Planes & Tracking](#planes--tracking-management-methods): Manage Planes and Tracking mode.
+    -   [Map & Zones](#map--zones-management-methods): Manage Map and Zones.
+    -   [Genetec](#genetec-management-methods): Manage connection to Genetec.
+
+<br/>
+
+## Common types
 
 ```typescript
 type TResponse = {
@@ -66,7 +80,9 @@ type THttpRequestOptions = {
 };
 ```
 
-## Static
+<br/>
+
+## Static Methods
 
 ### getProxyPath()
 
@@ -88,7 +104,9 @@ Returns relative path for event websocket
 const path = PlaneTrackerAPI.getWsEventsPath();
 ```
 
-## Methods - Common
+<br/>
+
+## Common Methods
 
 ### getClient(proxyParams?)
 
@@ -174,7 +192,9 @@ await ptrApi.serverRunCheck();
 const data = await ptrApi.getLiveViewAlias(url);
 ```
 
-## Methods - Calibration
+<br/>
+
+## Calibration Methods
 
 ### resetPtzCalibration(options?)
 
@@ -202,7 +222,9 @@ await ptrApi.resetPtzCalibration();
 await ptrApi.resetFocusCalibration();
 ```
 
-## Methods - Settings
+<br/>
+
+## Settings Methods
 
 ### fetchCameraSettings(options?)
 
@@ -406,7 +428,9 @@ Import all settings in a `.zip` file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
-### Methods - Planes & Tracking
+<br/>
+
+## Planes & Tracking Management Methods
 
 ### types
 
@@ -584,7 +608,9 @@ await ptrApi.setPriorityList(['4BAA66', '4BCI62', '4B5288']);
 await ptrApi.setTypePriorityList(['4BAA66', '4BCI62', '4B5288']);
 ```
 
-### Methods - Map & Zones
+<br/>
+
+## Map & Zones Management Methods
 
 ### fetchMapInfo(options?)
 
@@ -672,7 +698,9 @@ Focus camera to specified coordinates.
 await ptrApi.goToCoordinates();
 ```
 
-### Methods - Genetec
+<br/>
+
+## Genetec Management Methods
 
 > [!TIP]
 > for more information see [GenetecAgent](GenetecAgent.md)

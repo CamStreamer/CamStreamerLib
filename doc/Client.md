@@ -4,8 +4,8 @@ Every Api will now use client to comunicate with camera. Use default client (exp
 
 ## Default clients
 
--   DefaultClient - for http requests (used in API)
--   WsClient - for websockets (used in ws events)
+-   <b>DefaultClient</b> - for http requests (used in API)
+-   <b>WsClient</b> - for websockets (used in ws events)
 
 There are two implementations for nodejs and for web.
 
@@ -30,6 +30,10 @@ type WsClientOptions = Options & {
     protocol?: string; // protocol used in ws, eg. 'events'
 };
 ```
+
+<br/>
+
+## Nodejs
 
 ### Nodejs - DefaultClient
 
@@ -72,6 +76,10 @@ const wsClient = new WsClient({
 });
 ```
 
+<br/>
+
+## Web
+
 ### Web - DefaultClient
 
 Used for acap app api, eg: CamStreamerAPI, CamOverlayAPI
@@ -105,6 +113,8 @@ const createWsEventsUrl = () => {
 };
 const wsClient = new WsClient(createWsEventsUrl);
 ```
+
+<br/>
 
 ## Custom client
 

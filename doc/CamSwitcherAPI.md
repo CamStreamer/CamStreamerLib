@@ -32,7 +32,21 @@ type THttpRequestOptions = {
 };
 ```
 
-## Static
+## Overview
+
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Websocket](#websocket-methods)
+    -   [Stream Management](#stream-management-methods): Manage streams.
+    -   [Clip Management](#clip-management-methods): Manage clips.
+    -   [Playlist Management](#playlist-management-methods): Manage playlists.
+    -   [Tracker Management](#playlist-management-methods): Manage trackers.
+    -   [App Configuration](#configuration-methods): Manage app configuration.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
+## Static Methods
 
 ### getProxyPath()
 
@@ -190,7 +204,9 @@ Gets the list of network cameras.
 const cameras = await cswApi.getNetworkCameraList();
 ```
 
-## Methods - Websockets
+<br/>
+
+## Websocket Methods
 
 ### wsAuthorization(options?)
 
@@ -243,7 +259,9 @@ Gets parameters to set up audio push websocket.
 const audioPushInfo = await cswApi.getAudioPushInfo();
 ```
 
-## Methods - Streams
+<br/>
+
+## Stream Management Methods
 
 ### types
 
@@ -291,7 +309,9 @@ Sets the list of saved streams.
 await cswApi.setStreamSaveList(streamData);
 ```
 
-## Methods - Clips
+<br/>
+
+## Clip Management Methods
 
 ### types
 
@@ -408,7 +428,9 @@ Gets the list of clips.
 const clips = await cswApi.getClipList();
 ```
 
-## Methods - Playlists
+<br/>
+
+## Playlist Management Methods
 
 ### types
 
@@ -536,7 +558,9 @@ Plays the next playlist in the queue.
 await cswApi.playlistQueuePlayNext();
 ```
 
-## Methods - Trackers
+<br/>
+
+## Tracker Management Methods
 
 ### types
 
@@ -598,7 +622,9 @@ Sets the list of saved trackers.
 await cswApi.setTrackerSaveList(trackerData);
 ```
 
-## Methods - Configuration
+<br/>
+
+## Configuration Methods
 
 ### types
 
@@ -756,7 +782,9 @@ Gets the permanent RTSP URL token.
 const token = await cswApi.getPermanentRtspUrlToken();
 ```
 
-### Methods - Report
+<br/>
+
+## Report Methods
 
 ### downloadReport(options?)
 

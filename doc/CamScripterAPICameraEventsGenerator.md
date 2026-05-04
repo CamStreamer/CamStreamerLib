@@ -104,7 +104,7 @@ cscAPI.sendEvent({
 });
 ```
 
-## Events
+## Websocket Events
 
 -   **open** - API connection opened
 

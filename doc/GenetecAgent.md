@@ -58,7 +58,7 @@ type TCameraGuidsResponse = {
     Rsp: {
         Status: 'Ok';
         Result: {
-            Guid: string;
+            Guid: string; // camera guid
         }[];
     };
 };
@@ -73,8 +73,8 @@ const guids = await agent.getAllCameraGuids();
 Get details specified in the parameters for one or more cameras.
 
 -   **Parameters:**
-    -   `guids` (`{ Guid: string }[]`)
-    -   `parameters` (`("Guid" | "Name" | "EntityType")[]`)
+    -   `guids` (`{ Guid: string }[]`): List of camera guids.
+    -   `parameters` (`("Guid" | "Name" | "EntityType")[]`): Specify information you want to receive.
 -   **Returns:** `Promise<TCameraDetail>`
 
 ```typescript
@@ -97,8 +97,8 @@ const details = await agent.getCameraDetails(
 Add Genetec bookmark with a timestamp to one or more cameras.
 
 -   **Parameters:**
-    -   `guids` (`string[]`)
-    -   `bookMarkText` (`string`)
+    -   `guids` (`string[]`): List of camera guids.
+    -   `bookMarkText` (`string`): Bookmark text.
 -   **Returns:** `Promise<void>`
 
 ```javascript
