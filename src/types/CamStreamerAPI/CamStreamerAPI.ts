@@ -216,9 +216,25 @@ export type TAudioLocalType = z.infer<typeof audioLocalSchema>;
 
 export const streamStatsSchema = z.object({
     net_stats: z.string(),
-    stream_bytes_time_ms: z.number(),
-    stream_bytes: z.number(),
-    start_count: z.number(),
-    is_streaming: z.number(),
+    stream_bytes_time_ms: z.number().nonnegative(),
+    stream_bytes: z.number().nonnegative(),
+    start_count: z.number().nonnegative(),
+    is_streaming: z.literal(0).or(z.literal(1)),
 });
 export type TStreamStats = z.infer<typeof streamStatsSchema>;
+
+export const srtStreamStatisticsSchema = z.object({
+    msTimeStamp: z.number().nonnegative(),
+    pktSentTotal: z.number().nonnegative(),
+    byteSentTotal: z.number().nonnegative(),
+    pktRetransTotal: z.number().nonnegative(),
+    byteRetransTotal: z.number().nonnegative(),
+    pktSndDropTotal: z.number().nonnegative(),
+    byteSndDropTotal: z.number().nonnegative(),
+    mbpsSendRate: z.number().nonnegative(),
+    mbpsBandwidth: z.number().nonnegative(),
+    mbpsMaxBW: z.number().nonnegative(),
+    msRTT: z.number().nonnegative(),
+    msSndBuf: z.number().nonnegative(),
+});
+export type TSrtStreamStatistics = z.infer<typeof srtStreamStatisticsSchema>;

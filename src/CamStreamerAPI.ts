@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { IClient, TResponse } from './internal/types';
 import {
     audioFileListSchema,
+    srtStreamStatisticsSchema,
     storageListSchema,
     streamSchema,
     streamStatsSchema,
@@ -150,9 +151,14 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
         );
     }
 
-    async getStreamStats(streamId: number, options?: THttpRequestOptions) {
+    async getStreamNetworkStatistics(streamId: string, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/get_streamstat.cgi`, { stream_id: streamId }, options);
         return streamStatsSchema.parse(res.data);
+    }
+
+    async getSrtStreamStatistics(streamId: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/srt_statistics.cgi`, { stream_id: streamId }, options);
+        return srtStreamStatisticsSchema.parse(res.data);
     }
 
     async setStreamEnabled(streamId: string, enabled: boolean, options?: THttpRequestOptions) {
