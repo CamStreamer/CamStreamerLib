@@ -20,7 +20,6 @@ export const streamCommonSchema = z.object({
             type: z.literal('onetime'),
             startTime: z.number(),
             stopTime: z.number(),
-            // ioPort: z.string().nullable(),
         }),
         z.object({
             type: z.literal('recurrent'),
@@ -98,8 +97,8 @@ export const streamCommonSchema = z.object({
         .nullable(),
 
     status: z.object({
-        led: z.string(),
-        port: z.string(),
+        led: z.boolean(),
+        port: z.number().nullable(),
     }),
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
