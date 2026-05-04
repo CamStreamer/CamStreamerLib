@@ -21,7 +21,7 @@ npm install camstreamerlib
 | [CamSwitcherAPI](doc/CamSwitcherAPI.md)            | Module to access CamSwitcher API.                                                                                      |
 | [PlaneTrackerAPI](doc/PlaneTrackerAPI.md)          | Module to access PlaneTracker API.                                                                                     |
 | [CamStreamerEvents](doc/ws/CamStreamerEvents.md)   | Module which allows receiving events from CamStreamer ACAP application.                                                |
-| [OverlayEvents](doc/ws/OverlayEvents.md)           | Module which allows receiving events from Overlay ACAP application.                                                    |
+| [CamOverlayEvents](doc/ws/CamOverlayEvents.md)     | Module which allows receiving events from CamOverlay ACAP application.                                                 |
 | [CamSwitcherEvents](doc/ws/CamSwitcherEvents.md)   | Module which allows receiving events from CamSwitcher ACAP application.                                                |
 | [PlaneTrackerEvents](doc/ws/PlaneTrackerEvents.md) | Module which allows receiving events from PlaneTracker ACAP application.                                               |
 

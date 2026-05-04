@@ -75,6 +75,18 @@ Removes a listener for a specific event type and ID.
 cswEvents.removeListener('PlaylistSwitch', 'myListenerId');
 ```
 
+### removeAllListenersForId(id)
+
+Removes all listeners registered under the given ID across all event types.
+
+-   **Parameters:**
+    -   `id` (`string`): Listener ID.
+-   **Returns:** `void`
+
+```javascript
+cswEvents.removeAllListenersForId('myListenerId');
+```
+
 ### destroy()
 
 Destroys the event handler, closes websocket and removes all listeners.

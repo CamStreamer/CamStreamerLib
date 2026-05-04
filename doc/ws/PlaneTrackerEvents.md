@@ -79,6 +79,18 @@ Removes a listener for a specific event type and ID.
 ptrEvents.removeListener('TRACKING_START', 'myListenerId');
 ```
 
+### removeAllListenersForId(id)
+
+Removes all listeners registered under the given ID across all event types.
+
+-   **Parameters:**
+    -   `id` (`string`): Listener ID.
+-   **Returns:** `void`
+
+```javascript
+ptrEvents.removeAllListenersForId('myListenerId');
+```
+
 ### destroy()
 
 Destroys the event handler, closes websocket and removes all listeners.
@@ -190,4 +202,3 @@ Supported event types and their data:
         },
     }
     ```
--

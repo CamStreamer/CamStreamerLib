@@ -1,6 +1,6 @@
 # PlaneTrackerAPI
 
-Module for access to the CamOverlay HTTP interface.
+Module for access to the PlaneTracker HTTP interface.
 
 ## Overview
 
