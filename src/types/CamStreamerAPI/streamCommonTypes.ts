@@ -81,20 +81,20 @@ export const streamCommonSchema = z.object({
             z.object({
                 source: z.literal('microphone'),
                 audioChannelNbr: z.union([z.literal(1), z.literal(2)]),
-                forceStereo: booleanSchema,
+                forceStereo: z.boolean(),
             }),
             z.object({
                 source: z.literal('file'),
                 fileName: z.string(),
                 filePath: z.string(),
-                forceStereo: booleanSchema,
+                forceStereo: z.boolean(),
             }),
             z.object({
                 source: z.literal('url'),
                 fileName: z.string(),
                 fileUrl: z.string(),
                 avSyncMsec: z.number().int().nonnegative(),
-                forceStereo: booleanSchema,
+                forceStereo: z.boolean(),
             }),
         ])
         .nullable(),
