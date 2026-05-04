@@ -53,12 +53,7 @@ export type TTriggerSchedule = z.infer<typeof scheduleSchema>;
 export const streamInputTypeSchema = z.union([z.literal('CSw'), z.literal('CRS'), z.literal('RTSP_URL')]);
 export type TStreamInputType = z.infer<typeof streamInputTypeSchema>;
 
-export const streamingProtocolTypeSchema = z.union([
-    z.literal('RTSP'),
-    z.literal('RTMP'),
-    z.literal('RTMPS'),
-    z.literal('HLS'),
-]);
+export const streamingProtocolTypeSchema = z.union([z.literal('RTMP'), z.literal('RTMPS'), z.literal('HLS_PUSH')]);
 export type TStreamingProtocolType = z.infer<typeof streamingProtocolTypeSchema>;
 
 export const videoCodecSchema = z.union([z.literal('h264'), z.literal('h265'), z.literal('av1')]);
@@ -137,6 +132,7 @@ export const streamCommonSchema = z.object({
     title: z.string(),
     trigger: streamTriggerSchema,
     inputType: streamInputTypeSchema,
+    inputUrl: z.string(),
     internalVapixParameters: z.string(),
     userVapixParameters: z.string(),
     streamingProtocol: streamingProtocolTypeSchema,
