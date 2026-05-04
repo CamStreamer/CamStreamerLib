@@ -133,8 +133,11 @@ Supported event types and their data:
             whiteListed: boolean,
             blackListed: boolean,
             priorityListed: boolean,
+            typePriorityListed: boolean,
             autoSelectionIgnored: boolean,
             signalQuality: number,
+            emitterCategorySet: number,
+            emitterCategory: number,
             emergencyState: boolean,
             emergencyStatusMessage: string, // Emergency description
         }[]

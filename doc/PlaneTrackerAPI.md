@@ -538,24 +538,26 @@ type TBlackList = {
 
 ### get(options?)
 
-Get list of ICAOs in priority/white/black list.
+Get list of ICAOs in priority/typePriority/white/black list.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TPriorityList['priorityList']>`, `Promise<TWhiteList['whiteList']>`, `Promise<TBlackList['blackList']>`
+-   **Returns:** `Promise<TPriorityList['priorityList']>`, `Promise<TPriorityList['priorityList']>`, `Promise<TWhiteList['whiteList']>`, `Promise<TBlackList['blackList']>`
 
 ```javascript
 const priorityList = await ptrApi.getPriorityList();
+const typePriorityList = await ptrApi.getTypePriorityList();
 const whiteList = await ptrApi.getWhiteList();
 const blackList = await ptrApi.getBlackList();
 ```
 
 ### set(list, options?)
 
-Add ICAO to priority/white/black list.
+Add ICAO to priority/typePriority/white/black list.
 
 -   **Parameters:**
     -   `priorityList` (`TPriorityList['priorityList']`): List of planes in priority list.
+    -   `typePriorityList` (`TTypePriorityList['typePriorityList']`): List of planes in type priority list.
     -   `whiteList` (`TWhiteList['whiteList']`): List of planes in white list.
     -   `blackList` (`TBlackList['blackList']`): List of planes in black list.
     -   `options` (`THttpRequestOptions`, optional)
@@ -565,6 +567,7 @@ Add ICAO to priority/white/black list.
 await ptrApi.setWhiteList(['4BAA66']);
 await ptrApi.setBlackList(['4B5288']);
 await ptrApi.setPriorityList(['4BAA66', '4BCI62', '4B5288']);
+await ptrApi.setTypePriorityList(['4BAA66', '4BCI62', '4B5288']);
 ```
 
 ### Methods - Map & Zones

@@ -19,7 +19,9 @@ import {
     TPriorityList,
     trackingModeSchema,
     TTrackingMode,
+    TTypePriorityList,
     TWhiteList,
+    typePriorityListSchema,
     TZones,
     whiteListSchema,
     wsAliasResponseSchema,
@@ -197,6 +199,19 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> {
         return await this._postJsonEncoded(
             `${BASE_PATH}/package/setPriorityList.cgi`,
             { priorityList },
+            this.apiUser,
+            options
+        );
+    }
+
+    async getTypePriorityList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/package/getTypePriorityList.cgi`, undefined, options);
+        return typePriorityListSchema.parse(res).typePriorityList;
+    }
+    async setTypePriorityList(typePriorityList: TTypePriorityList['typePriorityList'], options?: THttpRequestOptions) {
+        return await this._postJsonEncoded(
+            `${BASE_PATH}/package/setTypePriorityList.cgi`,
+            { typePriorityList },
             this.apiUser,
             options
         );
