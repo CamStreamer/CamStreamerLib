@@ -750,7 +750,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             headers: {
                 contentType: 'application/octet-stream',
             },
-            timeout: options?.timeout ?? 120000,
+            timeout: options?.timeout ?? 300_000, // 5 min
         });
         if (!res.ok) {
             throw new ErrorWithResponse(res);
