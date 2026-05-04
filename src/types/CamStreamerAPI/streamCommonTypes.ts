@@ -47,6 +47,7 @@ export const streamCommonSchema = z.object({
                 type: z.literal('video'),
                 url: z.string().nullable(),
                 parameters: z.string(),
+                saveToSdCard: z.boolean(),
             }),
             z.object({
                 type: z.literal('images'),
@@ -101,7 +102,6 @@ export const streamCommonSchema = z.object({
     status: z.object({
         led: z.boolean(),
         port: z.number().optional(),
-        saveToSdCard: z.boolean(),
     }),
 });
 export type TCommonStream = z.infer<typeof streamCommonSchema>;
