@@ -16,6 +16,9 @@ export type TResponse = {
     status: number;
     ok: boolean;
     statusText: string;
+    headers: {
+        get: (name: string) => string | null;
+    };
 };
 
 export type TGetParams = {

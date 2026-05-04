@@ -86,11 +86,18 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
 
     async getCameraImage(parameters: TCameraImageConfig, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
-        return (await agent.get({
+        const res = await agent.get({
             path: '/axis-cgi/jpg/image.cgi',
             parameters,
             timeout: options?.timeout,
-        })) as ReturnType<Client['get']>;
+        });
+        if (!res.ok) {
+            throw new ErrorWithResponse(res);
+        }
+        if (res.headers.get('content-type') !== 'image/jpeg') {
+            throw new Error(`Unexpected content-type: ${res.headers.get('content-type')}`);
+        }
+        return res as ReturnType<Client['get']>; // returns response => able to body.pipeTo
     }
 
     async getEventDeclarations(options?: THttpRequestOptions) {
