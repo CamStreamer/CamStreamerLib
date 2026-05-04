@@ -428,6 +428,9 @@ await vapix.fetchSDCardJobProgress(1);
 
 ## Camera Parameters Methods
 
+> [!TIP]
+> [Param API - Axis docummentation](https://developer.axis.com/vapix/device-configuration/param-api/)
+
 ### getParameter(paramNames, options?)
 
 Get parameters from the camera.
@@ -505,6 +508,9 @@ await vapix.setGuardTourEnabled('root.GuardTour.G0', true);
 <br/>
 
 ## Camera PTZ Management Methods
+
+> [!TIP]
+> [PTZ API - Axis docummentation](https://developer.axis.com/vapix/network-video/pantiltzoom-api/)
 
 ### getPTZPresetList(channel, options?)
 
@@ -601,6 +607,9 @@ await vapix.goToPreset(2);
 <br/>
 
 ## Camera Port Management Methods
+
+> [!TIP]
+> [Input and outpus - Axis docummentation](https://developer.axis.com/vapix/network-video/input-and-outputs/)
 
 ### getPorts(options?)
 
@@ -729,6 +738,9 @@ await vapix.editCameraUser('user1', '4568');
 <br/>
 
 ## Camera Recording Rules Management Methods
+
+> [!TIP]
+> [Edge storage API - Axis docummentation](https://developer.axis.com/vapix/network-video/edge-storage-api/)
 
 ### getRecordingRuleList(options?)
 
