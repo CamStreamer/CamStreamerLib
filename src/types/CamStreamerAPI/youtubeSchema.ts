@@ -14,4 +14,6 @@ export const youtubeSchema = streamCommonSchema.extend({
     hasWatchdogs: z.boolean(),
     countdown: z.boolean(),
     enableManualControl: z.boolean(),
+    streamingProtocol: z.union([z.literal('RTMP'), z.literal('RTMPS'), z.literal('HLS_PUSH')]),
 });
+export type TYouTubeStreamingProtocolType = z.infer<typeof youtubeSchema>['streamingProtocol'];
