@@ -1,13 +1,8 @@
-# CamStreamerLib - BETA
+# CamStreamerLib
 
-**This is beta version of CamStreamerLib v4, dont use it on production. Is going to be changed significantly.**
+Web and Node.js helper library for CamStreamer ACAP applications.
 
-**The documentation is in progress**
-
-Node.js helper library for CamStreamer ACAP applications.
-
-The library is primarily developed for the CamScripter ACAP application running directly in Axis cameras.
-Examples of CamScripter packages can be found at https://github.com/CamStreamer/CamScripterApp_examples
+The library is primarily developed for ACAP applications running directly in Axis cameras.
 
 ## Installation
 
@@ -56,11 +51,11 @@ npm install camstreamerlib
 
 ### ACAP API Class Constructors Updated
 
-All ACAP API classes now **require a client instance to be passed into their constructors** instead of options object.
+All ACAP API classes now **require a client instance to be passed into their constructors** instead of `options` object.
 
 -   This change improves flexibility by allowing you to use either the Node or Web client, depending on your environment.
 
-Example (before → now):
+**Example (before → now)**:
 
 ```typescript
 // Before
@@ -78,6 +73,12 @@ const coApi = new CamOverlayAPI({
 import { DefaultClient } from 'camstreamerlib/web';
 import { CamOverlayAPI } from 'camstreamerlib';
 
+// Use DefaultClient in constructor
+const coApi = new CamOverlayAPI(
+    new DefaultClient()
+);
+
+// Or adjust DefaultClient default values with your own
 const coApi = new CamOverlayAPI(
     new DefaultClient({
         tls: false,
@@ -109,16 +110,13 @@ import { Painter } from 'camstreamerlib/node';
 import { DefaultClient } from 'camstreamerlib/web';
 ```
 
-> Note: To ensure compatibility, set the module resolution in your projects tsconfig.json to `"moduleResolution": "bundler"`.
+> :information_source: Note: To ensure compatibility, set the module resolution in your web projects tsconfig.json to `"moduleResolution": "bundler"`.
 
-### Class and Method Refactored
+### Classes and Methods Refactored
 
 -   **CameraVapix API** has been renamed to [**VapixAPI**](doc/VapixAPI.md).
 -   **DefaultAgent** has been refactored into two separate classes - one for node, one for web as [**DefaultClient**](doc/Client.md)
 -   Several method names and parameter names across the library have been updated for consistency and clarity.
-
-> Please refer to [the documentation](#documentation-for-acap-and-camera-api).
-
 -   New API modules and endpoints have been introduced, providing extended functionality and better coverage of the underlying service.
 
 <hr/>
@@ -204,3 +202,5 @@ The zip package is created in the current directory. You can choose different lo
     "create-package": "node node_modules/camstreamerlib/bin/CreatePackage.js -i -e=react"
 }
 ```
+
+> :warning: Path to `CreatePackage` script has changed from `camstreamerlib/CreatePackage.js` to `camstreamerlib/bin/CreatePackage.js` (from v.4.0.0)
