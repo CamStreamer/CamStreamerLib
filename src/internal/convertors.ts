@@ -1,4 +1,4 @@
-import { TStreamVideo, TVideoCodec } from '../types/CamStreamerAPI';
+import { TInternalVapixParameters, TVideoCodec } from '../types/CamStreamerAPI';
 import { TBitrateMode, TBitrateVapixParams, TH264Profile } from '../types/common';
 import { FIRMWARE_WITH_BITRATE_MODES_SUPPORT, FIRMWARE_WITH_OVERLAYS_SUPPORT } from './constants';
 import { isFirmwareVersionAtLeast } from './versionCompare';
@@ -82,7 +82,7 @@ export const parseVapixParamsToBitrateOptions = (bitrateVapixParams: string): TB
 
 // VIDEO OPTIONS <-> VAPIX PARAMETERS CONVERTORS
 
-export const parseVideoOptionsToVapixParams = (firmWareVersion: string, video: TStreamVideo): string => {
+export const parseVideoOptionsToVapixParams = (firmWareVersion: string, video: TInternalVapixParameters): string => {
     const bitrateParams = parseBitrateOptionsToVapixParams(firmWareVersion, video.bitrateMode, {
         maximumBitRate: video.maximumBitRate,
         retentionTime: video.retentionTime,
@@ -107,7 +107,7 @@ export const parseVideoOptionsToVapixParams = (firmWareVersion: string, video: T
     return [videoParams, bitrateParams, audioParams].join('&');
 };
 
-export const parseVapixParamsToVideoOptions = (internalVapixParams: string): TStreamVideo => {
+export const parseVapixParamsToVideoOptions = (internalVapixParams: string): TInternalVapixParameters => {
     const bitrateOptions = parseVapixParamsToBitrateOptions(internalVapixParams);
 
     const params: Record<string, string> = {};
@@ -138,6 +138,6 @@ export const parseVapixParamsToVideoOptions = (internalVapixParams: string): TSt
         h264Profile,
         audio: parseInt(params['audio'] ?? '0') as 0 | 1,
         nbrOfChannels,
-        overlays: params['overlays'] as TStreamVideo['overlays'],
+        overlays: params['overlays'] as TInternalVapixParameters['overlays'],
     };
 };
