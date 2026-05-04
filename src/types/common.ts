@@ -1,0 +1,77 @@
+import { z } from 'zod';
+
+export const booleanSchema = z.union([z.literal(0), z.literal(1)]);
+
+export const audioChannelSchema = z.union([z.literal('mono'), z.literal('stereo')]);
+export type TAudioChannel = z.infer<typeof audioChannelSchema>;
+
+export const audioChannelCountSchema = z.union([z.literal(1), z.literal(2)]);
+export type TAudioChannelCount = z.infer<typeof audioChannelCountSchema>;
+
+export const h264ProfileSchema = z.union([z.literal('high'), z.literal('main'), z.literal('baseline')]);
+export type TH264Profile = z.infer<typeof h264ProfileSchema>;
+
+export const flashStorageTypeSchema = z.literal('FLASH');
+export const sdCardStorageTypeSchema = z.literal('SD_DISK');
+export const storageTypeSchema = z.union([sdCardStorageTypeSchema, flashStorageTypeSchema]);
+export type TStorageType = z.infer<typeof storageTypeSchema>;
+
+export const networkCameraListSchema = z.array(
+    z.object({
+        name: z.string(),
+        ip: z.string(),
+    })
+);
+export type TNetworkCameraList = z.infer<typeof networkCameraListSchema>;
+export type TNetworkCamera = z.infer<typeof networkCameraListSchema>[number];
+
+export const keyboardShortcutSchema = z.string().nullable();
+export const keyboardShortcutsSchema = z.record(keyboardShortcutSchema);
+export type TKeyboardShortcut = z.infer<typeof keyboardShortcutSchema>;
+export type TKeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
+
+export type TProxyTarget = {
+    ip: string;
+    mdnsName: string;
+    port: number;
+    user: string;
+    pass: string;
+};
+
+export type TProxyParams = {
+    path: string;
+    target: TProxyTarget;
+};
+
+export type THttpRequestOptions = {
+    timeout?: number;
+    proxyParams?: TProxyParams;
+};
+
+export type TCameraImageConfig = {
+    camera?: string;
+    resolution?: string;
+    compression?: number;
+    overlays?: string;
+    [key: string]: string | number | undefined; // Allows additional properties
+};
+
+export const bitrateModeSchema = z.union([z.literal('VBR'), z.literal('MBR'), z.literal('ABR')]);
+export type TBitrateMode = z.infer<typeof bitrateModeSchema>;
+
+export const bitrateVapixParamsSchema = z.object({
+    bitrateMode: bitrateModeSchema,
+    maximumBitRate: z.number(),
+    retentionTime: z.number(),
+    bitRateLimit: z.number(),
+});
+export type TBitrateVapixParams = z.infer<typeof bitrateVapixParamsSchema>;
+
+// Cross-platform file-like type
+export type FileLike = typeof File extends { prototype: infer T } ? T : { name: string; size: number; type: string };
+export const fileSchema =
+    typeof File !== 'undefined'
+        ? z.instanceof(File)
+        : z.custom<FileLike>((val) => {
+              return val !== null && typeof val === 'object' && 'name' in val && 'size' in val && 'type' in val;
+          });

@@ -1,16 +1,50 @@
 # CamOverlayPainter
 
-Three modules for even easier control of the CamOverlay drawing API.
+Three modules for even easier control of the [CamOverlay drawing API](./CamOverlayDrawingAPI.md).
 
-## ResourceManager
+-   [ResourceManager](#resourcemanager): Download and store resources.
+-   [Painter](#painter): Manage connection to CamOverlay and display of graphics.
+-   [Frame](#frame): Manage one field of graphics - display image, text, or background color. Supports nested frames too.
 
--   Downloads and stores resources.
+<br/>
 
--   **registerImage(moniker: string, fileName: string)** - Adds the image specified by `fileName` to this `ResourceManager`.
+# ResourceManager
 
--   **registerFont(moniker: string, fileName: string)** - Adds the font specified by `fileName` to this `ResourceManager`.
+Downloads and stores resources.
 
--   **async image(moniker: string): TUploadImageResponse** - Uploads the image specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the image and its resolution.
+## Methods
+
+### registerImage(moniker, fileName)
+
+Adds the image specified by `fileName` to this `ResourceManager`.
+
+-   **Parameters:**
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
+
+```typescript
+m.registerImage('image1', 'image1.png');
+```
+
+### registerFont(moniker, fileName)
+
+Adds the font specified by `fileName` to this `ResourceManager`.
+
+-   **Parameters:**
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
+
+```typescript
+m.registerFont('OpenSansBold', 'OpenSans-Bold.ttf');
+```
+
+### image(moniker)
+
+Uploads the image specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the image and its resolution.
+
+-   **Parameters:**
+    -   `moniker` (`string`)
+-   **Returns:** `TUploadImageResponse`:
 
     ```typescript
     type TUploadImageResponse = {
@@ -21,7 +55,17 @@ Three modules for even easier control of the CamOverlay drawing API.
     };
     ```
 
--   **async font(moniker: string): TCairoCreateResponse** - Uploads the font specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the font.
+```typescript
+await m.image('image1');
+```
+
+### font(moniker)
+
+Uploads the font specified by `moniker` to the camera, if it hasn't been done already. Returns the name of the font.
+
+-   **Parameters:**
+    -   `moniker` (`string`)
+-   **Returns:** `TCairoCreateResponse`:
 
     ```typescript
     type TCairoCreateResponse = {
@@ -30,15 +74,50 @@ Three modules for even easier control of the CamOverlay drawing API.
     };
     ```
 
--   **clear()** - Removes all data from ResourceManager. Call this function when the connection to CamOverlay is closed.
+```typescript
+await m.font('OpenSansBold');
+```
 
-## Painter
+### clear()
 
--   Represents one widget, manages the connection to CamOverlay, and the display of graphics as a whole.
+Removes all data from ResourceManager. Call this function when the connection to CamOverlay is closed.
 
--   **Layers Usage** - Layers are used to optimize drawing speed. It is possible to render the most dynamic frames to the top layer and update only this layer during the rendering process. If the layers are used, the painter caches the result of each layer to be able to partly refresh the image. It is also mandatory to use the `invalidateLayer` function if there is more than one layer in the layout; otherwise, only the top layer is updated during the rendering process.
+<br/>
 
--   **constructor(opt: TPainterOptions, coopt: CamOverlayDrawingOptions)**
+# Painter
+
+Represents one widget, manages the connection to CamOverlay, and the display of graphics as a whole.
+
+## Layers Usage
+
+Layers are used to optimize drawing speed. It is possible to render the most dynamic frames to the top layer and update only this layer during the rendering process. If the layers are used, the painter caches the result of each layer to be able to partly refresh the image. It is also mandatory to use the `invalidateLayer` function if there is more than one layer in the layout; otherwise, only the top layer is updated during the rendering process.
+
+## Constructor
+
+-   **new Painter(opt: TPainterOptions, coopt: CamOverlayDrawingOptions)**
+
+    ```typescript
+    const painter = new Painter(
+        {
+            x: 0,
+            y: 0,
+            width: 500,
+            height: 80,
+            screenWidth: 1280,
+            screenHeight: 720,
+            coAlignment: 'top_right',
+            bgColor: [0.2, 0.2, 0.2, 1],
+        },
+        {
+            tls: false,
+            tlsInsecure: false,
+            ip: '127.0.0.1',
+            port: 80,
+            user: '',
+            pass: '',
+        }
+    );
+    ```
 
     ```typescript
     type TPainterOptions = TFrameOptions & {
@@ -48,39 +127,152 @@ Three modules for even easier control of the CamOverlay drawing API.
     };
     ```
 
--   **get camOverlayDrawingAPI()** - Returns the internal `CamOverlayDrawingAPI` object.
+    ```typescript
+    type TFrameOptions = {
+        enabled?: boolean;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        text?: string;
+        fontColor?: TRgb;
+        font?: string;
+        bgColor?: TRgba;
+        bgImage?: string;
+        bgType?: TObjectFitType;
+        borderRadius?: number;
+        borderWidth?: number;
+        borderColor?: TRgba;
+        customDraw?: TDrawingCallback;
+        layer?: number;
+    };
+    ```
 
--   **get resourceManager()** - Returns the internal `ResourceManager` object.
+    ```typescript
+    type CamOverlayDrawingOptions {
+        ip?: string;
+        port?: number;
+        user?: string;
+        pass?: string;
+        tls?: boolean;
+        tlsInsecure?: boolean;
+        camera?: number | number[];
+        zIndex?: number;
+    };
+    ```
 
--   **connect()** - Opens CamOverlayDrawingAPI.
+## Methods
 
--   **disconnect()** - Closes CamOverlayDrawingAPI.
+### get camOverlayDrawingAPI()
 
--   **isConnected()** - Checks if CamOverlayDrawingAPI is connected. Returns true if connected, false otherwise.
+Returns the internal `CamOverlayDrawingAPI` object.
 
--   **registerImage(moniker: string, fileName: string)** - Adds the image specified by `fileName` to the internal `ResourceManager`.
+### get resourceManager()
 
--   **registerFont(moniker: string, fileName: string)** - Adds the font specified by `fileName` to the internal `ResourceManager`.
+Returns the internal `ResourceManager` object.
 
--   **setScreenSize(width: number, height: number)** - Sets the size of the screen to draw on. The resolution of the screen is expected.
+### connect()
 
--   **setCoAlignment(alignment: string)** - Sets the alignment of this painter. Allowed values:
+Opens CamOverlayDrawingAPI.
 
-    > top_left, center_left, bottom_left
-    > top_center, center, bottom_center
-    > top_right, center_right, bottom_right
+### disconnect()
 
--   **async display(scale = 1)** - Renders this painter, including all inserted frames.
+Closes CamOverlayDrawingAPI.
 
--   **async hide()** - Removes the displayed image from the camera. It has no effect on this `Painter` state.
+### isConnected()
 
--   **async invalidateLayer(layer: number)** - Invalidates the specified layer and all layers above it.
+Checks if CamOverlayDrawingAPI is connected. Returns true if connected, false otherwise.
 
-## Frame
+### registerImage(moniker, fileName)
 
--   Represents one field of graphics. Manages the display of an image, text, or background color. Supports nested frames too.
+Adds the image specified by `fileName` to the internal `ResourceManager`.
 
--   **Frame(options: TFrameOptions, customDraw?: TDrawingCallback)**
+-   **Parameters:**
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
+
+```typescript
+painter.registerImage('image1', 'image1.png');
+```
+
+### registerFont(moniker, fileName)
+
+Adds the font specified by `fileName` to the internal `ResourceManager`.
+
+-   **Parameters:**
+    -   `moniker` (`string`)
+    -   `fileName` (`string`)
+
+```typescript
+painter.registerFont('OpenSansBold', 'OpenSans-Bold.ttf');
+```
+
+### setScreenSize(width, height)
+
+Sets the size of the screen to draw on. The resolution of the screen is expected.
+
+-   **Parameters:**
+    -   `width` (`number`)
+    -   `height` (`number`)
+
+### setCoAlignment(coAlignment)
+
+Sets the alignment of this painter.
+
+-   **Parameters:**
+
+    -   `coAlignment` (`TCoAlignment`):
+
+    ```typescript
+    type TCoAlignment =
+        | 'top_left'
+        | 'top_right'
+        | 'center'
+        | 'bottom_left'
+        | 'bottom_right'
+        | 'center_left'
+        | 'top_center'
+        | 'bottom_center'
+        | 'center_right';
+    ```
+
+### display(scale)
+
+Renders this painter, including all inserted frames.
+
+-   **Parameters:**
+    -   `scale` (`number`): default set to 1
+
+### hide()
+
+Removes the displayed image from the camera. It has no effect on this `Painter` state.
+
+### async invalidateLayer(layer)
+
+Invalidates the specified layer and all layers above it.
+
+-   **Parameters:**
+    -   `layer` (`number`)
+
+<br/>
+
+# Frame
+
+Represents one field of graphics. Manages the display of an image, text, or background color. Supports nested frames too.
+
+## Constructor
+
+-   **new Frame(options: TFrameOptions, customDraw?: TDrawingCallback)**
+
+    ```typescript
+    const frame = new Frame({
+        x: 13,
+        y: 3,
+        width: 100,
+        height: 30,
+        fontColor: [0.97, 0.75, 0.14],
+    });
+    ```
 
     ```typescript
     type TFrameOptions = {
@@ -105,34 +297,106 @@ Three modules for even easier control of the CamOverlay drawing API.
     type TDrawingCallback = (cod: CamOverlayDrawingAPI, cairo: string, info: TFrameInfo) => Promise<void>;
     ```
 
--   **enable()** - Enables rendering of the frame.
+## Methods
 
--   **disable()** - Disables rendering of the frame.
+### enable()
 
--   **setFramePosition(x: number, y: number)** - Sets this frame's position to [x, y] relative to the upper left edge of the parent frame.
+Enables rendering of the frame.
 
--   **setFrameSize(width: number, height: number)** - Sets the width and height of this frame.
+### disable()
 
--   **setText(text: string, align: TAlign, textType: TTmf = 'TFM_OVERFLOW', fontColor?: TRgb)** - Sets which text will be displayed in this frame, its alignment, how to solve the situation when the text does not fit into the frame, and optionally a new color for the text.
+Disables rendering of the frame.
+
+### setFramePosition(x, y)
+
+Sets this frame's position to [x, y] relative to the upper left edge of the parent frame.
+
+-   **Parameters:**
+    -   `x` (`number`)
+    -   `y` (`number`)
+
+### setFrameSize(width, height)
+
+Sets the width and height of this frame.
+
+-   **Parameters:**
+    -   `width` (`number`)
+    -   `height` (`number`)
+
+### setText(text, align, textType, fontColor)
+
+Sets which text will be displayed in this frame, its alignment, how to solve the situation when the text does not fit into the frame, and optionally a new color for the text.
+
+-   **Parameters:**
+
+    -   `text` (`string`)
+    -   `align` (`TAlign`)
+    -   `textType` (`TTmf` | `undefined`): default is set to `'TFM_OVERFLOW'`
+    -   `fontColor` (`TRgb` | `undefined`)
 
     ```typescript
     type TAlign = 'A_RIGHT' | 'A_LEFT' | 'A_CENTER';
     type TTmf = 'TFM_OVERFLOW' | 'TFM_SCALE' | 'TFM_TRUNCATE';
+    type TRgb = [number, number, number];
     ```
 
--   **setFontColor(fontColor: TRgb)** - Sets the font color of the text.
+```typescript
+frame.setText('Hello', 'A_CENTER', 'TFM_OVERFLOW', [0, 45 / 255, 106 / 255]);
+```
 
--   **setFont(fontName: string)** - Sets the font of the text. Use the moniker registered in ResourceManager.
+> [!IMPORTANT] > `fontColor` param is specified in numbers from 0 to 1
 
--   **setFontData(fontData: TCairoCreateResponse)** - Sets the font data of the text.
+### setFontColor(fontColor)
 
--   **setBgColor(color: TRgba)** - Sets the background color of the frame.
+Sets the font color of the text.
 
--   **setBgImage(imageName: string, type: TObjectFitType = 'fit')** - Sets the background image of the frame. Use the moniker registered in ResourceManager.
+-   **Parameters:**
+    -   `fontColor` (`TRgb`)
 
--   **setBgImageData(imageData: TUploadImageResponse, type: TObjectFitType = 'fit')** - Allows displaying an image not registered in ResourceManager.
+### setFont(fontName)
 
--   **setBgType(type: TObjectFitType)** - Sets the background type of the frame.
+Sets the font of the text. Use the moniker registered in ResourceManager.
+
+-   **Parameters:**
+    -   `fontName` (`string`)
+
+### setFontData(fontData)
+
+Sets the font data of the text.
+
+-   **Parameters:**
+    -   `fontData` (`TCairoCreateResponse`)
+
+### setBgColor(color: TRgba)
+
+Sets the background color of the frame.
+
+-   **Parameters:**
+    -   `color` (`TRgba`)
+
+### setBgImage(imageName, type)
+
+Sets the background image of the frame. Use the moniker registered in ResourceManager.
+
+-   **Parameters:**
+    -   `imageName` (`string`)
+    -   `type` (`TObjectFitType` | undefined): default set to `'fit'`
+
+### setBgImageData(imageData, type)
+
+Allows displaying an image not registered in ResourceManager.
+
+-   **Parameters:**
+    -   `imageData` (`TUploadImageResponse`)
+    -   `type` (`TObjectFitType` | undefined): default set to `'fit'`
+
+### setBgType(type)
+
+Sets the background type of the frame.
+
+-   **Parameters:**
+
+    -   `type` (`TObjectFitType`):
 
     ```typescript
     type TObjectFitType = 'fill' | 'fit' | 'none';
@@ -142,24 +406,63 @@ Three modules for even easier control of the CamOverlay drawing API.
     -   **fit:** The image will be stretched to fit at least one side of the frame. The aspect ratio will be preserved.
     -   **none:** The image will be displayed as is.
 
--   **setBorderRadius(radius: number)** - Sets the border radius of the frame.
+### setBorderRadius(radius)
 
--   **setBorderWidth(width: number)** - Sets the border width of the frame.
+Sets the border radius of the frame.
 
--   **setBorderColor(color: TRgba)** - Sets the border color of the frame.
+-   **Parameters:**
+    -   `radius` (`number`)
 
--   **setCustomDraw(customDraw: TDrawingCallback)** - Sets a callback which is run when the entire frame is displayed.
+### setBorderWidth(width)
 
--   **resetFont()** - Removes the font from this frame.
+Sets the border width of the frame.
 
--   **resetBgColor()** - Removes the background color from this frame.
+-   **Parameters:**
+    -   `width` (`number`)
 
--   **resetBgImage()** - Removes the background image from this frame.
+### setBorderColor(color)
 
--   **resetCustomDraw()** - Removes the customDraw callback from this frame.
+Sets the border color of the frame.
 
--   **clear()** - Resets the frame to its default state.
+-   **Parameters:**
+    -   `color` (`TRgba`)
 
--   **insert(...frames: Frame[])** - Inserts child frames into this frame.
+### setCustomDraw(customDraw)
 
--   **getLayers()** - Returns a set of unique layers used by this frame and its children.
+Sets a callback which is run when the entire frame is displayed.
+
+-   **Parameters:**
+    -   `customDraw` (`TDrawingCallback`)
+
+### resetFont()
+
+Removes the font from this frame.
+
+### resetBgColor()
+
+Removes the background color from this frame.
+
+### resetBgImage()
+
+Removes the background image from this frame.
+
+### resetCustomDraw()
+
+Removes the customDraw callback from this frame.
+
+### clear()
+
+Resets the frame to its default state.
+
+### insert(frames)
+
+Inserts child frames into this frame.
+
+-   **Parameters:**
+    -   `frames` (`Frame[]`)
+
+### getLayers()
+
+Returns a set of unique layers used by this frame and its children.
+
+-   **Returns:** `Set<number>`

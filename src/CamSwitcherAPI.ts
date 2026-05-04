@@ -1,154 +1,437 @@
-import { DefaultAgent } from './DefaultAgent';
-import { HttpOptions, IClient, isClient, responseStringify } from './internal/common';
+import { z } from 'zod';
+import { AddNewClipError, JsonParseError, ParameterNotFoundError } from './errors/errors';
+import { IClient, TResponse } from './internal/types';
+import { parseBitrateOptionsToVapixParams, parseVapixParamsToBitrateOptions } from './internal/convertors';
+import { isClip, isNullish } from './internal/utils';
+import {
+    storageInfoListSchema,
+    outputInfoSchema,
+    audioPushInfoSchema,
+    clipListSchema,
+    playlistQueueSchema,
+    TStreamSaveList,
+    streamSaveLoadSchema,
+    clipSaveLoadSchema,
+    playlistSaveLoadSchema,
+    trackerSaveLoadSchema,
+    TTrackerSaveList,
+    TClipSaveList,
+    TPlaylistSaveList,
+    TCameraOptions,
+    TGlobalAudioSettings,
+    TSecondaryAudioSettings,
+    secondaryAudioSettingsSchema,
+    globalAudioSettingsSchema,
+    clipFilesListSchema,
+} from './types/CamSwitcherAPI';
+import {
+    networkCameraListSchema,
+    TAudioChannel,
+    THttpRequestOptions,
+    TStorageType,
+    TBitrateVapixParams,
+} from './types/common';
+import { VapixAPI } from './VapixAPI';
+import { BasicAPI } from './internal/BasicAPI';
 
-export type CamSwitcherAPIOptions = HttpOptions;
+const BASE_PATH = '/local/camswitcher/api';
+export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
+    private vapixAgent: VapixAPI<Client>;
 
-export type TStreamInfo = {
-    id: string;
-    isTimeoutCustom: boolean;
-    ptz_preset_pos_name: string;
-    repeat: number;
-    timeout: number;
-    video: Record<string, string>;
-    audio: Record<string, string>;
-};
-export type TPlaylistInfo = {
-    channel: string;
-    isFavourite: false;
-    keyboard: object;
-    loop: boolean;
-    niceName: string;
-    sortIndexFavourite: number;
-    sortIndexOverview: number;
-    stream_list: TStreamInfo[];
-};
-export type TPlaylistList = Record<string, TPlaylistInfo>;
-
-export type TClipInfo = {
-    niceName: string;
-    channel: string;
-    keyboard: object;
-    sortIndexOverview: number;
-};
-export type TClipList = Record<string, TClipInfo>;
-export type TApiClipType = 'audio' | 'video';
-export type TClipStorage = 'SD_DISK' | 'FLASH';
-
-export type TPlaylistQueue = {
-    playlist_queue_list: string[];
-};
-export type TOutputInfo = {
-    rtsp_url: string;
-    ws: string;
-    ws_initial_message: string;
-};
-export type TSilenceChannel = 'mono' | 'stereo';
-export type TAvailableCameraList = { camera_list: { name: string; ip: string }[] };
-export type TStorageInfo = {
-    storage: TClipStorage;
-    writable: boolean;
-    size: number;
-    available: number;
-};
-
-const cgiNames = {
-    camera: 'streams',
-    audio: 'audios',
-    playlist: 'playlists',
-    clip: 'clips',
-    tracker: 'trackers',
-};
-export type TSourceType = keyof typeof cgiNames;
-
-export class CamSwitcherAPI {
-    private client: IClient;
-
-    constructor(options: CamSwitcherAPIOptions | IClient = {}) {
-        if (isClient(options)) {
-            this.client = options;
-        } else {
-            this.client = new DefaultAgent(options);
-        }
+    constructor(client: Client, private CustomFormData = FormData) {
+        super(client);
+        this.vapixAgent = new VapixAPI(client);
     }
 
-    generateSilence(sampleRate: number, channels: TSilenceChannel): Promise<void> {
-        return this.get('/local/camswitcher/generate_silence.cgi', { sample_rate: sampleRate.toString(), channels });
+    static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;
+    static getWsEventsPath = () => `/local/camswitcher/events`;
+    static getClipPreviewPath = (clipId: string, storage: TStorageType) =>
+        `${BASE_PATH}/clip_preview.cgi?clip_name=${clipId}&storage=${storage}`;
+
+    async checkAPIAvailable(options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/api_check.cgi`, undefined, options);
     }
 
-    async getIpListFromNetworkCheck(): Promise<TAvailableCameraList> {
-        return (await this.get('/local/camswitcher/network_camera_list.cgi')).data;
+    async checkCameraTime(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/camera_time.cgi`, undefined, options);
+        return z.boolean().parse(res.data);
     }
 
-    async getMaxFps(source: number): Promise<number> {
-        return (await this.get('/local/camswitcher/get_max_framerate.cgi', { video_source: source.toString() })).data;
+    async getNetworkCameraList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/network_camera_list.cgi`, undefined, options);
+        return networkCameraListSchema.parse(res.data);
     }
 
-    async getStorageInfo(): Promise<TStorageInfo[]> {
-        return (await this.get('/local/camswitcher/get_storage.cgi')).data;
+    async generateSilence(sampleRate: number, channels: TAudioChannel, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        await agent.get({
+            path: `${BASE_PATH}/generate_silence.cgi`,
+            parameters: {
+                sample_rate: sampleRate.toString(),
+                channels,
+            },
+            timeout: options?.timeout,
+        });
     }
 
-    async getOutputInfo(): Promise<TOutputInfo> {
-        return (await this.get('/local/camswitcher/output_info.cgi')).data;
+    async getMaxFps(source: number, options?: THttpRequestOptions) {
+        const res = await this._getJson(
+            `${BASE_PATH}/get_max_framerate.cgi`,
+            {
+                video_source: source,
+            },
+            options
+        );
+        return z.number().parse(res.data);
+    }
+
+    async getStorageInfo(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/get_storage.cgi`, undefined, options);
+        return storageInfoListSchema.parse(res.data);
+    }
+
+    //   ----------------------------------------
+    //                 Websockets
+    //   ----------------------------------------
+
+    async wsAuthorization(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
+        return z.string().parse(res.data);
+    }
+
+    async getOutputInfo(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/output_info.cgi`, undefined, options);
+        return outputInfoSchema.parse(res.data);
+    }
+
+    async getAudioPushInfo(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/audio_push_info.cgi`, undefined, options);
+        return audioPushInfoSchema.parse(res.data);
+    }
+
+    //   ----------------------------------------
+    //                   Sources
+    //   ----------------------------------------
+
+    async getStreamSaveList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/streams.cgi`, { action: 'get' }, options);
+        return streamSaveLoadSchema.parse(res.data);
+    }
+
+    async getClipSaveList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/clips.cgi`, { action: 'get' }, options);
+        return clipSaveLoadSchema.parse(res.data);
+    }
+
+    async getPlaylistSaveList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/playlists.cgi`, { action: 'get' }, options);
+        return playlistSaveLoadSchema.parse(res.data);
+    }
+
+    async getTrackerSaveList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/trackers.cgi`, { action: 'get' }, options);
+        return trackerSaveLoadSchema.parse(res.data);
+    }
+
+    async setStreamSaveList(data: TStreamSaveList, options?: THttpRequestOptions) {
+        await this._post(`${BASE_PATH}/streams.cgi`, JSON.stringify(data), { action: 'set' }, options);
+    }
+
+    async setClipSaveList(data: TClipSaveList, options?: THttpRequestOptions) {
+        await this._post(`${BASE_PATH}/clips.cgi`, JSON.stringify(data), { action: 'set' }, options);
+    }
+
+    async setPlaylistSaveList(data: TPlaylistSaveList, options?: THttpRequestOptions) {
+        await this._post(`${BASE_PATH}/playlists.cgi`, JSON.stringify(data), { action: 'set' }, options);
+    }
+
+    async setTrackerSaveList(data: TTrackerSaveList, options?: THttpRequestOptions) {
+        await this._post(`${BASE_PATH}/trackers.cgi`, JSON.stringify(data), { action: 'set' }, options);
     }
 
     //   ----------------------------------------
     //                 Playlists
     //   ----------------------------------------
 
-    getPlaylistList(): Promise<TPlaylistList> {
-        return this.get('/local/camswitcher/playlists.cgi?action=get');
+    async playlistSwitch(playlistName: string, options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/playlist_switch.cgi`, { playlist_name: playlistName }, options);
     }
-    async playlistSwitch(playlistName: string): Promise<void> {
-        await this.get(`/local/camswitcher/playlist_switch.cgi?playlist_name=${playlistName}`);
+    async playlistQueuePush(playlistName: string, options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/playlist_queue_push.cgi`, { playlist_name: playlistName }, options);
     }
-    async playlistQueuePush(playlistName: string): Promise<void> {
-        await this.get(`/local/camswitcher/playlist_queue_push.cgi?playlist_name=${playlistName}`);
+    async playlistQueueClear(options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/playlist_queue_clear.cgi`, undefined, options);
     }
-    async playlistQueueClear(): Promise<void> {
-        await this.get('/local/camswitcher/playlist_queue_clear.cgi');
+    async playlistQueueList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/playlist_queue_list.cgi`, undefined, options);
+        return playlistQueueSchema.parse(res.data).playlistQueueList;
     }
-    playlistQueueList(): Promise<TPlaylistQueue> {
-        return this.get('/local/camswitcher/playlist_queue_list.cgi');
-    }
-    async playlistQueuePlayNext(): Promise<void> {
-        await this.get('/local/camswitcher/playlist_queue_play_next.cgi');
+    async playlistQueuePlayNext(options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/playlist_queue_play_next.cgi`, undefined, options);
     }
 
     //   ----------------------------------------
     //                   Clips
     //   ----------------------------------------
 
-    getClipList(): Promise<TClipList> {
-        return this.get('/local/camswitcher/clips.cgi?action=get');
-    }
+    async addNewClip(
+        file: any, // Buffer | File
+        clipType: 'video' | 'audio',
+        storage: TStorageType,
+        clipId: string,
+        fileName?: string,
+        options?: THttpRequestOptions
+    ) {
+        const path = `${BASE_PATH}/clip_upload.cgi`;
 
-    async addNewClip(file: Buffer, clipType: TApiClipType, storage: TClipStorage, id: string, fileName: string) {
-        const formData = new FormData();
-        formData.append('clip_name', id);
+        const formData = new this.CustomFormData();
+        formData.append('clip_name', clipId);
         formData.append('clip_type', clipType);
         formData.append('file', file, fileName);
 
-        const path = `/local/camswitcher/clip_upload.cgi?storage=${storage}`;
-
-        const res = await this.client.post(path, formData);
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.post({
+            path,
+            data: formData,
+            parameters: {
+                storage: storage,
+            },
+            timeout: options?.timeout,
+        });
         const output = (await res.json()) as { status: number; message: string };
 
         if (output.status !== 200) {
-            throw new Error('Error on camera: ' + output.message);
+            throw new AddNewClipError(output.message);
         }
     }
 
-    removeClip(id: string, storage: TClipStorage): Promise<{}> {
-        return this.get(`/local/camswitcher/clip_remove.cgi`, { clip_name: id, storage });
+    async removeClip(clipId: string, storage: TStorageType, options?: THttpRequestOptions) {
+        await this._getJson(`${BASE_PATH}/clip_remove.cgi`, { clip_name: clipId, storage }, options);
     }
 
-    private async get(path: string, parameters: Record<string, string> = {}): Promise<any> {
-        const res = await this.client.get(path, parameters);
+    async getClipList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/clip_list.cgi`, undefined, options);
+        return clipListSchema.parse(res.data).clip_list;
+    }
 
-        if (res.ok) {
-            return await res.json();
-        } else {
-            throw new Error(await responseStringify(res));
+    //   ----------------------------------------
+    //               Configuration
+    //   ----------------------------------------
+
+    //* ******************   Set
+
+    setCamSwitchOptions(data: TCameraOptions, cameraFWVersion: string, options?: THttpRequestOptions) {
+        const bitrateData: Partial<TBitrateVapixParams> = {
+            bitrateMode: data.bitrateMode,
+            maximumBitRate: data.maximumBitRate,
+            retentionTime: data.retentionTime,
+            bitRateLimit: data.bitRateLimit,
+        };
+        const bitrateVapixParams = parseBitrateOptionsToVapixParams(cameraFWVersion, data.bitrateMode, bitrateData);
+        const saveData = {
+            video: {
+                resolution: data.resolution,
+                h264Profile: data.h264Profile,
+                fps: data.fps,
+                compression: data.compression,
+                govLength: data.govLength,
+                videoClipQuality: data.maximumBitRate,
+                bitrateVapixParams: bitrateVapixParams,
+            },
+            audio: {
+                sampleRate: data.audioSampleRate,
+                channelCount: data.audioChannelCount,
+            },
+            keyboard: data.keyboard,
+        };
+
+        return this.setParamFromCameraJSON(CSW_PARAM_NAMES.SETTINGS, saveData, options);
+    }
+
+    setGlobalAudioSettings(settings: TGlobalAudioSettings, options?: THttpRequestOptions) {
+        let acceptedType = 'NONE';
+        if (settings.type === 'source' && settings.source) {
+            if (isClip(settings.source)) {
+                acceptedType = 'CLIP';
+            } else {
+                acceptedType = 'STREAM';
+            }
         }
+        const data = {
+            type: acceptedType,
+            stream_name: settings.source,
+            clip_name: settings.source,
+            storage: settings.storage,
+        };
+
+        return this.setParamFromCameraJSON(CSW_PARAM_NAMES.MASTER_AUDIO, data, options);
+    }
+
+    setSecondaryAudioSettings(settings: TSecondaryAudioSettings, options?: THttpRequestOptions) {
+        const data = {
+            type: settings.type,
+            stream_name: settings.streamName ?? '',
+            clip_name: settings.clipName ?? '',
+            storage: settings.storage,
+            secondary_audio_level: settings.secondaryAudioLevel,
+            master_audio_level: settings.masterAudioLevel,
+        };
+
+        return this.setParamFromCameraJSON(CSW_PARAM_NAMES.SECONDARY_AUDIO, data, options);
+    }
+
+    setDefaultPlaylist(playlistId: string, options?: THttpRequestOptions) {
+        const value = JSON.stringify({ default_playlist_id: playlistId });
+        return this.vapixAgent.setParameter(
+            {
+                [CSW_PARAM_NAMES.DEFAULT_PLAYLIST]: value,
+            },
+            options
+        );
+    }
+
+    setPermanentRtspUrlToken(token: string, options?: THttpRequestOptions) {
+        return this.vapixAgent.setParameter({ [CSW_PARAM_NAMES.RTSP_TOKEN]: token }, options);
+    }
+
+    //* ******************   Get
+
+    async getCamSwitchOptions(options?: THttpRequestOptions) {
+        const saveData = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.SETTINGS, options);
+
+        if (isNullish(saveData.video)) {
+            // No info setted
+            return saveData;
+        }
+
+        if (!isNullish(saveData.video?.bitrateVapixParams)) {
+            const bitrateOptions = parseVapixParamsToBitrateOptions(saveData.video.bitrateVapixParams);
+            saveData.video.bitrateMode = bitrateOptions.bitrateMode;
+            saveData.video.maximumBitRate = bitrateOptions.maximumBitRate;
+            saveData.video.retentionTime = bitrateOptions.retentionTime;
+            saveData.video.bitRateLimit = bitrateOptions.bitRateLimit;
+        }
+
+        if (!isNullish(saveData.video?.bitrateLimit)) {
+            saveData.video.maximumBitRate = saveData.video.bitrateLimit;
+            saveData.video.bitrateMode = 'MBR';
+        }
+        if (!isNullish(saveData.video?.videoClipQuality)) {
+            saveData.video.maximumBitRate = saveData.video.videoClipQuality;
+        }
+
+        return {
+            ...saveData.video,
+            audioSampleRate: saveData.audio.sampleRate,
+            audioChannelCount: saveData.audio.channelCount,
+            keyboard: saveData.keyboard,
+        };
+    }
+
+    async getGlobalAudioSettings(options?: THttpRequestOptions) {
+        const settings: TGlobalAudioSettings = {
+            type: 'fromSource',
+            source: 'fromSource',
+        };
+
+        const res = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.MASTER_AUDIO, options);
+        if (res.type === 'STREAM') {
+            settings.type = 'source';
+            settings.source = res.stream_name;
+        } else if (res.type === 'CLIP') {
+            settings.type = 'source';
+            settings.source = res.clip_name;
+            settings.storage = res.storage;
+        }
+
+        return globalAudioSettingsSchema.parse(settings);
+    }
+
+    async getSecondaryAudioSettings(options?: THttpRequestOptions) {
+        const res = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.SECONDARY_AUDIO, options);
+
+        const settings: TSecondaryAudioSettings = {
+            type: res.type ?? 'NONE',
+            streamName: res.stream_name,
+            clipName: res.clip_name,
+            storage: res.storage ?? 'SD_DISK',
+            secondaryAudioLevel: res.secondary_audio_level ?? 1,
+            masterAudioLevel: res.master_audio_level ?? 1,
+        };
+
+        return secondaryAudioSettingsSchema.parse(settings);
+    }
+
+    async getPermanentRtspUrlToken(options?: THttpRequestOptions) {
+        const paramName = CSW_PARAM_NAMES.RTSP_TOKEN;
+        const res = await this.vapixAgent.getParameter([paramName], options);
+        return z.string().parse(res[paramName] ?? '');
+    }
+
+    //   ----------------------------------------
+    //                   Report
+    //   ----------------------------------------
+
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
+
+    //   ----------------------------------------
+    //                   Private
+    //   ----------------------------------------
+
+    private setParamFromCameraJSON(paramName: string, data: any, options?: THttpRequestOptions) {
+        const params: Record<string, string> = {};
+        params[paramName] = JSON.stringify(data);
+        return this.vapixAgent.setParameter(params, options);
+    }
+
+    private async getParamFromCameraAndJSONParse(paramName: string, options?: THttpRequestOptions) {
+        const data = await this.vapixAgent.getParameter([paramName], options);
+        if (data[paramName] !== undefined) {
+            // Check if requested parametr exists
+            try {
+                if (data[paramName] === '') {
+                    return {};
+                } else {
+                    return JSON.parse(data[paramName] + '');
+                }
+            } catch {
+                throw new JsonParseError(paramName, data[paramName]);
+            }
+        }
+
+        throw new ParameterNotFoundError(paramName);
+    }
+
+    //   ----------------------------------------
+    //                   Data backup
+    //   ----------------------------------------
+
+    async getUploadedFileList(clipName: string, storage: TStorageType, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/clip_files.cgi`, { clip_name: clipName, storage }, options);
+        return clipFilesListSchema.parse(res).data.files;
+    }
+
+    async downloadClipFile(fileName: string, storage: TStorageType, options?: THttpRequestOptions) {
+        return await this._getBlob(`${BASE_PATH}/clip_download_file.cgi`, { file_name: fileName, storage }, options);
+    }
+
+    async uploadClipFiles(files: File[], storage: TStorageType, options?: THttpRequestOptions) {
+        const formData = new FormData();
+
+        for (const file of files) {
+            formData.append(file.name, file);
+        }
+
+        await this._post(`${BASE_PATH}/clip_upload_file.cgi`, formData, { storage }, options);
     }
 }
+
+const CSW_PARAM_NAMES = {
+    SETTINGS: 'Camswitcher.Settings',
+    MASTER_AUDIO: 'Camswitcher.MasterAudio',
+    SECONDARY_AUDIO: 'Camswitcher.SecondaryAudio',
+    RTSP_TOKEN: 'Camswitcher.RTSPAccessToken',
+    DEFAULT_PLAYLIST: 'Camswitcher.DefaultPlaylist',
+};

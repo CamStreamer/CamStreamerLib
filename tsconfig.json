@@ -1,19 +1,18 @@
 {
-  "compilerOptions": {
-    "target": "es6",
-    "lib": [ "ES2022" ],
-    "module": "commonjs",
-    "declaration": true,
-    "removeComments": true,
-    "outDir": "dist",
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "strict": true,
-    "typeRoots": [
-      "typings",
-      "node_modules/@types"
-    ]
-  },
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "target": "ES2022",
+        "lib": ["dom", "DOM.Iterable", "ES2022"],
+        "module": "esnext",
+        "removeComments": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "esModuleInterop": true,
+        "strict": true,
+        "typeRoots": ["typings", "node_modules/@types"],
+        "noUncheckedIndexedAccess": true,
+        "declaration": true
+    },
     "include": ["src"],
     "exclude": ["node_modules"]
 }
