@@ -82,8 +82,8 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         const oldStreamListRecord = z.record(z.string(), oldStringStreamSchema).safeParse(res.data);
         if (oldStreamListRecord.success) {
             // Yes, we do. Convert to array
-            const data = Object.entries(oldStreamListRecord.data).map(([id, streamData]) => ({
-                id,
+            const data = Object.entries(oldStreamListRecord.data).map(([streamId, streamData]) => ({
+                streamId,
                 ...parseCameraStreamResponse(streamData),
             }));
             throw new MigrationError([], data);
@@ -91,7 +91,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
 
         // No, we have the new array format, possibly with some old settings mixed in
         const newStreamData: TStream[] = [];
-        const oldStreamData: (TOldStream & { id: string })[] = [];
+        const oldStreamData: (TOldStream & { streamId: string })[] = [];
         const invalidStreamData: any[] = [];
         for (const streamData of res.data.streamList) {
             const newStreamParse = streamSchema.safeParse(streamData);
@@ -104,7 +104,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
             const oldStreamParse = oldStringStreamSchemaWithId.safeParse(streamData);
             if (oldStreamParse.success) {
                 oldStreamData.push({
-                    id: oldStreamParse.data.id,
+                    streamId: oldStreamParse.data.streamId,
                     ...parseCameraStreamResponse(oldStreamParse.data),
                 });
                 continue;
@@ -148,7 +148,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
 
         // May or may not have id inside -> passthrough to keep it if present
         const oldStream = oldStringStreamSchema.passthrough().parse(res.data);
-        throw new MigrationError([], [{ id: streamId, ...parseCameraStreamResponse(oldStream) }]);
+        throw new MigrationError([], [{ streamId, ...parseCameraStreamResponse(oldStream) }]);
     }
 
     async setStream(streamId: string, streamData: TStream, options?: THttpRequestOptions) {
