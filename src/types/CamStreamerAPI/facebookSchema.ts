@@ -1,9 +1,11 @@
 import z from 'zod';
 import { streamCommonSchema } from './streamCommonTypes';
 
+export const facebookStreamPrivacySchema = z.union([z.literal('public'), z.literal('friends'), z.literal('only_me')]);
+
 const timelinePost = z.object({
     postLocation: z.literal('timeline'),
-    streamPrivacy: z.union([z.literal('public'), z.literal('friends'), z.literal('only_me')]),
+    streamPrivacy: facebookStreamPrivacySchema,
 });
 
 const pagePost = z.object({
