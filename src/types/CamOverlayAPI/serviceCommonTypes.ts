@@ -62,16 +62,18 @@ export type TWeatherUnit = z.infer<typeof weatherUnitSchema>;
 export const serviceCommonSchema = z.object({
     id: z.number().nonnegative(),
     enabled: z.union([z.literal(0), z.literal(1)]),
-    automationType: z.union([
-        z.literal('time'),
-        z.literal('manual'),
-        z.literal('schedule'),
-        z.custom<`input${number}`>((val) => {
-            return typeof val === 'string' ? /^input\d+$/.test(val) : false;
-        }),
-    ]),
+    automationType: z
+        .union([
+            z.literal('time'),
+            z.literal('manual'),
+            z.literal('schedule'),
+            z.custom<`input${number}`>((val) => {
+                return typeof val === 'string' ? /^input\d+$/.test(val) : false;
+            }),
+        ])
+        .default('manual'),
     invertInput: z.boolean().optional(),
-    cameraList: z.array(z.number()),
+    cameraList: z.array(z.number()).optional(),
     camera: z.number().nonnegative().optional(), // Deprecated, may still exist in old versions of CO
     schedule: z.string().optional(),
     customName: z.string().default(''),
