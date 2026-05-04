@@ -71,6 +71,21 @@
             "import": "./esm/node/index.js",
             "require": "./cjs/node/index.js",
             "types": "./types/node/index.d.ts"
+        },
+        "./cjs/index": {
+            "import": "./esm/index.js",
+            "require": "./cjs/index.js",
+            "types": "./types/index.d.ts"
+        },
+        "./cjs/node": {
+            "import": "./esm/node/index.js",
+            "require": "./cjs/node/index.js",
+            "types": "./types/node/index.js"
+        },
+        "./cjs/node/index": {
+            "import": "./esm/node/index.js",
+            "require": "./cjs/node/index.js",
+            "types": "./types/node/index.js"
         }
     },
     "repository": {
