@@ -215,10 +215,3 @@ export class MigrationError extends Error {
         this.invalid = invalid;
     }
 }
-
-export class IncorrectVapixParamsError extends Error {
-    constructor() {
-        super('Stream config error: invalid internalVapixParameters format - expected string, received object.');
-        this.name = 'IncorrectVapixParamsError';
-    }
-}
