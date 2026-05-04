@@ -1,3 +1,4 @@
+import { z } from 'zod';
 import { TPlaylistPlayType } from '../types/CamSwitcherAPI';
 import { TParameters } from './types';
 

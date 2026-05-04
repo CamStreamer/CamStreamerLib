@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+export const booleanSchema = z.union([z.literal(0), z.literal(1)]);
+
 export const audioChannelSchema = z.union([z.literal('mono'), z.literal('stereo')]);
 export type TAudioChannel = z.infer<typeof audioChannelSchema>;
 

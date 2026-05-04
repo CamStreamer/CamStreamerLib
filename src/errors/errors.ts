@@ -1,4 +1,6 @@
 import { TResponse } from '../internal/types';
+import { TStream } from '../types/CamStreamerAPI';
+import { TOldStream } from '../types/CamStreamerAPI/oldStreamSchema';
 
 export class ErrorWithResponse<T extends TResponse> extends Error {
     constructor(public res: T) {
@@ -196,5 +198,18 @@ export class BadRequestError<T extends TResponse> extends ErrorWithResponse<T> {
     constructor(res: T) {
         super(res);
         this.name = 'BadRequestError';
+    }
+}
+
+export class MigrationError extends Error {
+    readonly valid: Record<number, TStream>;
+    readonly invalid: Record<number, TOldStream>;
+
+    constructor(valid: Record<number, TStream>, invalid: Record<number, TOldStream>) {
+        super('Migration to newer version is needed: some stream entries failed to parse.');
+        this.name = 'MigrationError';
+
+        this.valid = valid;
+        this.invalid = invalid;
     }
 }

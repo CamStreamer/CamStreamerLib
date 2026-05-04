@@ -7,7 +7,7 @@ export * from './internal/ProxyClient';
 export * from './types/common';
 
 export { CamStreamerAPI } from './CamStreamerAPI';
-export * from './types/CamStreamerAPI';
+export * from './types/CamStreamerAPI/CamStreamerAPI';
 export { CamStreamerEvents } from './ws/CamStreamerEvents';
 export * from './types/ws/CamStreamerEvents';
 
