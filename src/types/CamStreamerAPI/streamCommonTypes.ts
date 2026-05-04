@@ -68,7 +68,7 @@ export const streamAudioSchema = z.discriminatedUnion('source', [
     z.object({
         source: z.literal('none'),
     }),
-    z.object({ source: z.literal('microphone'), audioChannelNbr: z.union([z.literal(0), z.literal(1)]) }),
+    z.object({ source: z.literal('microphone'), audioChannelNbr: z.union([z.literal(1), z.literal(2)]) }),
     z.object({
         source: z.literal('file'),
         fileName: z.string(),
