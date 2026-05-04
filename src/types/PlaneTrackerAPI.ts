@@ -246,6 +246,14 @@ export const serverSettingsSchema = z.object({
             tiltTransformationCoefA: z.number(),
             tiltCameraKnownPoint: z.number(),
             tiltRealKnownPoint: z.number(),
+            panErrorCorrection: z
+                .array(
+                    z.object({
+                        cameraPan: z.number(),
+                        realPan: z.number(),
+                    })
+                )
+                .default([]),
         })
         .default({
             posLat: 50,
@@ -258,6 +266,7 @@ export const serverSettingsSchema = z.object({
             tiltTransformationCoefA: 1.0,
             tiltCameraKnownPoint: 90,
             tiltRealKnownPoint: 90,
+            panErrorCorrection: [],
         }),
 });
 export type TServerSettings = z.infer<typeof serverSettingsSchema>;
