@@ -75,6 +75,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         // No, we have the new array format, possibly with some old settings mixed in
         const newStreamData: TStream[] = [];
         const oldStreamData: (TOldStream & { id: number })[] = [];
+        const invalidStreamData: any[] = [];
         for (const streamData of res.data.streamList) {
             const newStreamParse = streamSchema.safeParse(streamData);
             if (newStreamParse.success) {
@@ -91,12 +92,11 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
                 continue;
             }
 
-            // Not a problem with migration at all, something else is wrong
-            throw new Error('Failed to parse some stream entries');
+            invalidStreamData.push(streamData);
         }
 
         if (oldStreamData.length > 0) {
-            throw new MigrationError(newStreamData, oldStreamData);
+            throw new MigrationError(newStreamData, oldStreamData, invalidStreamData);
         }
 
         return newStreamData;
