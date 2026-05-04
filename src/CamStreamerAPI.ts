@@ -56,6 +56,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return z.number().parse(res.data);
     }
 
+    async getMaxFps(source = 0, options?: THttpRequestOptions) {
+        return await this._getJson(`${BASE_PATH}/get_max_framerate.cgi`, { video_source: source.toString() }, options);
+    }
+
     //   ----------------------------------------
     //                   Streams
     //   ----------------------------------------
