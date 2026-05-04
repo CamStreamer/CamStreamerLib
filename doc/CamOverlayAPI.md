@@ -50,7 +50,8 @@ type THttpRequestOptions = {
 
 ## Services
 
-> [!IMPORTANT] > <b>Not all listed services are available</b> through CamOverlay ACAP.
+> [!IMPORTANT]
+> <b>Not all listed services are available</b> through CamOverlay ACAP.
 
 ```typescript
 // Common CamOverlay Service type
