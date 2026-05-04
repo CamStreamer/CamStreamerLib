@@ -202,16 +202,29 @@ export class CamOverlayDrawingAPI extends EventEmitter {
                 }
 
                 msgJson.call_id = ++this.callId;
-                const jsonBuffer = Buffer.from(JSON.stringify(msgJson));
+                const jsonString = JSON.stringify(msgJson);
+                const jsonByteLength = Buffer.byteLength(jsonString);
 
-                const header = new ArrayBuffer(5);
-                const headerView = new DataView(header);
-                headerView.setInt8(0, 1);
-                headerView.setInt32(1, jsonBuffer.byteLength);
+                // Allocate a single ArrayBuffer for the entire message
+                const headerLength = 5;
+                const totalLength = headerLength + jsonByteLength + data.byteLength;
+                const arrayBuffer = new ArrayBuffer(totalLength);
+                const view = new DataView(arrayBuffer);
 
-                const msgBuffer = Buffer.concat([Buffer.from(header), jsonBuffer, data]);
+                // Write the header
+                view.setInt8(0, 1); // Message type
+                view.setInt32(1, jsonByteLength); // JSON byte length
 
-                const arrayBuffer = msgBuffer.buffer.slice(msgBuffer.byteOffset, msgBuffer.byteOffset + msgBuffer.byteLength);
+                // Write the JSON data
+                const jsonBuffer = new Uint8Array(arrayBuffer, 5, jsonByteLength);
+                for (let i = 0; i < jsonString.length; i++) {
+                    jsonBuffer[i] = jsonString.charCodeAt(i);
+                }
+
+                // Write the binary data
+                const dataBuffer = new Uint8Array(arrayBuffer, 5 + jsonByteLength, data.byteLength);
+                data.copy(dataBuffer);
+
                 this.ws.send(arrayBuffer);
                 this.sendMessages[this.callId] = { resolve, reject, sentTimestamp: Date.now() };
             } catch (err) {
