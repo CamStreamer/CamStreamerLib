@@ -6,6 +6,8 @@ const csEventsDataSchema = z.discriminatedUnion('type', [
         type: z.literal('StreamState'),
         streamID: z.number(),
         isStreaming: z.boolean(),
+        active: z.boolean(),
+        enabled: z.boolean(),
     }),
     z.object({
         type: z.literal('CS_API_SUCCESS'),
