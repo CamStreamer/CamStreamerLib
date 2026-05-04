@@ -207,12 +207,11 @@ await vapix.performAutofocus();
 
 Generate and return a server report including product information, parameter settings, and system logs.
 
-> [!TIP]
-> [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
+> [!TIP] > [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<string>`
 
 ```javascript
 await vapix.downloadCameraReport();
@@ -222,12 +221,11 @@ await vapix.downloadCameraReport();
 
 Generate and return a system log information.
 
-> [!TIP]
-> [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
+> [!TIP] > [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<string>`
 
 ```javascript
 await vapix.getSystemLog();
@@ -370,7 +368,7 @@ Add custom HTTP headers to the camera.
 -   **Parameters:**
     -   `headers` (`Record<string, string>`)
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await vapix.setHeaders(headers);
@@ -430,8 +428,7 @@ await vapix.fetchSDCardJobProgress(1);
 
 ## Camera Parameters Methods
 
-> [!TIP]
-> [Param API - Axis docummentation](https://developer.axis.com/vapix/device-configuration/param-api/)
+> [!TIP] > [Param API - Axis docummentation](https://developer.axis.com/vapix/device-configuration/param-api/)
 
 ### getParameter(paramNames, options?)
 
@@ -511,8 +508,7 @@ await vapix.setGuardTourEnabled('root.GuardTour.G0', true);
 
 ## Camera PTZ Management Methods
 
-> [!TIP]
-> [PTZ API - Axis docummentation](https://developer.axis.com/vapix/network-video/pantiltzoom-api/)
+> [!TIP] > [PTZ API - Axis docummentation](https://developer.axis.com/vapix/network-video/pantiltzoom-api/)
 
 ### getPTZPresetList(channel, options?)
 
@@ -579,7 +575,7 @@ Move the camera channel to the PTZ preset.
     -   `channel` (`number`)
     -   `presetName` (`string`): Name of the target preset.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** [`Promise<TResponse>`](#common-types)
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await vapix.goToPreset(1, 'home');
@@ -610,8 +606,7 @@ await vapix.goToPreset(2);
 
 ## Camera Port Management Methods
 
-> [!TIP]
-> [Input and outpus - Axis docummentation](https://developer.axis.com/vapix/network-video/input-and-outputs/)
+> [!TIP] > [Input and outpus - Axis docummentation](https://developer.axis.com/vapix/network-video/input-and-outputs/)
 
 ### getPorts(options?)
 
@@ -717,7 +712,7 @@ Add new camera account/user.
     -   `sgrp` (`string`): User group (e.g. 'viewer', 'operator', 'administator' ).
     -   `comment` (`string`, optional): Optional comment added to the user.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TResponse>`
+-   **Returns:** `Promise<string>`
 
 ```javascript
 await vapix.addCameraUser('user1', '1234', 'viewer', 'important user');
@@ -731,7 +726,7 @@ Edit existing camera account/user password.
     -   `username` (`string`): User name.
     -   `pass` (`string`): User password.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TResponse>`
+-   **Returns:** `Promise<string>`
 
 ```javascript
 await vapix.editCameraUser('user1', '4568');
@@ -741,8 +736,7 @@ await vapix.editCameraUser('user1', '4568');
 
 ## Camera Recording Rules Management Methods
 
-> [!TIP]
-> [Edge storage API - Axis docummentation](https://developer.axis.com/vapix/network-video/edge-storage-api/)
+> [!TIP] > [Edge storage API - Axis docummentation](https://developer.axis.com/vapix/network-video/edge-storage-api/)
 
 ### getRecordingRuleList(options?)
 
