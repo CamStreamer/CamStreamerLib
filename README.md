@@ -119,6 +119,35 @@ import { DefaultClient } from 'camstreamerlib/web';
 -   Several method names and parameter names across the library have been updated for consistency and clarity.
 -   New API modules and endpoints have been introduced, providing extended functionality and better coverage of the underlying service.
 
+### Stream List Migration
+
+-   `CamStreamerAPI.getStreamList()` and `getStream()` now throw a **`MigrationError`** when old-format (v3) stream data is detected on the camera.
+-   `MigrationError` provides four arrays to help you handle the transition: `.valid`, `.old`, `.invalid`, and `.unknown`.
+
+```typescript
+import { MigrationError } from 'camstreamerlib';
+
+try {
+    const streams = await csApi.getStreamList();
+} catch (e) {
+    if (e instanceof MigrationError) {
+        console.log('Valid streams:', e.valid);
+        console.log('Old-format streams needing migration:', e.old);
+    }
+}
+```
+
+### CreatePackage Script Path Changed
+
+-   The path to the `CreatePackage` script changed from `camstreamerlib/CreatePackage.js` to `camstreamerlib/bin/CreatePackage.js`.
+-   Update any `package.json` scripts accordingly:
+
+```json
+"scripts": {
+    "create-package": "node node_modules/camstreamerlib/bin/CreatePackage.js"
+}
+```
+
 <hr/>
 </details>
 
