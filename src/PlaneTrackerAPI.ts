@@ -72,15 +72,6 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         return wsAliasResponseSchema.parse(await res.json());
     }
 
-    postJson = (
-        path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
-        options?: THttpRequestOptions
-    ) => {
-        return this._postJsonEncoded(path, data, parameters, options);
-    };
-
     //   ----------------------------------------
     //                 Calibration
     //   ----------------------------------------
