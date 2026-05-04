@@ -62,6 +62,11 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return await this._getJson(`${BASE_PATH}/get_max_framerate.cgi`, { video_source: source.toString() }, options);
     }
 
+    async isCSPassValid(pass: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/check_pass.cgi`, { pass }, options);
+        return res.data === '1';
+    }
+
     //   ----------------------------------------
     //                   Streams
     //   ----------------------------------------
