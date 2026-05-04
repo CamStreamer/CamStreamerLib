@@ -8,7 +8,6 @@ import {
     TAudioDevice,
     TAudioDeviceFromRequest,
     sdCardWatchedStatuses,
-    APP_IDS,
     maxFpsResponseSchema,
     dateTimeinfoSchema,
     audioDeviceRequestSchema,
@@ -23,6 +22,7 @@ import {
     cameraPTZItemDataSchema,
     applicationListSchema,
     sdCardInfoSchema,
+    ALL_APP_IDS,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -678,7 +678,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         const appList = apps.map((app: z.infer<typeof applicationSchema>) => {
             return {
                 ...app,
-                appId: APP_IDS.find((id) => id.toLowerCase() === app.Name.toLowerCase()) ?? null,
+                appId: ALL_APP_IDS.find((id) => id.toLowerCase() === app.Name.toLowerCase()) ?? null,
             };
         });
         return applicationListSchema.parse(appList);
