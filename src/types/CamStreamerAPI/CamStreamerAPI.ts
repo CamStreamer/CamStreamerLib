@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { boolean, z } from 'zod';
 
 import { facebookSchema } from './facebookSchema';
 import { windySchema } from './windySchema';
@@ -242,3 +242,63 @@ export const srtStreamStatisticsSchema = z.object({
     msSndBuf: z.number().nonnegative(),
 });
 export type TSrtStreamStatistics = z.infer<typeof srtStreamStatisticsSchema>;
+
+export const diagnosticsParamsSchema = z.object({
+    camerainfo: boolean().optional(),
+    checkserver: boolean().optional(),
+    checkservertime: boolean().optional(),
+    speedtest: boolean().optional(),
+    pingtest: boolean().optional(),
+    videoHostPort: z.string().optional(),
+    audioHostPort: z.string().optional(),
+});
+export type TDiagnosticsParams = z.infer<typeof diagnosticsParamsSchema>;
+export const diagnosticsSchema = z.object({
+    status: z.number(),
+    message: z.string(),
+    data: z.object({
+        audioHostPort: z
+            .object({
+                code: z.number(),
+                message: z.string(),
+            })
+            .optional(),
+        cameraInfo: z
+            .object({
+                uptime: z.string(),
+                availableRAM: z.number(),
+                availableInternal: z.number(),
+            })
+            .optional(),
+        checkServer: z
+            .object({
+                state: z.string(),
+                message: z.string(),
+            })
+            .optional(),
+        checkServerTime: z
+            .object({
+                code: z.number(),
+                message: z.string(),
+            })
+            .optional(),
+        videoHostPort: z
+            .object({
+                code: z.number(),
+                message: z.string(),
+            })
+            .optional(),
+        speedTest: z
+            .object({
+                code: z.string(),
+                data: z.array(z.object({ timestamp: z.number(), speed: z.number() })),
+            })
+            .optional(),
+        pingTest: z
+            .object({
+                output: z.string(),
+            })
+            .optional(),
+    }),
+});
+export type TDiagnostics = z.infer<typeof diagnosticsSchema>;
