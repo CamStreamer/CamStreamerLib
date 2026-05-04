@@ -2,48 +2,222 @@
 
 Module for easy control of streaming in the CamStreamer Acap application.
 
-## Methods
+## Constructor
 
--   **CamStreamerAPI(options)** - The options parameter contains access to the camera and specifies which protocol should be used. Values mentioned
-    in the example below are default.
+**new CamStreamerAPI(client)** - Look at the [Client](./Client.md) docs
 
-        ```javascript
-        CamStreamerAPI({
-            tls: false,
-            tlsInsecure: false,
-            ip: '127.0.0.1',
-            port: 80,
-            user: '',
-            pass: '',
-        });
-        ```
+The options parameter contains access to the camera and specifies which protocol should be used. Values mentioned in the example below are default.
 
--   **getStreamList()** - Get info about CamStreamer streams in JSON format.
+```javascript
+import { DefaultClient } from 'camstreamerlib/web';
+import { CamStreamerAPI } from 'camstreamerlib';
 
-    ```javascript
-    getStreamList();
+const csApi = new CamStreamerAPI(
+    new DefaultClient({
+        tls: false,
+        tlsInsecure: false,
+        ip: '127.0.0.1',
+        port: 80,
+        user: '',
+        pass: '',
+    })
+);
+```
+
+> [!TIP]
+> The majority of CamStreamerAPI methods accept optional `options` parameter of type `THttpRequestOptions`:
+
+```typescript
+type THttpRequestOptions = {
+    timeout?: number;
+    proxyParams?: {
+        path: string;
+        target: {
+            ip: string;
+            mdnsName: string;
+            port: number;
+            user: string;
+            pass: string;
+        };
+    };
+};
+```
+
+## Methods - Common
+
+### getClient(proxyParams?)
+
+Returns CamStreamer client - can be used in custom CamStreamer API calls.
+
+-   **Parameters:**
+
+    -   `proxyParams` (`TProxyParams`, optional)
+
+    ```typescript
+    type TProxyParams =
+        | {
+              path: string;
+              target: {
+                  ip: string;
+                  mdnsName: string;
+                  port: number;
+                  user: string;
+                  pass: string;
+              };
+          }
+        | undefined;
     ```
 
--   **getStream(streamID)** - Get info about the CamStreamer stream specified by `streamID`.
+-   **Returns:** `Client | ProxyClient<Client>`
 
--   **getStreamParameter(streamID, paramName)** - Get a single parameter of the stream with the specified ID.
+```javascript
+const client = csApi.getClient();
+```
 
-    ```javascript
-    getStreamParameter('1234', 'enabled');
-    ```
+### wsAuthorization(options?)
 
--   **setStream(streamID, params)** - Set info about the CamStreamer stream specified by `streamID`.
+Gets the WebSocket authorization token to authorize event websocket.
 
--   **setStreamParameter(streamID, paramName, value)** - Set the value of the stream parameter.
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
 
-    ```javascript
-    setStreamParameter('1234', 'enabled', '1');
-    ```
+```javascript
+const token = await csApi.wsAuthorization();
+```
 
--   **isStreaming(streamID)** - Return the state of streaming.
+### getUtcTime(options?)
 
-    ```javascript
-    isStreaming('1234');
-    ```
+Get UTC time.
 
--   **deleteStream(streamID)** - Delete the CamStreamer stream specified by `streamID`.
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<number>`
+
+```javascript
+const utcTime = await csApi.getUtcTime();
+```
+
+## Methods - Streams
+
+### types
+
+```typescript
+type TStream = {
+    enabled: 0 | 1;
+    active: 0 | 1;
+    audioSource: string;
+    avSyncMsec: number;
+    internalVapixParameters: string;
+    userVapixParameters: string;
+    outputParameters: string;
+    outputType: 'video' | 'images' | 'none';
+    mediaServerUrl: string;
+    inputType: 'CSw' | 'CRS' | 'RTSP_URL';
+    inputUrl: string;
+    forceStereo: 0 | 1;
+    streamDelay: number | null;
+    statusLed: number;
+    statusPort: string;
+    callApi: number;
+    trigger: string;
+    schedule: string;
+    prepareAhead: number;
+    startTime: number | null;
+    stopTime: number | null;
+};
+```
+
+### getStreamList(options?)
+
+Get info about CamStreamer streams in JSON format.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<Record<number, TStream>>` ([`TStream`](#types))
+
+```javascript
+const streamList = csApi.getStreamList();
+```
+
+### getStream(streamId, options?)
+
+Get info about the CamStreamer stream specified by `streamId`.
+
+-   **Parameters:**
+    -   `streamId` (`number`): Id of the stream.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TStream>` ([`TStream`](#types))
+
+```javascript
+const stream = csApi.getStream(1);
+```
+
+### getStreamParameter(streamId, paramName, options?)
+
+Get a single parameter of the stream with the specified ID.
+
+-   **Parameters:**
+    -   `streamId` (`number`): Id of the stream.
+    -   `paramName` (`string`): Name of the searched parameter.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<string>`
+
+```javascript
+const param = csApi.getStreamParameter(1, 'enabled');
+```
+
+### setStream(streamId, params, options?)
+
+Set info about the CamStreamer stream specified by `streamId`.
+
+-   **Parameters:**
+    -   `streamId` (`number`): Id of the stream.
+    -   `params` ([`Partial<TStream>`](#types)): Stream data.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await csApi.setStream(4, { enabled: 1, active: 1 });
+```
+
+### setStreamParameter(streamId, paramName, value, options?)
+
+Set the value of the stream parameter.
+
+-   **Parameters:**
+    -   `streamId` (`number`): Id of the stream.
+    -   `paramName` (`string`): Name of the parameter.
+    -   `value` (`string`): New value of the selected parameter.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await csApi.setStreamParameter(4, 'enabled', '1');
+```
+
+### isStreaming(streamId, options?)
+
+Return the state of streaming.
+
+-   **Parameters:**
+    -   `streamId` (`number`): Id of the stream.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<boolean>`
+
+```javascript
+const isStreaming = csApi.isStreaming(4);
+```
+
+### deleteStream(streamId, options?)
+
+Delete the CamStreamer stream specified by `streamId`.
+
+-   **Parameters:**
+    -   `streamId` (`number`): Id of the stream.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<boolean>`
+
+```javascript
+await csApi.deleteStream(4);
+```
