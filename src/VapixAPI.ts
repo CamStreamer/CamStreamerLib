@@ -61,11 +61,10 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             timeout: options?.timeout,
         });
 
-        if (res.ok) {
-            return res;
-        } else {
+        if (!res.ok) {
             throw new ErrorWithResponse(res);
         }
+        return res;
     };
 
     async getCameraImage(parameters: TCameraImageConfig, options?: THttpRequestOptions) {
