@@ -8,7 +8,7 @@ export const commonRtmpSchema = streamCommonSchema.extend({
 
     saveToSdCard: z.boolean(),
     statusCameraLed: z.boolean(),
-    statusCameraOutput: z.string(),
+    statusCameraOutput: z.string().nullable(),
 });
 
 export const rtmpSchema = commonRtmpSchema.extend({
