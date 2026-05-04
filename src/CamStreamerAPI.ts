@@ -150,6 +150,22 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> {
         return res.data.is_streaming === 1;
     }
 
+    async setStreamEnabled(streamId: number, enabled: boolean, options?: THttpRequestOptions) {
+        await this._postUrlEncoded(
+            `${BASE_PATH}/set_stream_enabled.cgi`,
+            { stream_id: streamId, enabled: enabled ? 1 : 0 },
+            options
+        );
+    }
+
+    async setStreamActive(streamId: number, active: boolean, options?: THttpRequestOptions) {
+        await this._postUrlEncoded(
+            `${BASE_PATH}/set_stream_active.cgi`,
+            { stream_id: streamId, active: active ? 1 : 0 },
+            options
+        );
+    }
+
     //   ----------------------------------------
     //                 Audio Files
     //   ----------------------------------------
