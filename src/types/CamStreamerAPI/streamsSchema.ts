@@ -15,6 +15,9 @@ export const daCastSchema = streamCommonSchema.extend({
 export const dailymotionSchema = streamCommonSchema.extend({
     platform: z.literal('dailymotion'),
 });
+export const facebookRtmpSchema = commonRtmpSchema.extend({
+    platform: z.literal('facebook_rtmp'),
+});
 export const gameChangerSchema = commonRtmpSchema.extend({
     platform: z.literal('game_changer'),
 });

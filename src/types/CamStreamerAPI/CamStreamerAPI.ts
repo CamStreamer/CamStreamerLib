@@ -7,6 +7,7 @@ import {
     churchSchema,
     daCastSchema,
     dailymotionSchema,
+    facebookRtmpSchema,
     gameChangerSchema,
     hlsPullSchema,
     hlsPushSchema,
@@ -31,6 +32,7 @@ import { FileLike, fileSchema } from '../common';
 
 export const streamSchema = z.discriminatedUnion('platform', [
     facebookSchema,
+    facebookRtmpSchema,
     mpegDvbSchema,
     rtmpSchema,
     sdCardSchema,
@@ -60,6 +62,11 @@ export type TStreamList = z.infer<typeof streamListSchema>;
 export type TFacebookStream = z.infer<typeof facebookSchema>;
 export const isFacebookStream = (stream: TStream): stream is TFacebookStream => {
     return stream.platform === 'facebook';
+};
+
+export type TFacebookRtmpStream = z.infer<typeof facebookRtmpSchema>;
+export const isFacebookRtmpStream = (stream: TStream): stream is TFacebookRtmpStream => {
+    return stream.platform === 'facebook_rtmp';
 };
 
 export type TMpegDvbStream = z.infer<typeof mpegDvbSchema>;
