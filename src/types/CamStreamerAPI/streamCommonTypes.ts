@@ -124,8 +124,6 @@ export type TStreamInputType = TStreamVideo['input']['type'];
 export type TStreamingProtocolType = Extract<TStreamVideo['input'], { type: 'CRS' }>['streamingProtocol'];
 export type TStreamOutputType = TStreamVideo['output']['type'];
 
-export type TStreamDelay = TStreamVideo['delayS'];
-
 export const internalVapixParametersSchema = bitrateVapixParamsSchema.extend({
     camera: z.string(),
     resolution: z.string(),
