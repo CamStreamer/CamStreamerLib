@@ -12,9 +12,14 @@ export const streamTypeSchema = z.union([
 export type TStreamType = z.infer<typeof streamTypeSchema>;
 
 const scheduleSchema = z.object({
-    day: z.number().int().min(0).max(6),
-    startTimeS: z.number().int().min(0).max(86400),
-    stopTimeS: z.number().int().min(0).max(86400),
+    start: z.object({
+        day: z.number().int().min(0).max(6),
+        timeS: z.number().int().min(0).max(86400),
+    }),
+    stop: z.object({
+        day: z.number().int().min(0).max(6),
+        timeS: z.number().int().min(0).max(86400),
+    }),
     isActive: z.boolean(),
 });
 export const streamTriggerSchema = z.discriminatedUnion('type', [
