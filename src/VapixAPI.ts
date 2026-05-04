@@ -62,12 +62,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         return res;
     }
 
-    postJson = async (
+    async postJson(
         path: string,
         data: Record<string, any>,
         headers?: Record<string, string>,
         options?: THttpRequestOptions
-    ) => {
+    ) {
         const agent = this.getClient(options?.proxyParams);
         const jsonData = JSON.stringify(data);
         const res = await agent.post({
@@ -81,7 +81,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             throw new ErrorWithResponse(res);
         }
         return res;
-    };
+    }
 
     async getCameraImage(parameters: TCameraImageConfig, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
@@ -621,6 +621,42 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     }
 
     //  -------------------------------
+    //       continuous recording
+    //  -------------------------------
+
+    async getRecordingRuleList(options?: THttpRequestOptions) {
+        const res = await this._getText('/axis-cgi/record/continuous/listconfiguration.cgi', undefined, options);
+        return VapixAPI.parseXmlResponse(res, 'continuousrecordingconfigurations');
+    }
+
+    async addRecordingRule(params: Record<string, string>, options?: THttpRequestOptions) {
+        const res = await this._getText('/axis-cgi/record/continuous/addconfiguration.cgi', params, options);
+        return VapixAPI.parseXmlResponse(res, 'configure');
+    }
+
+    async removeRecordingRule(profileId: string, options?: THttpRequestOptions) {
+        const res = await this._getText(
+            '/axis-cgi/record/continuous/removeconfiguration.cgi',
+            {
+                profile: profileId,
+            },
+            options
+        );
+        return VapixAPI.parseXmlResponse(res, 'remove');
+    }
+
+    async getDiskInfo(diskId = 'all', options?: THttpRequestOptions) {
+        const res = await this._getText(
+            '/axis-cgi/disks/list.cgi',
+            {
+                diskid: diskId,
+            },
+            options
+        );
+        return VapixAPI.parseXmlResponse(res, 'disks');
+    }
+
+    //  -------------------------------
     //          application API
     //  -------------------------------
 
@@ -805,5 +841,16 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             });
         });
         return res;
+    };
+
+    private static parseXmlResponse = (xml: string, nodeName: string) => {
+        const doc = new DOMParser().parseFromString(xml, 'text/xml');
+        const node = doc.getElementsByTagName(nodeName);
+
+        if (node.length !== 1) {
+            throw new Error('Invalid XML from camera');
+        }
+
+        return node[0];
     };
 }
