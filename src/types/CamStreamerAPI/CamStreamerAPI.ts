@@ -19,6 +19,7 @@ import { microsoftAzureSchema } from './microsoftAzureSchema';
 import { microsoftStreamSchema } from './microsoftStreamSchema';
 import { gameChangerSchema } from './gameChangerSchema';
 import { FileLike, fileSchema } from '../common';
+import { youtubeRtmpSchema } from './youtubeRtmpSchema';
 
 //   ----------------------------------------
 //                    Streams
@@ -44,8 +45,10 @@ export const streamSchema = z.discriminatedUnion('type', [
     microsoftAzureSchema,
     microsoftStreamSchema,
     gameChangerSchema,
+    youtubeRtmpSchema,
 ]);
 export type TStream = z.infer<typeof streamSchema>;
+export type TStreamType = TStream['type'];
 
 export const streamListSchema = z.object({ streamList: z.array(streamSchema) });
 export type TStreamList = z.infer<typeof streamListSchema>;
@@ -144,6 +147,11 @@ export const isMicrosoftStream = (stream: TStream): stream is TMicrosoftStream =
 export type TGameChangerStream = z.infer<typeof gameChangerSchema>;
 export const isGameChangerStream = (stream: TStream): stream is TGameChangerStream => {
     return stream.type === 'game_changer';
+};
+
+export type TYoutubeRtmpStream = z.infer<typeof youtubeRtmpSchema>;
+export const isYoutubeRtmpStream = (stream: TStream): stream is TYoutubeRtmpStream => {
+    return stream.type === 'youtube_rtmp';
 };
 
 //   ----------------------------------------
