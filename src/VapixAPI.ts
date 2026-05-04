@@ -1,4 +1,4 @@
-import { IClient, TParameters, TResponse } from './internal/types';
+import { IClient, TResponse } from './internal/types';
 import { arrayToUrl, isNullish } from './internal/utils';
 
 import {
@@ -46,13 +46,26 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         super(client);
     }
 
-    postJson = (
+    postJson = async (
         path: string,
-        data: string | Parameters<Client['post']>[0]['data'],
-        parameters?: TParameters,
+        data: Record<string, any>,
+        headers?: Record<string, string>,
         options?: THttpRequestOptions
     ) => {
-        return this._postJsonEncoded(path, data, parameters, options);
+        const agent = this.getClient(options?.proxyParams);
+        const jsonData = JSON.stringify(data);
+        const res = await agent.post({
+            path,
+            data: jsonData,
+            headers: { ...headers, 'Content-Type': 'application/json' },
+            timeout: options?.timeout,
+        });
+
+        if (res.ok) {
+            return res;
+        } else {
+            throw new ErrorWithResponse(res);
+        }
     };
 
     async getCameraImage(parameters: TCameraImageConfig, options?: THttpRequestOptions) {
