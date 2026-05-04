@@ -6,9 +6,7 @@ import { networkCameraListSchema, THttpRequestOptions, TProxyParams } from './ty
 import { z } from 'zod';
 import { ProxyClient } from './internal/ProxyClient';
 import {
-    fileListSchema,
     ImageType,
-    storageDataListSchema,
     TCoordinates,
     TField,
     TFile,
@@ -20,6 +18,10 @@ import {
     serviceListSchema,
     servicesSchema,
     wsResponseSchema,
+    getStorageDataListSchema,
+    getFileListSchema,
+    TFileList,
+    TStorageDataList,
 } from './types/CamOverlayAPI';
 
 const BASE_PATH = '/local/camoverlay/api';
@@ -61,15 +63,15 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
     //            files - fonts, images
     //   ----------------------------------------
 
-    async listFiles(fileType: TFileType, options?: THttpRequestOptions) {
+    async listFiles<T extends TFileType>(fileType: T, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/upload_${fileType}.cgi`, { action: 'list' }, options);
-        return fileListSchema.parse(res.list);
+        return getFileListSchema(fileType).parse(res.list) as TFileList<T>;
     }
 
-    async uploadFile(
-        fileType: TFileType,
+    async uploadFile<T extends TFileType>(
+        fileType: T,
         formData: Parameters<Client['post']>[0]['data'],
-        storage: TFileStorageType,
+        storage: TFileStorageType<T>,
         options?: THttpRequestOptions
     ) {
         await this._post(
@@ -83,7 +85,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         );
     }
 
-    async removeFile(fileType: TFileType, fileParams: TFile, options?: THttpRequestOptions) {
+    async removeFile<T extends TFileType>(fileType: T, fileParams: TFile<T>, options?: THttpRequestOptions) {
         await this._postUrlEncoded(
             `${BASE_PATH}/upload_${fileType}.cgi`,
             {
@@ -95,8 +97,8 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         );
     }
 
-    async getFileStorage(fileType: TFileType, options?: THttpRequestOptions) {
-        const res: TStorageResponse = await this._getJson(
+    async getFileStorage<T extends TFileType>(fileType: T, options?: THttpRequestOptions) {
+        const res: TStorageResponse<T> = await this._getJson(
             `${BASE_PATH}/upload_${fileType}.cgi`,
             { action: 'get_storage' },
             options
@@ -104,7 +106,7 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> {
         if (res.code !== 200) {
             throw new StorageDataFetchError(res);
         }
-        return storageDataListSchema.parse(res.list);
+        return getStorageDataListSchema(fileType).parse(res.list) as TStorageDataList<T>;
     }
 
     async getFilePreviewFromCamera(path: string, options?: THttpRequestOptions) {
