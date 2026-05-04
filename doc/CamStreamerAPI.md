@@ -113,6 +113,18 @@ Dummy endpoint to check if API is available.
 await csApi.checkAPIAvailable();
 ```
 
+### checkCameraTime(options?)
+
+Check camera time against CamStreamer server.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<boolean>`
+
+```javascript
+const isValid = await csApi.checkCameraTime();
+```
+
 ### wsAuthorization(options?)
 
 Gets the WebSocket authorization token to authorize event websocket.
@@ -314,7 +326,7 @@ const streamList = await csApi.getStreamList();
 Set list of stream configurations.
 
 -   **Parameters:**
-    -   `streamData` ([`(TStream | TUnknownStream)[]`](#types)): Stream data.
+    -   `streamList` ([`(TStream | TUnknownStream)[]`](#types)): Stream data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -513,7 +525,15 @@ Get application report data.
     ```
 
 ```javascript
-const diagnostics = await csApi.getDiagnostics();
+const diagnostics = await csApi.getDiagnostics({
+    camerainfo: true,
+    checkserver: false,
+    checkservertime: false,
+    speedtest: false,
+    pingtest: false,
+    videoHostPort: undefined,
+    audioHostPort: undefined,
+});
 ```
 
 <br />
@@ -550,7 +570,7 @@ Upload audio file.
     -   `formData` (`Parameters<Client['post']>[0]['data']`): e.g. string, FormData, ArrayBuffer
     -   `storage` (`"url" | "flash" | "SD0"`)
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<string>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await csApi.uploadFile(fileData, 'url');
