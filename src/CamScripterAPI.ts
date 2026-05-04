@@ -99,7 +99,7 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> extends Basi
     }
 
     //   ----------------------------------------
-    //                   Genetec
+    //                   Report
     //   ----------------------------------------
 
     downloadReport(options?: THttpRequestOptions) {

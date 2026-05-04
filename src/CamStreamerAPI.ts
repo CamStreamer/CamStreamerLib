@@ -209,7 +209,7 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
     }
 
     //   ----------------------------------------
-    //                   Genetec
+    //                   Report
     //   ----------------------------------------
 
     downloadReport(options?: THttpRequestOptions) {
