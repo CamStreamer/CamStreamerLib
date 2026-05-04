@@ -10,6 +10,7 @@ export const streamCommonSchema = z.object({
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
+    callApi: z.boolean(),
 
     trigger: z.discriminatedUnion('type', [
         z.object({
