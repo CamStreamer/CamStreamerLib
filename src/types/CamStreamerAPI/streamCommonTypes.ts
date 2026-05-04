@@ -21,7 +21,12 @@ export const streamTriggerSchema = z.discriminatedUnion('type', [
         type: z.literal('manual'),
         ioPort: z.string().nullable(),
     }),
-    z.object({ type: z.literal('onetime'), startTime: z.number(), stopTime: z.number() }),
+    z.object({
+        type: z.literal('onetime'),
+        startTime: z.number(),
+        stopTime: z.number(),
+        ioPort: z.string().nullable(),
+    }),
     z.object({
         type: z.literal('recurrent'),
         schedule: z.array(scheduleSchema),
