@@ -18,6 +18,7 @@ import { ibmSchema } from './ibmSchema';
 import { microsoftAzureSchema } from './microsoftAzureSchema';
 import { microsoftStreamSchema } from './microsoftStreamSchema';
 import { gameChangerSchema } from './gameChangerSchema';
+import { FileLike, fileSchema } from '../common';
 
 //   ----------------------------------------
 //                    Streams
@@ -184,7 +185,7 @@ export type TAudioFileList = z.infer<typeof audioFileListSchema>;
 export type TFileToUpload = {
     storage: TAudioFileStorageType;
     name: string;
-    file: File | string | null;
+    file: FileLike | string | null;
 };
 
 export const audioUrlSchema = z.object({
@@ -195,7 +196,7 @@ export const audioUrlSchema = z.object({
 export type TAudioUrlType = z.infer<typeof audioUrlSchema>;
 
 export const audioLocalSchema = z.object({
-    file: z.instanceof(File),
+    file: fileSchema,
     name: z.string(),
     storage: z.enum(['flash', 'SD0']),
 });
