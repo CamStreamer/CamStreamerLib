@@ -6,9 +6,6 @@ export const commonRtmpSchema = streamCommonSchema.extend({
     streamIdentifier: z.string().optional(),
 });
 
-export const churchSchema = streamCommonSchema.extend({
-    platform: z.literal('church'),
-});
 export const daCastSchema = streamCommonSchema.extend({
     platform: z.literal('da_cast'),
 });
