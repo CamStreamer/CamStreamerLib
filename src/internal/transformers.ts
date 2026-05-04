@@ -1,4 +1,4 @@
-import { camelCase, snakeCase, isPlainObject, mapKeys, mapValues } from 'lodash';
+import { camelCase, snakeCase, isPlainObject, mapKeys, mapValues } from 'lodash-es';
 import type {
     CamelCasedProperties,
     CamelCasedPropertiesDeep,
