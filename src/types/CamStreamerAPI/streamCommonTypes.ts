@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { booleanSchema } from '../common';
 
 export const streamTypeSchema = z.union([
     z.literal('youtube'),
@@ -59,7 +60,7 @@ export const internalVapixParametersSchema = z.object({
     fps: z.number().int().optional(),
     videobitrate: z.number().int().optional(),
     videomaxbitrate: z.number().int().optional(),
-    audio: z.union([z.literal(0), z.literal(1)]).optional(),
+    audio: booleanSchema.optional(),
 });
 export type TInternalVapixParameters = z.infer<typeof internalVapixParametersSchema>;
 
