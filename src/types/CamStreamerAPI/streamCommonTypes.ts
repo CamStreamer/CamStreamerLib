@@ -12,6 +12,7 @@ export const streamTypeSchema = z.union([
 export type TStreamType = z.infer<typeof streamTypeSchema>;
 
 export const streamCommonSchema = z.object({
+    id: z.number(),
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
