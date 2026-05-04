@@ -2,6 +2,18 @@
 
 Module for easy control of streaming in the CamStreamer Acap application.
 
+## Overview
+
+-   [Constructor](#constructor)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Stream Management](#stream-management-methods): Manage streams.
+    -   [Stream Statistics](#stream-statistics-methods): Get stream statistics data.
+    -   [Audio Files Management](#audio-files-management-methods): Manage audio files.
+
+<br/>
+
 ## Constructor
 
 **new CamStreamerAPI(client)** - Look at the [Client](./Client.md) docs
@@ -31,15 +43,6 @@ type THttpRequestOptions = {
     };
 };
 ```
-
-## Overview
-
--   [Methods](#static-methods)
-    -   [Static](#static-methods)
-    -   [Common](#common-methods)
-    -   [Stream Management](#stream-management-methods): Manage streams.
-    -   [Stream Statistics](#stream-statistics-methods): Get stream statistics data.
-    -   [Audio Files Management](#audio-files-management-methods): Manage audio files.
 
 <br/>
 

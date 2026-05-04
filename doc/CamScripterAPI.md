@@ -5,6 +5,18 @@ Module for access to the CamScripter HTTP interface.
 > [!TIP]
 > Examples of CamScripter packages can be found at https://github.com/CamStreamer/CamScripterApp_examples.
 
+## Overview
+
+-   [Constructor](#constructor)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Package Management](#package-management-methods): Manage package installations.
+    -   [Node.js Management](#nodejs-management-methods): Manage Node.js on camera.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
 ## Constructor
 
 -   **new CamScripterAPI(client)** - Look at the [Client](./Client.md) docs.
@@ -34,15 +46,6 @@ type THttpRequestOptions = {
     };
 };
 ```
-
-## Overview
-
--   [Methods](#static-methods)
-    -   [Static](#static-methods)
-    -   [Common](#common-methods)
-    -   [Package Management](#package-management-methods): Manage package installations.
-    -   [Node.js Management](#nodejs-management-methods): Manage Node.js on camera.
-    -   [App Report](#report-methods): Get app report data.
 
 <br/>
 
