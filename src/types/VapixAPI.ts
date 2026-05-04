@@ -13,19 +13,21 @@ export const applicationSchema = z.object({
     VendorHomePage: z.string().optional(),
     LicenseName: z.string().optional(),
 });
-export const applicationListSchema = z.array(applicationSchema.extend({
-    appId: z
-        .union([
-            z.literal('CamStreamer'),
-            z.literal('CamSwitcher'),
-            z.literal('CamOverlay'),
-            z.literal('CamScripter'),
-            z.literal('PlaneTracker'),
-            z.literal('Ndihxplugin'),
-            z.literal('SportTracker'),
-        ])
-        .nullable(),
-}));
+export const applicationListSchema = z.array(
+    applicationSchema.extend({
+        appId: z
+            .union([
+                z.literal('CamStreamer'),
+                z.literal('CamSwitcher'),
+                z.literal('CamOverlay'),
+                z.literal('CamScripter'),
+                z.literal('PlaneTracker'),
+                z.literal('Ndihxplugin'),
+                z.literal('SportTracker'),
+            ])
+            .nullable(),
+    })
+);
 
 export const APP_IDS = [
     'CamStreamer',

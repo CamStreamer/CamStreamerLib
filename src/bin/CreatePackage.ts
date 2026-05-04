@@ -1,6 +1,6 @@
 import AdmZip from 'adm-zip';
-import Path from 'path';
-import fs from 'fs';
+import * as path from 'path';
+import * as fs from 'fs';
 
 import { execSync } from 'child_process';
 
@@ -18,14 +18,14 @@ type TManifestInfo = {
 
 const productionModulesFolder = 'production_modules';
 
-function isDirectory(path: string) {
-    const stat = fs.statSync(path);
+function isDirectory(filePath: string) {
+    const stat = fs.statSync(filePath);
     return stat.isDirectory();
 }
 
 function getPackageInfo(folder: string): TManifestInfo | undefined {
     try {
-        const manifest = fs.readFileSync(Path.join(folder, 'manifest.json'));
+        const manifest = fs.readFileSync(path.join(folder, 'manifest.json'));
         const manifestParsed = JSON.parse(manifest.toString());
         return {
             packageName: manifestParsed.package_name,
@@ -37,11 +37,11 @@ function getPackageInfo(folder: string): TManifestInfo | undefined {
 }
 
 function createZipArchive(zip: AdmZip, folder: string, options: TZipOptions) {
-    const zipFileRegex = new RegExp(`${Path.basename(folder)}(_[0-9]){3}\\.zip`);
+    const zipFileRegex = new RegExp(`${path.basename(folder)}(_[0-9]){3}\\.zip`);
     const files = fs.readdirSync(folder);
     for (const file of files) {
-        const path = Path.join(folder, file);
-        const isDir = isDirectory(path);
+        const filePath = path.join(folder, file);
+        const isDir = isDirectory(filePath);
         if (
             file[0] === '.' ||
             zipFileRegex.test(file) ||
@@ -51,13 +51,13 @@ function createZipArchive(zip: AdmZip, folder: string, options: TZipOptions) {
         ) {
             continue;
         } else if (file === 'dist' && options.typeScriptPackage) {
-            zip.addLocalFolder(path);
+            zip.addLocalFolder(filePath);
         } else if (file === productionModulesFolder && options.includeNodeModules) {
-            zip.addLocalFolder(Path.join(productionModulesFolder, 'node_modules'), 'node_modules');
+            zip.addLocalFolder(path.join(productionModulesFolder, 'node_modules'), 'node_modules');
         } else if (isDir) {
-            zip.addLocalFolder(path, file);
+            zip.addLocalFolder(filePath, file);
         } else {
-            zip.addLocalFile(path);
+            zip.addLocalFile(filePath);
         }
     }
 }
@@ -67,11 +67,11 @@ function installDependencies() {
         fs.mkdirSync(productionModulesFolder, {});
     }
 
-    fs.cpSync('package.json', Path.join(productionModulesFolder, 'package.json'));
-    fs.cpSync('package-lock.json', Path.join(productionModulesFolder, 'package-lock.json'));
+    fs.cpSync('package.json', path.join(productionModulesFolder, 'package.json'));
+    fs.cpSync('package-lock.json', path.join(productionModulesFolder, 'package-lock.json'));
 
     execSync(`npm ci --omit=dev`, {
-        cwd: Path.join(process.cwd(), productionModulesFolder),
+        cwd: path.join(process.cwd(), productionModulesFolder),
     });
 }
 
@@ -101,7 +101,7 @@ function main(args: string[]) {
         options.typeScriptPackage = true;
     }
 
-    const folder = Path.resolve('.');
+    const folder = path.resolve('.');
     const packageInfo = getPackageInfo(folder);
     if (packageInfo === undefined) {
         console.error('Package info not found');

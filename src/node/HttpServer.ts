@@ -1,8 +1,8 @@
-import http from 'http';
-import url from 'url';
-import fs from 'fs';
-import path from 'path';
-import EventEmitter from 'events';
+import * as http from 'http';
+import * as url from 'url';
+import * as fs from 'fs';
+import * as path from 'path';
+import { EventEmitter } from 'events';
 import { Socket } from 'node:net';
 
 export type HttpServerOptions = {

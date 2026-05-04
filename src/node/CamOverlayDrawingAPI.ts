@@ -1,4 +1,4 @@
-import EventEmitter from 'events';
+import { EventEmitter } from 'events';
 import { WsClient, WsClientOptions } from './WsClient';
 import {
     AsyncMessage,

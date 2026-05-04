@@ -8,7 +8,6 @@
         "skipLibCheck": true,
         "forceConsistentCasingInFileNames": true,
         "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
         "strict": true,
         "typeRoots": ["typings", "node_modules/@types"],
         "noUncheckedIndexedAccess": true,
