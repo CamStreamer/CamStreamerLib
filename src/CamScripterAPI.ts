@@ -97,4 +97,12 @@ export class CamScripterAPI<Client extends IClient<TResponse, any>> extends Basi
     async installNodejs(storage: TStorageType, options?: THttpRequestOptions) {
         await this._getJson(`${BASE_PATH}/node_update.cgi`, { storage: storage }, options);
     }
+
+    //   ----------------------------------------
+    //                   Genetec
+    //   ----------------------------------------
+
+    downloadReport(options?: THttpRequestOptions) {
+        return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
+    }
 }
