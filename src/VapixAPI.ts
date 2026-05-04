@@ -248,8 +248,9 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         return this._getText('/axis-cgi/serverreport.cgi', { mode: 'text' }, options);
     }
 
-    getSystemLog(options?: THttpRequestOptions) {
-        return this._postUrlEncoded('/axis-cgi/admin/systemlog.cgi', {}, options);
+    async getSystemLog(options?: THttpRequestOptions) {
+        const res = await this._postUrlEncoded('/axis-cgi/admin/systemlog.cgi', {}, options);
+        return res.text();
     }
 
     async getMaxFps(channel: number, options?: THttpRequestOptions) {
@@ -348,7 +349,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
 
     async setHeaders(headers: Record<string, string>, options?: THttpRequestOptions) {
         const data = { apiVersion: '1.0', method: 'set', params: headers };
-        return this._postJsonEncoded('/axis-cgi/customhttpheader.cgi', data, undefined, options);
+        await this._postJsonEncoded('/axis-cgi/customhttpheader.cgi', data, undefined, options);
     }
 
     //  -------------------------------
@@ -500,8 +501,8 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         return ptzOverviewSchema.parse(res);
     }
 
-    goToPreset(channel: number, presetName: string, options?: THttpRequestOptions) {
-        return this._postUrlEncoded(
+    async goToPreset(channel: number, presetName: string, options?: THttpRequestOptions) {
+        await this._postUrlEncoded(
             '/axis-cgi/com/ptz.cgi',
             {
                 camera: channel.toString(),
@@ -583,7 +584,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     //  -------------------------------
 
     async addCameraUser(username: string, pass: string, sgrp: string, comment?: string, options?: THttpRequestOptions) {
-        return await this._postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/pwdgrp.cgi',
             {
                 action: 'add',
@@ -595,6 +596,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             },
             options
         );
+        return res.text();
     }
 
     async getCameraUsers(options?: THttpRequestOptions) {
@@ -609,7 +611,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     }
 
     async editCameraUser(username: string, pass: string, options?: THttpRequestOptions) {
-        return await this._postUrlEncoded(
+        const res = await this._postUrlEncoded(
             '/axis-cgi/pwdgrp.cgi',
             {
                 action: 'update',
@@ -618,6 +620,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             },
             options
         );
+        return res.text();
     }
 
     //  -------------------------------
