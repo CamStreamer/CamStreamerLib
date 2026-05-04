@@ -3,6 +3,7 @@ export * from './WsClient';
 export * from './HttpServer';
 export * from './HttpRequestSender';
 export * from './events/AxisCameraStationEvents';
+export * from './TimeZoneDaemon';
 
 export * from './events/GenetecAgent';
 export * from '../types/GenetecAgent';
