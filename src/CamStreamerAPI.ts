@@ -198,6 +198,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
         );
     }
 
+    async deleteStream(streamId: string, options?: THttpRequestOptions) {
+        await this._postUrlEncoded(`${BASE_PATH}/remove.cgi`, { stream_id: streamId }, options);
+    }
+
     //   ----------------------------------------
     //                 Audio Files
     //   ----------------------------------------
