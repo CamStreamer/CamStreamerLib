@@ -233,15 +233,15 @@ export const cameraSettingsSchema = z.object({
     camstreamerIntegration: z
         .object({
             adPlacementEnabled: z.boolean(),
-            adMinIntervalMs: z.number().int().nonnegative(),
-            adShortDurationMs: z.number().int().nonnegative(),
-            adLongDurationMs: z.number().int().nonnegative(),
+            adMinIntervalSec: z.number().int().nonnegative(),
+            adShortDurationSec: z.number().int().nonnegative(),
+            adLongDurationSec: z.number().int().nonnegative(),
         })
         .default({
             adPlacementEnabled: false,
-            adMinIntervalMs: 1800000,
-            adShortDurationMs: 10000,
-            adLongDurationMs: 30000,
+            adMinIntervalSec: 1800,
+            adShortDurationSec: 10,
+            adLongDurationSec: 30,
         }),
 });
 export type TCameraSettings = z.infer<typeof cameraSettingsSchema>;
