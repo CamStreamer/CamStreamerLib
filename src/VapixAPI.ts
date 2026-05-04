@@ -547,7 +547,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         );
 
         const portResponseParsed = getPortsResponseSchema.parse(await res.json());
-        return portResponseParsed.data.items;
+        return portResponseParsed.data.items ?? [];
     }
 
     async setPorts(ports: TPortSetSchema[], options?: THttpRequestOptions) {
