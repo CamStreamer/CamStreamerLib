@@ -234,3 +234,11 @@ export const portSequenceStateSchema = z.object({
     time: z.number().min(0).max(65535),
 });
 export type TPortSequenceStateSchema = z.infer<typeof portSequenceStateSchema>;
+
+export const recordingConfigItemSchema = z.object({
+    diskid: z.string(),
+    eventid: z.string(),
+    options: z.record(z.string()),
+    profile: z.string(),
+});
+export type TRecordingConfigItem = z.infer<typeof recordingConfigItemSchema>;
