@@ -204,7 +204,8 @@ await vapix.performAutofocus();
 
 Generate and return a server report including product information, parameter settings, and system logs.
 
-> [!TIP] > [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
+> [!TIP]
+> [Server report - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#server-report)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
@@ -218,7 +219,8 @@ await vapix.downloadCameraReport();
 
 Generate and return a system log information.
 
-> [!TIP] > [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
+> [!TIP]
+> [System log - Axis docummentation](https://developer.axis.com/vapix/network-video/system-settings/#http-api-logs)
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
