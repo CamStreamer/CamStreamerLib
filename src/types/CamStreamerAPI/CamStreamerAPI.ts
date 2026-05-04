@@ -29,7 +29,7 @@ import { FileLike, fileSchema } from '../common';
 //                    Streams
 //   ----------------------------------------
 
-export const streamSchema = z.discriminatedUnion('type', [
+export const streamSchema = z.discriminatedUnion('platform', [
     facebookSchema,
     mpegDvbSchema,
     rtmpSchema,
@@ -52,109 +52,109 @@ export const streamSchema = z.discriminatedUnion('type', [
     youtubeRtmpSchema,
 ]);
 export type TStream = z.infer<typeof streamSchema>;
-export type TStreamType = TStream['type'];
+export type TPlatform = TStream['platform'];
 
 export const streamListSchema = z.object({ streamList: z.array(streamSchema) });
 export type TStreamList = z.infer<typeof streamListSchema>;
 
 export type TFacebookStream = z.infer<typeof facebookSchema>;
 export const isFacebookStream = (stream: TStream): stream is TFacebookStream => {
-    return stream.type === 'facebook';
+    return stream.platform === 'facebook';
 };
 
 export type TMpegDvbStream = z.infer<typeof mpegDvbSchema>;
 export const isMpegDvbStream = (stream: TStream): stream is TMpegDvbStream => {
-    return stream.type === 'mpeg_dvb';
+    return stream.platform === 'mpeg_dvb';
 };
 
 export type TRtmpStream = z.infer<typeof rtmpSchema>;
 export const isRtmpStream = (stream: TStream): stream is TRtmpStream => {
-    return stream.type === 'rtmp';
+    return stream.platform === 'rtmp';
 };
 
 export type TSdCardStream = z.infer<typeof sdCardSchema>;
 export const isSdCardStream = (stream: TStream): stream is TSdCardStream => {
-    return stream.type === 'sd_card';
+    return stream.platform === 'sd_card';
 };
 
 export type TWindyStream = z.infer<typeof windySchema>;
 export const isWindyStream = (stream: TStream): stream is TWindyStream => {
-    return stream.type === 'windy';
+    return stream.platform === 'windy';
 };
 
 export type TYouTubeStream = z.infer<typeof youtubeSchema>;
 export const isYouTubeStream = (stream: TStream): stream is TYouTubeStream => {
-    return stream.type === 'youtube';
+    return stream.platform === 'youtube';
 };
 
 export type TVimeoStream = z.infer<typeof vimeoSchema>;
 export const isVimeoStream = (stream: TStream): stream is TVimeoStream => {
-    return stream.type === 'vimeo';
+    return stream.platform === 'vimeo';
 };
 
 export type TTwitchStream = z.infer<typeof twitchSchema>;
 export const isTwitchStream = (stream: TStream): stream is TTwitchStream => {
-    return stream.type === 'twitch';
+    return stream.platform === 'twitch';
 };
 
 export type TChurchStream = z.infer<typeof churchSchema>;
 export const isChurchStream = (stream: TStream): stream is TChurchStream => {
-    return stream.type === 'church';
+    return stream.platform === 'church';
 };
 
 export type TSrtStream = z.infer<typeof srtSchema>;
 export const isSrtStream = (stream: TStream): stream is TSrtStream => {
-    return stream.type === 'srt';
+    return stream.platform === 'srt';
 };
 
 export type TDaCastStream = z.infer<typeof daCastSchema>;
 export const isDaCastStream = (stream: TStream): stream is TDaCastStream => {
-    return stream.type === 'da_cast';
+    return stream.platform === 'da_cast';
 };
 
 export type THlsPullStream = z.infer<typeof hlsPullSchema>;
 export const isHlsPullStream = (stream: TStream): stream is THlsPullStream => {
-    return stream.type === 'hls_pull';
+    return stream.platform === 'hls_pull';
 };
 
 export type THlsPushStream = z.infer<typeof hlsPushSchema>;
 export const isHlsPushStream = (stream: TStream): stream is THlsPushStream => {
-    return stream.type === 'hls_push';
+    return stream.platform === 'hls_push';
 };
 
 export type TWowzaStream = z.infer<typeof wowzaSchema>;
 export const isWowzaStream = (stream: TStream): stream is TWowzaStream => {
-    return stream.type === 'wowza';
+    return stream.platform === 'wowza';
 };
 
 export type TDailymotionStream = z.infer<typeof dailymotionSchema>;
 export const isDailymotionStream = (stream: TStream): stream is TDailymotionStream => {
-    return stream.type === 'dailymotion';
+    return stream.platform === 'dailymotion';
 };
 
 export type TIbmStream = z.infer<typeof ibmSchema>;
 export const isIbmStream = (stream: TStream): stream is TIbmStream => {
-    return stream.type === 'ibm';
+    return stream.platform === 'ibm';
 };
 
 export type TMicrosoftAzureStream = z.infer<typeof microsoftAzureSchema>;
 export const isMicrosoftAzureStream = (stream: TStream): stream is TMicrosoftAzureStream => {
-    return stream.type === 'microsoft_azure';
+    return stream.platform === 'microsoft_azure';
 };
 
 export type TMicrosoftStream = z.infer<typeof microsoftStreamSchema>;
 export const isMicrosoftStream = (stream: TStream): stream is TMicrosoftStream => {
-    return stream.type === 'microsoft_stream';
+    return stream.platform === 'microsoft_stream';
 };
 
 export type TGameChangerStream = z.infer<typeof gameChangerSchema>;
 export const isGameChangerStream = (stream: TStream): stream is TGameChangerStream => {
-    return stream.type === 'game_changer';
+    return stream.platform === 'game_changer';
 };
 
 export type TYoutubeRtmpStream = z.infer<typeof youtubeRtmpSchema>;
 export const isYoutubeRtmpStream = (stream: TStream): stream is TYoutubeRtmpStream => {
-    return stream.type === 'youtube_rtmp';
+    return stream.platform === 'youtube_rtmp';
 };
 
 //   ----------------------------------------

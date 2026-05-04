@@ -15,7 +15,7 @@ const pagePostSchema = z.object({
 export type TPagePost = z.infer<typeof pagePostSchema>;
 
 export const facebookSchema = streamCommonSchema.extend({
-    type: z.literal('facebook'),
+    platform: z.literal('facebook'),
     description: z.string().optional(),
     deleteAfterEnd: z.boolean(),
     countdown: z.boolean(),

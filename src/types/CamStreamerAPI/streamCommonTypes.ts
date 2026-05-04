@@ -6,7 +6,7 @@ import { bitrateVapixParamsSchema, booleanSchema, h264ProfileSchema } from '../c
 //   ----------------------------------------
 
 export const streamCommonSchema = z.object({
-    id: z.string(),
+    streamId: z.string(),
     enabled: z.boolean(),
     active: z.boolean(),
     title: z.string(),
