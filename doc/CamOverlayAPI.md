@@ -2,6 +2,20 @@
 
 Module for access to the CamOverlay HTTP interface.
 
+## Overview
+
+-   [Constructor](#constructor)
+-   [List of CamOverlay Services](#services)
+-   [Methods](#static-methods)
+    -   [Static](#static-methods)
+    -   [Common](#common-methods)
+    -   [Files Management](#files-management-methods): Manage images and fonts.
+    -   [CamOverlay Services](#camoverlay-services-methods): Manage CamOverlay widgets.
+    -   [Custom Graphics](#custom-graphics-methods): Manage Custom Graphics widget.
+    -   [App Report](#report-methods): Get app report data.
+
+<br/>
+
 ## Constructor
 
 -   **new CamOverlayAPI(client)** - Look at the [Client](./Client.md) docs.
@@ -31,19 +45,6 @@ type THttpRequestOptions = {
     };
 };
 ```
-
-## Overview
-
--   [List of CamOverlay Services](#services)
--   [Methods](#static-methods)
-    -   [Static](#static-methods)
-    -   [Common](#common-methods)
-    -   [Files Management](#files-management-methods): Manage images and fonts.
-    -   [CamOverlay Services](#camoverlay-services-methods): Manage CamOverlay widgets.
-    -   [Custom Graphics](#custom-graphics-methods): Manage Custom Graphics widget.
-    -   [App Report](#report-methods): Get app report data.
-
-<br/>
 
 ## Services
 
@@ -682,22 +683,38 @@ type TFileType = 'image' | 'font';
 ```
 
 ```typescript
-type TStorage = 'url' | 'flash' | 'SD0' | 'ftp' | 'samba';
+type TImageFileStorageType = 'flash' | 'SD0' | 'ftp' | 'samba' | 'url';
+type TFontFileStorageType = 'flash' | 'SD0';
+
+type TFileStorageType<T extends TFileType> = T extends 'image' ? TImageFileStorageType : TFontFileStorageType;
 ```
 
 ```typescript
-type TFile = {
+type TImageFile = {
     path: string;
     name: string;
-    storage: TStorage;
+    storage: TImageFileStorageType;
 };
+type TFontFile = {
+    path: string;
+    name: string;
+    storage: TFontFileStorageType;
+};
+
+type TFile<T extends TFileType> = T extends 'image' ? TImageFile : TFontFile;
 ```
 
 ```typescript
-type TStorageDataList = {
-    type: TStorage;
+type TImageStorageDataList = {
+    type: TImageFileStorageType;
     state: string;
 }[];
+type TFontStorageDataList = {
+    type: TFontFileStorageType;
+    state: string;
+}[];
+
+type TStorageDataList<T extends TFileType> = T extends 'image' ? TImageStorageDataList : TFontStorageDataList;
 ```
 
 ### listFiles(fileType, options?)
@@ -720,7 +737,7 @@ Uploads a new file to the camera.
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types)): Which file type to upload.
     -   `formData` (`Parameters<Client['post']>[0]['data']`): File data (e.g. Blob, ArrayBuffer).
-    -   `storage` ([`TStorage`](#types)): Where to upload the file data.
+    -   `storage` ([`TFileStorageType<T extends TFileType>`](#types)): Where to upload the file data.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -734,7 +751,7 @@ Removes file from the camera.
 
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types)): Which file type to remove.
-    -   `fileParams` ([`TFile`](#types)): File information.
+    -   `fileParams` ([`TFile<T extends TFileType>`](#types)): File information.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
@@ -749,7 +766,7 @@ Gets information about files storage.
 -   **Parameters:**
     -   `fileType` ([`TFileType`](#types)): Which file type.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TStorageDataList>` ([`TStorageDataList`](#types))
+-   **Returns:** [`Promise<TStorageDataList<T extends TFileType>>`](#types)
 
 ```javascript
 const storage = await coApi.getFileStorage('font');
@@ -907,7 +924,7 @@ Updates text fields listed in the parameter fields.
     -   `serviceId` (`number`): Id of the service.
     -   `fields` ([`TField[]`](#types-1)): List of field configuration.
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<boolean>`
+-   **Returns:** `Promise<void>`
 
 ```javascript
 await coApi.updateCGText(6, [{ text: 'Hello', field_name: 'field1', color: 'red' }]);
