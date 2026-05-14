@@ -223,7 +223,8 @@ Get the camera settings.
 ```typescript
 type TCameraSettings = {
     units: 'metric' | 'imperial';
-    adsbSource: { ip: string; port: number };
+    adsbSource: { enabled: boolean; ip: string; port: number };
+    dronetagSource: { enabled: boolean };
     camera: {
         ip: string;
         port: number;
@@ -239,7 +240,6 @@ type TCameraSettings = {
     cameraConfig: {
         defaultCaptureSizeMeters: number;
         captureSizeExtensionMeters: number;
-        maxZoomLevel: number | undefined;
     };
     stream: {
         width: number;
@@ -315,6 +315,12 @@ type TCameraSettings = {
         appId: string;
         cameraList: string[];
     };
+    camstreamerIntegration: {
+        adPlacementEnabled: boolean;
+        adMinIntervalSec: number;
+        adShortDurationSec: number;
+        adLongDurationSec: number;
+    };
     overlayText:
         | {
               displayIcao: boolean | undefined;
@@ -327,6 +333,7 @@ type TCameraSettings = {
               displayPTError: boolean | undefined;
               displayPTZSpeed: boolean | undefined;
               displayVelocityData: boolean | undefined;
+              displayAdsbVelocityData: boolean | undefined;
               displaySignalQuality: boolean | undefined;
               displayAutoTrackingInfo: boolean | undefined;
               displayGPSCoords: boolean | undefined;
@@ -336,6 +343,7 @@ type TCameraSettings = {
               displaySunDistance: boolean | undefined;
               displayTickTime: boolean | undefined;
               displayAircraftInfo: boolean | undefined;
+              displaySystemInfo: boolean | undefined;
           }
         | undefined;
 };

@@ -58,14 +58,19 @@ const identificationLabelSchema = z.object({
 });
 
 export const cameraSettingsSchema = z.object({
-    trackingDomain: z.union([z.literal('adsb'), z.literal('dronetag')]).default('adsb'),
     units: z.union([z.literal('metric'), z.literal('imperial')]).default('imperial'),
     adsbSource: z
         .object({
+            enabled: z.boolean().default(true),
             ip: z.union([z.string().ip(), z.literal('')]),
             port: z.number().positive().lt(65535),
         })
-        .default({ ip: '', port: 30334 }),
+        .default({ enabled: true, ip: '', port: 30334 }),
+    dronetagSource: z
+        .object({
+            enabled: z.boolean().default(false),
+        })
+        .default({ enabled: false }),
     camera: connectionSchema.default({
         protocol: 'http',
         ip: '127.0.0.1',
@@ -86,12 +91,10 @@ export const cameraSettingsSchema = z.object({
         }),
     cameraConfig: z
         .object({
-            maxZoomLevel: z.number().optional(),
             defaultCaptureSizeMeters: z.number().positive().default(120),
             captureSizeExtensionMeters: z.number().positive().default(80),
         })
         .default({
-            maxZoomLevel: 30,
             defaultCaptureSizeMeters: 120,
             captureSizeExtensionMeters: 80,
         }),
