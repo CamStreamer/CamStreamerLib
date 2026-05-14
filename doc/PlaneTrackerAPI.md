@@ -239,7 +239,6 @@ type TCameraSettings = {
     cameraConfig: {
         defaultCaptureSizeMeters: number;
         captureSizeExtensionMeters: number;
-        maxZoomLevel: number | undefined;
     };
     stream: {
         width: number;

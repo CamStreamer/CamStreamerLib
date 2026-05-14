@@ -86,12 +86,10 @@ export const cameraSettingsSchema = z.object({
         }),
     cameraConfig: z
         .object({
-            maxZoomLevel: z.number().optional(),
             defaultCaptureSizeMeters: z.number().positive().default(120),
             captureSizeExtensionMeters: z.number().positive().default(80),
         })
         .default({
-            maxZoomLevel: 30,
             defaultCaptureSizeMeters: 120,
             captureSizeExtensionMeters: 80,
         }),
