@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { IClient, TParameters, TResponse } from './internal/types';
+import { IClient, TResponse } from './internal/types';
 import {
     blackListSchema,
     cameraSettingsSchema,
@@ -36,7 +36,6 @@ import {
     BadRequestError,
 } from './errors/errors';
 import { THttpRequestOptions } from './types/common';
-import { cameraListSchema } from './types/GenetecAgent';
 import { BasicAPI } from './internal/BasicAPI';
 
 const BASE_PATH = '/local/planetracker';
@@ -287,19 +286,5 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
 
     downloadReport(options?: THttpRequestOptions) {
         return this._getText(`${BASE_PATH}/report.cgi`, undefined, options);
-    }
-
-    //   ----------------------------------------
-    //                   Genetec
-    //   ----------------------------------------
-
-    async checkGenetecConnection(params: TParameters, options?: THttpRequestOptions) {
-        const res = await this._postUrlEncoded(`${BASE_PATH}/package/checkGenetecConnection.cgi`, params, options);
-        return res.status === 200;
-    }
-
-    async getGenetecCameraList(params: TParameters, options?: THttpRequestOptions) {
-        const res = await this._postUrlEncoded(`${BASE_PATH}/package/getGenetecCameraList.cgi`, params, options);
-        return cameraListSchema.parse(await res.json());
     }
 }

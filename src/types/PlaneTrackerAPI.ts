@@ -218,24 +218,6 @@ export const cameraSettingsSchema = z.object({
             pass: '',
             sourceKey: '',
         }),
-    genetec: connectionSchema
-        .extend({
-            enabled: z.boolean(),
-            baseUri: z.string().default(''),
-            appId: z.string().default(''),
-            cameraList: z.string().array().default([]),
-        })
-        .default({
-            enabled: false,
-            protocol: 'http',
-            ip: '',
-            port: 4590,
-            user: '',
-            pass: '',
-            baseUri: 'WebSdk',
-            appId: '',
-            cameraList: [],
-        }),
     camstreamerIntegration: z
         .object({
             adPlacementEnabled: z.boolean(),

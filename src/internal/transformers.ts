@@ -24,7 +24,9 @@ export const toSnakeCaseDeep = <T extends object>(o: T) => {
  * snake_case, kebab-case, dot.case and consecutive uppercase runs.
  */
 const splitWords = (input: string): string[] => {
-    if (!input) return [];
+    if (!input) {
+        return [];
+    }
     return (
         input
             // Insert a space between consecutive uppercase + uppercase/lowercase boundary (e.g. "HTTPServer" -> "HTTP Server")
@@ -42,7 +44,9 @@ const splitWords = (input: string): string[] => {
 
 const camelCase = (key: string): string => {
     const words = splitWords(key);
-    if (words.length === 0) return '';
+    if (words.length === 0) {
+        return '';
+    }
     const [first, ...rest] = words as [string, ...string[]];
     return first + rest.map((w) => w[0]!.toUpperCase() + w.slice(1)).join('');
 };
@@ -50,7 +54,9 @@ const camelCase = (key: string): string => {
 const snakeCase = (key: string): string => splitWords(key).join('_');
 
 const isPlainObject = (value: unknown): value is Record<string, unknown> => {
-    if (value === null || typeof value !== 'object') return false;
+    if (value === null || typeof value !== 'object') {
+        return false;
+    }
     const proto = Object.getPrototypeOf(value);
     return proto === null || proto === Object.prototype;
 };
