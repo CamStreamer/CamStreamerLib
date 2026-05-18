@@ -18,9 +18,7 @@ import {
     TPriorityList,
     trackingModeSchema,
     TTrackingMode,
-    TTypePriorityList,
     TWhiteList,
-    typePriorityListSchema,
     TZones,
     whiteListSchema,
     wsAliasResponseSchema,
@@ -195,44 +193,26 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
 
     async getPriorityList(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getPriorityList.cgi`, undefined, options);
-        return priorityListSchema.parse(res).priorityList;
+        return priorityListSchema.parse(res);
     }
-    async setPriorityList(priorityList: TPriorityList['priorityList'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(
-            `${BASE_PATH}/package/setPriorityList.cgi`,
-            { priorityList },
-            this.apiUser,
-            options
-        );
-    }
-
-    async getTypePriorityList(options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/package/getTypePriorityList.cgi`, undefined, options);
-        return typePriorityListSchema.parse(res).typePriorityList;
-    }
-    async setTypePriorityList(typePriorityList: TTypePriorityList['typePriorityList'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(
-            `${BASE_PATH}/package/setTypePriorityList.cgi`,
-            { typePriorityList },
-            this.apiUser,
-            options
-        );
+    async setPriorityList(priorityList: TPriorityList, options?: THttpRequestOptions) {
+        await this._postJsonEncoded(`${BASE_PATH}/package/setPriorityList.cgi`, priorityList, this.apiUser, options);
     }
 
     async getWhiteList(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getWhiteList.cgi`, undefined, options);
-        return whiteListSchema.parse(res).whiteList;
+        return whiteListSchema.parse(res);
     }
-    async setWhiteList(whiteList: TWhiteList['whiteList'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setWhiteList.cgi`, { whiteList }, this.apiUser, options);
+    async setWhiteList(whiteList: TWhiteList, options?: THttpRequestOptions) {
+        await this._postJsonEncoded(`${BASE_PATH}/package/setWhiteList.cgi`, whiteList, this.apiUser, options);
     }
 
     async getBlackList(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getBlackList.cgi`, undefined, options);
-        return blackListSchema.parse(res).blackList;
+        return blackListSchema.parse(res);
     }
-    async setBlackList(blackList: TBlackList['blackList'], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(`${BASE_PATH}/package/setBlackList.cgi`, { blackList }, this.apiUser, options);
+    async setBlackList(blackList: TBlackList, options?: THttpRequestOptions) {
+        await this._postJsonEncoded(`${BASE_PATH}/package/setBlackList.cgi`, blackList, this.apiUser, options);
     }
 
     //   ----------------------------------------
