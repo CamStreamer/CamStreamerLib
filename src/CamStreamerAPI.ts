@@ -199,7 +199,12 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
     }
 
     async deleteStream(streamId: string, options?: THttpRequestOptions) {
-        await this._postUrlEncoded(`${BASE_PATH}/remove.cgi`, { stream_id: streamId }, options);
+        const streamList = await this.getStreamList(options);
+        const filteredList = streamList.filter((stream) => !('streamId' in stream) || stream.streamId !== streamId);
+        if (filteredList.length === streamList.length) {
+            return;
+        }
+        await this.setStreamList(filteredList, options);
     }
 
     //   ----------------------------------------
