@@ -1,5 +1,11 @@
 import { z } from 'zod';
-import { trackingModeSchema, zonesSchema } from '../PlaneTrackerAPI';
+import {
+    blackListSchema,
+    priorityListSchema,
+    trackingModeSchema,
+    whiteListSchema,
+    zonesSchema,
+} from '../PlaneTrackerAPI';
 
 const apiFlightDataSchema = z.object({
     icao: z.string(),
@@ -48,7 +54,6 @@ export enum PlaneTrackerUserActions {
     TRACK_ICAO = 'trackIcao.cgi',
     RESET_ICAO = 'resetIcao.cgi',
     SET_PRIORITY_LIST = 'setPriorityList.cgi',
-    SET_TYPE_PRIORITY_LIST = 'setTypePriorityList.cgi',
     SET_BLACK_LIST = 'setBlackList.cgi',
     SET_WHITE_LIST = 'setWhiteList.cgi',
     GO_TO_COORDINATES = 'goToCoordinates.cgi',
@@ -76,33 +81,19 @@ export const planeTrackerUserActionData = z.discriminatedUnion('cgi', [
         cgi: z.literal(PlaneTrackerUserActions.SET_PRIORITY_LIST),
         ip: z.string(),
         params: apiStringUserSchema,
-        postJsonBody: z.object({
-            priorityList: z.array(z.string()), // ICAO[]
-        }),
-    }),
-    z.object({
-        cgi: z.literal(PlaneTrackerUserActions.SET_TYPE_PRIORITY_LIST),
-        ip: z.string(),
-        params: apiStringUserSchema,
-        postJsonBody: z.object({
-            typePriorityList: z.array(z.string()), // ICAO[]
-        }),
+        postJsonBody: priorityListSchema,
     }),
     z.object({
         cgi: z.literal(PlaneTrackerUserActions.SET_BLACK_LIST),
         ip: z.string(),
         params: apiStringUserSchema,
-        postJsonBody: z.object({
-            blackList: z.array(z.string()), // ICAO[]
-        }),
+        postJsonBody: blackListSchema,
     }),
     z.object({
         cgi: z.literal(PlaneTrackerUserActions.SET_WHITE_LIST),
         ip: z.string(),
         params: apiStringUserSchema,
-        postJsonBody: z.object({
-            whiteList: z.array(z.string()), // ICAO[]
-        }),
+        postJsonBody: whiteListSchema,
     }),
     z.object({
         cgi: z.literal(PlaneTrackerUserActions.GO_TO_COORDINATES),
@@ -175,7 +166,6 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
             PlaneTrackerUserActions.TRACK_ICAO,
             PlaneTrackerUserActions.RESET_ICAO,
             PlaneTrackerUserActions.SET_PRIORITY_LIST,
-            PlaneTrackerUserActions.SET_TYPE_PRIORITY_LIST,
             PlaneTrackerUserActions.SET_BLACK_LIST,
             PlaneTrackerUserActions.SET_WHITE_LIST,
             PlaneTrackerUserActions.GO_TO_COORDINATES,

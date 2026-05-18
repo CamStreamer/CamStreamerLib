@@ -555,51 +555,63 @@ const icao = await ptrApi.getIcao('registration', 'OKFHS');
 ### Methods - Lists
 
 ```typescript
-type TPriorityList = {
-    priorityList: string[];
+type TListEntry = {
+    domain: 'adsb' | 'remoteId';
+    idType: 'icao' | 'type_icao' | 'drone_mac' | 'operator_mac' | 'category';
+    idValue: string;
+};
+
+type TPriorityListEntry = TListEntry & {
+    priority: number;
 };
 
 type TWhiteList = {
-    whiteList: string[];
+    list: TListEntry[];
 };
 
 type TBlackList = {
-    blackList: string[];
+    list: TListEntry[];
+};
+
+type TPriorityList = {
+    list: TPriorityListEntry[];
 };
 ```
 
 ### get(options?)
 
-Get list of ICAOs in priority/typePriority/white/black list.
+Get white/black/priority list.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TPriorityList['priorityList']>`, `Promise<TTypePriorityList['typePriorityList']>`, `Promise<TWhiteList['whiteList']>`, `Promise<TBlackList['blackList']>`
+-   **Returns:** `Promise<TWhiteList>`, `Promise<TBlackList>`, `Promise<TPriorityList>`
 
 ```javascript
 const priorityList = await ptrApi.getPriorityList();
-const typePriorityList = await ptrApi.getTypePriorityList();
 const whiteList = await ptrApi.getWhiteList();
 const blackList = await ptrApi.getBlackList();
 ```
 
 ### set(list, options?)
 
-Add ICAO to priority/typePriority/white/black list.
+Set white/black/priority list.
 
 -   **Parameters:**
-    -   `priorityList` (`TPriorityList['priorityList']`): List of planes in priority list.
-    -   `typePriorityList` (`TTypePriorityList['typePriorityList']`): List of planes in type priority list.
-    -   `whiteList` (`TWhiteList['whiteList']`): List of planes in white list.
-    -   `blackList` (`TBlackList['blackList']`): List of planes in black list.
+    -   `whiteList` (`TWhiteList`): White list object.
+    -   `blackList` (`TBlackList`): Black list object.
+    -   `priorityList` (`TPriorityList`): Priority list object.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
 ```javascript
-await ptrApi.setWhiteList(['4BAA66']);
-await ptrApi.setBlackList(['4B5288']);
-await ptrApi.setPriorityList(['4BAA66', '4BCI62', '4B5288']);
-await ptrApi.setTypePriorityList(['4BAA66', '4BCI62', '4B5288']);
+await ptrApi.setWhiteList({ list: [{ domain: 'adsb', idType: 'icao', idValue: '4BAA66' }] });
+await ptrApi.setBlackList({ list: [{ domain: 'adsb', idType: 'icao', idValue: '4B5288' }] });
+await ptrApi.setPriorityList({
+    list: [
+        { domain: 'adsb', idType: 'icao', idValue: '4BAA66', priority: 1 },
+        { domain: 'adsb', idType: 'icao', idValue: '4BCI62', priority: 2 },
+    ],
+});
 ```
 
 <br/>

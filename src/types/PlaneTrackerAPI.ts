@@ -321,25 +321,40 @@ export type TFlightInfo = z.infer<typeof flightInfoSchema>;
 //                    Lists
 //   ----------------------------------------
 
-export const typePriorityListSchema = z.object({
-    typePriorityList: z.array(z.string()).default([]),
-});
-export type TTypePriorityList = z.infer<typeof typePriorityListSchema>;
+export const listEntryDomainSchema = z.enum(['adsb', 'remoteId']);
+export const listEntryIdTypeSchema = z.enum(['icao', 'type_icao', 'drone_mac', 'operator_mac', 'category']);
 
-export const priorityListSchema = z.object({
-    priorityList: z.array(z.string()).default([]),
+export type TListEntryDomain = z.infer<typeof listEntryDomainSchema>;
+export type TListEntryIdType = z.infer<typeof listEntryIdTypeSchema>;
+
+export const listEntrySchema = z.object({
+    domain: listEntryDomainSchema,
+    idType: listEntryIdTypeSchema,
+    idValue: z.string().min(1),
 });
-export type TPriorityList = z.infer<typeof priorityListSchema>;
+
+export const priorityListEntrySchema = listEntrySchema.extend({
+    priority: z.number().int().min(1),
+});
+
+export type TListEntry = z.infer<typeof listEntrySchema>;
+export type TPriorityListEntry = z.infer<typeof priorityListEntrySchema>;
 
 export const whiteListSchema = z.object({
-    whiteList: z.array(z.string()).default([]),
+    list: z.array(listEntrySchema).default([]),
 });
-export type TWhiteList = z.infer<typeof whiteListSchema>;
 
 export const blackListSchema = z.object({
-    blackList: z.array(z.string()).default([]),
+    list: z.array(listEntrySchema).default([]),
 });
+
+export const priorityListSchema = z.object({
+    list: z.array(priorityListEntrySchema).default([]),
+});
+
+export type TWhiteList = z.infer<typeof whiteListSchema>;
 export type TBlackList = z.infer<typeof blackListSchema>;
+export type TPriorityList = z.infer<typeof priorityListSchema>;
 
 //   ----------------------------------------
 //                 Map & Zones
