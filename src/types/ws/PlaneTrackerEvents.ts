@@ -214,7 +214,7 @@ export type TWsApiFlightData = z.infer<typeof wsApiFlightDataSchema>;
 export type TWsApiCameraData = z.infer<typeof wsCameraPositionDataSchema>;
 
 export type TApiUser = z.infer<typeof apiUserSchema>;
-export type TPlaneTrackerStringApiUser = z.infer<typeof apiStringUserSchema>;
+export type TStringApiUser = z.infer<typeof apiStringUserSchema>;
 
-export type TPlaneTrackerUserActionData = z.infer<typeof wsUserActionData>;
-export type TPlaneTrackerUserActionDataOfCgi<T extends EUserActions> = Extract<TPlaneTrackerUserActionData, { cgi: T }>;
+export type TUserActionData = z.infer<typeof wsUserActionData>;
+export type TUserActionDataOfCgi<T extends EUserActions> = Extract<TUserActionData, { cgi: T }>;
