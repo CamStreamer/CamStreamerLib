@@ -34,11 +34,11 @@ import {
 } from './errors/errors';
 import { THttpRequestOptions } from './types/common';
 import { BasicAPI } from './internal/BasicAPI';
-import { TStringApiUser } from './types/ws/PlaneTrackerEvents';
+import { TApiUser } from './types/ws/PlaneTrackerEvents';
 
 const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
-    constructor(client: Client, private apiUser: TStringApiUser) {
+    constructor(client: Client, private apiUser: TApiUser) {
         super(client);
     }
 
