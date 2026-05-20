@@ -3,12 +3,6 @@ import { z } from 'zod';
 export type TImportDataType = 'MAP_DATA' | 'SERVER_DATA' | 'ALL';
 export type TExportDataType = 'NIGHT_SKY_CALIBRATION_DATA' | 'ALL';
 
-export type TApiUser = {
-    userId: string;
-    userName: string;
-    userPriority: number;
-};
-
 export const wsAliasResponseSchema = z.object({
     alias: z.string(),
     ws: z.string(),
@@ -396,3 +390,64 @@ export const zonesSchema = z.object({
         .default([]),
 });
 export type TZones = z.infer<typeof zonesSchema>;
+
+//   ----------------------------------------
+//                 Tracking domain & categories
+//   ----------------------------------------
+
+// Central catalogue of tracking domains + categories. This is the single
+// source of truth shared between `getDomainList.cgi` and the per-flight
+// classification used when emitting WS events. Update this module when a
+// new domain or BDS08 category needs to be exposed to API consumers.
+
+export const domainIdSchema = z.enum(['adsb', 'remoteId']);
+export type TDomainId = z.infer<typeof domainIdSchema>;
+
+// Short icon enum reused by the React frontend (Assets/images/svg/planes/...).
+// Keep these strings stable; consumers display the matching SVG asset.
+export type TCategoryIcon = 'small' | 'large' | 'heavy' | 'helicopter' | 'drone' | 'operator' | 'unknown';
+
+export type TCategoryDescriptor = {
+    categoryId: string;
+    uiName: string;
+    icon: TCategoryIcon;
+};
+
+export type TDomainDescriptor = {
+    uiName: string;
+    icon: TCategoryIcon;
+    categoryList: TCategoryDescriptor[];
+};
+
+export type TDomainList = Record<TDomainId, TDomainDescriptor>;
+
+// ADS-B categoryId strings. Naming convention: `<SET>_<NAME>` where SET is
+// the BDS08 emitter category set letter (A/B/C) and NAME describes the
+// category. Set D and the "no category info" (category=0) values are not
+// enumerated because they carry no usable classification.
+export const ADSB_CATEGORY_IDS = {
+    A_LIGHT: 'A_LIGHT',
+    A_SMALL: 'A_SMALL',
+    A_LARGE: 'A_LARGE',
+    A_HIGH_VORTEX: 'A_HIGH_VORTEX',
+    A_HEAVY: 'A_HEAVY',
+    A_HIGH_PERF: 'A_HIGH_PERF',
+    A_ROTORCRAFT: 'A_ROTORCRAFT',
+    B_GLIDER: 'B_GLIDER',
+    B_LIGHTER_THAN_AIR: 'B_LIGHTER_THAN_AIR',
+    B_PARACHUTIST: 'B_PARACHUTIST',
+    B_ULTRALIGHT: 'B_ULTRALIGHT',
+    B_UAV: 'B_UAV',
+    B_SPACE: 'B_SPACE',
+    C_SURFACE_EMERGENCY: 'C_SURFACE_EMERGENCY',
+    C_SERVICE_VEHICLE: 'C_SERVICE_VEHICLE',
+    C_POINT_OBSTACLE: 'C_POINT_OBSTACLE',
+    C_CLUSTER_OBSTACLE: 'C_CLUSTER_OBSTACLE',
+    C_LINE_OBSTACLE: 'C_LINE_OBSTACLE',
+    UNKNOWN: 'UNKNOWN',
+} as const;
+
+export const REMOTE_ID_CATEGORY_IDS = {
+    DRONE: 'DRONE',
+    OPERATOR: 'OPERATOR',
+} as const;

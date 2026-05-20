@@ -9,7 +9,6 @@ import {
     mapInfoSchema,
     priorityListSchema,
     serverSettingsSchema,
-    TApiUser,
     TBlackList,
     TCameraSettings,
     TExportDataType,
@@ -35,10 +34,11 @@ import {
 } from './errors/errors';
 import { THttpRequestOptions } from './types/common';
 import { BasicAPI } from './internal/BasicAPI';
+import { TApiUser } from './types/ws/PlaneTrackerEvents';
 
 const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
-    constructor(client: Client, private apiUser: TApiUser) {
+    constructor(client: Client, private apiUser: Omit<TApiUser, 'ip'>) {
         super(client);
     }
 

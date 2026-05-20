@@ -1,21 +1,15 @@
 import { IWsClient } from '../internal/types';
 import { WsEvents } from '../internal/WsEvents';
-import { TApiUser } from '../types/PlaneTrackerAPI';
-import {
-    PlaneTrackerWsEvents,
-    TPlaneTrackerEvent,
-    planeTrackerUserActionData,
-    ptrEventsSchema,
-} from '../types/ws/PlaneTrackerEvents';
+import { TEventData, wsUserActionData, ptrEventsSchema, TApiUser } from '../types/ws/PlaneTrackerEvents';
 
-export class PlaneTrackerEvents extends WsEvents<TPlaneTrackerEvent> {
-    constructor(ws: IWsClient, private _apiUser: TApiUser) {
+export class PlaneTrackerEvents extends WsEvents<TEventData> {
+    constructor(ws: IWsClient, private _apiUser: Omit<TApiUser, 'ip'>) {
         super((data: any) => {
             const parsedData = ptrEventsSchema.parse(data);
 
-            if (parsedData.type === PlaneTrackerWsEvents.USER_ACTION) {
+            if (parsedData.type === 'USER_ACTION') {
                 const { type, ...actionData } = parsedData;
-                const userAction = planeTrackerUserActionData.parse(actionData);
+                const userAction = wsUserActionData.parse(actionData);
                 return { ...userAction, type };
             }
 

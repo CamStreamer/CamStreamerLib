@@ -5,10 +5,15 @@ import {
     trackingModeSchema,
     whiteListSchema,
     zonesSchema,
+    domainIdSchema,
 } from '../PlaneTrackerAPI';
 
-const apiFlightDataSchema = z.object({
-    icao: z.string(),
+const wsApiFlightDataSchema = z.object({
+    targetId: z.string(),
+    icao: z.string(), // for backward compatibility
+    domain: domainIdSchema,
+    categoryId: z.string(),
+    groupId: z.string().optional(),
     lat: z.number(),
     lon: z.number(),
     heading: z.number(),
@@ -19,13 +24,20 @@ const apiFlightDataSchema = z.object({
     whiteListed: z.boolean(),
     blackListed: z.boolean(),
     priorityListed: z.boolean(),
-    typePriorityListed: z.boolean().default(false),
     autoSelectionIgnored: z.boolean(),
     signalQuality: z.number(),
     emitterCategorySet: z.number().default(4),
     emitterCategory: z.number().default(3),
     emergencyState: z.boolean(),
     emergencyStatusMessage: z.string(),
+});
+
+const wsCameraPositionDataSchema = z.object({
+    lat: z.number(),
+    lon: z.number(),
+    azimuth: z.number().min(0).max(360),
+    elevation: z.number().min(-90).max(90),
+    fov: z.number(),
 });
 
 const apiUserSchema = z.object({
@@ -40,17 +52,17 @@ const apiStringUserSchema = z.object({
     userPriority: z.string(),
 });
 
-export enum PlaneTrackerWsEvents {
-    FLIGHT_LIST = 'FLIGHT_LIST',
-    CAMERA_POSITION = 'CAMERA_POSITION',
-    TRACKING_START = 'TRACKING_START',
-    TRACKING_STOP = 'TRACKING_STOP',
-    USER_ACTION = 'USER_ACTION',
-    CONNECTED_USERS = 'CONNECTED_USERS',
-    FORCE_TRACKING_STATUS = 'FORCE_TRACKING_STATUS',
-}
+export type TEventType =
+    | 'CAMERA_POSITION'
+    | 'TRACKING_START'
+    | 'TRACKING_STOP'
+    | 'FLIGHT_LIST'
+    | 'USER_ACTION'
+    | 'CONNECTED_USERS'
+    | 'FORCE_TRACKING_STATUS'
+    | 'API_LOCK_STATUS';
 
-export enum PlaneTrackerUserActions {
+export enum EUserActions {
     TRACK_ICAO = 'trackIcao.cgi',
     RESET_ICAO = 'resetIcao.cgi',
     SET_PRIORITY_LIST = 'setPriorityList.cgi',
@@ -64,39 +76,39 @@ export enum PlaneTrackerUserActions {
     UNLOCK_API = 'unlockApi.cgi',
 }
 
-export const planeTrackerUserActionData = z.discriminatedUnion('cgi', [
+export const wsUserActionData = z.discriminatedUnion('cgi', [
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.TRACK_ICAO),
+        cgi: z.literal(EUserActions.TRACK_ICAO),
         ip: z.string(),
         params: apiStringUserSchema.extend({
             icao: z.string(),
         }),
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.RESET_ICAO),
+        cgi: z.literal(EUserActions.RESET_ICAO),
         ip: z.string(),
         params: apiStringUserSchema,
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.SET_PRIORITY_LIST),
+        cgi: z.literal(EUserActions.SET_PRIORITY_LIST),
         ip: z.string(),
         params: apiStringUserSchema,
         postJsonBody: priorityListSchema,
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.SET_BLACK_LIST),
+        cgi: z.literal(EUserActions.SET_BLACK_LIST),
         ip: z.string(),
         params: apiStringUserSchema,
         postJsonBody: blackListSchema,
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.SET_WHITE_LIST),
+        cgi: z.literal(EUserActions.SET_WHITE_LIST),
         ip: z.string(),
         params: apiStringUserSchema,
         postJsonBody: whiteListSchema,
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.GO_TO_COORDINATES),
+        cgi: z.literal(EUserActions.GO_TO_COORDINATES),
         ip: z.string(),
         params: apiStringUserSchema.extend({
             lat: z.string(),
@@ -104,45 +116,43 @@ export const planeTrackerUserActionData = z.discriminatedUnion('cgi', [
         }),
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.SET_TRACKING_MODE),
+        cgi: z.literal(EUserActions.SET_TRACKING_MODE),
         ip: z.string(),
         params: apiStringUserSchema,
         postJsonBody: trackingModeSchema,
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.SET_ZONES),
+        cgi: z.literal(EUserActions.SET_ZONES),
         ip: z.string(),
         params: apiStringUserSchema,
         postJsonBody: zonesSchema,
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.RESET_PTZ_CALIBRATION),
+        cgi: z.literal(EUserActions.RESET_PTZ_CALIBRATION),
         ip: z.string(),
         params: apiStringUserSchema,
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.LOCK_API),
+        cgi: z.literal(EUserActions.LOCK_API),
         ip: z.string(),
         params: apiStringUserSchema.extend({
             timeout: z.string(),
         }),
     }),
     z.object({
-        cgi: z.literal(PlaneTrackerUserActions.UNLOCK_API),
+        cgi: z.literal(EUserActions.UNLOCK_API),
         ip: z.string(),
         params: apiStringUserSchema,
     }),
 ]);
+export type TWsUserActionData = z.infer<typeof wsUserActionData>;
 
-const ptrEventsDataSchema = z.discriminatedUnion('type', [
-    z.object({
-        type: z.literal('CAMERA_POSITION'),
-        lat: z.number(),
-        lon: z.number(),
-        azimuth: z.number().min(0).max(360),
-        elevation: z.number().min(-90).max(90),
-        fov: z.number(),
-    }),
+const eventsDataSchema = z.discriminatedUnion('type', [
+    z
+        .object({
+            type: z.literal('CAMERA_POSITION'),
+        })
+        .merge(wsCameraPositionDataSchema),
     z.object({
         type: z.literal('TRACKING_START'),
         icao: z.string(),
@@ -152,7 +162,7 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
     }),
     z.object({
         type: z.literal('FLIGHT_LIST'),
-        list: z.array(apiFlightDataSchema),
+        list: z.array(wsApiFlightDataSchema),
     }),
     z.object({
         type: z.literal('USER_ACTION'),
@@ -163,17 +173,17 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
             timeout: z.string().optional(),
         }),
         cgi: z.enum([
-            PlaneTrackerUserActions.TRACK_ICAO,
-            PlaneTrackerUserActions.RESET_ICAO,
-            PlaneTrackerUserActions.SET_PRIORITY_LIST,
-            PlaneTrackerUserActions.SET_BLACK_LIST,
-            PlaneTrackerUserActions.SET_WHITE_LIST,
-            PlaneTrackerUserActions.GO_TO_COORDINATES,
-            PlaneTrackerUserActions.SET_TRACKING_MODE,
-            PlaneTrackerUserActions.SET_ZONES,
-            PlaneTrackerUserActions.RESET_PTZ_CALIBRATION,
-            PlaneTrackerUserActions.LOCK_API,
-            PlaneTrackerUserActions.UNLOCK_API,
+            EUserActions.TRACK_ICAO,
+            EUserActions.RESET_ICAO,
+            EUserActions.SET_PRIORITY_LIST,
+            EUserActions.SET_BLACK_LIST,
+            EUserActions.SET_WHITE_LIST,
+            EUserActions.GO_TO_COORDINATES,
+            EUserActions.SET_TRACKING_MODE,
+            EUserActions.SET_ZONES,
+            EUserActions.RESET_PTZ_CALIBRATION,
+            EUserActions.LOCK_API,
+            EUserActions.UNLOCK_API,
         ]),
         postJsonBody: z.any(),
     }),
@@ -194,20 +204,16 @@ const ptrEventsDataSchema = z.discriminatedUnion('type', [
 ]);
 
 export const ptrEventsSchema = z.discriminatedUnion('type', [
-    z.object({ type: z.literal('init'), data: ptrEventsDataSchema }),
-    ...ptrEventsDataSchema.options,
+    z.object({ type: z.literal('init'), data: eventsDataSchema }),
+    ...eventsDataSchema.options,
 ]);
 
-export type TPlaneTrackerEvent = z.infer<typeof ptrEventsDataSchema>;
-export type TPlaneTrackerEventType = TPlaneTrackerEvent['type'];
-export type TPlaneTrackerEventOfType<T extends TPlaneTrackerEventType> = Extract<TPlaneTrackerEvent, { type: T }>;
+export type TEventData = z.infer<typeof eventsDataSchema>;
 
-export type TPlaneTrackerApiFlightData = z.infer<typeof apiFlightDataSchema>;
-export type TPlaneTrackerApiUser = z.infer<typeof apiUserSchema>;
-export type TPlaneTrackerStringApiUser = z.infer<typeof apiStringUserSchema>;
+export type TWsApiFlightData = z.infer<typeof wsApiFlightDataSchema>;
+export type TWsApiCameraData = z.infer<typeof wsCameraPositionDataSchema>;
 
-export type TPlaneTrackerUserActionData = z.infer<typeof planeTrackerUserActionData>;
-export type TPlaneTrackerUserActionDataOfCgi<T extends PlaneTrackerUserActions> = Extract<
-    TPlaneTrackerUserActionData,
-    { cgi: T }
->;
+export type TApiUser = z.infer<typeof apiUserSchema>;
+
+export type TUserActionData = z.infer<typeof wsUserActionData>;
+export type TUserActionDataOfCgi<T extends EUserActions> = Extract<TUserActionData, { cgi: T }>;
