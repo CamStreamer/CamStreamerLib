@@ -13,7 +13,7 @@ const wsApiFlightDataSchema = z.object({
     icao: z.string(), // for backward compatibility
     domain: domainIdSchema,
     categoryId: z.string(),
-    groupId: z.string(),
+    groupId: z.string().optional(),
     lat: z.number(),
     lon: z.number(),
     heading: z.number(),
