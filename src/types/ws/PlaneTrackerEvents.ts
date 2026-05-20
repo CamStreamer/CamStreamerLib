@@ -40,16 +40,13 @@ const wsCameraPositionDataSchema = z.object({
     fov: z.number(),
 });
 
-const apiUserSchema = z.object({
-    userId: z.string(),
-    userName: z.string(),
-    userPriority: z.number(),
-    ip: z.string(),
-});
-const apiStringUserSchema = z.object({
+const userSchema = z.object({
     userId: z.string(),
     userName: z.string(),
     userPriority: z.string(),
+});
+const apiUserSchema = userSchema.extend({
+    ip: z.string(),
 });
 
 export type TEventType =
@@ -76,144 +73,102 @@ export enum EUserActions {
     UNLOCK_API = 'unlockApi.cgi',
 }
 
-export const wsUserActionData = z.discriminatedUnion('cgi', [
-    z.object({
-        cgi: z.literal(EUserActions.TRACK_ICAO),
-        ip: z.string(),
-        params: apiStringUserSchema.extend({
-            icao: z.string(),
-        }),
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.RESET_ICAO),
-        ip: z.string(),
-        params: apiStringUserSchema,
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.SET_PRIORITY_LIST),
-        ip: z.string(),
-        params: apiStringUserSchema,
-        postJsonBody: priorityListSchema,
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.SET_BLACK_LIST),
-        ip: z.string(),
-        params: apiStringUserSchema,
-        postJsonBody: blackListSchema,
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.SET_WHITE_LIST),
-        ip: z.string(),
-        params: apiStringUserSchema,
-        postJsonBody: whiteListSchema,
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.GO_TO_COORDINATES),
-        ip: z.string(),
-        params: apiStringUserSchema.extend({
-            lat: z.string(),
-            lon: z.string(),
-        }),
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.SET_TRACKING_MODE),
-        ip: z.string(),
-        params: apiStringUserSchema,
-        postJsonBody: trackingModeSchema,
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.SET_ZONES),
-        ip: z.string(),
-        params: apiStringUserSchema,
-        postJsonBody: zonesSchema,
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.RESET_PTZ_CALIBRATION),
-        ip: z.string(),
-        params: apiStringUserSchema,
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.LOCK_API),
-        ip: z.string(),
-        params: apiStringUserSchema.extend({
-            timeout: z.string(),
-        }),
-    }),
-    z.object({
-        cgi: z.literal(EUserActions.UNLOCK_API),
-        ip: z.string(),
-        params: apiStringUserSchema,
-    }),
-]);
-export type TWsUserActionData = z.infer<typeof wsUserActionData>;
-
-const eventsDataSchema = z.discriminatedUnion('type', [
-    z
-        .object({
-            type: z.literal('CAMERA_POSITION'),
-        })
-        .merge(wsCameraPositionDataSchema),
-    z.object({
-        type: z.literal('TRACKING_START'),
-        icao: z.string(),
-    }),
-    z.object({
-        type: z.literal('TRACKING_STOP'),
-    }),
-    z.object({
-        type: z.literal('FLIGHT_LIST'),
-        list: z.array(wsApiFlightDataSchema),
-    }),
+const eventsDataSchema = z.union([
+    z.object({ type: z.literal('CAMERA_POSITION') }).merge(wsCameraPositionDataSchema),
+    z.object({ type: z.literal('TRACKING_START'), icao: z.string() }),
+    z.object({ type: z.literal('TRACKING_STOP') }),
+    z.object({ type: z.literal('FLIGHT_LIST'), list: z.array(wsApiFlightDataSchema) }),
     z.object({
         type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.TRACK_ICAO),
         ip: z.string(),
-        params: apiStringUserSchema.extend({
-            lat: z.string().optional(),
-            lon: z.string().optional(),
-            timeout: z.string().optional(),
-        }),
-        cgi: z.enum([
-            EUserActions.TRACK_ICAO,
-            EUserActions.RESET_ICAO,
-            EUserActions.SET_PRIORITY_LIST,
-            EUserActions.SET_BLACK_LIST,
-            EUserActions.SET_WHITE_LIST,
-            EUserActions.GO_TO_COORDINATES,
-            EUserActions.SET_TRACKING_MODE,
-            EUserActions.SET_ZONES,
-            EUserActions.RESET_PTZ_CALIBRATION,
-            EUserActions.LOCK_API,
-            EUserActions.UNLOCK_API,
-        ]),
+        params: userSchema.extend({ icao: z.string() }),
         postJsonBody: z.any(),
     }),
     z.object({
-        type: z.literal('CONNECTED_USERS'),
-        users: z.array(apiUserSchema),
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.RESET_ICAO),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: z.any(),
     }),
     z.object({
-        type: z.literal('FORCE_TRACKING_STATUS'),
-        enabled: z.boolean(),
-        icao: z.string().optional(),
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.SET_PRIORITY_LIST),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: priorityListSchema,
     }),
     z.object({
-        type: z.literal('API_LOCK_STATUS'),
-        isLocked: z.boolean(),
-        user: apiUserSchema.optional(),
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.SET_BLACK_LIST),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: blackListSchema,
     }),
-]);
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.SET_WHITE_LIST),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: whiteListSchema,
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.GO_TO_COORDINATES),
+        ip: z.string(),
+        params: userSchema.extend({ lat: z.string(), lon: z.string() }),
+        postJsonBody: z.any(),
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.SET_TRACKING_MODE),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: trackingModeSchema,
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.SET_ZONES),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: zonesSchema,
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.RESET_PTZ_CALIBRATION),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: z.any(),
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.LOCK_API),
+        ip: z.string(),
+        params: userSchema.extend({ timeout: z.string() }),
+        postJsonBody: z.any(),
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.UNLOCK_API),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: z.any(),
+    }),
+    z.object({ type: z.literal('CONNECTED_USERS'), users: z.array(apiUserSchema) }),
+    z.object({ type: z.literal('FORCE_TRACKING_STATUS'), enabled: z.boolean(), icao: z.string().optional() }),
+    z.object({ type: z.literal('API_LOCK_STATUS'), isLocked: z.boolean(), user: apiUserSchema.optional() }),
+] as const);
 
-export const ptrEventsSchema = z.discriminatedUnion('type', [
+export const ptrEventsSchema = z.union([
     z.object({ type: z.literal('init'), data: eventsDataSchema }),
     ...eventsDataSchema.options,
-]);
+] as const);
 
 export type TEventData = z.infer<typeof eventsDataSchema>;
+export type TWsUserActionData = Extract<TEventData, { type: 'USER_ACTION' }>;
+export type TUserActionDataOfCgi<T extends EUserActions> = Extract<TWsUserActionData, { cgi: T }>;
 
 export type TWsApiFlightData = z.infer<typeof wsApiFlightDataSchema>;
 export type TWsApiCameraData = z.infer<typeof wsCameraPositionDataSchema>;
-
 export type TApiUser = z.infer<typeof apiUserSchema>;
-
-export type TUserActionData = z.infer<typeof wsUserActionData>;
-export type TUserActionDataOfCgi<T extends EUserActions> = Extract<TUserActionData, { cgi: T }>;

@@ -1,20 +1,10 @@
 import { IWsClient } from '../internal/types';
 import { WsEvents } from '../internal/WsEvents';
-import { TEventData, wsUserActionData, ptrEventsSchema, TApiUser } from '../types/ws/PlaneTrackerEvents';
+import { TEventData, ptrEventsSchema, TApiUser } from '../types/ws/PlaneTrackerEvents';
 
 export class PlaneTrackerEvents extends WsEvents<TEventData> {
     constructor(ws: IWsClient, private _apiUser: Omit<TApiUser, 'ip'>) {
-        super((data: any) => {
-            const parsedData = ptrEventsSchema.parse(data);
-
-            if (parsedData.type === 'USER_ACTION') {
-                const { type, ...actionData } = parsedData;
-                const userAction = wsUserActionData.parse(actionData);
-                return { ...userAction, type };
-            }
-
-            return parsedData;
-        }, ws);
+        super((data: any) => ptrEventsSchema.parse(data), ws);
         this.ws.onOpen = this.sendInitMsg;
     }
 
