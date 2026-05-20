@@ -24,24 +24,24 @@ Module for access to the PlaneTracker HTTP interface.
 import { DefaultClient } from 'camstreamerlib/web';
 import { PlaneTrackerAPI } from 'camstreamerlib';
 
-const ptrApi = new PlaneTrackerAPI(
-    new DefaultClient(),
-    {
-        userId: 'asd',
-        userName: 'Asd'.
-        userPriority: 1
-    }
-);
+const ptrApi = new PlaneTrackerAPI(new DefaultClient(), {
+    userId: 'asd',
+    userName: 'Asd',
+    userPriority: 1,
+});
 ```
 
 > [!IMPORTANT]
 > The `apiUser` param is important for correct API behavior
+
+The constructor accepts `Omit<TApiUser, 'ip'>`. `TApiUser` is exported from `camstreamerlib` (defined in `PlaneTrackerEvents` types) and has the following shape:
 
 ```typescript
 type TApiUser = {
     userId: string;
     userName: string;
     userPriority: number;
+    ip: string; // assigned by the server; not required in the constructor
 };
 ```
 

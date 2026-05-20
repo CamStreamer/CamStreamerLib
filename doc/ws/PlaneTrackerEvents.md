@@ -4,7 +4,7 @@ Module for receiving PlaneTracker events. Will set up ws connection to the camer
 
 ## Constructor
 
-**new PlaneTrackerEvents(ws: IWsClient<Event>, apiUser: TApiUser)**
+**new PlaneTrackerEvents(ws: IWsClient, apiUser: Omit\<TApiUser, 'ip'\>)**
 
 ```javascript
 import { WsClient } from 'camstreamerlib/node';
@@ -20,13 +20,22 @@ const wsClient = new WsClient({
 });
 const ptrEvents = new PlaneTrackerEvents(wsClient, {
     userId: 'asd',
-    userName: 'Asd'.
-    userPriority: 1
+    userName: 'Asd',
+    userPriority: 1,
 });
 ```
 
 -   for `wsClient` - Look at the [Client](./Client.md) docs.
--   `apiUser` is info about the user
+-   `apiUser` identifies the connecting user. The constructor accepts `Omit<TApiUser, 'ip'>`:
+
+```typescript
+type TApiUser = {
+    userId: string;
+    userName: string;
+    userPriority: number;
+    ip: string; // assigned by the server; not required in the constructor
+};
+```
 
 ## Attributes
 
@@ -134,18 +143,21 @@ Supported event types and their data:
     {
         type: 'FLIGHT_LIST',
         list: {
-            icao: string,
+            targetId: string,        // primary target identifier
+            icao: string,            // kept for backward compatibility
+            domain: 'adsb' | 'remoteId',
+            categoryId: string,
+            groupId?: string,        // optional group identifier
             lat: number,
             lon: number,
             heading: number,
-            groundSpeed: number, // [km/h]
-            altitudeAMSL: number, // [m]
-            cameraDistance: number, // [m]
+            groundSpeed: number,     // [km/h]
+            altitudeAMSL: number,    // [m]
+            cameraDistance: number,  // [m]
             autoTrackingOrder: number,
             whiteListed: boolean,
             blackListed: boolean,
             priorityListed: boolean,
-            typePriorityListed: boolean,
             autoSelectionIgnored: boolean,
             signalQuality: number,
             emitterCategorySet: number,
@@ -202,3 +214,43 @@ Supported event types and their data:
         },
     }
     ```
+
+## Exported Types & Enums
+
+| Old name (≤ v4.0.6)                   | New name (v4.0.7+)        | Notes                               |
+| ------------------------------------- | ------------------------- | ----------------------------------- |
+| `PlaneTrackerWsEvents` (enum)         | `TEventType` (union type) | Use string literals directly        |
+| `PlaneTrackerUserActions` (enum)      | `EUserActions` (enum)     | Same values, renamed                |
+| `planeTrackerUserActionData`          | `wsUserActionData`        | Zod schema                          |
+| `TPlaneTrackerEvent`                  | `TEventData`              |                                     |
+| `TPlaneTrackerEventType`              | `TEventType`              |                                     |
+| `TPlaneTrackerEventOfType<T>`         | _(removed)_               | Use `Extract<TEventData, {type:T}>` |
+| `TPlaneTrackerApiFlightData`          | `TWsApiFlightData`        |                                     |
+| `TPlaneTrackerApiUser`                | `TApiUser`                | Now includes `ip: string`           |
+| `TPlaneTrackerStringApiUser`          | _(removed)_               | Internal use only                   |
+| `TPlaneTrackerUserActionData`         | `TUserActionData`         |                                     |
+| `TPlaneTrackerUserActionDataOfCgi<T>` | `TUserActionDataOfCgi<T>` |                                     |
+
+New types also exported from `camstreamerlib`:
+
+```typescript
+// Camera position snapshot (used in CAMERA_POSITION event)
+type TWsApiCameraData = {
+    lat: number;
+    lon: number;
+    azimuth: number; // [0, 360]
+    elevation: number; // [-90, 90]
+    fov: number;
+};
+
+// Discriminated union type for all WS events (replaces PlaneTrackerWsEvents enum)
+type TEventType =
+    | 'CAMERA_POSITION'
+    | 'TRACKING_START'
+    | 'TRACKING_STOP'
+    | 'FLIGHT_LIST'
+    | 'USER_ACTION'
+    | 'CONNECTED_USERS'
+    | 'FORCE_TRACKING_STATUS'
+    | 'API_LOCK_STATUS';
+```
