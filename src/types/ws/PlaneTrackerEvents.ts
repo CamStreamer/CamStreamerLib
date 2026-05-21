@@ -47,6 +47,7 @@ const userSchema = z.object({
 });
 const apiUserSchema = userSchema.extend({
     ip: z.string(),
+    userPriority: z.number(),
 });
 
 export type TEventType =
