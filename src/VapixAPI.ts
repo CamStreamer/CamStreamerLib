@@ -227,7 +227,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         }
 
         // fallback to deprecated api
-        const data = await this.getDateTimeInfo(options);
+        const data = await this.getAllDateTimeInfo(options);
         if (data.data.timeZone === undefined) {
             throw new TimezoneNotSetupError();
         }
@@ -240,7 +240,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         return allDateTimeInfoSchema.parse(await res.json());
     }
 
-    /** Deprecated: Use getAllDateTimeInfo instead */
+    /** @deprecated: Use getAllDateTimeInfo instead */
     async getDateTimeInfo(options?: THttpRequestOptions) {
         const data = { apiVersion: '1.0', method: 'getDateTimeInfo' };
         const res = await this._postJsonEncoded('/axis-cgi/time.cgi', data, undefined, options);
