@@ -259,7 +259,33 @@ Return the timezone of the camera.
 const timezone = await vapix.getTimezone();
 ```
 
-### getDateTimeInfo(options?)
+### getAllDateTimeInfo(options?)
+
+Return the current date/time and supported timezones information from the camera.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:**
+
+    ```typescript
+    Promise<{
+        data: {
+            dateTime: string;
+            dstEnabled: boolean;
+            localDateTime: string;
+            posixTimeZone: string;
+            maxSupportedYear: number;
+            timeZones: string[];
+            timeZone?: string | undefined;
+        };
+    }>;
+    ```
+
+```javascript
+const timeInfo = await vapix.getAllDateTimeInfo();
+```
+
+### getDateTimeInfo(options?) ⚠️ Deprecated
 
 Return the current date/time information from the camera.
 
