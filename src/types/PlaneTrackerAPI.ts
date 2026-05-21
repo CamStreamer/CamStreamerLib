@@ -274,6 +274,7 @@ export type ICAO = string;
 
 export const getIcaoSchema = z.object({
     icao: z.string(),
+    targetId: z.string(),
 });
 export type TGetIcaoByOption = 'registration' | 'callsign';
 

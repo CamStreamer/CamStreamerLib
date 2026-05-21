@@ -209,7 +209,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
 
     async getIcao(by: TGetIcaoByOption, value: string, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getIcao.cgi`, { [by]: value }, options);
-        return getIcaoSchema.parse(res).icao;
+        return getIcaoSchema.parse(res).targetId;
     }
 
     //   ----------------------------------------

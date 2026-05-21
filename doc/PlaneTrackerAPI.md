@@ -593,7 +593,7 @@ await ptrApi.setTrackingMode('AUTOMATIC');
 
 ### getIcao(by, value, options?)
 
-Returns the ICAO code for a given registration or callsign.
+Returns the ICAO code (targetId) for a given registration or callsign.
 
 -   **Parameters:**
 
