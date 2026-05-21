@@ -422,6 +422,38 @@ Import all settings in a `.zip` file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
+### getDomainList(options?)
+
+Returns a list of available tracking domains and their target categories.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TDomainList>`:
+
+```typescript
+type TDomainId = 'adsb' | 'remoteId';
+
+type TCategoryIcon = 'small' | 'large' | 'heavy' | 'helicopter' | 'drone' | 'operator' | 'unknown';
+
+type TCategoryDescriptor = {
+    categoryId: string;
+    uiName: string;
+    icon: TCategoryIcon;
+};
+
+type TDomainDescriptor = {
+    uiName: string;
+    icon: TCategoryIcon;
+    categoryList: TCategoryDescriptor[];
+};
+
+type TDomainList = Record<TDomainId, TDomainDescriptor>;
+```
+
+```javascript
+const domainList = await ptrApi.getDomainList();
+```
+
 <br/>
 
 ## Planes & Tracking Management Methods
@@ -439,12 +471,12 @@ type TTrackingMode = {
 };
 ```
 
-### fetchFlightInfo(icao, options?)
+### fetchFlightInfo(targetId, options?)
 
-Retrieves flight information based on the ICAO code.
+Retrieves flight information for the given target.
 
 -   **Parameters:**
-    -   `icao` ([`ICAO`](#types)): The ICAO code of the plane.
+    -   `targetId` (`string`): The target ID of the plane.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<TFlightInfo>`:
 
@@ -477,14 +509,40 @@ type TFlightInfo = {
 ```
 
 ```javascript
-const info = await ptrApi.fetchFlightInfo('4BAA66');
+const info = await ptrApi.fetchFlightInfo('target-123');
 ```
 
-### startTrackingPlane(icao, options?)
+### startTrackingTarget(targetId, options?)
 
--   Tracks a plane by its ICAO code.
--   The plane is tracked even if it is not available in the FlightRadar24 API.
--   When the plane disappears, tracking is reset to the original state.
+-   Tracks a target by its target ID.
+-   The target is tracked even if it is not available in the FlightRadar24 API.
+-   When the target disappears, tracking is reset to the original state.
+
+-   **Parameters:**
+    -   `targetId` (`string`): The target ID of the plane to track.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.startTrackingTarget('target-123');
+```
+
+### stopTrackingTarget(options?)
+
+Resets the forced tracking of any target.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.stopTrackingTarget();
+```
+
+### startTrackingPlane(icao, options?) ⚠️ Deprecated
+
+> [!WARNING]
+> Deprecated — kept for backwards compatibility. Use [`startTrackingTarget`](#starttrackingtargettargetid-options) instead. Will be removed in a future major release.
 
 -   **Parameters:**
     -   `icao` ([`ICAO`](#types)): The ICAO code of the plane to track.
@@ -495,9 +553,10 @@ const info = await ptrApi.fetchFlightInfo('4BAA66');
 await ptrApi.startTrackingPlane('4BAA66');
 ```
 
-### stopTrackingPlane(options?)
+### stopTrackingPlane(options?) ⚠️ Deprecated
 
-Resets the forced tracking of any plane.
+> [!WARNING]
+> Deprecated — kept for backwards compatibility. Use [`stopTrackingTarget`](#stoptrackingtargetoptions) instead. Will be removed in a future major release.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
@@ -534,7 +593,7 @@ await ptrApi.setTrackingMode('AUTOMATIC');
 
 ### getIcao(by, value, options?)
 
-Returns the ICAO code for a given registration or callsign.
+Returns the ICAO code (targetId) for a given registration or callsign.
 
 -   **Parameters:**
 

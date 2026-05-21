@@ -274,6 +274,7 @@ export type ICAO = string;
 
 export const getIcaoSchema = z.object({
     icao: z.string(),
+    targetId: z.string(),
 });
 export type TGetIcaoByOption = 'registration' | 'callsign';
 
@@ -405,21 +406,25 @@ export type TDomainId = z.infer<typeof domainIdSchema>;
 
 // Short icon enum reused by the React frontend (Assets/images/svg/planes/...).
 // Keep these strings stable; consumers display the matching SVG asset.
-export type TCategoryIcon = 'small' | 'large' | 'heavy' | 'helicopter' | 'drone' | 'operator' | 'unknown';
+const categoryIconSchema = z.enum(['small', 'large', 'heavy', 'helicopter', 'drone', 'operator', 'unknown']);
+export type TCategoryIcon = z.infer<typeof categoryIconSchema>;
 
-export type TCategoryDescriptor = {
-    categoryId: string;
-    uiName: string;
-    icon: TCategoryIcon;
-};
+const categoryDescriptorSchema = z.object({
+    categoryId: z.string(),
+    uiName: z.string(),
+    icon: categoryIconSchema,
+});
+export type TCategoryDescriptor = z.infer<typeof categoryDescriptorSchema>;
 
-export type TDomainDescriptor = {
-    uiName: string;
-    icon: TCategoryIcon;
-    categoryList: TCategoryDescriptor[];
-};
+const domainDescriptorSchema = z.object({
+    uiName: z.string(),
+    icon: categoryIconSchema,
+    categoryList: z.array(categoryDescriptorSchema),
+});
+export type TDomainDescriptor = z.infer<typeof domainDescriptorSchema>;
 
-export type TDomainList = Record<TDomainId, TDomainDescriptor>;
+export const domainListSchema = z.record(domainIdSchema, domainDescriptorSchema);
+export type TDomainList = z.infer<typeof domainListSchema>;
 
 // ADS-B categoryId strings. Naming convention: `<SET>_<NAME>` where SET is
 // the BDS08 emitter category set letter (A/B/C) and NAME describes the

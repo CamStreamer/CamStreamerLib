@@ -3,6 +3,7 @@ import { IClient, TResponse } from './internal/types';
 import {
     blackListSchema,
     cameraSettingsSchema,
+    domainListSchema,
     flightInfoSchema,
     getIcaoSchema,
     ICAO,
@@ -147,12 +148,17 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         }
     }
 
+    async getDomainList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/getDomainList.cgi`, { action: 'get' }, options);
+        return domainListSchema.parse(res);
+    }
+
     //   ----------------------------------------
     //             Planes & Tracking
     //   ----------------------------------------
 
-    async fetchFlightInfo(icao: ICAO, options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/package/flightInfo.cgi`, { icao }, options);
+    async fetchFlightInfo(targetId: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/package/flightInfo.cgi`, { targetId }, options);
         return flightInfoSchema.parse(res);
     }
 
@@ -164,6 +170,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, { mode }, this.apiUser, options);
     }
 
+    // Backwards compatibility with older versions - to be removed in future major release
     async startTrackingPlane(icao: ICAO, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         await agent.get({
@@ -182,9 +189,27 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         });
     }
 
+    async startTrackingTarget(targetId: string, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        await agent.get({
+            path: `${BASE_PATH}/package/trackTarget.cgi`,
+            parameters: { targetId, ...this.apiUser },
+            timeout: options?.timeout,
+        });
+    }
+
+    async stopTrackingTarget(options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        await agent.get({
+            path: `${BASE_PATH}/package/resetTarget.cgi`,
+            parameters: this.apiUser,
+            timeout: options?.timeout,
+        });
+    }
+
     async getIcao(by: TGetIcaoByOption, value: string, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/package/getIcao.cgi`, { [by]: value }, options);
-        return getIcaoSchema.parse(res).icao;
+        return getIcaoSchema.parse(res).targetId;
     }
 
     //   ----------------------------------------
