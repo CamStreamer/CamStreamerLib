@@ -151,8 +151,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
     //             Planes & Tracking
     //   ----------------------------------------
 
-    async fetchFlightInfo(icao: ICAO, options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/package/flightInfo.cgi`, { icao }, options);
+    async fetchFlightInfo(targetId: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/package/flightInfo.cgi`, { targetId }, options);
         return flightInfoSchema.parse(res);
     }
 
@@ -164,6 +164,7 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         await this._postJsonEncoded(`${BASE_PATH}/package/setTrackingMode.cgi`, { mode }, this.apiUser, options);
     }
 
+    // Backwards compatibility with older versions - to be removed in future major release
     async startTrackingPlane(icao: ICAO, options?: THttpRequestOptions) {
         const agent = this.getClient(options?.proxyParams);
         await agent.get({
@@ -177,6 +178,24 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         const agent = this.getClient(options?.proxyParams);
         await agent.get({
             path: `${BASE_PATH}/package/resetIcao.cgi`,
+            parameters: this.apiUser,
+            timeout: options?.timeout,
+        });
+    }
+
+    async startTrackingTarget(targetId: string, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        await agent.get({
+            path: `${BASE_PATH}/package/trackTarget.cgi`,
+            parameters: { targetId, ...this.apiUser },
+            timeout: options?.timeout,
+        });
+    }
+
+    async stopTrackingTarget(options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        await agent.get({
+            path: `${BASE_PATH}/package/resetTarget.cgi`,
             parameters: this.apiUser,
             timeout: options?.timeout,
         });
