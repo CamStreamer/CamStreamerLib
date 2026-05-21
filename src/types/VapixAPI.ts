@@ -162,23 +162,20 @@ export const maxFpsResponseSchema = z.object({
         .optional(),
 });
 
-export const dateTimeinfoSchema = z.object({
-    data: z.object({
-        dateTime: z.string(),
-        dstEnabled: z.boolean(),
-        localDateTime: z.string(),
-        posixTimeZone: z.string(),
-        timeZone: z.string().optional(), // may not be defined in some cases
-    }),
+const timeInfoSchema = z.object({
+    dateTime: z.string(),
+    dstEnabled: z.boolean(),
+    localDateTime: z.string(),
+    posixTimeZone: z.string(),
+    timeZone: z.string().optional(), // may not be defined in some cases
 });
 
-export const supportedTimezonesSchema = z.object({
-    data: z.object({
-        dateTime: z.string(),
-        dstEnabled: z.boolean(),
-        localDateTime: z.string(),
+export const dateTimeinfoSchema = z.object({
+    data: timeInfoSchema,
+});
+export const allDateTimeInfoSchema = z.object({
+    data: timeInfoSchema.extend({
         maxYearSupported: z.number(),
-        posixTimeZone: z.string(),
         timeZones: z.array(z.string()),
     }),
 });
