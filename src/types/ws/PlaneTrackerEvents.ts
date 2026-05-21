@@ -76,7 +76,13 @@ export enum EUserActions {
 
 const eventsDataSchema = z.union([
     z.object({ type: z.literal('CAMERA_POSITION') }).merge(wsCameraPositionDataSchema),
-    z.object({ type: z.literal('TRACKING_START'), icao: z.string() }),
+    z.object({
+        type: z.literal('TRACKING_START'),
+        icao: z.string(),
+        targetId: z.string(),
+        domain: domainIdSchema,
+        categoryId: z.string(),
+    }),
     z.object({ type: z.literal('TRACKING_STOP') }),
     z.object({ type: z.literal('FLIGHT_LIST'), list: z.array(wsApiFlightDataSchema) }),
     z.object({
@@ -157,7 +163,12 @@ const eventsDataSchema = z.union([
         postJsonBody: z.any(),
     }),
     z.object({ type: z.literal('CONNECTED_USERS'), users: z.array(apiUserSchema) }),
-    z.object({ type: z.literal('FORCE_TRACKING_STATUS'), enabled: z.boolean(), icao: z.string().optional() }),
+    z.object({
+        type: z.literal('FORCE_TRACKING_STATUS'),
+        enabled: z.boolean(),
+        icao: z.string().optional(),
+        targetId: z.string().optional(),
+    }),
     z.object({ type: z.literal('API_LOCK_STATUS'), isLocked: z.boolean(), user: apiUserSchema.optional() }),
 ] as const);
 
