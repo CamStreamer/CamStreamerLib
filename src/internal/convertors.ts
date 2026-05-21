@@ -99,8 +99,8 @@ export const parseVideoOptionsToVapixParams = (firmWareVersion: string, video: T
 
     const videoCodecParams =
         video.videoCodec === 'h264'
-            ? `videoCodec=${video.videoCodec}&h264Profile=${video.h264Profile}`
-            : `videoCodec=${video.videoCodec}`;
+            ? `videocodec=${video.videoCodec}&h264Profile=${video.h264Profile}`
+            : `videocodec=${video.videoCodec}`;
 
     const videoParams = `camera=${video.camera}&resolution=${video.resolution}&fps=${video.fps}&compression=${video.compression}&videokeyframeinterval=${video.govLength}&${videoCodecParams}${overlaysParams}`;
 
@@ -118,7 +118,7 @@ export const parseVapixParamsToVideoOptions = (internalVapixParams: string): TIn
     });
 
     let h264Profile = undefined;
-    if (params['videoCodec'] === 'h264') {
+    if (params['videocodec'] === 'h264') {
         h264Profile = (params['h264Profile'] ?? 'high') as TH264Profile;
     }
 
@@ -134,7 +134,7 @@ export const parseVapixParamsToVideoOptions = (internalVapixParams: string): TIn
         fps: parseInt(params['fps'] ?? '0', 10),
         compression: parseInt(params['compression'] ?? '0', 10),
         govLength: parseInt(params['videokeyframeinterval'] ?? '0', 10),
-        videoCodec: (params['videoCodec'] ?? 'h264') as TVideoCodec,
+        videoCodec: (params['videocodec'] ?? 'h264') as TVideoCodec,
         h264Profile,
         audio: parseInt(params['audio'] ?? '0') as 0 | 1,
         nbrOfChannels,
