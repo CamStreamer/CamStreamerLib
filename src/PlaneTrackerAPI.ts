@@ -3,6 +3,7 @@ import { IClient, TResponse } from './internal/types';
 import {
     blackListSchema,
     cameraSettingsSchema,
+    domainListSchema,
     flightInfoSchema,
     getIcaoSchema,
     ICAO,
@@ -145,6 +146,11 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         if (!res.ok) {
             throw new ImportSettingsError(res);
         }
+    }
+
+    async getDomainList(options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/getDomainList.cgi`, { action: 'get' }, options);
+        return domainListSchema.parse(res);
     }
 
     //   ----------------------------------------

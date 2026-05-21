@@ -422,6 +422,38 @@ Import all settings in a `.zip` file.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<void>`
 
+### getDomainList(options?)
+
+Returns a list of available tracking domains and their target categories.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<TDomainList>`:
+
+```typescript
+type TDomainId = 'adsb' | 'remoteId';
+
+type TCategoryIcon = 'small' | 'large' | 'heavy' | 'helicopter' | 'drone' | 'operator' | 'unknown';
+
+type TCategoryDescriptor = {
+    categoryId: string;
+    uiName: string;
+    icon: TCategoryIcon;
+};
+
+type TDomainDescriptor = {
+    uiName: string;
+    icon: TCategoryIcon;
+    categoryList: TCategoryDescriptor[];
+};
+
+type TDomainList = Record<TDomainId, TDomainDescriptor>;
+```
+
+```javascript
+const domainList = await ptrApi.getDomainList();
+```
+
 <br/>
 
 ## Planes & Tracking Management Methods
