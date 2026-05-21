@@ -24,6 +24,7 @@ import {
     sdCardInfoSchema,
     ALL_APP_IDS,
     TRecordingConfigItem,
+    supportedTimezonesSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -231,6 +232,12 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             throw new TimezoneNotSetupError();
         }
         return z.string().parse(data.data.timeZone);
+    }
+
+    async getSupportedTimezones(options?: THttpRequestOptions) {
+        const data = { apiVersion: '1.0', method: 'getAll' };
+        const res = await this._postJsonEncoded('/axis-cgi/time.cgi', data, undefined, options);
+        return supportedTimezonesSchema.parse(await res.json()).data.timeZones;
     }
 
     async getDateTimeInfo(options?: THttpRequestOptions) {

@@ -171,6 +171,18 @@ export const dateTimeinfoSchema = z.object({
         timeZone: z.string().optional(), // may not be defined in some cases
     }),
 });
+
+export const supportedTimezonesSchema = z.object({
+    data: z.object({
+        dateTime: z.string(),
+        dstEnabled: z.boolean(),
+        localDateTime: z.string(),
+        maxYearSupported: z.number(),
+        posixTimeZone: z.string(),
+        timeZones: z.array(z.string()),
+    }),
+});
+
 export const timeZoneSchema = z.discriminatedUnion('status', [
     z.object({
         status: z.literal('success'),
