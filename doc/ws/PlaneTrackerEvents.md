@@ -171,22 +171,23 @@ Supported event types and their data:
 
     The shape of `params` and presence of `postJsonBody` varies by `cgi`. Common `EUserActions` values:
 
-    | `cgi` (`EUserActions`)                        | extra `params` fields       | `postJsonBody`       |
-    | --------------------------------------------- | --------------------------- | -------------------- |
-    | `trackIcao.cgi` (`TRACK_ICAO`)                | `icao: string`              | —                    |
-    | `trackTarget.cgi` (`TRACK_TARGET`)            | `targetId: string`          | —                    |
-    | `resetIcao.cgi` (`RESET_ICAO`)                | —                           | —                    |
-    | `goToCoordinates.cgi` (`GO_TO_COORDINATES`)   | `lat: string, lon: string`  | —                    |
-    | `lockApi.cgi` (`LOCK_API`)                    | `timeout: string`           | —                    |
-    | `unlockApi.cgi` (`UNLOCK_API`)                | —                           | —                    |
-    | `setPriorityList.cgi` (`SET_PRIORITY_LIST`)   | —                           | priority list object |
-    | `setBlackList.cgi` (`SET_BLACK_LIST`)         | —                           | black list object    |
-    | `setWhiteList.cgi` (`SET_WHITE_LIST`)         | —                           | white list object    |
-    | `setTrackingMode.cgi` (`SET_TRACKING_MODE`)   | —                           | tracking mode object |
-    | `setZones.cgi` (`SET_ZONES`)                  | —                           | zones object         |
-    | `resetPtzCalibration.cgi` (`RESET_PTZ_CALIBRATION`) | —                    | —                    |
+    | `cgi` (`EUserActions`)                              | extra `params` fields      | `postJsonBody`       |
+    | --------------------------------------------------- | -------------------------- | -------------------- |
+    | `trackIcao.cgi` (`TRACK_ICAO`)                      | `icao: string`             | —                    |
+    | `trackTarget.cgi` (`TRACK_TARGET`)                  | `targetId: string`         | —                    |
+    | `resetIcao.cgi` (`RESET_ICAO`)                      | —                          | —                    |
+    | `goToCoordinates.cgi` (`GO_TO_COORDINATES`)         | `lat: string, lon: string` | —                    |
+    | `lockApi.cgi` (`LOCK_API`)                          | `timeout: string`          | —                    |
+    | `unlockApi.cgi` (`UNLOCK_API`)                      | —                          | —                    |
+    | `setPriorityList.cgi` (`SET_PRIORITY_LIST`)         | —                          | priority list object |
+    | `setBlackList.cgi` (`SET_BLACK_LIST`)               | —                          | black list object    |
+    | `setWhiteList.cgi` (`SET_WHITE_LIST`)               | —                          | white list object    |
+    | `setTrackingMode.cgi` (`SET_TRACKING_MODE`)         | —                          | tracking mode object |
+    | `setZones.cgi` (`SET_ZONES`)                        | —                          | zones object         |
+    | `resetPtzCalibration.cgi` (`RESET_PTZ_CALIBRATION`) | —                          | —                    |
 
     Base `params` fields (always present):
+
     ```js
     {
         type: 'USER_ACTION',
@@ -201,6 +202,7 @@ Supported event types and their data:
         postJsonBody: any,     // present for list/mode/zones CGIs
     }
     ```
+
 -   **CONNECTED_USERS**
     ```js
     {
