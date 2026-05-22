@@ -175,7 +175,7 @@ export const dateTimeinfoSchema = z.object({
 });
 export const allDateTimeInfoSchema = z.object({
     data: timeInfoSchema.extend({
-        maxYearSupported: z.number(),
+        maxYearSupported: z.number().optional(), // may not be defined in some cases
         timeZones: z.array(z.string()),
     }),
 });
