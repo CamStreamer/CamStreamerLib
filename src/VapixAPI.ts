@@ -36,7 +36,6 @@ import {
     SDCardJobError,
     SettingParameterError,
     TimezoneFetchError,
-    TimezoneNotSetupError,
 } from './errors/errors';
 import { TCameraImageConfig, THttpRequestOptions } from './types/common';
 import { z } from 'zod';
@@ -229,7 +228,8 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         // fallback to deprecated api
         const data = await this.getAllDateTimeInfo(options);
         if (data.data.timeZone === undefined) {
-            throw new TimezoneNotSetupError();
+            console.warn('Timezone not set up on the camera, using POSIX time zone as fallback');
+            return z.string().parse(data.data.posixTimeZone);
         }
         return z.string().parse(data.data.timeZone);
     }
