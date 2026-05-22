@@ -62,6 +62,7 @@ export type TEventType =
 
 export enum EUserActions {
     TRACK_ICAO = 'trackIcao.cgi',
+    TRACK_TARGET = 'trackTarget.cgi',
     RESET_ICAO = 'resetIcao.cgi',
     SET_PRIORITY_LIST = 'setPriorityList.cgi',
     SET_BLACK_LIST = 'setBlackList.cgi',
@@ -90,6 +91,13 @@ const eventsDataSchema = z.union([
         cgi: z.literal(EUserActions.TRACK_ICAO),
         ip: z.string(),
         params: userSchema.extend({ icao: z.string() }),
+        postJsonBody: z.any(),
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.TRACK_TARGET),
+        ip: z.string(),
+        params: userSchema.extend({ targetId: z.string() }),
         postJsonBody: z.any(),
     }),
     z.object({

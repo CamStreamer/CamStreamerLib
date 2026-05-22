@@ -149,8 +149,8 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
     }
 
     async getDomainList(options?: THttpRequestOptions) {
-        const res = await this._getJson(`${BASE_PATH}/getDomainList.cgi`, { action: 'get' }, options);
-        return domainListSchema.parse(res);
+        const res = await this._getJson(`${BASE_PATH}/package/getDomainList.cgi`, { action: 'get' }, options);
+        return z.object({ domainList: domainListSchema }).parse(res).domainList;
     }
 
     //   ----------------------------------------
