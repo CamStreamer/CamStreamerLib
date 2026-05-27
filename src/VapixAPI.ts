@@ -228,12 +228,24 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         }
 
         // fallback to deprecated api
-        const data = await this.getAllDateTimeInfo(options);
-        if (data.data.timeZone === undefined) {
-            console.warn('Timezone not set up on the camera, using POSIX time zone as fallback');
-            return z.string().parse(data.data.posixTimeZone);
+        try {
+            const data = await this.getAllDateTimeInfo(options);
+            if (data.data.timeZone === undefined) {
+                console.warn('Timezone not set up on the camera, using POSIX time zone as fallback');
+                return z.string().parse(data.data.posixTimeZone);
+            }
+            return z.string().parse(data.data.timeZone);
+        } catch (error) {
+            // try param.cgi if both api endpoints fail, since some cameras might not have either
+            console.warn('Could not retreive timezone from either API endpoints, reading param.cgi');
+            const posixTimezone = (await this.getParameter('Time.POSIXTimeZone', options))['Time.POSIXTimeZone'];
+
+            if (posixTimezone !== undefined) {
+                return z.string().parse(posixTimezone);
+            } else {
+                throw error;
+            }
         }
-        return z.string().parse(data.data.timeZone);
     }
 
     async getAllDateTimeInfo(options?: THttpRequestOptions) {
