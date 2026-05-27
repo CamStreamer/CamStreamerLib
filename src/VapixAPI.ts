@@ -36,11 +36,13 @@ import {
     SDCardJobError,
     SettingParameterError,
     TimezoneFetchError,
+    PortManagementError,
 } from './errors/errors';
 import { TCameraImageConfig, THttpRequestOptions } from './types/common';
 import { z } from 'zod';
 import { XMLParser } from 'fast-xml-parser';
 import { BasicAPI } from './internal/BasicAPI';
+import { PORT_PARAMS } from './internal/constants';
 
 export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
     constructor(client: Client, private CustomFormData = FormData) {
@@ -560,47 +562,78 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
     //  -------------------------------
 
     async getPorts(options?: THttpRequestOptions) {
-        const res = await this._postJsonEncoded(
-            '/axis-cgi/io/portmanagement.cgi',
-            {
-                apiVersion: '1.0',
-                context: '',
-                method: 'getPorts',
-            },
-            undefined,
-            options
-        );
+        try {
+            const res = await this._postJsonEncoded(
+                '/axis-cgi/io/portmanagement.cgi',
+                {
+                    apiVersion: '1.0',
+                    context: '',
+                    method: 'getPorts',
+                },
+                undefined,
+                options
+            );
 
-        const portResponseParsed = getPortsResponseSchema.parse(await res.json());
-        return portResponseParsed.data.items ?? [];
+            const portResponseParsed = getPortsResponseSchema.parse(await res.json());
+            return portResponseParsed.data.items ?? [];
+        } catch (error) {
+            await this.checkPortsAvailable(error);
+        }
     }
 
     async setPorts(ports: TPortSetSchema[], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(
-            '/axis-cgi/io/portmanagement.cgi',
-            {
-                apiVersion: '1.0',
-                context: '',
-                method: 'setPorts',
-                params: { ports },
-            },
-            undefined,
-            options
-        );
+        try {
+            await this._postJsonEncoded(
+                '/axis-cgi/io/portmanagement.cgi',
+                {
+                    apiVersion: '1.0',
+                    context: '',
+                    method: 'setPorts',
+                    params: { ports },
+                },
+                undefined,
+                options
+            );
+        } catch (error) {
+            await this.checkPortsAvailable(error);
+        }
     }
 
     async setPortStateSequence(port: number, sequence: TPortSequenceStateSchema[], options?: THttpRequestOptions) {
-        await this._postJsonEncoded(
-            '/axis-cgi/io/portmanagement.cgi',
-            {
-                apiVersion: '1.0',
-                context: '',
-                method: 'setStateSequence',
-                params: { port, sequence },
-            },
-            undefined,
-            options
-        );
+        try {
+            await this._postJsonEncoded(
+                '/axis-cgi/io/portmanagement.cgi',
+                {
+                    apiVersion: '1.0',
+                    context: '',
+                    method: 'setStateSequence',
+                    params: { port, sequence },
+                },
+                undefined,
+                options
+            );
+        } catch (error) {
+            await this.checkPortsAvailable(error);
+        }
+    }
+
+    private async checkPortsAvailable(error: unknown) {
+        if (error instanceof ErrorWithResponse && error.res.status === 404) {
+            const ports = await this.getParameter([PORT_PARAMS.inputNbr, PORT_PARAMS.outputNbr]);
+            const inputPorts = ports[PORT_PARAMS.inputNbr];
+            const outputPorts = ports[PORT_PARAMS.outputNbr];
+
+            if (
+                (inputPorts === undefined || inputPorts === '0') &&
+                (outputPorts === undefined || outputPorts === '0')
+            ) {
+                return [];
+            } else {
+                throw new PortManagementError(inputPorts, outputPorts);
+            }
+        } else {
+            throw error;
+        }
     }
 
     //  -------------------------------
