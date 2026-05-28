@@ -222,20 +222,3 @@ export class MigrationError extends Error {
         this.unknown = unknown;
     }
 }
-
-export class PortManagementError extends Error {
-    readonly ports: {
-        inputPorts?: string;
-        outputPorts?: string;
-    };
-
-    constructor(nbrOfInputPorts?: string, nbrOfOutputPorts?: string) {
-        super('Failed to fetch ports using portmanagement.cgi');
-        this.name = 'PortManagementError';
-
-        this.ports = {
-            inputPorts: nbrOfInputPorts,
-            outputPorts: nbrOfOutputPorts,
-        };
-    }
-}
