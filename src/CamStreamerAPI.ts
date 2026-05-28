@@ -59,6 +59,9 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
 
     async isCSPassValid(pass: string, options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/check_pass.cgi`, { pass }, options);
+        if (res.status !== 200) {
+            throw new Error(res.message);
+        }
         return res.data === '1';
     }
 
@@ -72,6 +75,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
 
     async getStreamList<TUnknownStream extends { platform: string }>(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/stream_list.cgi`, { action: 'get' }, options);
+
+        if (res.status !== 200) {
+            throw new Error(res.message);
+        }
 
         // Do we have the old record format?
         const oldStreamListRecord = z.record(z.string(), oldStringStreamSchema).safeParse(res.data);
@@ -148,6 +155,10 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
             { action: 'get', stream_id: streamId },
             options
         );
+
+        if (res.status !== 200) {
+            throw new Error(res.message);
+        }
 
         // No unknown stream here, do not allow it
         const newStream = streamSchema.safeParse(res.data);
