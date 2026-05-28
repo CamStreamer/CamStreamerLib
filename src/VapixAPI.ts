@@ -25,6 +25,7 @@ import {
     ALL_APP_IDS,
     TRecordingConfigItem,
     allDateTimeInfoSchema,
+    TPortStatusSchema,
 } from './types/VapixAPI';
 import {
     ApplicationAPIError,
@@ -36,7 +37,6 @@ import {
     SDCardJobError,
     SettingParameterError,
     TimezoneFetchError,
-    PortManagementError,
 } from './errors/errors';
 import { TCameraImageConfig, THttpRequestOptions } from './types/common';
 import { z } from 'zod';
@@ -589,63 +589,89 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             const portResponseParsed = getPortsResponseSchema.parse(await res.json());
             return portResponseParsed.data.items ?? [];
         } catch (error) {
-            await this.checkPortsAvailable(error);
+            if (error instanceof ErrorWithResponse && error.res.status === 404) {
+                console.warn(error, 'Error while fetching ports, trying param.cgi directly');
+
+                const ports = await this.getParameter([PORT_PARAMS.inputNbr, PORT_PARAMS.outputNbr]);
+                const nbrOfPorts = Number(ports[PORT_PARAMS.inputNbr] ?? 0) + Number(ports[PORT_PARAMS.outputNbr] ?? 0);
+
+                if (nbrOfPorts === 0) {
+                    return [];
+                }
+
+                const items: TPortStatusSchema[] = [];
+                for (let i = 0; i < nbrOfPorts; i++) {
+                    const portDirection = (await this.getParameter([PORT_PARAMS.direction(i)]))[
+                        PORT_PARAMS.direction(i)
+                    ];
+
+                    if (portDirection === undefined) {
+                        continue;
+                    }
+
+                    const info = await this.getParameter([
+                        PORT_PARAMS.configurable(i),
+                        PORT_PARAMS.usage(i),
+                        portDirection === 'input' ? PORT_PARAMS.inputState(i) : PORT_PARAMS.outputState(i),
+                        portDirection === 'input' ? PORT_PARAMS.inputName(i) : PORT_PARAMS.outputName(i),
+                    ]);
+
+                    const portState =
+                        portDirection === 'input'
+                            ? info[PORT_PARAMS.inputState(i)] === 'open'
+                                ? 'closed'
+                                : 'open'
+                            : info[PORT_PARAMS.outputState(i)] === 'open'
+                            ? 'closed'
+                            : 'open';
+
+                    items.push({
+                        port: String(i),
+                        state: portState,
+                        configurable: info[PORT_PARAMS.configurable(i)] !== 'no',
+                        usage: info[PORT_PARAMS.usage(i)] ?? '',
+                        direction: portDirection as TPortStatusSchema['direction'],
+                        name:
+                            portDirection === 'input'
+                                ? info[PORT_PARAMS.inputName(i)] ?? 'Port ' + i
+                                : info[PORT_PARAMS.outputName(i)] ?? 'Port ' + i,
+                        normalState: portState,
+                    });
+                }
+
+                return items;
+            } else {
+                throw error;
+            }
         }
     }
 
     async setPorts(ports: TPortSetSchema[], options?: THttpRequestOptions) {
-        try {
-            await this._postJsonEncoded(
-                '/axis-cgi/io/portmanagement.cgi',
-                {
-                    apiVersion: '1.0',
-                    context: '',
-                    method: 'setPorts',
-                    params: { ports },
-                },
-                undefined,
-                options
-            );
-        } catch (error) {
-            await this.checkPortsAvailable(error);
-        }
+        await this._postJsonEncoded(
+            '/axis-cgi/io/portmanagement.cgi',
+            {
+                apiVersion: '1.0',
+                context: '',
+                method: 'setPorts',
+                params: { ports },
+            },
+            undefined,
+            options
+        );
     }
 
     async setPortStateSequence(port: number, sequence: TPortSequenceStateSchema[], options?: THttpRequestOptions) {
-        try {
-            await this._postJsonEncoded(
-                '/axis-cgi/io/portmanagement.cgi',
-                {
-                    apiVersion: '1.0',
-                    context: '',
-                    method: 'setStateSequence',
-                    params: { port, sequence },
-                },
-                undefined,
-                options
-            );
-        } catch (error) {
-            await this.checkPortsAvailable(error);
-        }
-    }
-
-    private async checkPortsAvailable(error: unknown) {
-        if (error instanceof ErrorWithResponse && error.res.status === 404) {
-            const ports = await this.getParameter([PORT_PARAMS.inputNbr, PORT_PARAMS.outputNbr]);
-            const inputPorts = ports[PORT_PARAMS.inputNbr];
-            const outputPorts = ports[PORT_PARAMS.outputNbr];
-
-            if (
-                (inputPorts === undefined || inputPorts === '0') &&
-                (outputPorts === undefined || outputPorts === '0')
-            ) {
-                return [];
-            } else {
-                throw new PortManagementError(inputPorts, outputPorts);
-            }
-        } else {
-            throw error;
-        }
+        await this._postJsonEncoded(
+            '/axis-cgi/io/portmanagement.cgi',
+            {
+                apiVersion: '1.0',
+                context: '',
+                method: 'setStateSequence',
+                params: { port, sequence },
+            },
+            undefined,
+            options
+        );
     }
 
     //  -------------------------------
