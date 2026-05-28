@@ -1,6 +1,6 @@
 {
     "name": "camstreamerlib",
-    "version": "4.0.15",
+    "version": "4.0.16",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
     "engine": {
