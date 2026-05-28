@@ -131,6 +131,7 @@ export const cameraSettingsSchema = z.object({
             displayIcao: z.boolean().optional(),
             displayRegistration: z.boolean().optional(),
             displayFlightNumber: z.boolean().optional(),
+            displayCallsign: z.boolean().optional(),
             displayAltitude: z.boolean().optional(),
             displayVelocity: z.boolean().optional(),
             displayDistance: z.boolean().optional(),
