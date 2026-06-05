@@ -20,6 +20,16 @@ export const connectionSchema = z.object({
     user: z.string(),
     pass: z.string(),
 });
+export type TConnection = z.infer<typeof connectionSchema>;
+
+export const milestoneCameraListSchema = z
+    .object({
+        index: z.number(),
+        value: z.string(),
+        label: z.string(),
+    })
+    .array();
+export type TMilestoneCameraOption = z.infer<typeof milestoneCameraListSchema>[number];
 
 export const widgetSchema = z.object({
     enabled: z.boolean().default(true),
@@ -212,6 +222,20 @@ export const cameraSettingsSchema = z.object({
             user: '',
             pass: '',
             sourceKey: '',
+        }),
+    milestone: connectionSchema
+        .extend({
+            enabled: z.boolean(),
+            cameraList: z.string().array().default([]),
+        })
+        .default({
+            enabled: false,
+            protocol: 'https_insecure',
+            ip: '',
+            port: 443,
+            user: '',
+            pass: '',
+            cameraList: [],
         }),
     camstreamerIntegration: z
         .object({

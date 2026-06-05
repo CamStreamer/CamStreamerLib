@@ -8,6 +8,9 @@ export * from './TimeZoneDaemon';
 export * from './events/GenetecAgent';
 export * from '../types/GenetecAgent';
 
+export * from './events/MilestoneAgent';
+export * from '../types/MilestoneAgent';
+
 export { ResourceManager } from './CamOverlayPainter/ResourceManager';
 export { Painter } from './CamOverlayPainter/Painter';
 export { Frame } from './CamOverlayPainter/Frame';
