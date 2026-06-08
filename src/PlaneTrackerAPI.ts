@@ -8,13 +8,16 @@ import {
     getIcaoSchema,
     ICAO,
     mapInfoSchema,
+    milestoneCameraListSchema,
     priorityListSchema,
     serverSettingsSchema,
     TBlackList,
     TCameraSettings,
+    TConnection,
     TExportDataType,
     TGetIcaoByOption,
     TImportDataType,
+    TMilestoneCameraOption,
     TPriorityList,
     trackingModeSchema,
     TTrackingMode,
@@ -283,6 +286,31 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
                 throw new ServerError();
             }
         }
+    }
+
+    //   ----------------------------------------
+    //                   Milestone
+    //   ----------------------------------------
+
+    async checkMilestoneConnection(params: TConnection, options?: THttpRequestOptions): Promise<boolean> {
+        try {
+            await this._postUrlEncoded(`${BASE_PATH}/package/checkMilestoneConnection.cgi`, { ...params }, options);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async getMilestoneCameraList(
+        params: TConnection,
+        options?: THttpRequestOptions
+    ): Promise<TMilestoneCameraOption[]> {
+        const res = await this._postUrlEncoded(
+            `${BASE_PATH}/package/getMilestoneCameraList.cgi`,
+            { ...params },
+            options
+        );
+        return milestoneCameraListSchema.parse(await res.json());
     }
 
     //   ----------------------------------------
