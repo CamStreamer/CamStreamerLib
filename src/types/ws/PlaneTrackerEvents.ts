@@ -16,6 +16,9 @@ const wsApiFlightDataSchema = z.object({
     groupId: z.string().optional(),
     lat: z.number(),
     lon: z.number(),
+    // Epoch ms when lat/lon were observed (NOT extrapolated). Enables the
+    // client to compute true age/dt and extrapolate to render-now.
+    positionTimestamp: z.number(),
     heading: z.number(),
     groundSpeed: z.number(), // [km/h]
     altitudeAMSL: z.number(), // [m]
@@ -38,6 +41,9 @@ const wsCameraPositionDataSchema = z.object({
     azimuth: z.number().min(0).max(360),
     elevation: z.number().min(-90).max(90),
     fov: z.number(),
+    // Epoch ms when the PTZ angles were sampled. Enables time-accurate,
+    // continuous cone animation on the client.
+    sampledAt: z.number(),
 });
 
 const userSchema = z.object({
