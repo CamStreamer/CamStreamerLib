@@ -14,10 +14,11 @@ const wsApiFlightDataSchema = z.object({
     domain: domainIdSchema,
     categoryId: z.string(),
     groupId: z.string().optional(),
-    lat: z.number(),
+    lat: z.number(), // estimated/extrapolated current position (legacy; external consumers rely on this)
     lon: z.number(),
-    // Epoch ms when lat/lon were observed (NOT extrapolated). Enables the
-    // client to compute true age/dt and extrapolate to render-now.
+    observedLat: z.number(), // raw observation position (un-extrapolated)
+    observedLon: z.number(),
+    // Epoch ms of the raw observation — pairs with observedLat/observedLon.
     positionTimestamp: z.number(),
     heading: z.number(),
     groundSpeed: z.number(), // [km/h]
