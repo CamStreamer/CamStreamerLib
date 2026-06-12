@@ -266,6 +266,8 @@ export const serverSettingsSchema = z.object({
             tiltTransformationCoefA: z.number(),
             tiltCameraKnownPoint: z.number(),
             tiltRealKnownPoint: z.number(),
+            panTiltNonOrthogonality: z.number().default(0), // deg; pan/tilt axis non-orthogonality (NP)
+            collimationError: z.number().default(0), // deg; optical axis vs tilt axis collimation error (CH)
             panErrorCorrection: z
                 .array(
                     z.object({
@@ -286,6 +288,8 @@ export const serverSettingsSchema = z.object({
             tiltTransformationCoefA: 1.0,
             tiltCameraKnownPoint: 90,
             tiltRealKnownPoint: 90,
+            panTiltNonOrthogonality: 0,
+            collimationError: 0,
             panErrorCorrection: [],
         }),
 });
