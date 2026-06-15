@@ -14,8 +14,12 @@ const wsApiFlightDataSchema = z.object({
     domain: domainIdSchema,
     categoryId: z.string(),
     groupId: z.string().optional(),
-    lat: z.number(),
+    lat: z.number(), // estimated/extrapolated current position (legacy; external consumers rely on this)
     lon: z.number(),
+    observedLat: z.number(), // raw observation position (un-extrapolated)
+    observedLon: z.number(),
+    // Epoch ms of the raw observation — pairs with observedLat/observedLon.
+    positionTimestamp: z.number(),
     heading: z.number(),
     groundSpeed: z.number(), // [km/h]
     altitudeAMSL: z.number(), // [m]
@@ -38,6 +42,9 @@ const wsCameraPositionDataSchema = z.object({
     azimuth: z.number().min(0).max(360),
     elevation: z.number().min(-90).max(90),
     fov: z.number(),
+    // Epoch ms when the PTZ angles were sampled. Enables time-accurate,
+    // continuous cone animation on the client.
+    sampledAt: z.number(),
 });
 
 const userSchema = z.object({
