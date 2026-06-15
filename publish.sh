@@ -1,35 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-PKG_NAME=camstreamerlib
-
 run() {
   printf '\n\033[36m▶ %s\033[0m\n' "$*"
   "$@"
 }
 
-pkg_field() { 
+readPackage() { 
   node -p "require('./package.json').$1";
 }
-
-version_exists() {
-  npm view "$1@$2" version >/dev/null 2>&1;
+writePackage() {
+  node -e "const p=require('./package.json'); p['$1']='$2'; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2) + '\n')"
 }
 
-bump_dev() {
-  npm version prerelease --preid dev --no-git-tag-version >/dev/null; 
-}
-
-# --------- auth check ---------
+#   ----------------------------------------
+#                   AUTH CHECK
+#   ----------------------------------------
 
 if npm whoami >/dev/null 2>&1; then
+  if [[ "$(npm whoami)" != "camstreamer" ]]; then
+    printf '\n\033[31m✗ Logged in as "%s", but expected "camstreamer". Please log out and log in with the correct account.\033[0m\n' "$(npm whoami)" >&2
+    exit 1
+  fi
   printf '\n\033[36m▶ npm whoami\033[0m\n  logged in as %s\n' "$(npm whoami)"
 else
   printf '\n\033[33mNot logged in to npm — starting login.\033[0m\n'
-  run npm login
+  run npm login camstreamer
 fi
 
-# --------- branch check ---------
+#   ----------------------------------------
+#                   BRANCH CHECK
+#   ----------------------------------------
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 
@@ -55,17 +56,26 @@ else
   printf '\n\033[33mOn branch "%s" → dev prerelease (tag: %s)\033[0m\n' "$BRANCH" "$NPM_TAG"
 fi
 
-# --------- version bump ---------
+#   ----------------------------------------
+#                BUILD PACKAGE
+#   ----------------------------------------
 
 run npm run lint
 run npm run pretty:check
+run npm run build
 
-VERSION="$(pkg_field version)"
+#   ----------------------------------------
+#         PREPARE PACKAGE FOR PUBLISH
+#   ----------------------------------------
 
+COMMIT="$(git rev-parse --short HEAD)"
+VERSION="$(readPackage version)"
+PKG_NAME="$(readPackage name)"
 
 if [[ "$NPM_TAG" == "latest" ]]; then
-  # --------- master release guard ---------
+  
   # Refuse if this version is already the published "latest" on npm
+  
   if [[ "$(npm view "$PKG_NAME@latest" version 2>/dev/null || true)" == "$VERSION" ]]; then
     printf '\n\033[31m✗ %s@%s is already published as latest on npm — bump the version first.\033[0m\n' \
       "$PKG_NAME" "$VERSION" >&2
@@ -73,6 +83,7 @@ if [[ "$NPM_TAG" == "latest" ]]; then
   fi
 
   # Refuse if the package.json version is not committed to git (HEAD differs)
+
   COMMITTED_VERSION="$(git show "HEAD:./package.json" 2>/dev/null \
     | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version" 2>/dev/null || true)"
   if [[ "$VERSION" != "$COMMITTED_VERSION" ]]; then
@@ -83,20 +94,16 @@ if [[ "$NPM_TAG" == "latest" ]]; then
 
   printf '\n\033[36mReleasing committed version %s@%s\033[0m\n' "$PKG_NAME" "$VERSION"
 else
-  run npm version prerelease --preid dev --no-git-tag-version
-
-  CANDIDATE="$(pkg_field version)"
-  while version_exists "$PKG_NAME" "$CANDIDATE"; do
-    printf '\n\033[33m⚠ %s@%s already on npm — bumping past it\033[0m\n' "$PKG_NAME" "$CANDIDATE"
-    bump_dev
-    CANDIDATE="$(pkg_field version)"
-  done
+  cd ./dist
+  CANDIDATE="$(readPackage version)-${COMMIT}"
+  writePackage version "$CANDIDATE"
+  cd ..
   printf '\n\033[36mNext dev version: %s@%s\033[0m\n' "$PKG_NAME" "$CANDIDATE"
 fi
 
-# --------- publish ---------
-
-run npm run build
+#   ----------------------------------------
+#                   PUBLISH
+#   ----------------------------------------
 
 if [[ "$NPM_TAG" == "latest" ]]; then
   run npm publish ./dist --tag "$NPM_TAG"
@@ -104,7 +111,9 @@ else
   run npm publish ./dist --tag "$NPM_TAG"
 fi
 
-PUBLISHED_VERSION="$(pkg_field version)"
+cd ./dist
+PUBLISHED_VERSION="$(readPackage version)"
+
 printf '\n\033[32m✓ Published %s@%s with tag "%s". Install it with:  npm install %s@%s\033[0m\n' \
   "$PKG_NAME" "$PUBLISHED_VERSION" "$NPM_TAG" "$PKG_NAME" "$NPM_TAG"
 
