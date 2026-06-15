@@ -20,6 +20,15 @@ bump_dev() {
   npm version prerelease --preid dev --no-git-tag-version >/dev/null; 
 }
 
+# --------- auth check ---------
+
+if npm whoami >/dev/null 2>&1; then
+  printf '\n\033[36m▶ npm whoami\033[0m\n  logged in as %s\n' "$(npm whoami)"
+else
+  printf '\n\033[33mNot logged in to npm — starting login.\033[0m\n'
+  run npm login
+fi
+
 # --------- branch check ---------
 
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
@@ -85,15 +94,6 @@ else
   printf '\n\033[36mNext dev version: %s@%s\033[0m\n' "$PKG_NAME" "$CANDIDATE"
 fi
 
-# --------- auth check ---------
-
-if npm whoami >/dev/null 2>&1; then
-  printf '\n\033[36m▶ npm whoami\033[0m\n  logged in as %s\n' "$(npm whoami)"
-else
-  printf '\n\033[33mNot logged in to npm — starting login.\033[0m\n'
-  run npm login
-fi
-
 # --------- publish ---------
 
 run npm run build
@@ -109,7 +109,7 @@ printf '\n\033[32m✓ Published %s@%s with tag "%s". Install it with:  npm insta
   "$PKG_NAME" "$PUBLISHED_VERSION" "$NPM_TAG" "$PKG_NAME" "$NPM_TAG"
 
 if [[ "$NPM_TAG" == "latest" ]]; then
-  printf '\033[36mℹ Stable release: push the version commit and tag with:  git push --follow-tags\033[0m\n'
+  printf '\033[36mℹ Stable release: %s\033[0m\n' "$PUBLISHED_VERSION"
 fi
 
 exit 0
