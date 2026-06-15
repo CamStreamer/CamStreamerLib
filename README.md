@@ -198,17 +198,7 @@ try {
 
 ### Publishing to npm repository
 
-1. Update version in package.json and push it
-2. Create git tag e.g. v1.2.4
-
--   `git tag v1.2.4`
--   `git push --tags`
-
-3. Publish new version to npm
-
--   `npm publish ./dist`
-
-4. Edit GitHub release form.
+Run `npm run publishPackage` to publish package to npm.
 
 ### Preparing a package to upload to CamScripter
 

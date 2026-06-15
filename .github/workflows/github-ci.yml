@@ -29,8 +29,14 @@ jobs:
         with:
           node-version: '18.x'
           registry-url: 'https://registry.npmjs.org'
-
-      # Runs a single command using the runners shell
+      - name: Version format check
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "package.json version: $VERSION"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Version '$VERSION' must contain only three numbers (e.g. 1.1.1), not '$VERSION'"
+            exit 1
+          fi
       - name: Init
         run: |
           npm install
