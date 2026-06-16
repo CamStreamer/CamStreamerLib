@@ -167,15 +167,24 @@ export const cameraSettingsSchema = z.object({
         coord: 'top_right',
         posX: 10,
         posY: 10,
-        scale: 100,
+        scale: 75,
     }),
-    airportWidget: widgetSchema.default({
-        enabled: true,
-        coord: 'top_left',
-        posX: 10,
-        posY: 10,
-        scale: 100,
-    }),
+    airportWidget: widgetSchema
+        .extend({
+            showWeather: z.boolean().default(false),
+            weatherLocationKey: z.string().default(''),
+            weatherLocationName: z.string().default(''),
+        })
+        .default({
+            enabled: true,
+            coord: 'top_left',
+            posX: 10,
+            posY: 10,
+            scale: 75,
+            showWeather: false,
+            weatherLocationKey: '',
+            weatherLocationName: '',
+        }),
     fr24FlightInfoSource: z
         .object({
             enabled: z.boolean().default(false),
