@@ -198,7 +198,15 @@ try {
 
 ### Publishing to npm repository
 
-Run `npm run publishPackage` to publish package to npm.
+Run `npm run publishPackage`.
+
+It will:
+
+-   Require npm user `camstreamer` (prompts login if needed).
+-   Run `lint`, `pretty:check`, and `build`.
+-   Publish from `master` as `latest`.
+-   Publish from other branches as `dev-*` (or `dev`).
+-   Refuse `latest` publish if the same version is already on npm or if `package.json` version is not committed.
 
 ### Preparing a package to upload to CamScripter
 
