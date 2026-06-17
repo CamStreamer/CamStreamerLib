@@ -167,7 +167,7 @@ export const cameraSettingsSchema = z.object({
         coord: 'top_right',
         posX: 10,
         posY: 10,
-        scale: 75,
+        scale: 100,
     }),
     airportWidget: widgetSchema
         .extend({
@@ -180,7 +180,7 @@ export const cameraSettingsSchema = z.object({
             coord: 'top_left',
             posX: 10,
             posY: 10,
-            scale: 75,
+            scale: 100,
             showWeather: false,
             weatherLocationKey: '',
             weatherLocationName: '',
