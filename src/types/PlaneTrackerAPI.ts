@@ -86,11 +86,13 @@ export const cameraSettingsSchema = z.object({
         .object({
             nightSkyCalibrationEnabled: z.boolean(),
             scheduleNightSkyCalibrationTimestamp: z.number(),
+            nightSkyCalibrationFocusValue: z.number().int().min(1).max(9999).default(9000),
             focusCalibrationPoints: z.string().default(''),
         })
         .default({
             nightSkyCalibrationEnabled: false,
             scheduleNightSkyCalibrationTimestamp: 0,
+            nightSkyCalibrationFocusValue: 9000,
             focusCalibrationPoints: '',
         }),
     cameraConfig: z
