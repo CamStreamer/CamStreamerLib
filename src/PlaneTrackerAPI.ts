@@ -105,6 +105,23 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
         }
     }
 
+    async triggerFocusReview(options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.get({
+            path: `${BASE_PATH}/package/triggerFocusReview.cgi`,
+            parameters: this.apiUser,
+            timeout: options?.timeout,
+        });
+        if (!res.ok) {
+            if (res.status === 400) {
+                throw new BadRequestError(res);
+            }
+            if (res.status === 500) {
+                throw new ServerError();
+            }
+        }
+    }
+
     //   ----------------------------------------
     //                   Settings
     //   ----------------------------------------

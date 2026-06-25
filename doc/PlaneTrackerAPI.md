@@ -208,6 +208,20 @@ await ptrApi.resetPtzCalibration();
 await ptrApi.resetFocusCalibration();
 ```
 
+### triggerFocusReview(options?)
+
+-   Requests a focus review tour and restarts the script.
+-   On the next start the script guard-tours through each configured focus calibration point, dwelling at the minimum and maximum calibrated focus on each point while showing an overlay describing the step, then restarts and resumes normal operation.
+-   Requires focus calibration data to be available; otherwise a `BadRequestError` is thrown.
+
+-   **Parameters:**
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await ptrApi.triggerFocusReview();
+```
+
 <br/>
 
 ## Settings Methods
