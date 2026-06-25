@@ -277,6 +277,10 @@ export const serverSettingsSchema = z.object({
             tiltTransformationCoefA: z.number(),
             tiltCameraKnownPoint: z.number(),
             tiltRealKnownPoint: z.number(),
+            calibrationParamA: z.number().default(0), // internal calibration parameter
+            calibrationParamB: z.number().default(0), // internal calibration parameter
+            calibrationParamC: z.number().default(0), // internal calibration parameter
+            calibrationParamD: z.number().default(0), // internal calibration parameter
             panErrorCorrection: z
                 .array(
                     z.object({
@@ -297,6 +301,10 @@ export const serverSettingsSchema = z.object({
             tiltTransformationCoefA: 1.0,
             tiltCameraKnownPoint: 90,
             tiltRealKnownPoint: 90,
+            calibrationParamA: 0,
+            calibrationParamB: 0,
+            calibrationParamC: 0,
+            calibrationParamD: 0,
             panErrorCorrection: [],
         }),
 });
