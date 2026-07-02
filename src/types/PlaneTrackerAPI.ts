@@ -450,7 +450,7 @@ export type TDomainId = z.infer<typeof domainIdSchema>;
 
 // Short icon enum reused by the React frontend (Assets/images/svg/planes/...).
 // Keep these strings stable; consumers display the matching SVG asset.
-const categoryIconSchema = z.enum(['small', 'large', 'heavy', 'helicopter', 'drone', 'operator', 'unknown']);
+const categoryIconSchema = z.enum(['small', 'large', 'heavy', 'helicopter', 'drone', 'operator', 'vehicle', 'unknown']);
 export type TCategoryIcon = z.infer<typeof categoryIconSchema>;
 
 const categoryDescriptorSchema = z.object({
