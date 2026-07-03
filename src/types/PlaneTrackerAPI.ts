@@ -68,8 +68,9 @@ export const cameraSettingsSchema = z.object({
             enabled: z.boolean().default(true),
             ip: z.union([z.string().ip(), z.literal('')]),
             port: z.number().positive().lt(65535),
+            useSystemTime: z.boolean().default(false),
         })
-        .default({ enabled: true, ip: '', port: 30334 }),
+        .default({ enabled: true, ip: '', port: 30334, useSystemTime: false }),
     dronetagSource: z
         .object({
             enabled: z.boolean().default(false),
