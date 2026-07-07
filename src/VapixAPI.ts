@@ -417,6 +417,45 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         }
     }
 
+    async listDefinitions(group: string | string[], options?: THttpRequestOptions) {
+        const xml = await this._getText(
+            '/axis-cgi/param.cgi',
+            {
+                action: 'listdefinitions',
+                listformat: 'xmlschema',
+                group: arrayToUrl(group),
+            },
+            options
+        );
+
+        const parser = new XMLParser({
+            ignoreAttributes: false,
+            attributeNamePrefix: '',
+            allowBooleanAttributes: true,
+        });
+
+        const definitions: Record<string, string> = {};
+        VapixAPI.collectParameterDefinitions(parser.parse(xml), definitions);
+        return definitions;
+    }
+
+    private static collectParameterDefinitions(node: unknown, acc: Record<string, string>) {
+        if (node === null || typeof node !== 'object') {
+            return;
+        }
+        for (const [key, value] of Object.entries(node)) {
+            if (key === 'parameter') {
+                for (const parameter of Array.isArray(value) ? value : [value]) {
+                    if (!isNullish(parameter?.name) && !isNullish(parameter?.value)) {
+                        acc[parameter.name] = String(parameter.value);
+                    }
+                }
+            } else if (value !== null && typeof value === 'object') {
+                VapixAPI.collectParameterDefinitions(value, acc);
+            }
+        }
+    }
+
     //  -------------------------------
     //           Guard Tours
     //  -------------------------------
