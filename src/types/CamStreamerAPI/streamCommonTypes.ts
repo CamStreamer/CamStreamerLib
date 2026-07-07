@@ -108,7 +108,7 @@ export const streamCommonSchema = z.object({
             source: z.literal('url'),
             name: z.string(),
             url: z.string(),
-            avSyncMsec: z.number().int().nonnegative(),
+            avSyncMsec: z.number().int(),
             forceStereo: z.boolean(),
         }),
     ]),
