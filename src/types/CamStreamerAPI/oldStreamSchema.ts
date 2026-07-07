@@ -11,7 +11,7 @@ export const oldStringStreamSchema = z.object({
     outputType: z.string(),
     mediaServerUrl: z.string(),
     inputType: z.string(),
-    inputUrl: z.string(),
+    inputUrl: z.string().default(''),
     forceStereo: z.string(),
     streamDelay: z.string(),
     statusLed: z.string(),
@@ -23,6 +23,7 @@ export const oldStringStreamSchema = z.object({
     startTime: z.string(),
     stopTime: z.string(),
 });
+
 export const oldStringStreamSchemaWithId = oldStringStreamSchema.extend({
     streamId: z.string(),
 });
