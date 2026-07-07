@@ -2,52 +2,70 @@
 
 ## Project Overview
 
-CamStreamerLib is a Node.js/TypeScript helper library for CamStreamer ACAP applications running on Axis cameras. It provides APIs for camera control, video overlay drawing, streaming management, and event handling via the VAPIX interface and CamStreamer/CamOverlay services.
+CamStreamerLib is a Node.js/TypeScript helper library for CamStreamer ACAP applications on Axis cameras: camera control, video overlay drawing, streaming management, and event handling via VAPIX and CamStreamer/CamOverlay services.
 
 ## Build & Development Commands
 
 ```bash
-npm install          # Install dependencies
-npm run build        # Clean dist/, compile TypeScript, copy package files to dist/
-npm run tsc          # TypeScript compilation only
-npm run lint         # ESLint check on src/**/*.ts
-npm run lint:fix     # ESLint auto-fix
-npm run pretty       # Prettier format src, doc, README
-npm run pretty:check # Prettier check (used in CI)
-npm run test         # Run Jest tests (uses --experimental-vm-modules)
+npm install             # Install dependencies
+npm run build           # Clean dist/, compile CJS + ESM, copy package files
+npm run lint            # ESLint check (lint:fix to auto-fix)
+npm run pretty:check    # Prettier check (pretty to format) — used in CI
+npm run test            # Jest (uses --experimental-vm-modules)
+npm run publishPackage  # Publish via ./publish.sh
 ```
 
-CI runs: build -> test -> lint -> pretty:check (on push/PR to master).
+CI runs: build → test → lint → pretty:check (on push/PR to master).
 
 ## Architecture
 
-### HTTP Client Pattern (IClient)
+### Entry Points & Layering (isomorphic core)
 
-Most API classes (`CameraVapix`, `CamOverlayAPI`, `CamStreamerAPI`, `CamSwitcherAPI`) follow the same constructor pattern: they accept either an options object (`HttpOptions`) or an `IClient` interface. When given options, they create a `DefaultAgent` internally. The `IClient` interface (`src/internal/common.ts`) defines `get` and `post` methods returning `Promise<Response>`, enabling dependency injection for testing or custom HTTP clients.
+Three entry points, mirrored in `package.json` `exports`, enforce a strict node/browser split:
 
-### WebSocket Client Pattern
+| Entry point            | Source                                                     | Runs in        | May use                                   |
+| ---------------------- | ---------------------------------------------------------- | -------------- | ----------------------------------------- |
+| `camstreamerlib` (`.`) | root API classes, `internal/`, `types/`, `errors/`         | node + browser | isomorphic code + injected `IClient` only |
+| `camstreamerlib/node`  | `src/node/` (`HttpServer`, `WsClient`, agents, painter, …) | node only      | node built-ins (`http`, `fs`, `ws`, …)    |
+| `camstreamerlib/web`   | `src/web/` (`DefaultClient`, `WsClient`)                   | browser only   | browser globals (`fetch`, `WebSocket`, …) |
 
-`CamOverlayDrawingAPI` and event modules (`VapixEvents`, `CamSwitcherEvents`) use `WsClient` (`src/internal/WsClient.ts`) for WebSocket connections. `WsClient` handles digest authentication on 401 responses and automatic reconnection with a 10-second delay. These classes extend `EventEmitter` and emit `open`, `close`, `error`, and `message` events.
+Shared core never does I/O directly — it goes through the injected `IClient` (transport per-environment: `node/DefaultClient` vs `web/DefaultClient`). A shared-core file must **not** import from `../node/`/`../web/` or use env-specific globals. `node/` subdirs: `events/` (VMS/event agents), `CamOverlayPainter/` (`Frame`, `Painter`, `ResourceManager`).
 
-### Key Module Categories
+### Client & WebSocket Patterns
 
-- **HTTP API wrappers**: `CameraVapix` (VAPIX camera control), `CamOverlayAPI` (overlay service management), `CamStreamerAPI` (stream management), `CamSwitcherAPI` (video source switching)
-- **WebSocket-based**: `CamOverlayDrawingAPI` (cairo drawing commands over WS), `VapixEvents` (camera event subscriptions), `CamSwitcherEvents` (switcher events)
-- **Event agents**: `CamScripterAPICameraEventsGenerator` (generates Axis camera events), `GenetecAgent`, `AxisCameraStationEvents` (VMS integrations)
-- **Overlay helpers**: `CamOverlayPainter/` (Frame, Painter, ResourceManager) - higher-level abstraction over `CamOverlayDrawingAPI`
-- **Internal**: `DefaultAgent` (HTTP client with digest auth via `HttpRequestSender`), `WsClient`, `Digest` (HTTP digest authentication)
+-   **`IClient` injection**: API classes accept `HttpOptions` (→ builds `DefaultClient` internally) or an `IClient` (used as-is — the seam for tests/custom transports). `IClient` = `get`/`post` returning `Promise<Response>`.
+-   **`WsClient`** (backs `CamOverlayDrawingAPI` + WS event modules): digest auth on `401`, auto-reconnect (~10s). Extends `EventEmitter`; emits `open`/`close`/`error`/`message`.
 
-### Connection Defaults
+### Modules
 
-All modules default to `127.0.0.1` (localhost) since the library is designed to run on the Axis camera itself. TLS defaults to off; when TLS is on, port defaults to 443, otherwise 80.
+**Shared core** (isomorphic — `src/*.ts`, `src/ws/*.ts`), exported from root `camstreamerlib`; must run in both node + browser:
 
-## Code Style
+| Module                                                                                               | Purpose                                                |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| [VapixAPI](doc/VapixAPI.md)                                                                          | Axis camera VAPIX interface.                           |
+| [CamStreamerAPI](doc/CamStreamerAPI.md)                                                              | Video streaming control (RTMP, HLS, SRT, MPEG-TS).     |
+| [CamOverlayAPI](doc/CamOverlayAPI.md)                                                                | CamOverlay widgets, Custom Graphics, image/font files. |
+| [CamScripterAPI](doc/CamScripterAPI.md)                                                              | CamScripter packages + on-camera Node.js runtime.      |
+| [CamSwitcherAPI](doc/CamSwitcherAPI.md)                                                              | Switch sources — streams, clips, playlists.            |
+| [PlaneTrackerAPI](doc/PlaneTrackerAPI.md)                                                            | Aircraft tracking — calibration, planes, map zones.    |
+| [Cam{Streamer,Overlay,Switcher}Events](doc/ws/) · [PlaneTrackerEvents](doc/ws/PlaneTrackerEvents.md) | Receive events from the respective ACAP.               |
 
-- Uses `@camstreamer/eslint-config` and `@camstreamer/prettier-config`
-- TypeScript strict mode, target ES6, CommonJS modules
-- Node.js >= 18 required
-- Tests use Jest with ts-jest preset; test files match `**/*.test.ts`
+> Exception: `VapixEvents` is **node-only** (below), unlike the other `*Events` classes.
 
-## Publishing
+**Node-only** (`src/node/`), exported from `camstreamerlib/node`; may use node built-ins, never added to root `src/index.ts`:
 
-Build outputs to `dist/`. Publish with `npm publish ./dist` after tagging a version.
+| Module                                                                            | Purpose                                                           |
+| --------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| [HttpServer](doc/HttpServer.md)                                                   | Serve HTTP requests / static `html`, register custom CGI paths.   |
+| [VapixEvents](doc/ws/VapixEvents.md)                                              | Receive camera events from VAPIX.                                 |
+| [CamOverlayDrawingAPI](doc/CamOverlayDrawingAPI.md)                               | Low-level CamOverlay drawing API.                                 |
+| [CamOverlayPainter](doc/CamOverlayPainter.md)                                     | Higher-level helpers over CamOverlayDrawingAPI.                   |
+| [CamScripterAPICameraEventsGenerator](doc/CamScripterAPICameraEventsGenerator.md) | Generate Axis camera events (triggers, VMS integration).          |
+| [GenetecAgent](doc/GenetecAgent.md)                                               | Genetec VMS integration.                                          |
+| MilestoneAgent · AxisCameraStationEvents                                          | VMS integrations in `node/events/` (undocumented, no `doc/*.md`). |
+| [TimeZoneDaemon](doc/TimeZoneDaemon.md)                                           | Periodically sync Node.js process timezone to the system.         |
+
+### Connection & Validation
+
+-   **Defaults**: `127.0.0.1` (library runs on the camera). TLS off by default; when on, port 443, else 80.
+-   **Schema validation**: `zod` schemas co-located in `src/types/`; complex services get subdirs (e.g. `src/types/CamOverlayAPI/`).
