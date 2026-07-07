@@ -289,6 +289,7 @@ type TStream = {
               path: string;
               name: string;
               forceStereo: boolean;
+              loadAsNone?: boolean; // file settings are valid but should load as 'none'
           }
         | {
               source: 'url';

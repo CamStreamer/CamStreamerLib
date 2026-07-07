@@ -102,6 +102,7 @@ export const streamCommonSchema = z.object({
             name: z.string(),
             path: z.string(),
             forceStereo: z.boolean(),
+            loadAsNone: z.boolean().optional(), // file settings are valid but should load as 'none'
         }),
         z.object({
             source: z.literal('url'),
