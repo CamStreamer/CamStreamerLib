@@ -398,7 +398,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
             return JSON.parse(data[paramName] + '');
         } catch {
             try {
-                return JSON.parse(decodeURIComponent(data[paramName] + ''));
+                return JSON.parse(decodeURIComponent((data[paramName] + '').replaceAll('\\', '')));
             } catch (e) {
                 throw new JsonParseError(paramName, data[paramName]);
             }
