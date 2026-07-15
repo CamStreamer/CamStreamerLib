@@ -388,20 +388,21 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
 
     private async getParamFromCameraAndJSONParse(paramName: string, options?: THttpRequestOptions) {
         const data = await this.vapixAgent.getParameter([paramName], options);
-        if (data[paramName] !== undefined) {
-            // Check if requested parametr exists
+        if (data[paramName] === undefined) {
+            throw new ParameterNotFoundError(paramName);
+        }
+        if (data[paramName] === '') {
+            return {};
+        }
+        try {
+            return JSON.parse(data[paramName] + '');
+        } catch {
             try {
-                if (data[paramName] === '') {
-                    return {};
-                } else {
-                    return JSON.parse(data[paramName] + '');
-                }
-            } catch {
+                return JSON.parse(decodeURIComponent((data[paramName] + '').replaceAll('\\', '')));
+            } catch (e) {
                 throw new JsonParseError(paramName, data[paramName]);
             }
         }
-
-        throw new ParameterNotFoundError(paramName);
     }
 
     //   ----------------------------------------
