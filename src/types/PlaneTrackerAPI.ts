@@ -392,9 +392,14 @@ export const priorityListSchema = z.object({
     list: z.array(priorityListEntrySchema).default([]),
 });
 
+export const friendlyListSchema = z.object({
+    list: z.array(listEntrySchema).default([]),
+});
+
 export type TWhiteList = z.infer<typeof whiteListSchema>;
 export type TBlackList = z.infer<typeof blackListSchema>;
 export type TPriorityList = z.infer<typeof priorityListSchema>;
+export type TFriendlyList = z.infer<typeof friendlyListSchema>;
 
 //   ----------------------------------------
 //                 Map & Zones
