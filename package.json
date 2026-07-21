@@ -1,13 +1,13 @@
 {
     "name": "camstreamerlib",
-    "version": "4.0.26",
+    "version": "4.0.27",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
     "engine": {
         "node": ">=18.0.0"
     },
     "dependencies": {
-        "adm-zip": "^0.5.9",
+        "adm-zip": "^0.6.0",
         "eventemitter2": "^5.0.1",
         "fast-xml-parser": "^5.3.6",
         "type-fest": "^4.41.0",
