@@ -28,6 +28,7 @@ const wsApiFlightDataSchema = z.object({
     whiteListed: z.boolean(),
     blackListed: z.boolean(),
     priorityListed: z.boolean(),
+    friendlyListed: z.boolean(),
     autoSelectionIgnored: z.boolean(),
     signalQuality: z.number(),
     emitterCategorySet: z.number().default(4),

@@ -392,9 +392,14 @@ export const priorityListSchema = z.object({
     list: z.array(priorityListEntrySchema).default([]),
 });
 
+export const friendlyListSchema = z.object({
+    list: z.array(listEntrySchema).default([]),
+});
+
 export type TWhiteList = z.infer<typeof whiteListSchema>;
 export type TBlackList = z.infer<typeof blackListSchema>;
 export type TPriorityList = z.infer<typeof priorityListSchema>;
+export type TFriendlyList = z.infer<typeof friendlyListSchema>;
 
 //   ----------------------------------------
 //                 Map & Zones
@@ -410,6 +415,12 @@ export const mapInfoSchema = z.object({
     tileSize: z.number().nonnegative(),
 });
 export type TMapInfo = z.infer<typeof mapInfoSchema>;
+
+export const domainIdSchema = z.enum(['adsb', 'remoteId']);
+export type TDomainId = z.infer<typeof domainIdSchema>;
+
+export const zonePerimeterSchema = z.enum(['none', 'outer', 'inner']);
+export type TZonePerimeter = z.infer<typeof zonePerimeterSchema>;
 
 export const zonesSchema = z.object({
     zones: z
@@ -431,6 +442,8 @@ export const zonesSchema = z.object({
                 maxSpeedKmph: z.number().optional(),
                 flightDirection: z.enum(['all', 'arrival', 'departure']).default('all'),
                 weight: z.number(),
+                perimeter: zonePerimeterSchema.default('none'),
+                trackingDomains: z.array(domainIdSchema).default(['adsb', 'remoteId']),
             })
         )
         .default([]),
@@ -441,13 +454,11 @@ export type TZones = z.infer<typeof zonesSchema>;
 //                 Tracking domain & categories
 //   ----------------------------------------
 
-// Central catalogue of tracking domains + categories. This is the single
-// source of truth shared between `getDomainList.cgi` and the per-flight
+// Central catalogue of tracking domain descriptors + categories (the domain id
+// enum itself, `domainIdSchema`, lives in the Map & Zones section above). This is
+// the single source of truth shared between `getDomainList.cgi` and the per-flight
 // classification used when emitting WS events. Update this module when a
 // new domain or BDS08 category needs to be exposed to API consumers.
-
-export const domainIdSchema = z.enum(['adsb', 'remoteId']);
-export type TDomainId = z.infer<typeof domainIdSchema>;
 
 // Short icon enum reused by the React frontend (Assets/images/svg/planes/...).
 // Keep these strings stable; consumers display the matching SVG asset.
