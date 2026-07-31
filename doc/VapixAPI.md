@@ -180,7 +180,7 @@ Return all supported audio sample rates.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)
--   **Returns:** `Promise<TAudioSampleRates>`
+-   **Returns:** `Promise<TAudioSampleRates[]>`
 
     ```typescript
     type TAudioSampleRates = {

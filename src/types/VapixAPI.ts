@@ -66,12 +66,13 @@ export const guardTourSchema = z.object({
 });
 export type TGuardTour = z.infer<typeof guardTourSchema>;
 
-const audioSampleRatesSchema = z.object({
-    sample_rate: z.number(),
-    bit_rates: z.array(z.number()),
-});
-const audioSampleRatesOutSchema = audioSampleRatesSchema.transform(toCamelCaseDeep);
-export type TAudioSampleRates = z.infer<typeof audioSampleRatesOutSchema>;
+const audioSampleRatesSchema = z
+    .object({
+        sample_rate: z.number(),
+        bit_rates: z.array(z.number()),
+    })
+    .transform(toCamelCaseDeep);
+export type TAudioSampleRates = z.infer<typeof audioSampleRatesSchema>;
 
 export const sdCardWatchedStatuses = ['OK', 'connected', 'disconnected'] as const;
 export const sdCardInfoSchema = z.object({
