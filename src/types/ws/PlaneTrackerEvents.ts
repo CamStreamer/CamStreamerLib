@@ -24,7 +24,8 @@ const wsApiFlightDataSchema = z.object({
     groundSpeed: z.number(), // [km/h]
     altitudeAMSL: z.number(), // [m]
     cameraDistance: z.number(), // [m]
-    autoTrackingOrder: z.number(),
+    // 1-based rank in the automatic selection order (1 = best candidate); null when the target is excluded from automatic selection
+    autoTrackingOrder: z.number().nullable(),
     whiteListed: z.boolean(),
     blackListed: z.boolean(),
     priorityListed: z.boolean(),
