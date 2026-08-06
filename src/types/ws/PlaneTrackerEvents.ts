@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
     blackListSchema,
+    friendlyListSchema,
     priorityListSchema,
     trackingModeSchema,
     whiteListSchema,
@@ -76,6 +77,7 @@ export enum EUserActions {
     SET_PRIORITY_LIST = 'setPriorityList.cgi',
     SET_BLACK_LIST = 'setBlackList.cgi',
     SET_WHITE_LIST = 'setWhiteList.cgi',
+    SET_FRIENDLY_LIST = 'setFriendlyList.cgi',
     GO_TO_COORDINATES = 'goToCoordinates.cgi',
     SET_TRACKING_MODE = 'setTrackingMode.cgi',
     SET_ZONES = 'setZones.cgi',
@@ -143,6 +145,13 @@ const eventsDataSchema = z.union([
         ip: z.string(),
         params: userSchema,
         postJsonBody: whiteListSchema,
+    }),
+    z.object({
+        type: z.literal('USER_ACTION'),
+        cgi: z.literal(EUserActions.SET_FRIENDLY_LIST),
+        ip: z.string(),
+        params: userSchema,
+        postJsonBody: friendlyListSchema,
     }),
     z.object({
         type: z.literal('USER_ACTION'),
