@@ -99,7 +99,7 @@ export const parseVideoOptionsToVapixParams = (firmWareVersion: string, video: T
 
     const videoCodecParams =
         video.videoCodec === 'h264'
-            ? `videocodec=${video.videoCodec}&h264Profile=${video.h264Profile}`
+            ? `videocodec=${video.videoCodec}&h264profile=${video.h264Profile}`
             : `videocodec=${video.videoCodec}`;
 
     const videoParams = `camera=${video.camera}&resolution=${video.resolution}&fps=${video.fps}&compression=${video.compression}&videokeyframeinterval=${video.govLength}&${videoCodecParams}${overlaysParams}`;
@@ -119,7 +119,8 @@ export const parseVapixParamsToVideoOptions = (internalVapixParams: string): TIn
 
     let h264Profile = undefined;
     if (params['videocodec'] === 'h264') {
-        h264Profile = (params['h264Profile'] ?? 'high') as TH264Profile;
+        // 'h264Profile' is the legacy key written before the VAPIX-correct lowercase spelling
+        h264Profile = (params['h264profile'] ?? params['h264Profile'] ?? 'high') as TH264Profile;
     }
 
     let nbrOfChannels = undefined;
