@@ -182,6 +182,7 @@ Supported event types and their data:
     | `setPriorityList.cgi` (`SET_PRIORITY_LIST`)         | —                          | priority list object |
     | `setBlackList.cgi` (`SET_BLACK_LIST`)               | —                          | black list object    |
     | `setWhiteList.cgi` (`SET_WHITE_LIST`)               | —                          | white list object    |
+    | `setFriendlyList.cgi` (`SET_FRIENDLY_LIST`)         | —                          | friendly list object |
     | `setTrackingMode.cgi` (`SET_TRACKING_MODE`)         | —                          | tracking mode object |
     | `setZones.cgi` (`SET_ZONES`)                        | —                          | zones object         |
     | `resetPtzCalibration.cgi` (`RESET_PTZ_CALIBRATION`) | —                          | —                    |
