@@ -154,7 +154,7 @@ Supported event types and their data:
             groundSpeed: number,     // [km/h]
             altitudeAMSL: number,    // [m]
             cameraDistance: number,  // [m]
-            autoTrackingOrder: number,
+            autoTrackingOrder: number | null, // 1-based rank in the automatic selection order (1 = best candidate); null when excluded from automatic selection
             whiteListed: boolean,
             blackListed: boolean,
             priorityListed: boolean,

@@ -128,14 +128,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         const res = await this._postJsonEncoded(path, jsonData, undefined, options);
 
         const encoders = audioSampleRatesResponseSchema.parse(await res.json()).data.encoders;
-        const data = encoders.aac ?? encoders.AAC ?? [];
-
-        return data.map((item: { sample_rate: number; bit_rates: number[] }) => {
-            return {
-                sampleRate: item.sample_rate,
-                bitRates: item.bit_rates,
-            };
-        });
+        return encoders.aac ?? encoders.AAC ?? [];
     }
 
     async performAutofocus(options?: THttpRequestOptions) {
