@@ -32,3 +32,4 @@ export * from './types/CamScripterAPI';
 
 export { VapixAPI } from './VapixAPI';
 export * from './types/VapixAPI';
+export * from './helpers';

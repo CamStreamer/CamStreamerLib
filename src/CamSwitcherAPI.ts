@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AddNewClipError, JsonParseError, ParameterNotFoundError } from './errors/errors';
+import { AddNewClipError, ParameterNotFoundError } from './errors/errors';
 import { IClient, TResponse } from './internal/types';
 import { parseBitrateOptionsToVapixParams, parseVapixParamsToBitrateOptions } from './internal/convertors';
 import { isClip, isNullish } from './internal/utils';
@@ -33,6 +33,7 @@ import {
 } from './types/common';
 import { VapixAPI } from './VapixAPI';
 import { BasicAPI } from './internal/BasicAPI';
+import { jsonParseCameraParam } from './helpers';
 
 const BASE_PATH = '/local/camswitcher/api';
 export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
@@ -391,18 +392,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
         if (data[paramName] === undefined) {
             throw new ParameterNotFoundError(paramName);
         }
-        if (data[paramName] === '') {
-            return {};
-        }
-        try {
-            return JSON.parse(data[paramName] + '');
-        } catch {
-            try {
-                return JSON.parse(decodeURIComponent((data[paramName] + '').replaceAll('\\', '')));
-            } catch (e) {
-                throw new JsonParseError(paramName, data[paramName]);
-            }
-        }
+        return jsonParseCameraParam(data[paramName] + '', paramName);
     }
 
     //   ----------------------------------------
