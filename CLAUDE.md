@@ -23,11 +23,11 @@ CI runs: build → test → lint → pretty:check (on push/PR to master).
 
 Three entry points, mirrored in `package.json` `exports`, enforce a strict node/browser split:
 
-| Entry point            | Source                                                     | Runs in        | May use                                   |
-| ---------------------- | ---------------------------------------------------------- | -------------- | ----------------------------------------- |
-| `camstreamerlib` (`.`) | root API classes, `internal/`, `types/`, `errors/`         | node + browser | isomorphic code + injected `IClient` only |
-| `camstreamerlib/node`  | `src/node/` (`HttpServer`, `WsClient`, agents, painter, …) | node only      | node built-ins (`http`, `fs`, `ws`, …)    |
-| `camstreamerlib/web`   | `src/web/` (`DefaultClient`, `WsClient`)                   | browser only   | browser globals (`fetch`, `WebSocket`, …) |
+| Entry point            | Source                                                          | Runs in        | May use                                   |
+| ---------------------- | --------------------------------------------------------------- | -------------- | ----------------------------------------- |
+| `camstreamerlib` (`.`) | root API classes, `internal/`, `types/`, `errors/`              | node + browser | isomorphic code + injected `IClient` only |
+| `camstreamerlib/node`  | `src/node/` (`HttpServer`, `WsClient`, agents, painter, …)      | node only      | node built-ins (`http`, `fs`, `ws`, …)    |
+| `camstreamerlib/web`   | `src/web/` (`DefaultClient`, `WsClient`, DeviceConnect clients) | browser only   | browser globals (`fetch`, `WebSocket`, …) |
 
 Shared core never does I/O directly — it goes through the injected `IClient` (transport per-environment: `node/DefaultClient` vs `web/DefaultClient`). A shared-core file must **not** import from `../node/`/`../web/` or use env-specific globals. `node/` subdirs: `events/` (VMS/event agents), `CamOverlayPainter/` (`Frame`, `Painter`, `ResourceManager`).
 
@@ -35,6 +35,7 @@ Shared core never does I/O directly — it goes through the injected `IClient` (
 
 -   **`IClient` injection**: API classes accept `HttpOptions` (→ builds `DefaultClient` internally) or an `IClient` (used as-is — the seam for tests/custom transports). `IClient` = `get`/`post` returning `Promise<Response>`.
 -   **`WsClient`** (backs `CamOverlayDrawingAPI` + WS event modules): digest auth on `401`, auto-reconnect (~10s). Extends `EventEmitter`; emits `open`/`close`/`error`/`message`.
+-   **Device Connect** ([doc](doc/Client.md)): `DeviceConnectClient` / `DeviceConnectWsClient` (node + web) subclass the default clients to reach a camera through the proxy at `https://<MAC>.device-connect.net, you need to have access token
 
 ### Modules
 
@@ -67,5 +68,5 @@ Shared core never does I/O directly — it goes through the injected `IClient` (
 
 ### Connection & Validation
 
--   **Defaults**: `127.0.0.1` (library runs on the camera). TLS off by default; when on, port 443, else 80.
+-   **Defaults**: `host` `127.0.0.1` (library runs on the camera). TLS off by default; when on, port 443, else 80. `Options.ip` is deprecated — use `host` (ip or domain); `host ?? ip ?? '127.0.0.1'`.
 -   **Schema validation**: `zod` schemas co-located in `src/types/`; complex services get subdirs (e.g. `src/types/CamOverlayAPI/`).

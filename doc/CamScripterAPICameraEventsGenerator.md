@@ -10,7 +10,7 @@ Module for Axis camera events generation.
     const cscAPI = new CamScripterAPICameraEventsGenerator({
         tls: false,
         tlsInsecure: false,
-        ip: '127.0.0.1',
+        host: '127.0.0.1',
         port: 80,
         user: '',
         pass: '',
