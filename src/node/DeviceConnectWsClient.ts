@@ -10,17 +10,18 @@ type TWsClientOptions = {
 
 export class DeviceConnectWsClient extends WsClient {
     constructor(deviceAccessToken: string, host: string, opt: TWsClientOptions) {
+        const andChar = opt.path.includes('?') ? '&' : '?';
         super({
             ...opt,
             tls: true,
             host: host,
-            address: opt.path,
+            address: `${opt.path}${andChar}DEVICE_ACCESS_TOKEN=${deviceAccessToken}`,
         });
 
         this.wsOptions = {
             auth: undefined,
             rejectUnauthorized: !opt.tlsInsecure,
-            headers: { ...opt.headers, authorization: `Token ${deviceAccessToken}` },
+            headers: { ...opt.headers },
         };
     }
 }
