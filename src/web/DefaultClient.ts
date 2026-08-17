@@ -2,14 +2,14 @@ import { IClient, TGetParams, TPostParams } from '../internal/types';
 import { addParametersToPath } from '../internal/utils';
 
 export class DefaultClient implements IClient<Response, FormData | ArrayBuffer> {
-    constructor(public domain = '') {}
+    constructor(public domain = '', public headers: Record<string, string> = {}) {}
 
     get = (params: TGetParams) => {
         return this.fetchWithTimeout(
             addParametersToPath(params.path, params.parameters),
             {
                 method: 'GET',
-                headers: params.headers,
+                headers: { ...this.headers, ...params.headers },
             },
             params.timeout
         );
@@ -21,7 +21,7 @@ export class DefaultClient implements IClient<Response, FormData | ArrayBuffer> 
             {
                 method: 'POST',
                 body: params.data,
-                headers: params.headers,
+                headers: { ...this.headers, ...params.headers },
             },
             params.timeout
         );

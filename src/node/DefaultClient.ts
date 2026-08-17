@@ -5,18 +5,21 @@ import { FormData as UndiciFormData, Response as UndiciResponse } from 'undici';
 
 export class DefaultClient implements IClient<UndiciResponse, UndiciFormData | Buffer> {
     private tls: boolean;
-    private ip: string;
+    private host: string;
     private port: number;
-    private user: string;
-    private pass: string;
+    private user?: string;
+    private pass?: string;
+    private headers: Record<string, string>;
     private httpRequestSender: HttpRequestSender;
 
     constructor(opt: HttpOptions = {}) {
         this.tls = opt.tls ?? false;
-        this.ip = opt.ip ?? '127.0.0.1';
+        // eslint-disable-next-line deprecation/deprecation
+        this.host = opt.host ?? opt.ip ?? '127.0.0.1';
         this.port = opt.port ?? (this.tls ? 443 : 80);
-        this.user = opt.user ?? '';
-        this.pass = opt.pass ?? '';
+        this.user = opt.user;
+        this.pass = opt.pass;
+        this.headers = opt.headers ?? {};
 
         let agentOptions: AgentOptions | undefined;
         if (opt.tlsInsecure !== undefined || opt.keepAlive !== undefined) {
@@ -50,12 +53,12 @@ export class DefaultClient implements IClient<UndiciResponse, UndiciFormData | B
         return {
             method: method,
             protocol: this.tls ? 'https:' : 'http:',
-            host: this.ip,
+            host: this.host,
             port: this.port,
             path: addParametersToPath(path, params),
             user: this.user,
             pass: this.pass,
-            headers,
+            headers: { ...this.headers, ...headers },
             timeout,
         };
     }

@@ -15,10 +15,11 @@ import {
 export class CamOverlayDrawingAPI extends EventEmitter {
     private tls: boolean;
     private tlsInsecure: boolean;
-    private ip: string;
+    private host: string;
     private port: number;
     private user: string;
     private pass: string;
+    private headers?: Record<string, string>;
     private cameraList: number[];
     private zIndex: number;
     private callId: number;
@@ -32,10 +33,12 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
-        this.ip = options?.ip ?? '127.0.0.1';
+        // eslint-disable-next-line deprecation/deprecation
+        this.host = options?.host ?? options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.user = options?.user ?? '';
         this.pass = options?.pass ?? '';
+        this.headers = options?.headers;
         this.zIndex = options?.zIndex ?? 0;
         this.cameraList = [0];
         if (options && Array.isArray(options.camera)) {
@@ -121,7 +124,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
 
     private createWsClient() {
         const options: WsClientOptions = {
-            ip: this.ip,
+            host: this.host,
             port: this.port,
             address: '/local/camoverlay/ws',
             protocol: 'cairo-api',
@@ -129,6 +132,7 @@ export class CamOverlayDrawingAPI extends EventEmitter {
             pass: this.pass,
             tls: this.tls,
             tlsInsecure: this.tlsInsecure,
+            headers: this.headers,
         };
         this.ws = new WsClient(options);
 

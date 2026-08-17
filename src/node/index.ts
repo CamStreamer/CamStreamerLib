@@ -1,4 +1,6 @@
 export * from './DefaultClient';
+export * from './DeviceConnectClient';
+export { DeviceConnectWsClient } from './DeviceConnectWsClient';
 export * from './WsClient';
 export * from './HttpServer';
 export * from './HttpRequestSender';
