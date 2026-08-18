@@ -303,11 +303,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
 
         if (isNullish(saveData.video)) {
             // No info set
-            return cameraOptionsSchema.parse({
-                audioSampleRate: saveData.audio?.sampleRate,
-                audioChannelCount: saveData.audio?.channelCount,
-                keyboard: saveData.keyboard,
-            });
+            return;
         }
 
         const settings: TCameraOptions = {
