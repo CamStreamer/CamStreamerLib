@@ -304,15 +304,25 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
         if (isNullish(saveData.video)) {
             // No info set
             return cameraOptionsSchema.parse({
-                audioSampleRate: saveData.audio.sampleRate,
-                audioChannelCount: saveData.audio.channelCount,
+                audioSampleRate: saveData.audio?.sampleRate,
+                audioChannelCount: saveData.audio?.channelCount,
                 keyboard: saveData.keyboard,
             });
         }
 
-        const settings: TCameraOptions = {};
+        const settings: TCameraOptions = {
+            audioSampleRate: saveData.audio?.sampleRate,
+            audioChannelCount: saveData.audio?.channelCount,
+            keyboard: saveData.keyboard,
+            fps: saveData.video.fps,
+            resolution: saveData.video.resolution,
+            h264Profile: saveData.video.h264Profile,
+            compression: saveData.video.compression,
+            govLength: saveData.video.govLength,
+            bitrateVapixParams: saveData.video.bitrateVapixParams,
+        };
 
-        if (!isNullish(saveData.video?.bitrateVapixParams)) {
+        if (!isNullish(saveData.video.bitrateVapixParams)) {
             const bitrateOptions = parseVapixParamsToBitrateOptions(saveData.video.bitrateVapixParams);
             settings.bitrateMode = bitrateOptions.bitrateMode;
             settings.maximumBitRate = bitrateOptions.maximumBitRate;
@@ -320,20 +330,15 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
             settings.bitRateLimit = bitrateOptions.bitRateLimit;
         }
 
-        if (!isNullish(saveData.video?.bitrateLimit)) {
+        if (!isNullish(saveData.video.bitrateLimit)) {
             settings.maximumBitRate = saveData.video.bitrateLimit;
             settings.bitrateMode = 'MBR';
         }
-        if (!isNullish(saveData.video?.videoClipQuality)) {
+        if (!isNullish(saveData.video.videoClipQuality)) {
             settings.maximumBitRate = saveData.video.videoClipQuality;
         }
 
-        return cameraOptionsSchema.parse({
-            ...settings,
-            audioSampleRate: saveData.audio.sampleRate,
-            audioChannelCount: saveData.audio.channelCount,
-            keyboard: saveData.keyboard,
-        });
+        return cameraOptionsSchema.parse(settings);
     }
 
     async getGlobalAudioSettings(options?: THttpRequestOptions) {
