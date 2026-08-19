@@ -443,6 +443,7 @@ export const zonesSchema = z.object({
                 minSpeedKmph: z.number().optional(),
                 maxSpeedKmph: z.number().optional(),
                 flightDirection: z.enum(['all', 'arrival', 'departure']).default('all'),
+                runwayDirectionDeg: z.number().min(0).max(360).optional(),
                 weight: z.number(),
                 perimeter: zonePerimeterSchema.default('none'),
                 trackingDomains: z.array(domainIdSchema).default(['adsb', 'remoteId']),
