@@ -47,21 +47,16 @@ boolean if the destroy method was called
 
 ### resendInitData()
 
-Requests the camera to resend initial event data.
-
--   **Returns:** `void`
-
-```javascript
-ptrEvents.resendInitData();
-```
+> **Not supported by PlaneTracker.**
 
 ### addListener(type, listener, id)
 
 Adds a listener for a specific event type.
 
 -   **Parameters:**
-    -   `type` (`string`): Event type (e.g. 'TRACKING_START', 'StreamAvailable', ...)
+    -   `type` (`TEventType`): Event type (e.g. `'TRACKING_START'`, `'FLIGHT_LIST'`, … — see [Event Types](#event-types))
     -   `listener` (`function`): `(data, isInit) => void` where `data` is the event object and `isInit` is a boolean.
+        PlaneTracker sends initial state as ordinary events (no `{type: 'init'}` envelope), so `isInit` is always `false`.
     -   `id` (`string`): Unique listener ID.
 -   **Returns:** `void`
 
@@ -112,7 +107,7 @@ ptrEvents.destroy();
 
 ## Event Types
 
-Supported event types and their data:
+The PlaneTracker ACAP emits exactly these event types (`TEventType`)
 
 -   **CAMERA_POSITION**
     ```js
@@ -120,16 +115,20 @@ Supported event types and their data:
         type: 'CAMERA_POSITION',
         lat: number,
         lon: number,
-        azimuth: number, // min(0) max(360)
-        elevation: number, //min(-90) max(90)
+        azimuth: number,    // min(0) max(360)
+        elevation: number,  // min(-90) max(90)
         fov: number,
+        sampledAt: number,  // epoch ms when the PTZ angles were sampled — enables time-accurate, continuous cone animation
     }
     ```
 -   **TRACKING_START**
     ```js
     {
         type: 'TRACKING_START',
-        icao: string
+        targetId: string,   // primary target identifier
+        icao: string,       // same value as targetId; kept for backward compatibility (e.g. Genetec)
+        domain: 'adsb' | 'remoteId',
+        categoryId: string,
     }
     ```
 -   **TRACKING_STOP**
@@ -148,8 +147,11 @@ Supported event types and their data:
             domain: 'adsb' | 'remoteId',
             categoryId: string,
             groupId?: string,        // optional group identifier
-            lat: number,
+            lat: number,             // estimated/extrapolated current position (legacy; external consumers rely on this)
             lon: number,
+            observedLat: number,     // raw observation position (un-extrapolated)
+            observedLon: number,
+            positionTimestamp: number, // epoch ms of the raw observation — pairs with observedLat/observedLon
             heading: number,
             groundSpeed: number,     // [km/h]
             altitudeAMSL: number,    // [m]
@@ -158,10 +160,11 @@ Supported event types and their data:
             whiteListed: boolean,
             blackListed: boolean,
             priorityListed: boolean,
+            friendlyListed: boolean,
             autoSelectionIgnored: boolean,
             signalQuality: number,
-            emitterCategorySet: number,
-            emitterCategory: number,
+            emitterCategorySet: number, // default 4
+            emitterCategory: number,    // default 3
             emergencyState: boolean,
             emergencyStatusMessage: string, // Emergency description
         }[]
@@ -169,23 +172,25 @@ Supported event types and their data:
     ```
 -   **USER_ACTION**
 
-    The shape of `params` and presence of `postJsonBody` varies by `cgi`. Common `EUserActions` values:
+    Broadcast whenever any user calls a state-changing CGI. The shape of `params` and the presence of
+    `postJsonBody` varies by `cgi`. All `EUserActions` values:
 
-    | `cgi` (`EUserActions`)                              | extra `params` fields      | `postJsonBody`       |
-    | --------------------------------------------------- | -------------------------- | -------------------- |
-    | `trackIcao.cgi` (`TRACK_ICAO`)                      | `icao: string`             | —                    |
-    | `trackTarget.cgi` (`TRACK_TARGET`)                  | `targetId: string`         | —                    |
-    | `resetIcao.cgi` (`RESET_ICAO`)                      | —                          | —                    |
-    | `goToCoordinates.cgi` (`GO_TO_COORDINATES`)         | `lat: string, lon: string` | —                    |
-    | `lockApi.cgi` (`LOCK_API`)                          | `timeout: string`          | —                    |
-    | `unlockApi.cgi` (`UNLOCK_API`)                      | —                          | —                    |
-    | `setPriorityList.cgi` (`SET_PRIORITY_LIST`)         | —                          | priority list object |
-    | `setBlackList.cgi` (`SET_BLACK_LIST`)               | —                          | black list object    |
-    | `setWhiteList.cgi` (`SET_WHITE_LIST`)               | —                          | white list object    |
-    | `setFriendlyList.cgi` (`SET_FRIENDLY_LIST`)         | —                          | friendly list object |
-    | `setTrackingMode.cgi` (`SET_TRACKING_MODE`)         | —                          | tracking mode object |
-    | `setZones.cgi` (`SET_ZONES`)                        | —                          | zones object         |
-    | `resetPtzCalibration.cgi` (`RESET_PTZ_CALIBRATION`) | —                          | —                    |
+    | `cgi` (`EUserActions`)                              | extra `params` fields      | `postJsonBody`                         |
+    | --------------------------------------------------- | -------------------------- | -------------------------------------- |
+    | `trackIcao.cgi` (`TRACK_ICAO`)                      | `icao: string`             | —                                      |
+    | `trackTarget.cgi` (`TRACK_TARGET`)                  | `targetId: string`         | —                                      |
+    | `resetIcao.cgi` (`RESET_ICAO`)                      | —                          | —                                      |
+    | `resetTarget.cgi` (`RESET_TARGET`)                  | —                          | —                                      |
+    | `goToCoordinates.cgi` (`GO_TO_COORDINATES`)         | `lat: string, lon: string` | —                                      |
+    | `lockApi.cgi` (`LOCK_API`)                          | `timeout: string`          | —                                      |
+    | `unlockApi.cgi` (`UNLOCK_API`)                      | —                          | —                                      |
+    | `setPriorityList.cgi` (`SET_PRIORITY_LIST`)         | —                          | `priorityListSchema` (`TPriorityList`) |
+    | `setBlackList.cgi` (`SET_BLACK_LIST`)               | —                          | `blackListSchema` (`TBlackList`)       |
+    | `setWhiteList.cgi` (`SET_WHITE_LIST`)               | —                          | `whiteListSchema` (`TWhiteList`)       |
+    | `setFriendlyList.cgi` (`SET_FRIENDLY_LIST`)         | —                          | `friendlyListSchema` (`TFriendlyList`) |
+    | `setTrackingMode.cgi` (`SET_TRACKING_MODE`)         | —                          | `trackingModeSchema` (`TTrackingMode`) |
+    | `setZones.cgi` (`SET_ZONES`)                        | —                          | `zonesSchema` (`TZones`)               |
+    | `resetPtzCalibration.cgi` (`RESET_PTZ_CALIBRATION`) | —                          | —                                      |
 
     Base `params` fields (always present):
 
@@ -197,7 +202,7 @@ Supported event types and their data:
         params: {
             userId: string,
             userName: string,
-            userPriority: string,
+            userPriority: string, // query-string value, hence a string
             // ...cgi-specific extra fields
         },
         postJsonBody: any,     // present for list/mode/zones CGIs
@@ -213,7 +218,7 @@ Supported event types and their data:
             userName: string,
             userPriority: number,
             ip: string,
-        }
+        }[]
     }
     ```
 -   **FORCE_TRACKING_STATUS**
@@ -221,7 +226,8 @@ Supported event types and their data:
     {
         type: 'FORCE_TRACKING_STATUS',
         enabled: boolean,
-        icao?: string,
+        targetId?: string,
+        icao?: string,      // same value as targetId; kept for backward compatibility
     }
     ```
 -   **API_LOCK_STATUS**
@@ -240,33 +246,21 @@ Supported event types and their data:
 
 ## Exported Types & Enums
 
-| Old name (≤ v4.0.6)                   | New name (v4.0.7+)        | Notes                               |
-| ------------------------------------- | ------------------------- | ----------------------------------- |
-| `PlaneTrackerWsEvents` (enum)         | `TEventType` (union type) | Use string literals directly        |
-| `PlaneTrackerUserActions` (enum)      | `EUserActions` (enum)     | Same values, renamed                |
-| `planeTrackerUserActionData`          | `wsUserActionData`        | Zod schema                          |
-| `TPlaneTrackerEvent`                  | `TEventData`              |                                     |
-| `TPlaneTrackerEventType`              | `TEventType`              |                                     |
-| `TPlaneTrackerEventOfType<T>`         | _(removed)_               | Use `Extract<TEventData, {type:T}>` |
-| `TPlaneTrackerApiFlightData`          | `TWsApiFlightData`        |                                     |
-| `TPlaneTrackerApiUser`                | `TApiUser`                | Now includes `ip: string`           |
-| `TPlaneTrackerStringApiUser`          | _(removed)_               | Internal use only                   |
-| `TPlaneTrackerUserActionData`         | `TUserActionData`         |                                     |
-| `TPlaneTrackerUserActionDataOfCgi<T>` | `TUserActionDataOfCgi<T>` |                                     |
+Exported from `camstreamerlib`:
 
-New types also exported from `camstreamerlib`:
+| Export                    | Kind       | Description                                                      |
+| ------------------------- | ---------- | ---------------------------------------------------------------- |
+| `TEventType`              | union type | All event type string literals                                   |
+| `TEventData`              | union type | Discriminated union of all event payloads                        |
+| `EUserActions`            | enum       | CGI names carried by `USER_ACTION`                               |
+| `ptrEventsSchema`         | zod schema | Validates an incoming message (event, or `{type: 'init', data}`) |
+| `TWsUserActionData`       | type       | `Extract<TEventData, { type: 'USER_ACTION' }>`                   |
+| `TUserActionDataOfCgi<T>` | type       | The `USER_ACTION` variant for a single `EUserActions` value      |
+| `TWsApiFlightData`        | type       | One entry of the `FLIGHT_LIST` `list`                            |
+| `TWsApiCameraData`        | type       | `CAMERA_POSITION` payload without `type`                         |
+| `TApiUser`                | type       | Connected user (`userId`, `userName`, `userPriority`, `ip`)      |
 
 ```typescript
-// Camera position snapshot (used in CAMERA_POSITION event)
-type TWsApiCameraData = {
-    lat: number;
-    lon: number;
-    azimuth: number; // [0, 360]
-    elevation: number; // [-90, 90]
-    fov: number;
-};
-
-// Discriminated union type for all WS events (replaces PlaneTrackerWsEvents enum)
 type TEventType =
     | 'CAMERA_POSITION'
     | 'TRACKING_START'
@@ -276,4 +270,14 @@ type TEventType =
     | 'CONNECTED_USERS'
     | 'FORCE_TRACKING_STATUS'
     | 'API_LOCK_STATUS';
+
+// Camera position snapshot (used in CAMERA_POSITION event)
+type TWsApiCameraData = {
+    lat: number;
+    lon: number;
+    azimuth: number; // [0, 360]
+    elevation: number; // [-90, 90]
+    fov: number;
+    sampledAt: number; // epoch ms
+};
 ```
