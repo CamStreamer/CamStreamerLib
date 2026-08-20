@@ -75,8 +75,6 @@ const client = new DefaultClient({
 
 Used instead of `DefaultClient` when the camera has no public IP and is reachable through the Device Connect proxy. Every connected device is available at `https://<MAC_ADDRESS>.device-connect.net` (`.biz` for testing, `.dev` for development).
 
-The proxy handles the authentication to the camera itself, so no camera `user`/`pass` is needed - the client only authenticates to Device Connect with a device access token, sent as an `authorization: Token <deviceAccessToken>` header on every request. Connection is always `https` on port 443.
-
 **new DeviceConnectClient(deviceAccessToken: string, host: string, opt?: DeviceConnectOptions)**
 
 ```js

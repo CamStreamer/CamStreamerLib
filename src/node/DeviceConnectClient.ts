@@ -11,7 +11,7 @@ export class DeviceConnectClient extends DefaultClient {
             ...opt,
             tls: true,
             host: host,
-            headers: { authorization: `Token ${deviceAccessToken}` },
+            headers: { authorization: `Bearer ${deviceAccessToken}` },
         });
     }
 }
