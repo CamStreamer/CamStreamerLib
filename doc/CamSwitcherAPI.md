@@ -633,22 +633,24 @@ await cswApi.setTrackerSaveList(trackerData);
 
 ```typescript
 type TCameraOptions = {
-    resolution: string;
-    h264Profile: 'high' | 'main' | 'baseline';
-    fps: number;
-    compression: number;
-    govLength: number;
-    bitrateVapixParams: string | null;
-    audioSampleRate: number;
-    audioChannelCount: 1 | 2;
-    keyboard: {
-        fromSource?: Record<string, string | null>;
-        none?: Record<string, string | null>;
-    };
-    bitrateMode: 'VBR' | 'MBR' | 'ABR';
-    maximumBitRate: number;
-    retentionTime: number;
-    bitRateLimit: number;
+    resolution: string | undefined;
+    h264Profile: 'high' | 'main' | 'baseline' | undefined;
+    fps: number | undefined;
+    compression: number | undefined;
+    govLength: number | undefined;
+    bitrateVapixParams: string | null | undefined;
+    audioSampleRate: number | undefined;
+    audioChannelCount: 1 | 2 | undefined;
+    keyboard:
+        | {
+              fromSource: Record<string, string | null>;
+              none: Record<string, string | null>;
+          }
+        | undefined;
+    bitrateMode: 'VBR' | 'MBR' | 'ABR' | undefined;
+    maximumBitRate: number | undefined;
+    retentionTime: number | undefined;
+    bitRateLimit: number | undefined;
 };
 ```
 

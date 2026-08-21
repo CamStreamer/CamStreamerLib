@@ -23,6 +23,7 @@ import {
     secondaryAudioSettingsSchema,
     globalAudioSettingsSchema,
     clipFilesListSchema,
+    cameraOptionsSchema,
 } from './types/CamSwitcherAPI';
 import {
     networkCameraListSchema,
@@ -301,32 +302,43 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
         const saveData = await this.getParamFromCameraAndJSONParse(CSW_PARAM_NAMES.SETTINGS, options);
 
         if (isNullish(saveData.video)) {
-            // No info setted
-            return saveData;
+            // No info set
+            return cameraOptionsSchema.parse({
+                audioSampleRate: saveData.audio?.sampleRate,
+                audioChannelCount: saveData.audio?.channelCount,
+                keyboard: saveData.keyboard,
+            });
         }
 
-        if (!isNullish(saveData.video?.bitrateVapixParams)) {
-            const bitrateOptions = parseVapixParamsToBitrateOptions(saveData.video.bitrateVapixParams);
-            saveData.video.bitrateMode = bitrateOptions.bitrateMode;
-            saveData.video.maximumBitRate = bitrateOptions.maximumBitRate;
-            saveData.video.retentionTime = bitrateOptions.retentionTime;
-            saveData.video.bitRateLimit = bitrateOptions.bitRateLimit;
-        }
-
-        if (!isNullish(saveData.video?.bitrateLimit)) {
-            saveData.video.maximumBitRate = saveData.video.bitrateLimit;
-            saveData.video.bitrateMode = 'MBR';
-        }
-        if (!isNullish(saveData.video?.videoClipQuality)) {
-            saveData.video.maximumBitRate = saveData.video.videoClipQuality;
-        }
-
-        return {
-            ...saveData.video,
-            audioSampleRate: saveData.audio.sampleRate,
-            audioChannelCount: saveData.audio.channelCount,
+        const settings: TCameraOptions = {
+            audioSampleRate: saveData.audio?.sampleRate,
+            audioChannelCount: saveData.audio?.channelCount,
             keyboard: saveData.keyboard,
+            fps: saveData.video.fps,
+            resolution: saveData.video.resolution,
+            h264Profile: saveData.video.h264Profile,
+            compression: saveData.video.compression,
+            govLength: saveData.video.govLength,
+            bitrateVapixParams: saveData.video.bitrateVapixParams,
         };
+
+        if (!isNullish(saveData.video.bitrateVapixParams)) {
+            const bitrateOptions = parseVapixParamsToBitrateOptions(saveData.video.bitrateVapixParams);
+            settings.bitrateMode = bitrateOptions.bitrateMode;
+            settings.maximumBitRate = bitrateOptions.maximumBitRate;
+            settings.retentionTime = bitrateOptions.retentionTime;
+            settings.bitRateLimit = bitrateOptions.bitRateLimit;
+        }
+
+        if (!isNullish(saveData.video.bitrateLimit)) {
+            settings.maximumBitRate = saveData.video.bitrateLimit;
+            settings.bitrateMode = 'MBR';
+        }
+        if (!isNullish(saveData.video.videoClipQuality)) {
+            settings.maximumBitRate = saveData.video.videoClipQuality;
+        }
+
+        return cameraOptionsSchema.parse(settings);
     }
 
     async getGlobalAudioSettings(options?: THttpRequestOptions) {
