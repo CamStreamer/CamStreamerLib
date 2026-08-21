@@ -111,7 +111,7 @@ Layers are used to optimize drawing speed. It is possible to render the most dyn
         {
             tls: false,
             tlsInsecure: false,
-            ip: '127.0.0.1',
+            host: '127.0.0.1',
             port: 80,
             user: '',
             pass: '',

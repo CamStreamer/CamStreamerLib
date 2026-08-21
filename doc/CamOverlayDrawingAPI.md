@@ -13,7 +13,7 @@ Module for easy control of the CamOverlay drawing API.
     const coAPI = new CamOverlayDrawingAPI({
         tls: false,
         tlsInsecure: false,
-        ip: '127.0.0.1',
+        host: '127.0.0.1',
         port: 80,
         user: '',
         pass: '',

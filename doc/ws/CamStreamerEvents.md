@@ -13,7 +13,7 @@ import { CamStreamerEvents } from 'camstreamerlib';
 const wsClient = new WsClient({
     tls: false,
     tlsInsecure: false,
-    ip: '127.0.0.1',
+    host: '127.0.0.1',
     port: 80,
     user: '',
     pass: '',

@@ -1,10 +1,15 @@
 export type Options = {
+    /**
+     * @deprecated use `host` instead
+     * */
     ip?: string;
+    host?: string; // ip / domain
     port?: number;
     user?: string;
     pass?: string;
     tls?: boolean;
     tlsInsecure?: boolean; // Ignore HTTPS certificate validation (insecure)
+    headers?: Record<string, string>;
 };
 export type HttpOptions = Options & { keepAlive?: boolean };
 

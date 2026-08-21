@@ -7,10 +7,11 @@ import { TVapixEventMessage } from '../types/VapixEvents';
 export class VapixEvents extends EventEmitter {
     private tls: boolean;
     private tlsInsecure: boolean;
-    private ip: string;
+    private host: string;
     private port: number;
     private user: string;
     private pass: string;
+    private headers?: Record<string, string>;
 
     private ws!: WsClient;
 
@@ -19,10 +20,12 @@ export class VapixEvents extends EventEmitter {
 
         this.tls = options.tls ?? false;
         this.tlsInsecure = options.tlsInsecure ?? false;
-        this.ip = options.ip ?? '127.0.0.1';
+        // eslint-disable-next-line deprecation/deprecation
+        this.host = options.host ?? options.ip ?? '127.0.0.1';
         this.port = options.port ?? (this.tls ? 443 : 80);
         this.user = options.user ?? 'root';
         this.pass = options.pass ?? '';
+        this.headers = options.headers;
 
         this.createWsClient();
 
@@ -43,9 +46,10 @@ export class VapixEvents extends EventEmitter {
             tlsInsecure: this.tlsInsecure,
             user: this.user,
             pass: this.pass,
-            ip: this.ip,
+            host: this.host,
             port: this.port,
             address: '/vapix/ws-data-stream?sources=events',
+            headers: this.headers,
         };
         this.ws = new WsClient(options);
 

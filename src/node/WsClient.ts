@@ -5,10 +5,11 @@ import { IWsClient, Options } from '../internal/types';
 
 export type WsClientOptions = Options & {
     address: string;
-    headers?: Record<string, string>;
     pingInterval?: number;
     protocol?: string;
 };
+
+type TWsoptions = { auth?: string; rejectUnauthorized: boolean; headers: Record<string, string> };
 
 export class WsClient implements IWsClient {
     private user: string;
@@ -16,7 +17,7 @@ export class WsClient implements IWsClient {
     private address: string;
     private protocol?: string;
     private pingInterval: number;
-    private wsOptions: { auth: string; rejectUnauthorized: boolean; headers: Record<string, string> };
+    protected wsOptions: TWsoptions;
     private digestAddress: string;
 
     private isAlive = true;
@@ -27,15 +28,16 @@ export class WsClient implements IWsClient {
     constructor(options: WsClientOptions) {
         const tls = options.tls ?? false;
         const tlsInsecure = options.tlsInsecure ?? false;
-        const ip = options.ip ?? '127.0.0.1';
+        // eslint-disable-next-line deprecation/deprecation
+        const host = options.host ?? options.ip ?? '127.0.0.1';
         const port = options.port ?? (tls ? 443 : 80);
         this.user = options.user ?? '';
         this.pass = options.pass ?? '';
 
         const protocol = tls ? 'wss' : 'ws';
-        this.address = `${protocol}://${ip}:${port}${options.address}`;
+        this.address = `${protocol}://${host}:${port}${options.address}`;
         this.digestAddress = options.address;
-        this.pingInterval = options.pingInterval ?? 30000;
+        this.pingInterval = options.pingInterval ?? 30_000;
         this.protocol = options.protocol;
         this.wsOptions = {
             auth: `${this.user}:${this.pass}`,
@@ -73,7 +75,7 @@ export class WsClient implements IWsClient {
             });
 
             if (wwwAuthenticateHeader !== undefined) {
-                this.wsOptions.headers['Authorization'] = new Digest().getAuthHeader(
+                this.wsOptions.headers['authorization'] = new Digest().getAuthHeader(
                     this.user,
                     this.pass,
                     'GET',
