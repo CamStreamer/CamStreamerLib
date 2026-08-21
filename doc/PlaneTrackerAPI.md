@@ -724,6 +724,7 @@ Gets zones config.
     type TZones = {
         zones: {
             enabled: boolean;
+            name?: string | undefined;
             area: [
                 {
                     lat: number;
@@ -734,13 +735,15 @@ Gets zones config.
                     lon: number;
                 }[]
             ];
-            flightDirection: 'all' | 'arrival' | 'departure';
-            weight: number;
-            name?: string | undefined;
             minAltitudeAmsl?: number | undefined;
             maxAltitudeAmsl?: number | undefined;
             minSpeedKmph?: number | undefined;
             maxSpeedKmph?: number | undefined;
+            flightDirection: 'all' | 'arrival' | 'departure';
+            runwayDirectionDeg?: number | undefined;
+            weight: number;
+            perimeter: 'none' | 'outer' | 'inner';
+            trackingDomains: ('adsb' | 'remoteId')[];
         }[];
     };
     ```
