@@ -113,6 +113,13 @@ export class AddNewClipError extends Error {
     }
 }
 
+export class GenerateSilenceError extends Error {
+    constructor(message: string) {
+        super('Error generating silence clip: ' + message);
+        this.name = 'GenerateSilenceError';
+    }
+}
+
 export class PtzNotSupportedError extends Error {
     constructor() {
         super('Ptz not supported.');

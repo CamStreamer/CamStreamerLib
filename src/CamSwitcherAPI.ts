@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AddNewClipError, ParameterNotFoundError } from './errors/errors';
+import { AddNewClipError, GenerateSilenceError, ParameterNotFoundError } from './errors/errors';
 import { IClient, TResponse } from './internal/types';
 import { parseBitrateOptionsToVapixParams, parseVapixParamsToBitrateOptions } from './internal/convertors';
 import { isClip, isNullish } from './internal/utils';
@@ -65,15 +65,18 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
     }
 
     async generateSilence(sampleRate: number, channels: TAudioChannel, options?: THttpRequestOptions) {
-        const agent = this.getClient(options?.proxyParams);
-        await agent.get({
-            path: `${BASE_PATH}/generate_silence.cgi`,
-            parameters: {
+        const res = await this._getJson(
+            `${BASE_PATH}/generate_silence.cgi`,
+            {
                 sample_rate: sampleRate.toString(),
                 channels,
             },
-            timeout: options?.timeout,
-        });
+            options
+        );
+
+        if (res.status !== 200) {
+            throw new GenerateSilenceError(res.message);
+        }
     }
 
     async getMaxFps(source: number, options?: THttpRequestOptions) {
@@ -303,11 +306,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
 
         if (isNullish(saveData.video)) {
             // No info set
-            return cameraOptionsSchema.parse({
-                audioSampleRate: saveData.audio?.sampleRate,
-                audioChannelCount: saveData.audio?.channelCount,
-                keyboard: saveData.keyboard,
-            });
+            return;
         }
 
         const settings: TCameraOptions = {
