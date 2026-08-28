@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>CamStreamerLib — PlaneTracker events over Device Connect</title>
+        <link rel="stylesheet" href="./utils/example.css" />
+    </head>
+    <body>
+        <h1>PlaneTracker events over Device Connect</h1>
+
+        <form id="config">
+            <label>
+                Device host
+                <input id="host" placeholder="ACCC8EA84F71.device-connect.net" />
+            </label>
+            <label>
+                Device access token
+                <input id="token" placeholder="paste the device access token" />
+            </label>
+            <label>
+                User ID
+                <input id="userId" class="short" />
+            </label>
+            <label>
+                User name
+                <input id="userName" class="short" />
+            </label>
+            <label>
+                User priority
+                <input id="userPriority" class="short" type="number" />
+            </label>
+            <label class="inline">
+                <input id="logHighFrequency" type="checkbox" />
+                Log CAMERA_POSITION / FLIGHT_LIST
+            </label>
+            <button id="connect" type="submit">Connect</button>
+            <button id="disconnect" type="button" disabled>Disconnect</button>
+        </form>
+
+        <div id="status">Not connected.</div>
+        <div id="summary">
+            <span id="cameraSummary">CAMERA_POSITION: —</span>
+            <span id="flightSummary">FLIGHT_LIST: —</span>
+        </div>
+        <div id="log"></div>
+
+        <script type="module">
+            import { PlaneTrackerAPI, PlaneTrackerEvents, DeviceConnectWsClient } from './camstreamerlib.js';
+
+            // Fill these in to have the form prefilled on load.
+            const DEVICE_HOST = '';
+            const DEVICE_ACCESS_TOKEN = '';
+
+            // The connecting user is announced to PlaneTracker on every (re)connect and is broadcast
+            // to other clients in CONNECTED_USERS — see doc/ws/PlaneTrackerEvents.md.
+            const API_USER = { userId: 'example', userName: 'Example', userPriority: 1 };
+
+            // Every event type emitted by PlaneTracker.
+            const EVENT_TYPES = [
+                'CAMERA_POSITION',
+                'TRACKING_START',
+                'TRACKING_STOP',
+                'FLIGHT_LIST',
+                'USER_ACTION',
+                'CONNECTED_USERS',
+                'FORCE_TRACKING_STATUS',
+                'API_LOCK_STATUS',
+            ];
+            const HIGH_FREQUENCY_TYPES = ['CAMERA_POSITION', 'FLIGHT_LIST'];
+            const LISTENER_ID = 'example';
+
+            const els = {
+                form: document.getElementById('config'),
+                host: document.getElementById('host'),
+                token: document.getElementById('token'),
+                userId: document.getElementById('userId'),
+                userName: document.getElementById('userName'),
+                userPriority: document.getElementById('userPriority'),
+                logHighFrequency: document.getElementById('logHighFrequency'),
+                connect: document.getElementById('connect'),
+                disconnect: document.getElementById('disconnect'),
+                status: document.getElementById('status'),
+                cameraSummary: document.getElementById('cameraSummary'),
+                flightSummary: document.getElementById('flightSummary'),
+                log: document.getElementById('log'),
+            };
+
+            els.host.value = DEVICE_HOST;
+            els.token.value = DEVICE_ACCESS_TOKEN;
+            els.userId.value = API_USER.userId;
+            els.userName.value = API_USER.userName;
+            els.userPriority.value = API_USER.userPriority;
+
+            let wsClient = null;
+            let ptrEvents = null;
+            const counts = { CAMERA_POSITION: 0, FLIGHT_LIST: 0 };
+
+            const setStatus = (text, isError = false) => {
+                els.status.textContent = text;
+                els.status.className = isError ? 'err' : '';
+            };
+
+            const log = (type, payload, isInit) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.innerHTML =
+                    `<span class="time">${new Date().toLocaleTimeString()}</span> ` +
+                    `<span class="type">${type}</span>` +
+                    (isInit ? ' <span class="init">[init]</span>' : '') +
+                    ` ${JSON.stringify(payload)}`;
+                els.log.append(row);
+                els.log.scrollTop = els.log.scrollHeight;
+            };
+
+            const onEvent = (data, isInit) => {
+                setStatus('Connected.');
+                if (!HIGH_FREQUENCY_TYPES.includes(data.type)) {
+                    log(data.type, data, isInit);
+                    return;
+                }
+
+                counts[data.type] += 1;
+                if (data.type === 'CAMERA_POSITION') {
+                    els.cameraSummary.textContent =
+                        `CAMERA_POSITION (${counts.CAMERA_POSITION}): ` +
+                        `lat ${data.lat.toFixed(5)}, lon ${data.lon.toFixed(5)}, ` +
+                        `azimuth ${data.azimuth.toFixed(1)}°, elevation ${data.elevation.toFixed(1)}°, ` +
+                        `fov ${data.fov.toFixed(1)}°`;
+                } else {
+                    els.flightSummary.textContent = `FLIGHT_LIST (${counts.FLIGHT_LIST}): ${data.list.length} targets`;
+                }
+                if (els.logHighFrequency.checked) {
+                    log(data.type, data, isInit);
+                }
+            };
+
+            const connect = (host, token, apiUser) => {
+                // The path getter is evaluated on every (re)connect; the token is appended by the client.
+                wsClient = new DeviceConnectWsClient(token, host, () => PlaneTrackerAPI.getWsEventsPath());
+                ptrEvents = new PlaneTrackerEvents(wsClient, apiUser);
+
+                for (const type of EVENT_TYPES) {
+                    ptrEvents.addListener(type, onEvent, LISTENER_ID);
+                }
+
+                wsClient.init();
+                setStatus(`Connecting to wss://${host}${PlaneTrackerAPI.getWsEventsPath()} …`);
+            };
+
+            const disconnect = () => {
+                ptrEvents?.destroy(); // also destroys the underlying ws client
+                ptrEvents = null;
+                wsClient = null;
+                setStatus('Disconnected.');
+            };
+
+            els.form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const host = els.host.value.trim();
+                const token = els.token.value.trim();
+                const apiUser = {
+                    userId: els.userId.value.trim(),
+                    userName: els.userName.value.trim(),
+                    userPriority: Number(els.userPriority.value),
+                };
+                if (!host || !token) {
+                    setStatus('Device host and access token are required.', true);
+                    return;
+                }
+                if (!apiUser.userId || !apiUser.userName || !Number.isFinite(apiUser.userPriority)) {
+                    setStatus('User ID, user name and a numeric user priority are required.', true);
+                    return;
+                }
+                connect(host, token, apiUser);
+                els.connect.disabled = true;
+                els.disconnect.disabled = false;
+            });
+
+            els.disconnect.addEventListener('click', () => {
+                disconnect();
+                els.connect.disabled = false;
+                els.disconnect.disabled = true;
+            });
+        </script>
+    </body>
+</html>
