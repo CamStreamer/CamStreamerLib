@@ -1,6 +1,6 @@
 {
     "name": "camstreamerlib",
-    "version": "4.0.32",
+    "version": "4.0.33",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
     "engine": {
@@ -24,6 +24,7 @@
         "@types/ws": "^8.5.10",
         "@typescript-eslint/eslint-plugin": "^6.8.0",
         "@typescript-eslint/parser": "^6.8.0",
+        "esbuild": "^0.28.2",
         "eslint": "^8.51.0",
         "eslint-plugin-deprecation": "^2.0.0",
         "eslint-plugin-unused-imports": "^3.0.0",
@@ -42,7 +43,8 @@
         "build": "npm-run-all clean build:cjs build:esm copyPackage",
         "build:cjs": "tsc --project tsconfig.cjs.json",
         "build:esm": "tsc --project tsconfig.esm.json",
-        "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/",
+        "build:browser": "esbuild src/browser.index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=examples/camstreamerlib.js",
+        "copyPackage": "cp -f LICENSE dist/ && cp -f README.md dist/ && cp -f package.json dist/ && cp -r -f examples dist/",
         "publishPackage": "./publish.sh",
         "lint": "eslint \"src/**/*.ts\"",
         "lint:fix": "eslint \"src/**/*.ts\" --fix",
@@ -53,7 +55,8 @@
     },
     "files": [
         "/**/*.js",
-        "/**/*.ts"
+        "/**/*.ts",
+        "/examples/**/*"
     ],
     "main": "./cjs/index.js",
     "module": "./esm/index.js",

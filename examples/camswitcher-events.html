@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>CamStreamerLib — CamSwitcher events over Device Connect</title>
+        <link rel="stylesheet" href="./utils/example.css" />
+    </head>
+    <body>
+        <h1>CamSwitcher events over Device Connect</h1>
+
+        <form id="config">
+            <label>
+                Device host
+                <input id="host" placeholder="ACCC8EA84F71.device-connect.net" />
+            </label>
+            <label>
+                Device access token
+                <input id="token" placeholder="paste the device access token" />
+            </label>
+            <button id="connect" type="submit">Connect</button>
+            <button id="disconnect" type="button" disabled>Disconnect</button>
+        </form>
+
+        <div id="status">Not connected.</div>
+        <div id="log"></div>
+
+        <script type="module">
+            import {
+                CamSwitcherAPI,
+                CamSwitcherEvents,
+                DeviceConnectClient,
+                DeviceConnectWsClient,
+            } from './camstreamerlib.js';
+
+            // Fill these in to have the form prefilled on load.
+            const DEVICE_HOST = '';
+            const DEVICE_ACCESS_TOKEN = '';
+
+            // Every event type emitted by CamSwitcher — see doc/ws/CamSwitcherEvents.md.
+            const EVENT_TYPES = [
+                'authorization',
+                'PlaylistSwitch',
+                'StreamAvailable',
+                'StreamSwitchAudio',
+                'StreamSwitchVideo',
+                'StreamSwitchVideoError',
+                'StreamSwitchAudioError',
+                'PlaylistQueueChange',
+                'ClipUpload',
+                'ClipRemove',
+                'SwitcherStart',
+                'SwitcherStop',
+                'MediaServerStarted',
+            ];
+            const LISTENER_ID = 'example';
+
+            const els = {
+                form: document.getElementById('config'),
+                host: document.getElementById('host'),
+                token: document.getElementById('token'),
+                connect: document.getElementById('connect'),
+                disconnect: document.getElementById('disconnect'),
+                status: document.getElementById('status'),
+                log: document.getElementById('log'),
+            };
+
+            els.host.value = DEVICE_HOST;
+            els.token.value = DEVICE_ACCESS_TOKEN;
+
+            let wsClient = null;
+            let cswEvents = null;
+
+            const setStatus = (text, isError = false) => {
+                els.status.textContent = text;
+                els.status.className = isError ? 'err' : '';
+            };
+
+            const log = (type, payload, isInit = false) => {
+                const row = document.createElement('div');
+                row.className = 'row';
+                row.innerHTML =
+                    `<span class="time">${new Date().toLocaleTimeString()}</span> ` +
+                    `<span class="type">${type}</span>` +
+                    (isInit ? ' <span class="init">[init]</span>' : '') +
+                    ` ${JSON.stringify(payload)}`;
+                els.log.append(row);
+                els.log.scrollTop = els.log.scrollHeight;
+            };
+
+            const connect = (host, token) => {
+                const csw = new CamSwitcherAPI(new DeviceConnectClient(token, host));
+
+                // The path getter is evaluated on every (re)connect; the token is appended by the client.
+                wsClient = new DeviceConnectWsClient(token, host, () => CamSwitcherAPI.getWsEventsPath());
+                cswEvents = new CamSwitcherEvents(wsClient, () => csw.wsAuthorization());
+
+                for (const type of EVENT_TYPES) {
+                    cswEvents.addListener(type, (data, isInit) => log(data.type, data, isInit), LISTENER_ID);
+                }
+                cswEvents.addListener(
+                    'authorization',
+                    (data) => setStatus(`Authorization: ${data.state}`, data.state !== 'ok'),
+                    'status'
+                );
+
+                wsClient.init();
+                setStatus(`Connecting to wss://${host}${CamSwitcherAPI.getWsEventsPath()} …`);
+            };
+
+            const disconnect = () => {
+                cswEvents?.destroy(); // also destroys the underlying ws client
+                cswEvents = null;
+                wsClient = null;
+                setStatus('Disconnected.');
+            };
+
+            els.form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const host = els.host.value.trim();
+                const token = els.token.value.trim();
+                if (!host || !token) {
+                    setStatus('Device host and access token are required.', true);
+                    return;
+                }
+                connect(host, token);
+                els.connect.disabled = true;
+                els.disconnect.disabled = false;
+            });
+
+            els.disconnect.addEventListener('click', () => {
+                disconnect();
+                els.connect.disabled = false;
+                els.disconnect.disabled = true;
+            });
+        </script>
+    </body>
+</html>
