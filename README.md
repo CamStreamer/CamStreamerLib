@@ -39,6 +39,15 @@ npm install camstreamerlib
 
 </br>
 
+# Examples
+
+| Example                                                                                                                                                         | Description                                                                                                                                                                                                                                                                                                                                                                                                           | Open in browser                                                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| [CamSwitcherEvents](examples/camswitcher-events.html) ([source](https://github.com/CamStreamer/CamStreamerLib/blob/master/examples/camswitcher-events.html))    | Logs every CamSwitcher event. `DeviceConnectClient` (HTTP) backs [CamSwitcherAPI](doc/CamSwitcherAPI.md) to obtain the websocket authorization token, `DeviceConnectWsClient` (websocket) backs [CamSwitcherEvents](doc/ws/CamSwitcherEvents.md), which validates and dispatches the events. Connection state is taken from the `authorization` event.                                                                | [open](https://raw.githack.com/CamStreamer/CamStreamerLib/master/examples/camswitcher-events.html)  |
+| [PlaneTrackerEvents](examples/planetracker-events.html) ([source](https://github.com/CamStreamer/CamStreamerLib/blob/master/examples/planetracker-events.html)) | Logs every PlaneTracker event. PlaneTracker needs no authorization token — [PlaneTrackerEvents](doc/ws/PlaneTrackerEvents.md) announces the connecting user (`userId` / `userName` / `userPriority`, editable in the form) as the init message instead, so only the websocket client is needed. The continuous `CAMERA_POSITION` and `FLIGHT_LIST` events only update the summary line unless the checkbox is ticked. | [open](https://raw.githack.com/CamStreamer/CamStreamerLib/master/examples/planetracker-events.html) |
+
+</br>
+
 # Breaking Changes
 
 <details open>
