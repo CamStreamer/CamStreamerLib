@@ -482,6 +482,19 @@ Set parameters to the camera.
 const params = await vapix.setParameter({ 'root.camscripter.Enabled': '1' });
 ```
 
+### listDefinitions(group, options?)
+
+List parameter definitions for a group. The camera's XML schema response is parsed into a flat record of parameter name to its current value.
+
+-   **Parameters:**
+    -   `group` (`string` | `string[]`): Param group name or list of group names to list definitions for.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<Record<string, string>>`: Parameter name mapped to its value.
+
+```javascript
+const definitions = await vapix.listDefinitions('ImageSource.I0.Video.CaptureMode');
+```
+
 <br/>
 
 ## Guard Tour Management Methods
