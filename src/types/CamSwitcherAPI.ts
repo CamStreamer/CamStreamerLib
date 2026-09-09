@@ -34,15 +34,6 @@ export type TStorageInfo = z.infer<typeof storageInfoListSchema>[number];
 //                 Websockets
 //   ----------------------------------------
 
-export const outputInfoSchema = z
-    .object({
-        rtsp_url: z.string(),
-        ws: z.string(),
-        ws_initial_message: z.string(),
-    })
-    .transform(toCamelCase);
-export type TOutputInfo = z.infer<typeof outputInfoSchema>;
-
 export const audioPushInfoSchema = z
     .object({
         ws: z.string(),

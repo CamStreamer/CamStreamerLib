@@ -39,6 +39,7 @@ import {
 import { THttpRequestOptions } from './types/common';
 import { BasicAPI } from './internal/BasicAPI';
 import { TApiUser } from './types/ws/PlaneTrackerEvents';
+import { getWsAddress } from './browser.index';
 
 const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
@@ -74,7 +75,15 @@ export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends Bas
             parameters: { rtsp_url: rtspUrl },
             timeout: options?.timeout,
         });
-        return wsAliasResponseSchema.parse(await res.json());
+
+        const data = wsAliasResponseSchema.parse(await res.json());
+        const wsAddress = getWsAddress(data.ws);
+
+        return {
+            alias: data.alias,
+            wsAddress: wsAddress,
+            wsInit: data.ws_initial_message,
+        };
     }
 
     //   ----------------------------------------

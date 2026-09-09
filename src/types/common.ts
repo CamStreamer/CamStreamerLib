@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { toCamelCase } from '../internal/transformers';
 
 export const booleanSchema = z.union([z.literal(0), z.literal(1)]);
 
@@ -42,6 +43,17 @@ export type TProxyParams = {
     path: string;
     target: TProxyTarget;
 };
+
+export type TCameraTarget = Pick<TProxyTarget, 'user' | 'pass' | 'ip'>;
+
+export const outputInfoSchema = z
+    .object({
+        rtsp_url: z.string(),
+        ws: z.string(),
+        ws_initial_message: z.string(),
+    })
+    .transform(toCamelCase);
+export type TOutputInfo = z.infer<typeof outputInfoSchema>;
 
 export type THttpRequestOptions = {
     timeout?: number;

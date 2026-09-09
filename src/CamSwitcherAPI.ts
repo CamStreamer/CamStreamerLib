@@ -5,7 +5,6 @@ import { parseBitrateOptionsToVapixParams, parseVapixParamsToBitrateOptions } fr
 import { isClip, isNullish } from './internal/utils';
 import {
     storageInfoListSchema,
-    outputInfoSchema,
     audioPushInfoSchema,
     clipListSchema,
     playlistQueueSchema,
@@ -31,6 +30,7 @@ import {
     THttpRequestOptions,
     TStorageType,
     TBitrateVapixParams,
+    outputInfoSchema,
 } from './types/common';
 import { VapixAPI } from './VapixAPI';
 import { BasicAPI } from './internal/BasicAPI';

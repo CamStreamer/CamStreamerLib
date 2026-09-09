@@ -1,6 +1,6 @@
 import { IClient, TParameters, TResponse } from './internal/types';
 import { ErrorWithResponse, ServiceNotFoundError, StorageDataFetchError } from './errors/errors';
-import { networkCameraListSchema, THttpRequestOptions } from './types/common';
+import { networkCameraListSchema, outputInfoSchema, THttpRequestOptions } from './types/common';
 import { z } from 'zod';
 import {
     ImageType,
@@ -45,6 +45,11 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> extends Basic
     async wsAuthorization(options?: THttpRequestOptions) {
         const res = await this._getJson(`${BASE_PATH}/ws_authorization.cgi`, undefined, options);
         return wsResponseSchema.parse(res).message;
+    }
+
+    async getOutputInfo(camera: string, resolution: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/output_info.cgi`, { camera, resolution }, options);
+        return outputInfoSchema.parse(res.data);
     }
 
     async getMjpegStreamImage(mjpegUrl: string, options?: THttpRequestOptions) {

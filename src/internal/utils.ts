@@ -75,3 +75,20 @@ export function pad(num: number, size: number) {
 export function isNullish<T>(value: T | undefined | null): value is undefined | null {
     return value === null || value === undefined;
 }
+
+export const fixUrl = (url: string) => {
+    const host = window.location.host;
+    return url.replace('127.0.0.1', host);
+};
+
+export const getWsAddress = (url: string) => {
+    let wsAddress = fixUrl(url);
+    wsAddress = wsAddress.replace('http', 'ws');
+
+    const protocol = window.location.protocol;
+    if (protocol === 'https:') {
+        wsAddress = wsAddress.replace('ws://', 'wss://');
+    }
+
+    return wsAddress;
+};
