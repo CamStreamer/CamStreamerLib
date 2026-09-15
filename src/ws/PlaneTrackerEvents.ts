@@ -1,10 +1,21 @@
 import { IWsClient } from '../internal/types';
 import { WsEvents } from '../internal/WsEvents';
-import { TEventData, ptrEventsSchema, TApiUser } from '../types/ws/PlaneTrackerEvents';
+import {
+    TEventData,
+    ptrEventsSchema,
+    TApiUser,
+    TApiUserInput,
+    apiUserInputSchema,
+} from '../types/ws/PlaneTrackerEvents';
 
 export class PlaneTrackerEvents extends WsEvents<TEventData> {
-    constructor(ws: IWsClient, private _apiUser: Omit<TApiUser, 'ip'>) {
+    private _apiUser: TApiUserInput;
+
+    constructor(ws: IWsClient, apiUser: Omit<TApiUser, 'ip'>) {
         super((data: any) => ptrEventsSchema.parse(data), ws);
+        // Validated here rather than in sendInitMsg: that runs as an onOpen callback, where a throw
+        // surfaces far from the call site that supplied the bad value.
+        this._apiUser = apiUserInputSchema.parse(apiUser);
         this.ws.onOpen = this.sendInitMsg;
     }
 

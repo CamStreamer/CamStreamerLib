@@ -38,12 +38,16 @@ import {
 } from './errors/errors';
 import { THttpRequestOptions } from './types/common';
 import { BasicAPI } from './internal/BasicAPI';
-import { TApiUser } from './types/ws/PlaneTrackerEvents';
+import { apiUserInputSchema, TApiUser, TApiUserInput } from './types/ws/PlaneTrackerEvents';
 
 const BASE_PATH = '/local/planetracker';
 export class PlaneTrackerAPI<Client extends IClient<TResponse, any>> extends BasicAPI<Client> {
-    constructor(client: Client, private apiUser: Omit<TApiUser, 'ip'>) {
+    private apiUser: TApiUserInput;
+
+    constructor(client: Client, apiUser: Omit<TApiUser, 'ip'>) {
         super(client);
+        // The CGIs enforce the same userPriority range as the WS handshake, answering with a 400.
+        this.apiUser = apiUserInputSchema.parse(apiUser);
     }
 
     static getProxyPath = () => `${BASE_PATH}/proxy.cgi`;

@@ -60,6 +60,24 @@ const apiUserSchema = userSchema.extend({
     userPriority: z.number(),
 });
 
+export const USER_PRIORITY_MIN = 1;
+export const USER_PRIORITY_MAX = 255;
+
+const USER_PRIORITY_ERROR = `userPriority must be an integer between ${USER_PRIORITY_MIN} and ${USER_PRIORITY_MAX}, where ${USER_PRIORITY_MIN} is the highest priority`;
+
+// Outbound counterpart of apiUserSchema, used to validate what we send rather than what we receive.
+// PlaneTracker answers an out-of-range userPriority by closing the socket with no status code, which
+// the client cannot tell apart from a network drop, so the value has to be rejected before it leaves.
+export const apiUserInputSchema = apiUserSchema.omit({ ip: true }).extend({
+    userId: z.string().nonempty(),
+    userName: z.string().nonempty(),
+    userPriority: z
+        .number()
+        .int(USER_PRIORITY_ERROR)
+        .min(USER_PRIORITY_MIN, USER_PRIORITY_ERROR)
+        .max(USER_PRIORITY_MAX, USER_PRIORITY_ERROR),
+});
+
 export type TEventType =
     | 'CAMERA_POSITION'
     | 'TRACKING_START'
@@ -218,3 +236,4 @@ export type TUserActionDataOfCgi<T extends EUserActions> = Extract<TWsUserAction
 export type TWsApiFlightData = z.infer<typeof wsApiFlightDataSchema>;
 export type TWsApiCameraData = z.infer<typeof wsCameraPositionDataSchema>;
 export type TApiUser = z.infer<typeof apiUserSchema>;
+export type TApiUserInput = z.infer<typeof apiUserInputSchema>;
