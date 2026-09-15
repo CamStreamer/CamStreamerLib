@@ -37,6 +37,11 @@ type TApiUser = {
 };
 ```
 
+-   `userPriority` must be an integer between `USER_PRIORITY_MIN` (1) and `USER_PRIORITY_MAX` (255), where 1 is the
+    highest priority, and `userId` / `userName` must be non-empty. The constructor throws a `ZodError` otherwise.
+    PlaneTracker rejects an out-of-range value by closing the socket with no status code (reported as `1005`)
+    right after the handshake, so validating up front turns a silent disconnect into an immediate error.
+
 ## Attributes
 
 ### isDestroyed
