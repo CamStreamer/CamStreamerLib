@@ -12,6 +12,7 @@ import {
 const wsApiFlightDataSchema = z.object({
     targetId: z.string(),
     icao: z.string(), // for backward compatibility
+    callsign: z.string().optional(),
     domain: domainIdSchema,
     categoryId: z.string(),
     groupId: z.string().optional(),
