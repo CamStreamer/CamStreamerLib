@@ -112,6 +112,7 @@ const eventsDataSchema = z.union([
         type: z.literal('TRACKING_START'),
         icao: z.string(),
         targetId: z.string(),
+        callsign: z.string().optional(),
         domain: domainIdSchema,
         categoryId: z.string(),
     }),
