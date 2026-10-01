@@ -12,6 +12,7 @@ import {
 const wsApiFlightDataSchema = z.object({
     targetId: z.string(),
     icao: z.string(), // for backward compatibility
+    callsign: z.string().optional(),
     domain: domainIdSchema,
     categoryId: z.string(),
     groupId: z.string().optional(),
@@ -111,6 +112,7 @@ const eventsDataSchema = z.union([
         type: z.literal('TRACKING_START'),
         icao: z.string(),
         targetId: z.string(),
+        callsign: z.string().optional(),
         domain: domainIdSchema,
         categoryId: z.string(),
     }),
