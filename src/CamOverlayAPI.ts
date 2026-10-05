@@ -55,6 +55,14 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> extends Basic
         );
     }
 
+    async isViewerPassValid(pass: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/check_pass.cgi`, { pass }, options);
+        if (res.status !== 200) {
+            throw new Error(res.message);
+        }
+        return res.data === '1';
+    }
+
     //   ----------------------------------------
     //            files - fonts, images
     //   ----------------------------------------
