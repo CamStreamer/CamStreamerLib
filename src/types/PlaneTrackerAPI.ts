@@ -53,13 +53,38 @@ const labelOptionsSchema = z.union([
 ]);
 export type TLabelOption = z.infer<typeof labelOptionsSchema>;
 
-const identificationLabelSchema = z.object({
+const aircraftIdentificationLabelSchema = z.object({
     firstRow: labelOptionsSchema,
     secondRow: labelOptionsSchema,
     thirdRow: labelOptionsSchema,
     fourthRow: labelOptionsSchema,
     opacity: z.number().positive(),
 });
+
+const droneLabelOptionsSchema = z.union([z.literal('blank'), z.literal('remote_id')]);
+export type TDroneLabelOption = z.infer<typeof droneLabelOptionsSchema>;
+
+const droneIdentificationLabelSchema = z.object({
+    firstRow: droneLabelOptionsSchema,
+    opacity: z.number().positive(),
+});
+
+const DEFAULT_DRONE_IDENTIFICATION_LABEL = {
+    firstRow: 'remote_id',
+    opacity: 30,
+} as const;
+
+const identificationLabelSchema = z.union([
+    z.object({
+        aircraft: aircraftIdentificationLabelSchema,
+        drone: droneIdentificationLabelSchema.default(DEFAULT_DRONE_IDENTIFICATION_LABEL),
+    }),
+    // Settings saved before drone labels existed hold the aircraft label at the top level
+    aircraftIdentificationLabelSchema.transform((aircraft) => ({
+        aircraft,
+        drone: DEFAULT_DRONE_IDENTIFICATION_LABEL,
+    })),
+]);
 
 export const cameraSettingsSchema = z.object({
     units: z.union([z.literal('metric'), z.literal('imperial')]).default('imperial'),
@@ -217,11 +242,14 @@ export const cameraSettingsSchema = z.object({
             port: 80,
         }),
     identificationLabel: identificationLabelSchema.default({
-        firstRow: 'registration',
-        secondRow: 'blank',
-        thirdRow: 'blank',
-        fourthRow: 'blank',
-        opacity: 30,
+        aircraft: {
+            firstRow: 'registration',
+            secondRow: 'blank',
+            thirdRow: 'blank',
+            fourthRow: 'blank',
+            opacity: 30,
+        },
+        drone: DEFAULT_DRONE_IDENTIFICATION_LABEL,
     }),
     acs: connectionSchema
         .extend({
