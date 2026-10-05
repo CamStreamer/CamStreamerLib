@@ -69,10 +69,10 @@ const droneIdentificationLabelSchema = z.object({
     opacity: z.number().positive(),
 });
 
-const DEFAULT_DRONE_IDENTIFICATION_LABEL = {
+const DEFAULT_DRONE_IDENTIFICATION_LABEL: z.infer<typeof droneIdentificationLabelSchema> = {
     firstRow: 'remote_id',
     opacity: 30,
-} as const;
+};
 
 const identificationLabelSchema = z.union([
     z.object({
@@ -82,7 +82,7 @@ const identificationLabelSchema = z.union([
     // Settings saved before drone labels existed hold the aircraft label at the top level
     aircraftIdentificationLabelSchema.transform((aircraft) => ({
         aircraft,
-        drone: DEFAULT_DRONE_IDENTIFICATION_LABEL,
+        drone: { ...DEFAULT_DRONE_IDENTIFICATION_LABEL },
     })),
 ]);
 
