@@ -170,7 +170,7 @@ const maxFps = await csApi.getMaxFps(1);
 Check password for camstreamer user.
 
 -   **Parameters:**
-    -   `pass` (`string`): Camera password.
+    -   `pass` (`string`): Camera user password.
     -   `options` (`THttpRequestOptions`, optional)
 -   **Returns:** `Promise<boolean>`
 

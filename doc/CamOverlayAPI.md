@@ -674,6 +674,19 @@ const token = await coApi.wsAuthorization();
 const image = await coApi.getMjpegStreamImage(url);
 ```
 
+### isViewerPassValid(pass, options?)
+
+Check password for camstreamer user.
+
+-   **Parameters:**
+    -   `pass` (`string`): Viewer password.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<boolean>`
+
+```javascript
+const isValid = await coApi.isViewerPassValid('some-pass-123');
+```
+
 <br/>
 
 ## Files Management Methods
