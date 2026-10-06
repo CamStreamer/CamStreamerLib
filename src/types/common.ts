@@ -30,6 +30,12 @@ export const keyboardShortcutsSchema = z.record(keyboardShortcutSchema);
 export type TKeyboardShortcut = z.infer<typeof keyboardShortcutSchema>;
 export type TKeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
 
+export const wsAliasResponseSchema = z.object({
+    alias: z.string(),
+    ws: z.string(),
+    ws_initial_message: z.string(),
+});
+
 export type TProxyTarget = {
     ip: string;
     mdnsName: string;

@@ -1,6 +1,6 @@
 import { IClient, TParameters, TResponse } from './internal/types';
 import { ErrorWithResponse, ServiceNotFoundError, StorageDataFetchError } from './errors/errors';
-import { networkCameraListSchema, THttpRequestOptions } from './types/common';
+import { networkCameraListSchema, THttpRequestOptions, wsAliasResponseSchema } from './types/common';
 import { z } from 'zod';
 import {
     ImageType,
@@ -61,6 +61,16 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> extends Basic
             throw new Error(res.message);
         }
         return res.data === '1';
+    }
+
+    async getLiveViewAlias(rtspUrl: string, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.get({
+            path: `${BASE_PATH}/getLiveViewAlias.cgi`,
+            parameters: { rtsp_url: rtspUrl },
+            timeout: options?.timeout,
+        });
+        return wsAliasResponseSchema.parse(await res.json());
     }
 
     //   ----------------------------------------
