@@ -663,6 +663,25 @@ Gets the WebSocket authorization token to authorize event websocket.
 const token = await coApi.wsAuthorization();
 ```
 
+### getLiveViewAlias(rtspUrl, options?)
+
+-   **Parameters:**
+    -   `rtspUrl` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:**
+
+    ```typescript
+    Promise<{
+        alias: string;
+        ws: string;
+        ws_initial_message: string;
+    }>;
+    ```
+
+```javascript
+const data = await ptrApi.getLiveViewAlias(url);
+```
+
 ### getMjpegStreamImage(mjpegUrl, options?)
 
 -   **Parameters:**

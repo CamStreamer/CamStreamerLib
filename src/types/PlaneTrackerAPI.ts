@@ -3,12 +3,6 @@ import { z } from 'zod';
 export type TImportDataType = 'MAP_DATA' | 'SERVER_DATA' | 'ALL';
 export type TExportDataType = 'NIGHT_SKY_CALIBRATION_DATA' | 'ALL';
 
-export const wsAliasResponseSchema = z.object({
-    alias: z.string(),
-    ws: z.string(),
-    ws_initial_message: z.string(),
-});
-
 //   ----------------------------------------
 //                 Settings
 //   ----------------------------------------
