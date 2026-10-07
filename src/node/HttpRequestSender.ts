@@ -1,11 +1,5 @@
 import { Digest } from './Digest';
-import {
-    Agent,
-    fetch as undiciFetch,
-    Request as UndiciRequest,
-    FormData as UndiciFormData,
-    Response as UndiciResponse,
-} from 'undici';
+import { Agent, fetch as undiciFetch, FormData as UndiciFormData, Response as UndiciResponse } from 'undici';
 
 export type HttpRequestOptions = {
     method?: string;
@@ -70,8 +64,14 @@ export class HttpRequestSender {
             options.headers['Authorization'] = authorization;
         }
 
-        const req = new UndiciRequest(url, { body: postData, method: options.method, headers: options.headers });
-        const res = await undiciFetch(req, { signal: AbortSignal.timeout(options.timeout), dispatcher: this.agent });
+        // Passing a pre-built Request would make undici clone it and tee its body on every call.
+        const res = await undiciFetch(url, {
+            method: options.method,
+            headers: options.headers,
+            body: postData,
+            signal: AbortSignal.timeout(options.timeout),
+            dispatcher: this.agent,
+        });
 
         if (!res.ok) {
             this.invalidateAuthorization();
