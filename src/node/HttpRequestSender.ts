@@ -73,11 +73,8 @@ export class HttpRequestSender {
             dispatcher: this.agent,
         });
 
-        if (!res.ok) {
-            this.invalidateAuthorization();
-        }
-
         if (res.status === 401) {
+            this.invalidateAuthorization();
             const authenticateHeader = res.headers.get('www-authenticate');
             if (
                 authenticateHeader !== null &&

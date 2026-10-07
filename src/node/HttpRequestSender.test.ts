@@ -103,6 +103,24 @@ describe('HttpRequestSender', () => {
         expect(received.map((r) => r.authorization?.split(' ')[0])).toEqual(['Basic', 'Digest', 'Digest']);
     });
 
+    test('keeps digest auth after a non-401 error response', async () => {
+        const sender = new HttpRequestSender();
+        handler = digestHandler;
+        await sender.sendRequest(options());
+
+        handler = (_req, res) => {
+            res.writeHead(500);
+            res.end();
+        };
+        await sender.sendRequest(options());
+
+        handler = digestHandler;
+        const res = await sender.sendRequest(options());
+
+        expect(res.status).toBe(200);
+        expect(received.map((r) => r.authorization?.split(' ')[0])).toEqual(['Basic', 'Digest', 'Digest', 'Digest']);
+    });
+
     test('retries a digest 401 only once', async () => {
         handler = (_req, res) => {
             res.writeHead(401, { 'WWW-Authenticate': DIGEST_CHALLENGE });
