@@ -16,34 +16,31 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@camstreamer/eslint-config": "^1.0.2",
+    "@camstreamer/eslint-config": "^1.0.10",
     "@camstreamer/prettier-config": "^2.0.4",
+    "@eslint/js": "^10.0.1",
     "@types/adm-zip": "^0.5.5",
     "@types/jest": "^30.0.0",
     "@types/node": "^18.19.127",
     "@types/ws": "^8.5.10",
-    "@typescript-eslint/eslint-plugin": "^8.71.1",
-    "@typescript-eslint/parser": "^8.71.1",
     "esbuild": "^0.28.2",
-    "eslint": "^8.51.0",
-    "eslint-plugin-deprecation": "^3.0.0",
+    "eslint": "^10.12.0",
     "eslint-plugin-unused-imports": "^4.4.1",
+    "globals": "^17.13.0",
     "jest": "^30.5.2",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
     "ts-jest": "^29.4.14",
     "ts-node": "^10.7.0",
-    "typescript": "5.3.3"
+    "typescript": "5.3.3",
+    "typescript-eslint": "^8.71.2"
   },
   "overrides": {
     "js-yaml": "^4.3.2",
-    "browserslist": "^4.28.7",
-    "eslint-plugin-deprecation": {
-      "@typescript-eslint/utils": "^8.71.1"
-    }
+    "browserslist": "^4.28.7"
   },
   "scripts": {
-    "clean": "rimraf dist/*",
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "npm-run-all clean build:cjs build:esm copyPackage",
     "build:cjs": "tsc --project tsconfig.cjs.json",
     "build:esm": "tsc --project tsconfig.esm.json",

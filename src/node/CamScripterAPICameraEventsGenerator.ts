@@ -31,7 +31,7 @@ export class CamScripterAPICameraEventsGenerator extends EventEmitter {
 
         this.tls = options?.tls ?? false;
         this.tlsInsecure = options?.tlsInsecure ?? false;
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         this.host = options?.host ?? options?.ip ?? '127.0.0.1';
         this.port = options?.port ?? (this.tls ? 443 : 80);
         this.user = options?.user ?? '';

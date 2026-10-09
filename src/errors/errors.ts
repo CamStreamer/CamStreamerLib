@@ -25,7 +25,7 @@ export class ServiceNotFoundError extends Error {
 
 export class ParsingBlobError extends Error {
     constructor(err: unknown) {
-        super('Error parsing response as Blob: ' + err);
+        super('Error parsing response as Blob: ' + String(err));
         this.name = 'ParsingBlobError';
     }
 }
@@ -101,7 +101,7 @@ export class NoDeviceInfoError extends Error {
 
 export class FetchDeviceInfoError extends Error {
     constructor(err: unknown) {
-        super('Error fetching remote camera data: ' + err);
+        super('Error fetching remote camera data: ' + String(err));
         this.name = 'NoDeviceInfoFromCameraError';
     }
 }
@@ -129,7 +129,7 @@ export class PtzNotSupportedError extends Error {
 
 export class StorageDataFetchError extends Error {
     constructor(err: unknown) {
-        super('Error fetching storage data: ' + err);
+        super('Error fetching storage data: ' + String(err));
         this.name = 'StorageDataFetchError';
     }
 }
@@ -157,7 +157,7 @@ export class TimezoneNotSetupError extends Error {
 
 export class TimezoneFetchError extends Error {
     constructor(err: unknown) {
-        super('Error fetching time zone information: ' + err);
+        super('Error fetching time zone information: ' + String(err));
         this.name = 'TimezoneFetchError';
     }
 }
