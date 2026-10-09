@@ -40,7 +40,7 @@
         "browserslist": "^4.28.7"
     },
     "scripts": {
-        "clean": "rimraf dist/*",
+        "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
         "build": "npm-run-all clean build:cjs build:esm copyPackage",
         "build:cjs": "tsc --project tsconfig.cjs.json",
         "build:esm": "tsc --project tsconfig.esm.json",
