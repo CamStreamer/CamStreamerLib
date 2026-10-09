@@ -663,6 +663,25 @@ Gets the WebSocket authorization token to authorize event websocket.
 const token = await coApi.wsAuthorization();
 ```
 
+### getLiveViewAlias(rtspUrl, options?)
+
+-   **Parameters:**
+    -   `rtspUrl` (`string`)
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:**
+
+    ```typescript
+    Promise<{
+        alias: string;
+        ws: string;
+        ws_initial_message: string;
+    }>;
+    ```
+
+```javascript
+const data = await ptrApi.getLiveViewAlias(url);
+```
+
 ### getMjpegStreamImage(mjpegUrl, options?)
 
 -   **Parameters:**
@@ -672,6 +691,19 @@ const token = await coApi.wsAuthorization();
 
 ```javascript
 const image = await coApi.getMjpegStreamImage(url);
+```
+
+### isViewerPassValid(pass, options?)
+
+Check password for camstreamer user.
+
+-   **Parameters:**
+    -   `pass` (`string`): Viewer password.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<boolean>`
+
+```javascript
+const isValid = await coApi.isViewerPassValid('some-pass-123');
 ```
 
 <br/>

@@ -146,7 +146,10 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             };
 
             await this._postJsonEncoded('/axis-cgi/opticscontrol.cgi', data, undefined, options);
-        } catch (err) {
+        } catch (error) {
+            console.warn('Failed to perform autofocus: ', error instanceof Error ? error.message : String(error));
+            console.warn('Falling back to deprecated optics setup API');
+
             // lets try the old api
             await this._postUrlEncoded(
                 '/axis-cgi/opticssetup.cgi',
@@ -215,7 +218,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         } catch (error) {
             console.warn(
                 'Failed to fetch time zone data from time API v2:',
-                error instanceof Error ? error.message : JSON.stringify(error)
+                error instanceof Error ? error.message : String(error)
             );
             console.warn('Falling back to deprecated time API v1');
         }

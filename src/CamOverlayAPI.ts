@@ -1,6 +1,6 @@
 import { IClient, TParameters, TResponse } from './internal/types';
 import { ErrorWithResponse, ServiceNotFoundError, StorageDataFetchError } from './errors/errors';
-import { networkCameraListSchema, THttpRequestOptions } from './types/common';
+import { networkCameraListSchema, THttpRequestOptions, wsAliasResponseSchema } from './types/common';
 import { z } from 'zod';
 import {
     ImageType,
@@ -53,6 +53,24 @@ export class CamOverlayAPI<Client extends IClient<TResponse, any>> extends Basic
             { mjpeg_url: decodeURIComponent(mjpegUrl) },
             options
         );
+    }
+
+    async isViewerPassValid(pass: string, options?: THttpRequestOptions) {
+        const res = await this._getJson(`${BASE_PATH}/check_pass.cgi`, { pass }, options);
+        if (res.status !== 200) {
+            throw new Error(res.message);
+        }
+        return res.data === '1';
+    }
+
+    async getLiveViewAlias(rtspUrl: string, options?: THttpRequestOptions) {
+        const agent = this.getClient(options?.proxyParams);
+        const res = await agent.get({
+            path: `${BASE_PATH}/getLiveViewAlias.cgi`,
+            parameters: { rtsp_url: rtspUrl },
+            timeout: options?.timeout,
+        });
+        return wsAliasResponseSchema.parse(await res.json());
     }
 
     //   ----------------------------------------

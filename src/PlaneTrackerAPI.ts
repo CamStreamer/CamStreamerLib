@@ -24,7 +24,6 @@ import {
     TWhiteList,
     TZones,
     whiteListSchema,
-    wsAliasResponseSchema,
     zonesSchema,
 } from './types/PlaneTrackerAPI';
 import {
@@ -36,7 +35,7 @@ import {
     ServerError,
     BadRequestError,
 } from './errors/errors';
-import { THttpRequestOptions } from './types/common';
+import { THttpRequestOptions, wsAliasResponseSchema } from './types/common';
 import { BasicAPI } from './internal/BasicAPI';
 import { apiUserInputSchema, TApiUser, TApiUserInput } from './types/ws/PlaneTrackerEvents';
 
