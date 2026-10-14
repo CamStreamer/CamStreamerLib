@@ -11,7 +11,7 @@ export const jsonParseCameraParam = (param: string, paramName: string) => {
     } catch {
         try {
             return JSON.parse(decodeURIComponent(param.replaceAll('\\', '')));
-        } catch (e) {
+        } catch {
             throw new JsonParseError(paramName, param);
         }
     }
