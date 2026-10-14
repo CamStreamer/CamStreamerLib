@@ -146,7 +146,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
             };
 
             await this._postJsonEncoded('/axis-cgi/opticscontrol.cgi', data, undefined, options);
-        } catch (err) {
+        } catch {
             // lets try the old api
             await this._postUrlEncoded(
                 '/axis-cgi/opticssetup.cgi',
