@@ -252,8 +252,14 @@ type TCameraSettings = {
         focusCalibrationPoints: string;
     };
     cameraConfig: {
-        defaultCaptureSizeMeters: number;
-        captureSizeExtensionMeters: number;
+        aircraft: {
+            defaultCaptureSizeMeters: number;
+            captureSizeExtensionMeters: number;
+        };
+        drone: {
+            defaultCaptureSizeMeters: number;
+            captureSizeExtensionMeters: number;
+        };
     };
     stream: {
         width: number;
