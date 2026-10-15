@@ -52,7 +52,7 @@ const aircraftIdentificationLabelSchema = z.object({
     secondRow: labelOptionsSchema,
     thirdRow: labelOptionsSchema,
     fourthRow: labelOptionsSchema,
-    opacity: z.number().positive(),
+    opacity: z.number().nonnegative(),
 });
 
 const droneLabelOptionsSchema = z.union([z.literal('blank'), z.literal('remote_id')]);
@@ -60,7 +60,7 @@ export type TDroneLabelOption = z.infer<typeof droneLabelOptionsSchema>;
 
 const droneIdentificationLabelSchema = z.object({
     firstRow: droneLabelOptionsSchema,
-    opacity: z.number().positive(),
+    opacity: z.number().nonnegative(),
 });
 
 const DEFAULT_DRONE_IDENTIFICATION_LABEL: z.infer<typeof droneIdentificationLabelSchema> = {
