@@ -14,7 +14,7 @@ export class DefaultClient implements IClient<UndiciResponse, UndiciFormData | B
 
     constructor(opt: HttpOptions = {}) {
         this.tls = opt.tls ?? false;
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         this.host = opt.host ?? opt.ip ?? '127.0.0.1';
         this.port = opt.port ?? (this.tls ? 443 : 80);
         this.user = opt.user;

@@ -28,7 +28,7 @@ export class WsClient implements IWsClient {
     constructor(options: WsClientOptions) {
         const tls = options.tls ?? false;
         const tlsInsecure = options.tlsInsecure ?? false;
-        // eslint-disable-next-line deprecation/deprecation
+        // eslint-disable-next-line @typescript-eslint/no-deprecated
         const host = options.host ?? options.ip ?? '127.0.0.1';
         const port = options.port ?? (tls ? 443 : 80);
         this.user = options.user ?? '';
