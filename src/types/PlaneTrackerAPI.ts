@@ -38,6 +38,9 @@ export const widgetSchema = z.object({
     scale: z.number().positive(),
 });
 
+const widgetUnitsSchema = z.union([z.literal('metric'), z.literal('imperial'), z.literal('rotate')]);
+export type TWidgetUnits = z.infer<typeof widgetUnitsSchema>;
+
 const labelOptionsSchema = z.union([
     z.literal('blank'),
     z.literal('registration'),
@@ -213,18 +216,25 @@ export const cameraSettingsSchema = z.object({
             displaySystemInfo: z.boolean().optional(),
         })
         .optional(),
-    widget: widgetSchema.default({
-        enabled: true,
-        coord: 'top_right',
-        posX: 10,
-        posY: 10,
-        scale: 100,
-    }),
+    widget: widgetSchema
+        .extend({
+            units: widgetUnitsSchema.default('rotate'),
+        })
+        .default({
+            enabled: true,
+            coord: 'top_right',
+            posX: 10,
+            posY: 10,
+            scale: 100,
+            units: 'rotate',
+        }),
     airportWidget: widgetSchema
         .extend({
             showWeather: z.boolean().default(false),
             weatherLocationKey: z.string().default(''),
             weatherLocationName: z.string().default(''),
+            windSpeedUnits: widgetUnitsSchema.default('rotate'),
+            temperatureUnits: widgetUnitsSchema.default('rotate'),
         })
         .default({
             enabled: true,
@@ -235,6 +245,8 @@ export const cameraSettingsSchema = z.object({
             showWeather: false,
             weatherLocationKey: '',
             weatherLocationName: '',
+            windSpeedUnits: 'rotate',
+            temperatureUnits: 'rotate',
         }),
     fr24FlightInfoSource: z
         .object({

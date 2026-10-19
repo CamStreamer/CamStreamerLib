@@ -110,3 +110,38 @@ describe('cameraSettingsSchema cameraConfig', () => {
         expect(cameraSettingsSchema.safeParse({ cameraConfig }).success).toBe(false);
     });
 });
+
+describe('cameraSettingsSchema widget units', () => {
+    const WIDGET = { coord: 'top_left', posX: 10, posY: 10, scale: 100 } as const;
+
+    test('defaults all widget units to rotate', () => {
+        const settings = cameraSettingsSchema.parse({});
+
+        expect(settings.widget.units).toBe('rotate');
+        expect(settings.airportWidget.windSpeedUnits).toBe('rotate');
+        expect(settings.airportWidget.temperatureUnits).toBe('rotate');
+    });
+
+    test('defaults missing units of saved widgets to rotate', () => {
+        const settings = cameraSettingsSchema.parse({ widget: WIDGET, airportWidget: WIDGET });
+
+        expect(settings.widget.units).toBe('rotate');
+        expect(settings.airportWidget.windSpeedUnits).toBe('rotate');
+        expect(settings.airportWidget.temperatureUnits).toBe('rotate');
+    });
+
+    test('parses independent widget units', () => {
+        const settings = cameraSettingsSchema.parse({
+            widget: { ...WIDGET, units: 'imperial' },
+            airportWidget: { ...WIDGET, windSpeedUnits: 'rotate', temperatureUnits: 'metric' },
+        });
+
+        expect(settings.widget.units).toBe('imperial');
+        expect(settings.airportWidget.windSpeedUnits).toBe('rotate');
+        expect(settings.airportWidget.temperatureUnits).toBe('metric');
+    });
+
+    test('rejects an unknown widget unit', () => {
+        expect(cameraSettingsSchema.safeParse({ widget: { ...WIDGET, units: 'kelvin' } }).success).toBe(false);
+    });
+});
