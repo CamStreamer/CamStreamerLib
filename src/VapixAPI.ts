@@ -20,7 +20,7 @@ import {
     guardTourSchema,
     ptzOverviewSchema,
     cameraPTZItemDataSchema,
-    applicationListSchema,
+    TApplicationList,
     sdCardInfoSchema,
     ALL_APP_IDS,
     TRecordingConfigItem,
@@ -823,17 +823,21 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         });
         const result = parser.parse(xml);
 
-        let apps = result.reply.application ?? [];
-        if (!Array.isArray(apps)) {
-            apps = [apps];
+        const rawApps = result.reply.application ?? [];
+        const apps: unknown[] = Array.isArray(rawApps) ? rawApps : [rawApps];
+        const appList: TApplicationList = [];
+        for (const app of apps) {
+            const parsedApp = applicationSchema.safeParse(app);
+            if (!parsedApp.success) {
+                console.debug('Skipping invalid application entry:', app, parsedApp.error.issues);
+                continue;
+            }
+            appList.push({
+                ...parsedApp.data,
+                appId: ALL_APP_IDS.find((id) => id.toLowerCase() === parsedApp.data.Name.toLowerCase()) ?? null,
+            });
         }
-        const appList = apps.map((app: z.infer<typeof applicationSchema>) => {
-            return {
-                ...app,
-                appId: ALL_APP_IDS.find((id) => id.toLowerCase() === app.Name.toLowerCase()) ?? null,
-            };
-        });
-        return applicationListSchema.parse(appList);
+        return appList;
     }
 
     async startApplication(applicationId: string, options?: THttpRequestOptions) {
