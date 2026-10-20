@@ -47,13 +47,70 @@ const labelOptionsSchema = z.union([
 ]);
 export type TLabelOption = z.infer<typeof labelOptionsSchema>;
 
-const identificationLabelSchema = z.object({
+const aircraftIdentificationLabelSchema = z.object({
     firstRow: labelOptionsSchema,
     secondRow: labelOptionsSchema,
     thirdRow: labelOptionsSchema,
     fourthRow: labelOptionsSchema,
-    opacity: z.number().positive(),
+    opacity: z.number().nonnegative(),
 });
+
+const droneLabelOptionsSchema = z.union([z.literal('blank'), z.literal('remote_id')]);
+export type TDroneLabelOption = z.infer<typeof droneLabelOptionsSchema>;
+
+const droneIdentificationLabelSchema = z.object({
+    firstRow: droneLabelOptionsSchema,
+    opacity: z.number().nonnegative(),
+});
+
+const DEFAULT_DRONE_IDENTIFICATION_LABEL: z.infer<typeof droneIdentificationLabelSchema> = {
+    firstRow: 'remote_id',
+    opacity: 30,
+};
+
+const identificationLabelSchema = z.union([
+    z.object({
+        aircraft: aircraftIdentificationLabelSchema,
+        drone: droneIdentificationLabelSchema.default(DEFAULT_DRONE_IDENTIFICATION_LABEL),
+    }),
+    // Settings saved before drone labels existed hold the aircraft label at the top level
+    aircraftIdentificationLabelSchema.transform((aircraft) => ({
+        aircraft,
+        drone: { ...DEFAULT_DRONE_IDENTIFICATION_LABEL },
+    })),
+]);
+
+const captureConfigSchema = z.object({
+    defaultCaptureSizeMeters: z.number().positive(),
+    captureSizeExtensionMeters: z.number().positive(),
+});
+
+const DEFAULT_CAPTURE_CONFIG: z.infer<typeof captureConfigSchema> = {
+    defaultCaptureSizeMeters: 120,
+    captureSizeExtensionMeters: 80,
+};
+
+const cameraConfigSchema = z.union([
+    z.object({
+        aircraft: captureConfigSchema,
+        drone: captureConfigSchema.default(() => ({ ...DEFAULT_CAPTURE_CONFIG })),
+    }),
+    // Settings saved before the drone capture config existed share one config for all targets
+    z
+        .object({
+            defaultCaptureSizeMeters: z.number().positive().default(DEFAULT_CAPTURE_CONFIG.defaultCaptureSizeMeters),
+            captureSizeExtensionMeters: z
+                .number()
+                .positive()
+                .default(DEFAULT_CAPTURE_CONFIG.captureSizeExtensionMeters),
+        })
+        // keeps an invalid new-shape config from being parsed as legacy and reset to defaults
+        .strict()
+        .transform((captureConfig) => ({
+            aircraft: captureConfig,
+            drone: { ...captureConfig },
+        })),
+]);
 
 export const cameraSettingsSchema = z.object({
     units: z.union([z.literal('metric'), z.literal('imperial')]).default('imperial'),
@@ -92,15 +149,10 @@ export const cameraSettingsSchema = z.object({
             nightSkyCalibrationFocusValue: 9000,
             focusCalibrationPoints: '',
         }),
-    cameraConfig: z
-        .object({
-            defaultCaptureSizeMeters: z.number().positive().default(120),
-            captureSizeExtensionMeters: z.number().positive().default(80),
-        })
-        .default({
-            defaultCaptureSizeMeters: 120,
-            captureSizeExtensionMeters: 80,
-        }),
+    cameraConfig: cameraConfigSchema.default(() => ({
+        aircraft: { ...DEFAULT_CAPTURE_CONFIG },
+        drone: { ...DEFAULT_CAPTURE_CONFIG },
+    })),
     stream: z
         .object({
             width: z.number().positive(),
@@ -211,11 +263,14 @@ export const cameraSettingsSchema = z.object({
             port: 80,
         }),
     identificationLabel: identificationLabelSchema.default({
-        firstRow: 'registration',
-        secondRow: 'blank',
-        thirdRow: 'blank',
-        fourthRow: 'blank',
-        opacity: 30,
+        aircraft: {
+            firstRow: 'icao',
+            secondRow: 'call_sign',
+            thirdRow: 'blank',
+            fourthRow: 'blank',
+            opacity: 30,
+        },
+        drone: DEFAULT_DRONE_IDENTIFICATION_LABEL,
     }),
     acs: connectionSchema
         .extend({

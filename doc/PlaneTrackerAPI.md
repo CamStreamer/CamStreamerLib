@@ -252,8 +252,14 @@ type TCameraSettings = {
         focusCalibrationPoints: string;
     };
     cameraConfig: {
-        defaultCaptureSizeMeters: number;
-        captureSizeExtensionMeters: number;
+        aircraft: {
+            defaultCaptureSizeMeters: number;
+            captureSizeExtensionMeters: number;
+        };
+        drone: {
+            defaultCaptureSizeMeters: number;
+            captureSizeExtensionMeters: number;
+        };
     };
     stream: {
         width: number;
@@ -302,12 +308,20 @@ type TCameraSettings = {
         port: number;
         priority: number;
     };
+    // Legacy settings with the aircraft rows at the top level are still accepted
+    // and parsed as `aircraft`, with the default `drone` label.
     identificationLabel: {
-        firstRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
-        secondRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
-        thirdRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
-        fourthRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
-        opacity: number;
+        aircraft: {
+            firstRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
+            secondRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
+            thirdRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
+            fourthRow: 'icao' | 'blank' | 'registration' | 'call_sign' | 'flight_number';
+            opacity: number;
+        };
+        drone: {
+            firstRow: 'blank' | 'remote_id';
+            opacity: number;
+        };
     };
     acs: {
         enabled: boolean;
