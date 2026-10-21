@@ -641,6 +641,7 @@ type TCameraOptions = {
     bitrateVapixParams: string | null | undefined;
     audioSampleRate: number | undefined;
     audioChannelCount: 1 | 2 | undefined;
+    audioBitrate: number | undefined; // output AAC bitrate in bps, 0 or undefined = 64 kbps per channel
     keyboard:
         | {
               fromSource: Record<string, string | null>;
