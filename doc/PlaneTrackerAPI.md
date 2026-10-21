@@ -288,6 +288,7 @@ type TCameraSettings = {
         posX: number;
         posY: number;
         scale: number;
+        units: 'metric' | 'imperial' | 'rotate';
     };
     airportWidget: {
         enabled: boolean;
@@ -295,6 +296,8 @@ type TCameraSettings = {
         posX: number;
         posY: number;
         scale: number;
+        windSpeedUnits: 'metric' | 'imperial' | 'rotate';
+        temperatureUnits: 'metric' | 'imperial' | 'rotate';
     };
     fr24FlightInfoSource: {
         enabled: boolean;
