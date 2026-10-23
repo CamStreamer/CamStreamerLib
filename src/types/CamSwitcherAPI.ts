@@ -207,6 +207,7 @@ export const cameraOptionsSchema = bitrateVapixParamsSchema
         bitrateVapixParams: z.string().nullable(),
         audioSampleRate: z.number(),
         audioChannelCount: audioChannelCountSchema,
+        audioBitrate: z.number().int().nonnegative(),
         keyboard: z.object({
             fromSource: keyboardShortcutSchema,
             none: keyboardShortcutSchema,
