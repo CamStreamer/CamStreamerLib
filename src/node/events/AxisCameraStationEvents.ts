@@ -1,3 +1,4 @@
+import { ErrorWithResponse } from '../../errors/errors';
 import { HttpOptions } from '../../internal/types';
 import { pad } from '../../internal/utils';
 import { ProxyClient } from '../../internal/ProxyClient';
@@ -39,7 +40,7 @@ export class AxisCameraStationEvents {
         });
 
         if (!res.ok) {
-            throw new Error(`ACS status code: ${res.status}`);
+            throw new ErrorWithResponse(res, `ACS status code: ${res.status}`);
         }
     }
 

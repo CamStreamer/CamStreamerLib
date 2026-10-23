@@ -3,8 +3,8 @@ import { TStream } from '../types/CamStreamerAPI';
 import { TOldStream } from '../types/CamStreamerAPI/oldStreamSchema';
 
 export class ErrorWithResponse<T extends TResponse> extends Error {
-    constructor(public res: T) {
-        super(res.statusText);
+    constructor(public res: T, message?: string) {
+        super(message ?? res.statusText);
         this.name = 'ErrorWithResponse';
     }
 }
