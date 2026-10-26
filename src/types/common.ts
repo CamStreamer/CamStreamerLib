@@ -26,7 +26,7 @@ export type TNetworkCameraList = z.infer<typeof networkCameraListSchema>;
 export type TNetworkCamera = z.infer<typeof networkCameraListSchema>[number];
 
 export const keyboardShortcutSchema = z.string().nullable();
-export const keyboardShortcutsSchema = z.record(keyboardShortcutSchema);
+export const keyboardShortcutsSchema = z.record(z.string(), keyboardShortcutSchema);
 export type TKeyboardShortcut = z.infer<typeof keyboardShortcutSchema>;
 export type TKeyboardShortcuts = z.infer<typeof keyboardShortcutsSchema>;
 

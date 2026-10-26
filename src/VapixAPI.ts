@@ -282,7 +282,7 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         const data = { apiVersion: '1.0', method: 'list' };
         const res = await this._postJsonEncoded('/axis-cgi/customhttpheader.cgi', data, undefined, options);
 
-        return z.object({ data: z.record(z.string()) }).parse(await res.json()).data;
+        return z.object({ data: z.record(z.string(), z.string()) }).parse(await res.json()).data;
     }
 
     async setHeaders(headers: Record<string, string>, options?: THttpRequestOptions) {
