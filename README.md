@@ -52,9 +52,28 @@ npm install camstreamerlib
 
 <details open>
 
-<summary>from version 3.\*.\* to 4.\*.\* (latest)</summary>
+<summary>from version 4.\*.\* to 5.\*.\* (latest)</summary>
 
-### Breaking changes when moving from version 3.\*.\* to 4.\*.\* (latest)
+### Breaking changes when moving from version 4.\*.\* to 5.\*.\* (latest)
+
+<hr/>
+
+### Zod Upgraded to v4
+
+The library now depends on `zod` v4 (`^4.6.7`) instead of v3 (fixes [GHSA-mrhx-c7xc-m3w5](https://github.com/advisories/GHSA-mrhx-c7xc-m3w5)). All exported schemas are zod v4 schemas.
+
+-   If your project uses the exported schemas together with its own `zod` (e.g. `z.array(domainIdSchema)`, `schema.extend(...)`, `z.infer<typeof schema>`, form resolvers), upgrade your `zod` to v4 as well. Mixing zod v3 and v4 schemas does not work.
+-   Object keys declared as `z.unknown()` / `z.any()` are now required in the inferred types (e.g. `TGuardTour` fields, `postJsonBody` in PlaneTracker events).
+-   See the [zod v4 migration guide](https://zod.dev/v4/changelog) for changes in your own schemas.
+
+<hr/>
+</details>
+
+<details>
+
+<summary>from version 3.\*.\* to 4.\*.\*</summary>
+
+### Breaking changes when moving from version 3.\*.\* to 4.\*.\*
 
 <hr/>
 
