@@ -166,8 +166,8 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
             return newStream.data;
         }
 
-        // May or may not have id inside -> passthrough to keep it if present
-        const oldStream = oldStringStreamSchema.passthrough().parse(res.data);
+        // May or may not have id inside -> loose to keep it if present
+        const oldStream = oldStringStreamSchema.loose().parse(res.data);
         throw new MigrationError([], [{ streamId, ...parseCameraStreamResponse(oldStream) }], [], []);
     }
 

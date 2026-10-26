@@ -155,12 +155,12 @@ export type TStorageResponse<T extends TFileType> = T extends 'image' ? TImageSt
 
 export const imageFileSchema = z.object({
     name: z.string(),
-    path: z.string().url(),
+    path: z.url(),
     storage: imageFileStorageTypeSchema,
 });
 export const fontFileSchema = z.object({
     name: z.string(),
-    path: z.string().url(),
+    path: z.url(),
     storage: fontFileStorageTypeSchema,
 });
 export const getFileSchema = (fileType: TFileType) => {
