@@ -19,7 +19,6 @@
         "@camstreamer/eslint-config": "^1.0.10",
         "@camstreamer/prettier-config": "^2.0.4",
         "@eslint/js": "^10.0.1",
-        "@types/adm-zip": "^0.5.5",
         "@types/jest": "^30.0.0",
         "@types/node": "^18.19.127",
         "@types/ws": "^8.5.10",
