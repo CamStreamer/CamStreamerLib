@@ -3,14 +3,14 @@
     "version": "5.0.0",
     "description": "Helper library for CamStreamer ACAP applications.",
     "prettier": "@camstreamer/prettier-config",
-    "engine": {
-        "node": ">=18.0.0"
+    "engines": {
+        "node": ">=18"
     },
     "dependencies": {
         "adm-zip": "^0.6.0",
-        "eventemitter2": "^5.0.1",
+        "eventemitter2": "^6.4.9",
         "fast-xml-parser": "^5.3.6",
-        "type-fest": "^4.41.0",
+        "type-fest": "^5.10.0",
         "undici": "^6.28.1",
         "ws": "^8.18.0",
         "zod": "^4.6.7"
@@ -32,7 +32,7 @@
         "prettier": "^2.7.1",
         "ts-jest": "^29.4.14",
         "ts-node": "^10.7.0",
-        "typescript": "5.3.3",
+        "typescript": "^5.9.3",
         "typescript-eslint": "^8.71.2"
     },
     "overrides": {
