@@ -246,6 +246,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
             audio: {
                 sampleRate: data.audioSampleRate,
                 channelCount: data.audioChannelCount,
+                bitrate: data.audioBitrate,
             },
             keyboard: data.keyboard,
         };
@@ -312,6 +313,7 @@ export class CamSwitcherAPI<Client extends IClient<TResponse, any>> extends Basi
         const settings: TCameraOptions = {
             audioSampleRate: saveData.audio?.sampleRate,
             audioChannelCount: saveData.audio?.channelCount,
+            audioBitrate: saveData.audio?.bitrate,
             keyboard: saveData.keyboard,
             fps: saveData.video.fps,
             resolution: saveData.video.resolution,
