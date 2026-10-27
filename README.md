@@ -67,6 +67,24 @@ The library now depends on `zod` v4 (`^4.6.7`) instead of v3 (fixes [GHSA-mrhx-c
 -   See the [zod v4 migration guide](https://zod.dev/v4/changelog) for changes in your own schemas.
 
 <hr/>
+
+### TypeScript 5.9 or Newer Required
+
+Exported types (e.g. the camelCase/snake_case types in `CamSwitcherAPI` and `VapixAPI`) are built on `type-fest` v5, which requires TypeScript `>=5.9` with `strict: true` in your `tsconfig.json`.
+
+<hr/>
+
+### VapixEvents Upgraded to eventemitter2 v6
+
+`VapixEvents` now extends `EventEmitter2` from `eventemitter2` v6. Its typings are stricter, e.g. `eventNames()` returns `(string | symbol | event[])[]` instead of `string[]`, so code relying on the old types may need to narrow the values.
+
+<hr/>
+
+### Node.js 18 or Newer Required
+
+`package.json` now declares `"engines": { "node": ">=18" }`.
+
+<hr/>
 </details>
 
 <details>
