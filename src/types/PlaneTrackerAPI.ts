@@ -9,7 +9,7 @@ export type TExportDataType = 'NIGHT_SKY_CALIBRATION_DATA' | 'ALL';
 
 export const connectionSchema = z.object({
     protocol: z.union([z.literal('http'), z.literal('https'), z.literal('https_insecure')]),
-    ip: z.union([z.string().ip(), z.literal('')]),
+    ip: z.union([z.ipv4(), z.ipv6(), z.literal('')]),
     port: z.number().positive().lt(65535),
     user: z.string(),
     pass: z.string(),
@@ -120,7 +120,7 @@ export const cameraSettingsSchema = z.object({
     adsbSource: z
         .object({
             enabled: z.boolean().default(true),
-            ip: z.union([z.string().ip(), z.literal('')]),
+            ip: z.union([z.ipv4(), z.ipv6(), z.literal('')]),
             port: z.number().positive().lt(65535),
             useSystemTime: z.boolean().default(false),
         })
@@ -189,7 +189,7 @@ export const cameraSettingsSchema = z.object({
             guardTourEnabled: z.boolean().default(false),
             guardTourId: z.number().int().nonnegative().default(0),
         })
-        .default({ prioritizeEmergency: true, guardTourEnabled: false, guardTourId: 0 }),
+        .default({ prioritizeEmergency: true, trackingZoneWeightIncrease: 0, guardTourEnabled: false, guardTourId: 0 }),
     overlayText: z
         .object({
             displayIcao: z.boolean().optional(),
@@ -265,7 +265,7 @@ export const cameraSettingsSchema = z.object({
         .object({
             enabled: z.boolean().default(false),
             priority: z.number().int().positive().default(2),
-            ip: z.union([z.string().ip(), z.literal('')]).default(''),
+            ip: z.union([z.ipv4(), z.ipv6(), z.literal('')]).default(''),
             port: z.number().positive().lt(65535).default(80),
         })
         .default({
@@ -543,7 +543,7 @@ const domainDescriptorSchema = z.object({
 });
 export type TDomainDescriptor = z.infer<typeof domainDescriptorSchema>;
 
-export const domainListSchema = z.record(domainIdSchema, domainDescriptorSchema);
+export const domainListSchema = z.partialRecord(domainIdSchema, domainDescriptorSchema);
 export type TDomainList = z.infer<typeof domainListSchema>;
 
 // ADS-B categoryId strings. Naming convention: `<SET>_<NAME>` where SET is

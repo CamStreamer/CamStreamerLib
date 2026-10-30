@@ -57,7 +57,7 @@ export class VapixEvents extends EventEmitter {
             const topics = [];
             const eventNames = this.eventNames();
             for (const eventName of eventNames) {
-                if (!this.isReservedEventName(eventName)) {
+                if (typeof eventName === 'string' && !this.isReservedEventName(eventName)) {
                     const topic = {
                         topicFilter: eventName,
                     };

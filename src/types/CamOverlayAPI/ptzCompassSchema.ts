@@ -8,7 +8,7 @@ export const ptzCompassSchema = serviceCommonSchema.extend({
     coordSystem: coordinateSystemSchema,
     scale: z.number().nonnegative(),
     type: z.union([z.literal('compass'), z.literal('map'), z.literal('image')]),
-    image: z.union([z.string().url(), z.literal('')]), // file:///usr/local/packages/camoverlay/localdata/user_images/vodnik-1.png
+    image: z.union([z.url(), z.literal('')]), // file:///usr/local/packages/camoverlay/localdata/user_images/vodnik-1.png
     northPan: z.number(), // Pan in degrees
     cameraPosX: z.number(), // Used only if type is 'map' or 'image'
     cameraPosY: z.number(),

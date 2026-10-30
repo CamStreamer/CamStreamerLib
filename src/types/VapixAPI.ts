@@ -248,7 +248,7 @@ export type TPortSequenceStateSchema = z.infer<typeof portSequenceStateSchema>;
 export const recordingConfigItemSchema = z.object({
     diskid: z.string(),
     eventid: z.string(),
-    options: z.record(z.string()),
+    options: z.record(z.string(), z.string()),
     profile: z.string(),
 });
 export type TRecordingConfigItem = z.infer<typeof recordingConfigItemSchema>;

@@ -107,7 +107,7 @@ export enum EUserActions {
 }
 
 const eventsDataSchema = z.union([
-    z.object({ type: z.literal('CAMERA_POSITION') }).merge(wsCameraPositionDataSchema),
+    z.object({ type: z.literal('CAMERA_POSITION') }).extend(wsCameraPositionDataSchema.shape),
     z.object({
         type: z.literal('TRACKING_START'),
         icao: z.string(),

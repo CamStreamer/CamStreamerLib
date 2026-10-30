@@ -478,7 +478,7 @@ type TDomainDescriptor = {
     categoryList: TCategoryDescriptor[];
 };
 
-type TDomainList = Record<TDomainId, TDomainDescriptor>;
+type TDomainList = Partial<Record<TDomainId, TDomainDescriptor>>;
 ```
 
 ```javascript
