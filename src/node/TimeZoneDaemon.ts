@@ -22,9 +22,8 @@ export class TimeZoneDaemon {
         try {
             const { stdout } = await execPromise('timedatectl show -p Timezone --value');
             const systemTimezone = stdout.toString().trim();
-            const nodeTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-            if (systemTimezone !== nodeTimezone) {
+            if (systemTimezone !== '' && systemTimezone !== process.env.TZ) {
                 process.env.TZ = systemTimezone;
             }
         } catch (error) {
