@@ -249,7 +249,9 @@ await vapix.getMaxFps(10);
 Return the timezone of the camera.
 
 > [!NOTE]
-> There are two enpoints for getting camera timezone - one is depracated - the method tries calling the new one, if it fails it tries the depracated one
+> There are two endpoints for getting camera timezone - one is deprecated - the method tries calling the new one, if it fails it tries the deprecated one.
+> If both endpoints fail (older firmware), it falls back to `param.cgi` and returns the POSIX time zone string from `Time.POSIXTimeZone`.
+> When `Time.DST.Enabled` is `no`, the DST part is stripped from that string (e.g. `EST-10EST,M10.1.0,M4.1.0/3` → `EST-10`), so the returned time zone has a constant offset.
 
 -   **Parameters:**
     -   `options` (`THttpRequestOptions`, optional)

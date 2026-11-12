@@ -1,5 +1,6 @@
 import { IClient, TParameters, TResponse } from './internal/types';
 import { arrayToUrl, isNullish, paramToUrl } from './internal/utils';
+import { stripPosixDst } from './internal/posixTimeZone';
 
 import {
     TGuardTour,
@@ -234,13 +235,14 @@ export class VapixAPI<Client extends IClient<TResponse, any>> extends BasicAPI<C
         } catch (error) {
             // try param.cgi if both api endpoints fail, since some cameras might not have either
             console.warn('Could not retreive timezone from either API endpoints, reading param.cgi');
-            const posixTimezone = (await this.getParameter('Time.POSIXTimeZone', options))['Time.POSIXTimeZone'];
+            const params = await this.getParameter(['Time.POSIXTimeZone', 'Time.DST.Enabled'], options);
+            const posixTimezone = params['Time.POSIXTimeZone'];
 
-            if (posixTimezone !== undefined) {
-                return z.string().parse(posixTimezone);
-            } else {
+            if (posixTimezone === undefined) {
                 throw error;
             }
+            const posix = z.string().parse(posixTimezone);
+            return params['Time.DST.Enabled'] === 'no' ? stripPosixDst(posix) : posix;
         }
     }
 
