@@ -21,6 +21,7 @@ const csEventsDataSchema = z.discriminatedUnion('type', [
         message: z.string(),
         streamId: z.string(),
         code: z.string(),
+        reason: z.string().optional(),
     }),
     z.object({
         type: z.literal('PortChanged'),
