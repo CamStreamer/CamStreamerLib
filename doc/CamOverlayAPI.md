@@ -65,7 +65,7 @@ type TCommonService = {
     height: number; // resolution
     schedule: string | undefined; // widget display time schedule
     invertInput: boolean | undefined;
-    camera: number | undefined; // depracated, could be used in older versions
+    camera: number | undefined; // deprecated, could be used in older versions
     zIndex: number | undefined; // widget layer position, higher number is on top
 };
 ```
