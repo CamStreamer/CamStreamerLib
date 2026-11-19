@@ -136,5 +136,6 @@ Supported event types and their data:
         message: string,
         streamID: string,
         code: string,
+        reason?: string,
     }
     ```
