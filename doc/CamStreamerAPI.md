@@ -362,6 +362,21 @@ Set stream settings/config.
 await csApi.setStream('5874', { ...someData });
 ```
 
+### setStreamActivation(streamId, active, options?)
+
+Start or stop the stream: sets both the enabled and active parameters. The stream streams only when both are set, so prefer this over
+`setStreamEnabled` for start/stop.
+
+-   **Parameters:**
+    -   `streamId` (`string`): Id of the stream.
+    -   `active` (`boolean`): true = start, false = stop.
+    -   `options` (`THttpRequestOptions`, optional)
+-   **Returns:** `Promise<void>`
+
+```javascript
+await csApi.setStreamActivation('5874', true);
+```
+
 ### setStreamEnabled(streamId, enabled, options?)
 
 Update stream enabled parameter.

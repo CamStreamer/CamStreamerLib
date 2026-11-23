@@ -193,6 +193,14 @@ export class CamStreamerAPI<Client extends IClient<TResponse, any>> extends Basi
         return srtStreamStatisticsSchema.parse(res.data);
     }
 
+    async setStreamActivation(streamId: string, active: boolean, options?: THttpRequestOptions) {
+        await this._postUrlEncoded(
+            `${BASE_PATH}/set_stream_activation.cgi`,
+            { stream_id: streamId, active: active ? 1 : 0 },
+            options
+        );
+    }
+
     async setStreamEnabled(streamId: string, enabled: boolean, options?: THttpRequestOptions) {
         await this._postUrlEncoded(
             `${BASE_PATH}/set_stream_enabled.cgi`,
