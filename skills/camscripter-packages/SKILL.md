@@ -1,5 +1,5 @@
 ---
-name: camscripter
+name: camscripter-packages
 description: >
   Build, debug and package CamScripter microapps (also called CamScripter apps, scripts or
   packages): Node.js code that runs inside an Axis camera, or on CamScripter RPi, and is uploaded
